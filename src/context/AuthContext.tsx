@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { type LoginFormValues } from "@/utils/zodSchema";
+// import { authService, type AuthResponse } from "@/services/authService"; ini digunakan ketika ada api
 
 // Sesuaikan dengan Enum di Prisma
 export type Role = "kepala_muhafidz" | "muhafidz";
@@ -49,6 +50,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     localStorage.setItem("user", JSON.stringify(mockUser));
     setIsLoading(false);
   };
+
+  // ketika Backend siap kita akan menggunakan ini:
+
+// const login = async (values: LoginFormValues) => {
+//   setIsLoading(true);
+//   try {
+//     const data = await authService.login(values);
+//     setUser(data.user);
+//     localStorage.setItem("user", JSON.stringify(data));
+//   } catch (error) {
+//     throw error;
+//   } finally {
+//     setIsLoading(false);
+//   }
+// };
 
   const logout = () => {
     setUser(null);

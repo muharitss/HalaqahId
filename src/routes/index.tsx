@@ -1,5 +1,7 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import LoginPage from "@/pages/auth/LoginPage";
+import KepalaMuhafidzPage from "@/pages/kepala-muhafidz"; 
+import MuhafidzPage from "@/pages/muhafidz"; 
 import { useAuth } from "@/context/AuthContext";
 
 // Komponen Pembatas (Hanya yang sudah login yang boleh lewat)
@@ -41,20 +43,12 @@ export const AppRouter = () => {
       {/* Halaman-halaman Dashboard */}
       <Route 
         path="/kepala-muhafidz/*" 
-        element={
-          <ProtectedRoute>
-            <div className="p-10 text-2xl">Selamat Datang Kepala Muhafidz!</div>
-          </ProtectedRoute>
-        } 
+        element={<ProtectedRoute><KepalaMuhafidzPage /></ProtectedRoute>}
       />
       
       <Route 
         path="/muhafidz/*" 
-        element={
-          <ProtectedRoute>
-            <div className="p-10 text-2xl">Selamat Datang Muhafidz!</div>
-          </ProtectedRoute>
-        } 
+        element={<ProtectedRoute><MuhafidzPage /></ProtectedRoute>}
       />
 
       {/* Fallback jika route tidak ditemukan */}
