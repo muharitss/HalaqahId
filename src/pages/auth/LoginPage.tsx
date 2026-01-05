@@ -25,7 +25,7 @@ export default function LoginPage() {
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-white shadow-lg shadow-primary/20">
                 <FontAwesomeIcon icon={faBookOpen} />
               </div>
-              <span className="text-xl font-bold tracking-wide text-white font-display">HalaqahSys</span>
+              <span className="text-xl font-bold tracking-wide text-white font-display">HalaqahId</span>
             </div>
           </div>
 
@@ -55,14 +55,14 @@ export default function LoginPage() {
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-white">
             <FontAwesomeIcon icon={faBookOpen} className="text-lg" />
           </div>
-          <span className="text-xl font-bold dark:text-white font-display">HalaqahSys</span>
+          <span className="text-xl font-bold dark:text-white font-display">HalaqahId</span>
         </div>
 
         <div className="mx-auto w-full max-w-md space-y-8">
           {/* Header Teks */}
           <div className="space-y-2 text-center lg:text-left">
             <h2 className="text-3xl font-bold tracking-tight text-text-primary-light dark:text-text-primary-dark font-display">
-              Assalamu'alaikum, Teacher
+              Assalamu'alaikum, Ahlan Wa Sahlan
             </h2>
             <p className="text-base text-text-secondary-light dark:text-text-secondary-dark">
               Silakan masuk untuk mengakses Dashboard Halaqah Anda.
