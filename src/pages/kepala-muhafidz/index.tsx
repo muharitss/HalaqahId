@@ -1,32 +1,23 @@
-import { useAuth } from "@/context/AuthContext";
-import { Button } from "@/components/ui/button";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faSignOutAlt, faUserShield } from "@fortawesome/free-solid-svg-icons";
-
-export default function KepalaMuhafidzPage() {
-  const { user, logout } = useAuth();
-
+export default function MuhafidzPage() {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-background-light p-6 dark:bg-background-dark">
-      <div className="w-full max-w-md rounded-xl bg-white p-8 shadow-lg dark:bg-surface-dark">
-        <div className="mb-6 text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
-            <FontAwesomeIcon icon={faUserShield} size="2x" />
-          </div>
-          <h1 className="text-2xl font-bold font-display">Dashboard Kepala Musyrif</h1>
-          <p className="text-text-secondary-light dark:text-text-secondary-dark">
-            Selamat datang, {user?.nama || user?.email}
-          </p>
-        </div>
+    <div className="space-y-6">
+      <header className="text-left">
+        <h2 className="text-2xl font-bold dark:text-white">Absensi Hari Ini</h2>
+        <p className="text-text-secondary dark:text-text-secondary-dark text-sm">
+          Silakan tandai kehadiran santri untuk hari ini.
+        </p>
+      </header>
 
-        <Button 
-          onClick={logout}
-          variant="destructive" 
-          className="w-full h-12 gap-2"
-        >
-          <FontAwesomeIcon icon={faSignOutAlt} />
-          Keluar dari Sistem
-        </Button>
+      <div className="rounded-xl border border-border bg-surface p-6 dark:bg-surface-dark shadow-sm min-h-[400px]">
+        {/* Konten tabel absensi akan kita buat di sini */}
+        <div className="flex flex-col items-center justify-center h-full py-20 text-center">
+           <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+              <span className="text-primary text-2xl">📝</span>
+           </div>
+           <p className="text-text-secondary dark:text-text-secondary-dark font-medium">
+             Siap memproses data absensi...
+           </p>
+        </div>
       </div>
     </div>
   );
