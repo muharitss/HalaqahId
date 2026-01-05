@@ -2,10 +2,15 @@ import { LoginForm } from "@/components/forms/LoginForm";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBookOpen } from "@fortawesome/free-solid-svg-icons";
 import loginBg from "@/assets/login-bg.png"; 
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export default function LoginPage() {
   return (
     <div className="flex min-h-screen w-full overflow-hidden bg-background-light dark:bg-background-dark">
+
+      <div className="absolute top-4 right-4 z-50">
+        <ThemeToggle variant="simple"/>
+      </div>
       
       {/* --- Bagian Kiri: Branding & Image (Hanya muncul di Desktop) --- */}
       <div className="relative hidden w-1/2 flex-col justify-between overflow-hidden bg-surface-dark lg:flex">

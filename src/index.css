@@ -1,25 +1,127 @@
 @import "tailwindcss";
+@import "tw-animate-css";
 
+/* Theme Configuration */
 @theme {
+  /* Colors */
   --color-primary: #45cf17;
   --color-primary-dark: #36a312;
-  --color-background-light: #f6f8f6;
+  --color-primary-foreground: #ffffff;
+  
+  --color-background: #f6f8f6;
   --color-background-dark: #152111;
-  --color-surface-light: #ffffff;
+  
+  --color-surface: #ffffff;
   --color-surface-dark: #1e2e19;
-  --color-text-primary-light: #111b0e;
+  
+  --color-foreground: #111b0e;
+  --color-foreground-dark: #f0fdf4;
+  
+  --color-text-primary: #111b0e;
   --color-text-primary-dark: #f0fdf4;
-  --color-text-secondary-light: #60974e;
+  
+  --color-text-secondary: #60974e;
   --color-text-secondary-dark: #a3d9a5;
-
+  
+  --color-muted: #60974e;
+  --color-muted-foreground: #60974e;
+  
+  --color-accent: #d6e7d0;
+  --color-accent-foreground: #111b0e;
+  
+  --color-destructive: #ef4444;
+  --color-destructive-foreground: #ffffff;
+  
+  --color-border: #d6e7d0;
+  --color-border-dark: #2d4425;
+  
+  --color-input: #ffffff;
+  --color-input-dark: #2d4425;
+  
+  --color-ring: #45cf17;
+  
+  /* Border Radius */
+  --radius: 0.625rem;
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  
+  /* Font */
   --font-display: "Lexend", sans-serif;
 }
 
-/* Pastikan Font Lexend sudah di-import di index.html atau di sini */
-@import url('https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&display=swap');
+/* Custom Variant untuk Dark Mode */
+@custom-variant dark (&:is(.dark *));
 
+/* CSS Variables untuk Light Mode */
+:root {
+  --background: var(--color-background);
+  --foreground: var(--color-foreground);
+  --primary: var(--color-primary);
+  --primary-foreground: var(--color-primary-foreground);
+  --secondary: var(--color-text-secondary);
+  --secondary-foreground: var(--color-foreground);
+  --muted: var(--color-muted);
+  --muted-foreground: var(--color-muted-foreground);
+  --accent: var(--color-accent);
+  --accent-foreground: var(--color-accent-foreground);
+  --destructive: var(--color-destructive);
+  --destructive-foreground: var(--color-destructive-foreground);
+  --border: var(--color-border);
+  --input: var(--color-input);
+  --ring: var(--color-ring);
+  --card: var(--color-surface);
+  --card-foreground: var(--color-text-primary);
+  --popover: var(--color-surface);
+  --popover-foreground: var(--color-text-primary);
+}
+
+/* CSS Variables untuk Dark Mode */
+.dark {
+  --background: var(--color-background-dark);
+  --foreground: var(--color-foreground-dark);
+  --primary: var(--color-primary);
+  --primary-foreground: var(--color-primary-foreground);
+  --secondary: var(--color-text-secondary-dark);
+  --secondary-foreground: var(--color-foreground-dark);
+  --muted: var(--color-text-secondary-dark);
+  --muted-foreground: var(--color-text-secondary-dark);
+  --accent: var(--color-surface-dark);
+  --accent-foreground: var(--color-text-primary-dark);
+  --destructive: var(--color-destructive);
+  --destructive-foreground: var(--color-destructive-foreground);
+  --border: var(--color-border-dark);
+  --input: var(--color-input-dark);
+  --ring: var(--color-ring);
+  --card: var(--color-surface-dark);
+  --card-foreground: var(--color-text-primary-dark);
+  --popover: var(--color-surface-dark);
+  --popover-foreground: var(--color-text-primary-dark);
+}
+
+/* Base Styles */
 @layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  
   body {
-    @apply font-display bg-background-light text-text-primary-light dark:bg-background-dark dark:text-text-primary-dark;
+    @apply bg-background text-foreground font-display;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  
+  html {
+    scroll-behavior: smooth;
   }
 }
+
+/* Utility Classes */
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+/* Font Import */
+@import url('https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&display=swap');
