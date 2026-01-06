@@ -8,11 +8,12 @@ import {
   faClipboardCheck, 
   faUserTie,
   faSignOutAlt,
-  faBookOpen
+  faBookOpen,
+  faTimes
 } from "@fortawesome/free-solid-svg-icons";
 import { cn } from "@/lib/utils";
 
-export function Sidebar() {
+export function Sidebar({ onClose }: { onClose?: () => void }) {
   const { user, logout } = useAuth();
   const location = useLocation();
 
@@ -34,11 +35,18 @@ export function Sidebar() {
   return (
     <aside className="flex h-screen w-64 flex-col border-r border-border bg-surface-light dark:bg-surface-dark transition-colors duration-300">
       {/* Logo Section */}
-      <div className="flex h-20 items-center gap-3 px-6">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-white shadow-lg shadow-primary/20">
-          <FontAwesomeIcon icon={faBookOpen} />
+      <div className="flex h-20 items-center justify-between px-6"> 
+        <div className="flex items-center gap-3">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-white shadow-lg shadow-primary/20">
+            <FontAwesomeIcon icon={faBookOpen} />
+          </div>
+          <span className="text-xl font-bold tracking-tight dark:text-white font-display">HalaqahId</span>
         </div>
-        <span className="text-xl font-bold tracking-tight dark:text-white font-display">HalaqahId</span>
+        
+        {/* Tombol Close - Hanya muncul di mobile */}
+        <button onClick={onClose} className="lg:hidden text-text-secondary dark:text-white">
+          <FontAwesomeIcon icon={faTimes} />
+        </button>
       </div>
 
       {/* Navigation */}
@@ -49,6 +57,7 @@ export function Sidebar() {
             <Link
               key={item.name}
               to={item.path}
+              onClick={onClose} // Tutup sidebar setelah klik link di mobile
               className={cn(
                 "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200",
                 isActive 
