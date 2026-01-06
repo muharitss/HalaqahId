@@ -1,5 +1,5 @@
 import { Routes, Route, Navigate } from "react-router-dom";
-import SetoranPage from "./setoran";
+import SetoranPage from "./Setoran";
 import AbsensiPage from "./Absensi"; // Kita akan buat file ini
 
 export default function MuhafidzPage() {
