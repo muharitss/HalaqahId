@@ -20,13 +20,13 @@ interface Absensi {
 }
 
 export default function AbsensiPage() {
-  const [halaqah, setHalaqah] = useState<Halaqah>({
+  const [_halaqah, _setHalaqah] = useState<Halaqah>({
     id: 1,
     nama: "Halaqah A",
     muhafidz: "Ust. Ahmad",
   });
 
-  const [santri, setSantri] = useState<Santri[]>([
+  const [santri, _setSantri] = useState<Santri[]>([
     { id: 1, nama: "Ahmad", halaqahId: 1 },
     { id: 2, nama: "Burhan", halaqahId: 1 },
     { id: 3, nama: "Cahya", halaqahId: 1 },
