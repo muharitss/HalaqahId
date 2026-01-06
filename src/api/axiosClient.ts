@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const axiosClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "https://halaqahid-backend.vercel.app/api/halaqah",
+  baseURL: import.meta.env.VITE_API_URL || "/api-v1/api/halaqah", //|| "https://halaqahid-backend.vercel.app/api/halaqah",
   headers: {
     "Content-Type": "application/json",
   },

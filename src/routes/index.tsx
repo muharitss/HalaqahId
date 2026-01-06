@@ -1,33 +1,29 @@
 import { Routes, Route, Navigate, useLocation, Outlet } from "react-router-dom";
 import LoginPage from "@/pages/auth/LoginPage";
-import KepalaMuhafidzPage from "@/pages/kepala-muhafidz"; 
+import KepalaMuhafidzDashboard from "@/pages/kepala-muhafidz/Dashboard"; // Ganti dengan path yang benar
 import MuhafidzPage from "@/pages/muhafidz"; 
 import { useAuth } from "@/context/AuthContext";
 import DashboardLayout from "@/layouts/DashboardLayout";
-import { useEffect } from "react";
+import { Spinner } from "@/components/ui/spinner";
+// import { useEffect } from "react";
 
 //Memanggil refreshUser (/me) setiap pindah halaman.
 const ProtectedRoute = ({ allowedRoles }: { allowedRoles?: ("superadmin" | "muhafidz")[] }) => {
-  const { user, isLoading, refreshUser } = useAuth();
+  const { user, isLoading } = useAuth();
   const location = useLocation();
 
-  useEffect(() => {
-    // Selalu validasi token ke backend setiap kali pindah URL
-    const checkTokenRealtime = async () => {
-      if (localStorage.getItem("user")) {
-        await refreshUser();
-      }
-    };
-    checkTokenRealtime();
-  }, [location.pathname, refreshUser]);
+  // useEffect(() => {
+  //   // Selalu validasi token ke backend setiap kali pindah URL
+  //   const checkTokenRealtime = async () => {
+  //     if (localStorage.getItem("user")) {
+  //       await refreshUser();
+  //     }
+  //   };
+  //   checkTokenRealtime();
+  // }, [location.pathname, refreshUser]);
 
   if (isLoading) {
-    // Bisa diganti dengan Spinner Component yang lebih bagus
-    return (
-      <div className="flex h-screen w-full items-center justify-center bg-background">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-      </div>
-    );
+    return <Spinner />;
   }
 
   // Jika tidak ada user (atau token habis setelah refreshUser gagal), tendang ke login
@@ -72,7 +68,9 @@ export const AppRouter = () => {
 
           {/* 2. Rute Khusus Superadmin (Kepala Muhafidz) */}
           <Route element={<ProtectedRoute allowedRoles={["superadmin"]} />}>
-            <Route path="/kepala-muhafidz/*" element={<KepalaMuhafidzPage />} />
+            <Route path="/kepala-muhafidz" element={<KepalaMuhafidzDashboard />} />
+            {/* Jika Anda ingin punya sub-routes untuk superadmin */}
+            <Route path="/kepala-muhafidz/*" element={<div>Sub-routes for superadmin</div>} />
           </Route>
 
           {/* 3. Rute Khusus Muhafidz */}

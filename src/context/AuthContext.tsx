@@ -37,6 +37,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
 
     try {
+      if (user) return;
+
       const response = await authService.getCurrentUser();
       // Dokumentasi: API return { success: true, data: { user: {...} } }
       const userData = response.data.user; 
@@ -51,7 +53,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [user]);
 
   // 1. Gabungkan Inisialisasi (Theme & Auth) dalam satu useEffect
   useEffect(() => {
