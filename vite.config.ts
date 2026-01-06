@@ -11,13 +11,13 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-  server: {
-    proxy: {
-      '/api-v1': {
-        target: 'https://halaqahid-backend.vercel.app',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api-v1/, '')
-      }
-    }
-  }
+  // server: {
+  //   proxy: {
+  //     '/api-v1': {
+  //       target: 'https://halaqahid-backend.vercel.app',
+  //       changeOrigin: true,
+  //       rewrite: (path) => path.replace(/^\/api-v1/, '')
+  //     }
+  //   }
+  // }
 })
