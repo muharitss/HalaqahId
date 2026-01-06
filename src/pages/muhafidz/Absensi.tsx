@@ -11,7 +11,7 @@ interface AbsensiRow {
 }
 
 // ===== Page =====
-export default function MuhafidzPage() {
+export default function AbsensiPage() {
   const [rows, setRows] = useState<AbsensiRow[]>([
     // CONTOH SEMENTARA
     { santriId: 1, namaSantri: "Ahmad", status: "hadir" },
