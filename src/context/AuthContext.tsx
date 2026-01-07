@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { type LoginFormValues } from "@/utils/zodSchema";
 import { authService } from "@/services/authService";
 
-export type Role = "superadmin" | "muhafidz";
+export type Role = "superadmin" | "muhafiz";
 
 interface User {
   id_user: number;

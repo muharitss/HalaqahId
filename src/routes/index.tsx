@@ -7,7 +7,7 @@ import DashboardLayout from "@/layouts/DashboardLayout";
 import { Spinner } from "@/components/ui/spinner";
 // import { useEffect } from "react";
 
-const ProtectedRoute = ({ allowedRoles }: { allowedRoles?: ("superadmin" | "muhafidz")[] }) => {
+const ProtectedRoute = ({ allowedRoles }: { allowedRoles?: ("superadmin" | "muhafiz")[] }) => {
   const { user, isLoading } = useAuth();
   const location = useLocation();
 
@@ -73,7 +73,7 @@ export const AppRouter = () => {
           </Route>
 
           {/* 3. Rute Khusus Muhafidz */}
-          <Route element={<ProtectedRoute allowedRoles={["muhafidz"]} />}>
+          <Route element={<ProtectedRoute allowedRoles={["muhafiz"]} />}>
             <Route path="/muhafidz/*" element={<MuhafidzPage />} />
           </Route>
 

@@ -9,7 +9,7 @@ export interface AuthResponse {
     user: {
       id_user: number;
       email: string;
-      role: "superadmin" | "muhafidz";
+      role: "superadmin" | "muhafiz";
       nama?: string;
     };
     token: string;
