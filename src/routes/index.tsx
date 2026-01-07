@@ -5,6 +5,7 @@ import MuhafidzPage from "@/pages/muhafidz";
 import { useAuth } from "@/context/AuthContext";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import { Spinner } from "@/components/ui/spinner";
+import KelolaAkunPage from "@/pages/kepala-muhafidz/KelolaMuhafiz";
 // import { useEffect } from "react";
 
 //Memanggil refreshUser (/me) setiap pindah halaman.
