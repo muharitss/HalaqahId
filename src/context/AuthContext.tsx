@@ -8,7 +8,7 @@ interface User {
   id_user: number;
   email: string;
   role: Role;
-  nama: string;
+  username: string;
   token?: string;
 }
 
@@ -56,26 +56,32 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         return;
       }
 
-      // Ambil data user dari endpoint /auth/me
-      const response = await authService.getCurrentUser();
-      const userData = response.data.user;
-      
-      // Gabungkan dengan token dari localStorage
-      const fullUser: User = {
-        ...userData,
-        token: parsedData.token,
-        nama: userData.nama || "User"
-      };
+      // Coba ambil data user dari endpoint /auth/me
+      try {
+        const response = await authService.getCurrentUser();
+        const userData = response.data.user;
+        
+        // Gabungkan dengan token dari localStorage
+        const fullUser: User = {
+          ...userData,
+          token: parsedData.token,
+          username: userData.username || "User"
+        };
 
-      setUser(fullUser);
-      localStorage.setItem("user", JSON.stringify(fullUser));
+        setUser(fullUser);
+        localStorage.setItem("user", JSON.stringify(fullUser));
+      } catch (error) {
+        console.error("Failed to fetch user from API:", error);
+        // Jika gagal fetch user, tetap set user dari localStorage
+        setUser(parsedData);
+      }
     } catch (error) {
-      console.error("Failed to refresh user:", error);
+      console.error("Failed to parse user data:", error);
       logout();
     } finally {
       setIsLoading(false);
     }
-  }, []); // Hapus dependency [user] agar tidak looping
+  }, []);
 
   const login = async (values: LoginFormValues) => {
     setIsLoading(true);
@@ -85,7 +91,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const userData: User = {
         ...response.data.user,
         token: response.data.token,
-        nama: response.data.user.nama || "User"
+        username: response.data.user.username || "User"
       };
 
       setUser(userData);
@@ -115,11 +121,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  // Initialize theme dan auth secara terpisah
   useEffect(() => {
     initializeTheme();
     refreshUser();
-  }, [refreshUser]);
+  }, []); 
 
   return (
     <AuthContext.Provider value={{ 

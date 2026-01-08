@@ -7,7 +7,7 @@ export default function KepalaMuhafidzPage() {
     <Routes>
       <Route index element={<KepalaMuhafidzDashboard />} />
       {/* Tambahkan sub-routes lain jika diperlukan */}
-      <Route path="musyrif" element={<div>Kelola Musyrif</div>} />
+      <Route path="muhafiz" element={<div>Kelola Muhafiz</div>} />
       <Route path="halaqah" element={<div>Kelola Halaqah</div>} />
       <Route path="laporan" element={<div>Lihat Laporan</div>} />
       <Route path="*" element={<Navigate to="." replace />} />

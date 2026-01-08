@@ -1,10 +1,10 @@
-## 📚 Dokumentasi API Halaqah ID - Update Day 2
+## 📚 Dokumentasi API Halaqah ID - Update Day 3
 
-Berikut adalah dokumentasi teknis fitur **RBAC (Role-Based Access Control)** dan **Manajemen Akun Muhafiz** yang telah aktif.
+Berikut adalah dokumentasi teknis fitur **RBAC (Role-Based Access Control)**, **Username Identity**, dan **Manajemen Akun Muhafiz** yang telah aktif di `main` branch.
 
 ### 🛠️ Ringkasan Sistem
 
-Sistem sekarang menggunakan **JWT Authentication** dengan pembagian role yang ketat. User tidak bisa melakukan registrasi mandiri; semua akun muhafiz dibuat oleh admin.
+Sistem menggunakan **JWT Authentication** dengan pembagian role yang ketat.
 
 * **Base URL:** `https://halaqahid-backend.vercel.app`
 * **Prefix:** `/api/halaqah`
@@ -22,7 +22,7 @@ Setiap request ke endpoint bertanda 🔐 wajib menyertakan header:
 
 #### 1. Login (Public)
 
-Digunakan untuk autentikasi awal dan mendapatkan token.
+Digunakan untuk mendapatkan token. Sekarang mendukung login via **Email**.
 
 * **URL:** `POST /auth/login`
 * **Body:**
@@ -35,55 +35,81 @@ Digunakan untuk autentikasi awal dan mendapatkan token.
 
 ```
 
-* **Success Response:** Menghasilkan token JWT dan info role user.
-
 #### 2. Get Profile (`/me`) 🔐
 
-Mengecek validitas token dan mengambil data user yang sedang login.
+Mendapatkan data user yang sedang login dari token.
 
 * **URL:** `GET /auth/me`
 * **Akses:** Semua Role (Superadmin & Muhafiz)
 
 ---
 
-### 👥 Manajemen User (Admin Only)
+### 👥 Manajemen User (Admin Only 🔐)
 
-#### 1. Register Muhafiz 🔐🔐
+#### 1. Register Muhafiz
 
-Membuatkan akun baru untuk Muhafiz. Hanya bisa dilakukan oleh Superadmin.
+Membuat akun Muhafiz baru dengan identitas **Username**.
 
 * **URL:** `POST /auth/register`
-* **Akses:** **Superadmin Saja**
 * **Body:**
 
 ```json
 {
-  "email": "muhafiz_baru@mail.com",
+  "username": "muhafiz_kece",
+  "email": "muhafiz@mail.com",
   "password": "password123"
 }
 
 ```
 
-* **Security Note:** Password otomatis di-hash. Response hanya akan mengembalikan `id_user`, `email`, dan `role`.
+#### 2. Get All Muhafiz List
+
+Mengambil semua daftar Muhafiz yang aktif (tidak terhapus).
+
+* **URL:** `GET /auth/muhafiz`
+* **Akses:** Superadmin Saja.
+
+#### 3. Update Muhafiz (Partial Update)
+
+Mengubah data Muhafiz (Username/Email) secara spesifik.
+
+* **URL:** `PATCH /auth/muhafiz/:id`
+* **Body (Opsional):**
+
+```json
+{
+  "username": "username_baru"
+}
+
+```
+
+#### 4. Delete Muhafiz (Soft Delete)
+
+Menghapus akun Muhafiz secara halus (data tetap ada di DB tapi tidak muncul di aplikasi).
+
+* **URL:** `DELETE /auth/muhafiz/:id`
 
 ---
 
-### ⚠️ Tabel Response Error (Untuk FE)
+### ⚠️ Tabel Response Error
 
 | HTTP Status | Pesan Error | Penjelasan |
 | --- | --- | --- |
-| **401** | `Akses ditolak, token tidak ada` | Token tidak dikirim atau sudah kedaluwarsa. |
-| **403** | `Akses ditolak: Role muhafiz tidak diizinkan` | User mencoba akses fitur admin (misal: Register). |
-| **400** | `Email sudah terdaftar` | Email yang diinput sudah ada di database. |
+| **401** | `Akses ditolak, token tidak ada` | Token tidak valid atau tidak dikirim. |
+| **403** | `Akses ditolak: Role muhafiz tidak diizinkan` | User login sebagai muhafiz mencoba akses fitur admin. |
+| **400** | `Email sudah terdaftar` | Email sudah ada di database. |
+| **400** | `Username sudah digunakan` | Username sudah dipakai oleh user lain. |
+| **404** | `Muhafiz tidak ditemukan` | ID user tidak ada atau user tersebut bukan role muhafiz. |
 
 ---
 
 ### 💡 Catatan Implementasi Frontend
 
-1. **Role Guard:** Pastikan menu "Tambah Akun" hanya muncul jika `user.role === 'superadmin'`.
-2. **Auto Redirect:** Jika API mengembalikan status **401**, otomatis arahkan user ke halaman `/login`.
-3. **Persistence:** Simpan token di `localStorage` dan gunakan di setiap header request API berikutnya.
+1. **Username Display:** Menampilkan `username` di dashboard sebagai identitas utama.
+2. **PATCH Method:** Gunakan `PATCH` untuk edit profil agar hanya mengirim field yang berubah.
+3. **Soft Delete Handling:** User yang sudah dihapus akan hilang dari list `GET /muhafiz`.
+4. **Validation Error:** Jika dapet status `400` dengan pesan "Username sudah digunakan", beri peringatan pada input username di UI.
 
 ---
 
-**Status:** 🟢 **Production Ready**
+**Status:** 🟢 **Production Ready (Main Branch)**

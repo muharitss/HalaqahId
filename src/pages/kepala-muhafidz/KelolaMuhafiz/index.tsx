@@ -1,26 +1,32 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { akunService, type Muhafiz } from "@/services/akunService";
-import { AkunForm } from "@/components/forms/AkunForm";
+import { BuatAkun } from "./BuatAkun";
+import { DaftarAkun } from "./DaftarAkun";
+import { EditAkun } from "./EditAkun";
+import { DeleteAkun } from "./DeleteAkun";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { 
   faUserTie, 
-  faPlus, 
   faEnvelope,
   faIdCard,
-//   faSpinner
+  faCheck,
+  faXmark
 } from "@fortawesome/free-solid-svg-icons";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Skeleton } from "@/components/ui/skeleton";
 
 export default function KelolaMuhafizPage() {
   const { user } = useAuth();
   const [muhafizList, setMuhafizList] = useState<Muhafiz[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string>("");
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  
+  // State untuk edit dan delete
+  const [editingMuhafiz, setEditingMuhafiz] = useState<Muhafiz | null>(null);
+  const [deletingMuhafiz, setDeletingMuhafiz] = useState<Muhafiz | null>(null);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
   // Load data muhafiz
   useEffect(() => {
@@ -44,8 +50,31 @@ export default function KelolaMuhafizPage() {
   };
 
   const handleRegisterSuccess = () => {
-    setIsDialogOpen(false);
-    loadMuhafiz(); // Refresh list setelah berhasil register
+    setSuccess("Akun muhafidz berhasil dibuat!");
+    loadMuhafiz();
+    setTimeout(() => setSuccess(""), 3000);
+  };
+
+  const handleEditClick = (muhafiz: Muhafiz) => {
+    setEditingMuhafiz(muhafiz);
+    setIsEditOpen(true);
+  };
+
+  const handleEditSuccess = () => {
+    setSuccess("Data muhafidz berhasil diperbarui!");
+    loadMuhafiz();
+    setTimeout(() => setSuccess(""), 3000);
+  };
+
+  const handleDeleteClick = (muhafiz: Muhafiz) => {
+    setDeletingMuhafiz(muhafiz);
+    setIsDeleteOpen(true);
+  };
+
+  const handleDeleteSuccess = () => {
+    setSuccess("Muhafidz berhasil dihapus!");
+    loadMuhafiz();
+    setTimeout(() => setSuccess(""), 3000);
   };
 
   // Cek apakah user adalah superadmin
@@ -72,29 +101,22 @@ export default function KelolaMuhafizPage() {
           </p>
         </div>
 
-        {/* Dialog Trigger Button */}
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-primary hover:bg-primary-dark text-white">
-              <FontAwesomeIcon icon={faPlus} className="mr-2" />
-              Tambah Muhafidz
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <FontAwesomeIcon icon={faUserTie} />
-                Buat Akun Muhafidz Baru
-              </DialogTitle>
-            </DialogHeader>
-            <AkunForm onSuccess={handleRegisterSuccess} />
-          </DialogContent>
-        </Dialog>
+        {/* Tombol Buat Akun */}
+        <BuatAkun onSuccess={handleRegisterSuccess} />
       </div>
+
+      {/* Success Alert */}
+      {success && (
+        <Alert variant="default" className="bg-green-50 border-green-200 text-green-800 dark:bg-green-900/20 dark:border-green-800 dark:text-green-300">
+          <FontAwesomeIcon icon={faCheck} className="mr-2" />
+          <AlertDescription>{success}</AlertDescription>
+        </Alert>
+      )}
 
       {/* Error Alert */}
       {error && (
         <Alert variant="destructive">
+          <FontAwesomeIcon icon={faXmark} className="mr-2" />
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
@@ -140,7 +162,7 @@ export default function KelolaMuhafizPage() {
         </div>
       </div>
 
-      {/* Table Section */}
+      {/* Tabel Daftar Akun */}
       <div className="rounded-xl border border-border bg-card dark:bg-surface-dark shadow-sm overflow-hidden">
         <div className="p-6 border-b border-border dark:border-border-dark">
           <h3 className="font-semibold text-lg dark:text-white">Daftar Muhafidz</h3>
@@ -149,77 +171,31 @@ export default function KelolaMuhafizPage() {
           </p>
         </div>
 
-        {isLoading ? (
-          <div className="p-6 space-y-4">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="flex items-center gap-4">
-                <Skeleton className="h-12 w-12 rounded-full" />
-                <div className="space-y-2 flex-1">
-                  <Skeleton className="h-4 w-1/4" />
-                  <Skeleton className="h-3 w-1/2" />
-                </div>
-                <Skeleton className="h-8 w-20" />
-              </div>
-            ))}
-          </div>
-        ) : muhafizList.length === 0 ? (
-          <div className="p-12 text-center">
-            <FontAwesomeIcon icon={faUserTie} className="text-5xl text-text-secondary-light dark:text-text-secondary-dark mb-4" />
-            <h4 className="font-medium dark:text-white mb-2">Belum ada muhafidz</h4>
-            <p className="text-text-secondary dark:text-text-secondary-dark mb-4">
-              Mulai dengan menambahkan akun muhafidz baru
-            </p>
-            <Button onClick={() => setIsDialogOpen(true)}>
-              <FontAwesomeIcon icon={faPlus} className="mr-2" />
-              Tambah Muhafidz Pertama
-            </Button>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-accent/30 dark:bg-background-dark/50 text-muted-foreground font-medium">
-                <tr>
-                  <th className="px-6 py-4 text-left">ID</th>
-                  <th className="px-6 py-4 text-left">Email</th>
-                  <th className="px-6 py-4 text-left">Nama</th>
-                  <th className="px-6 py-4 text-left">Role</th>
-                  <th className="px-6 py-4 text-left">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border dark:divide-border-dark">
-                {muhafizList.map((muhafiz) => (
-                  <tr key={muhafiz.id_user} className="hover:bg-accent/5 dark:hover:bg-background-dark/30 transition-colors">
-                    <td className="px-6 py-4">
-                      <span className="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-                        #{muhafiz.id_user}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <FontAwesomeIcon icon={faEnvelope} className="text-sm text-text-secondary-light dark:text-text-secondary-dark" />
-                        <span className="font-medium dark:text-white">{muhafiz.email}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 dark:text-text-secondary-dark">
-                      {muhafiz.nama || "Belum diisi"}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="inline-flex items-center rounded-full bg-blue-100 dark:bg-blue-900/30 px-3 py-1 text-xs font-medium text-blue-700 dark:text-blue-300">
-                        {muhafiz.role}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="inline-flex items-center rounded-full bg-green-100 dark:bg-green-900/30 px-3 py-1 text-xs font-medium text-green-700 dark:text-green-300">
-                        Aktif
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+        <DaftarAkun
+          muhafizList={muhafizList}
+          isLoading={isLoading}
+          onEditClick={handleEditClick}
+          onDeleteClick={handleDeleteClick}
+          onRefresh={loadMuhafiz}
+          onCreateClick={handleRegisterSuccess}
+        />
       </div>
+
+      {/* Dialog Edit Akun */}
+      <EditAkun
+        muhafiz={editingMuhafiz}
+        isOpen={isEditOpen}
+        onClose={() => setIsEditOpen(false)}
+        onSuccess={handleEditSuccess}
+      />
+
+      {/* Dialog Konfirmasi Delete */}
+      <DeleteAkun
+        muhafiz={deletingMuhafiz}
+        isOpen={isDeleteOpen}
+        onClose={() => setIsDeleteOpen(false)}
+        onSuccess={handleDeleteSuccess}
+      />
 
       {/* Informasi Tambahan */}
       <div className="rounded-xl border border-border bg-surface p-6 dark:bg-surface-dark shadow-sm">
@@ -244,7 +220,11 @@ export default function KelolaMuhafizPage() {
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-primary">•</span>
-                <span>Rekomendasi password: minimal 8 karakter dengan kombinasi huruf dan angka</span>
+                <span>Edit hanya mengubah username/email, tidak bisa mengubah password</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-primary">•</span>
+                <span>Hapus muhafidz bersifat soft delete (data tidak benar-benar hilang)</span>
               </li>
             </ul>
           </div>

@@ -5,9 +5,10 @@ const axiosClient = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
+  timeout: 10000, 
 });
 
-// 1. REQUEST INTERCEPTOR: Mengirim Token di setiap request
+// REQUEST INTERCEPTOR
 axiosClient.interceptors.request.use((config) => {
   const savedData = localStorage.getItem("user");
   if (savedData) {
@@ -23,18 +24,33 @@ axiosClient.interceptors.request.use((config) => {
   return config;
 });
 
-// 2. RESPONSE INTERCEPTOR: Menangkap kalau token mati (Anti-Jebol)
+// RESPONSE INTERCEPTOR
 axiosClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Cek apakah error 401 DAN bukan berasal dari endpoint login
-    const isLoginRequest = error.config.url.includes('/login');
-
-    if (error.response?.status === 401 && !isLoginRequest) {
-      localStorage.removeItem("user");
-      // Gunakan window.location hanya jika benar-benar perlu logout paksa
-      window.location.href = "/login";
+    const originalRequest = error.config;
+    const isLoginRequest = error.config?.url?.includes('/login');
+    
+    // Handle 401 Unauthorized
+    if (error.response?.status === 401 && !isLoginRequest && !originalRequest._retry) {
+      // Tandai request sudah di-retry
+      originalRequest._retry = true;
+      
+      // Coba refresh token jika ada mekanisme refresh token
+      // Untuk sekarang, cukup logout jika 401
+      if (localStorage.getItem("user")) {
+        localStorage.removeItem("user");
+        window.location.href = "/login";
+      }
     }
+    
+    // Log error untuk debugging
+    console.error("API Error:", {
+      status: error.response?.status,
+      data: error.response?.data,
+      url: error.config?.url,
+      method: error.config?.method
+    });
     
     return Promise.reject(error);
   }

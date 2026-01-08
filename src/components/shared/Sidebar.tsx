@@ -21,7 +21,7 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
   const menuItems = user?.role === "superadmin" 
     ? [
         { name: "Dashboard", path: "/kepala-muhafidz", icon: faChartPie },
-        { name: "Kelola Musyrif", path: "/kepala-muhafidz/musyrif", icon: faUserTie },
+        { name: "Kelola Muhafiz", path: "/kepala-muhafidz/muhafiz", icon: faUserTie },
         { name: "Kelola Halaqah", path: "/kepala-muhafidz/halaqah", icon: faBook },
         { name: "Lihat Laporan", path: "/kepala-muhafidz/laporan", icon: faClipboardCheck },
       ]

@@ -9,8 +9,8 @@ export interface AuthResponse {
     user: {
       id_user: number;
       email: string;
+      username: string;
       role: "superadmin" | "muhafiz";
-      nama?: string;
     };
     token: string;
   };
