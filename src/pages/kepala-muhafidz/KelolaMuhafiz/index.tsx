@@ -181,7 +181,7 @@ export default function KelolaMuhafizPage() {
                 <tr>
                   <th className="px-6 py-4 text-left">ID</th>
                   <th className="px-6 py-4 text-left">Email</th>
-                  <th className="px-6 py-4 text-left">Nama</th>
+                  <th className="px-6 py-4 text-left">Username</th>
                   <th className="px-6 py-4 text-left">Role</th>
                   <th className="px-6 py-4 text-left">Status</th>
                 </tr>
@@ -201,7 +201,7 @@ export default function KelolaMuhafizPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4 dark:text-text-secondary-dark">
-                      {muhafiz.nama || "Belum diisi"}
+                      {muhafiz.username || "Belum diisi"}
                     </td>
                     <td className="px-6 py-4">
                       <span className="inline-flex items-center rounded-full bg-blue-100 dark:bg-blue-900/30 px-3 py-1 text-xs font-medium text-blue-700 dark:text-blue-300">
