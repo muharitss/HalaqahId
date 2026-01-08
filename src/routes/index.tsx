@@ -1,47 +1,49 @@
-import { Routes, Route, Navigate, useLocation, Outlet } from "react-router-dom";
+// FILE: ./routes/index.tsx
+import { Routes, Route, Navigate, Outlet } from "react-router-dom";
 import LoginPage from "@/pages/auth/LoginPage";
-import KepalaMuhafidzDashboard from "@/pages/kepala-muhafidz/Dashboard"; // Ganti dengan path yang benar
+import KepalaMuhafidzDashboard from "@/pages/kepala-muhafidz/Dashboard";
 import MuhafidzPage from "@/pages/muhafidz"; 
 import { useAuth } from "@/context/AuthContext";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import { Spinner } from "@/components/ui/spinner";
 import KelolaMuhafizPage from "@/pages/kepala-muhafidz/KelolaMuhafiz";
 
-// import { useEffect } from "react";
-
 const ProtectedRoute = ({ allowedRoles }: { allowedRoles?: ("superadmin" | "muhafiz")[] }) => {
   const { user, isLoading } = useAuth();
-  const location = useLocation();
-
-  // useEffect(() => {
-  //   // Selalu validasi token ke backend setiap kali pindah URL
-  //   const checkTokenRealtime = async () => {
-  //     if (localStorage.getItem("user")) {
-  //       await refreshUser();
-  //     }
-  //   };
-  //   checkTokenRealtime();
-  // }, [location.pathname, refreshUser]);
 
   if (isLoading) {
-    return <Spinner />;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Spinner className="w-8 h-8" />
+      </div>
+    );
   }
 
-  // Jika tidak ada user (atau token habis setelah refreshUser gagal), tendang ke login
+  // Jika tidak ada user (atau token habis), tendang ke login
   if (!user) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    return <Navigate to="/login" replace />;
   }
 
-  // Jika role tidak diizinkan, kembalikan ke root (yang nanti akan me-redirect ke dashboard masing-masing)
+  // Jika role tidak diizinkan, kembalikan ke dashboard sesuai role
   if (allowedRoles && !allowedRoles.includes(user.role)) {
-    return <Navigate to="/" replace />; 
+    return user.role === "superadmin" 
+      ? <Navigate to="/kepala-muhafidz" replace />
+      : <Navigate to="/muhafidz" replace />;
   }
 
   return <Outlet />;
 };
 
 export const AppRouter = () => {
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Spinner className="w-8 h-8" />
+      </div>
+    );
+  }
 
   return (
     <Routes>
@@ -55,9 +57,9 @@ export const AppRouter = () => {
       <Route element={<ProtectedRoute />}>
         <Route element={<DashboardLayout />}>
           
-          {/* 1. Entry Point: Redirect berdasarkan role */}
+          {/* Redirect berdasarkan role */}
           <Route
-            path="/"
+            index
             element={
               user?.role === "superadmin" ? (
                 <Navigate to="/kepala-muhafidz" replace />
@@ -67,15 +69,15 @@ export const AppRouter = () => {
             }
           />
 
-          {/* 2. Rute Khusus Superadmin (Kepala Muhafidz) */}
+          {/* Rute Khusus Superadmin (Kepala Muhafidz) */}
           <Route element={<ProtectedRoute allowedRoles={["superadmin"]} />}>
             <Route path="/kepala-muhafidz" element={<KepalaMuhafidzDashboard />} />
-            <Route path="/kepala-muhafidz/musyrif" element={<KelolaMuhafizPage />} />
-            {/* Jika Anda ingin punya sub-routes untuk superadmin */}
+            <Route path="/kepala-muhafidz/muhafiz" element={<KelolaMuhafizPage />} />
+            {/* Tambahkan route superadmin lainnya di sini */}
             <Route path="/kepala-muhafidz/*" element={<div>Sub-routes for superadmin</div>} />
           </Route>
 
-          {/* 3. Rute Khusus Muhafidz */}
+          {/* Rute Khusus Muhafidz */}
           <Route element={<ProtectedRoute allowedRoles={["muhafiz"]} />}>
             <Route path="/muhafidz/*" element={<MuhafidzPage />} />
           </Route>
