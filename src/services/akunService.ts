@@ -3,12 +3,14 @@ import axiosClient from "@/api/axiosClient";
 export interface Muhafiz {
   id_user: number;
   email: string;
+  username: string;
   role: "muhafiz";
   nama?: string;
 }
 
 export interface RegisterData {
   email: string;
+  username: string;
   password: string;
 }
 

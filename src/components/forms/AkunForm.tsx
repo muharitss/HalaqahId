@@ -43,6 +43,7 @@ export function AkunForm({ onSuccess }: AkunFormProps) {
     resolver: zodResolver(registerSchema),
     defaultValues: {
       email: "",
+      username: "",
       password: "",
       confirmPassword: "",
     },
@@ -57,6 +58,7 @@ export function AkunForm({ onSuccess }: AkunFormProps) {
       // Kirim data ke backend (hanya email dan password sesuai dokumentasi)
       const response = await akunService.registerMuhafiz({
         email: values.email,
+        username: values.username,
         password: values.password
       });
 
@@ -126,6 +128,29 @@ export function AkunForm({ onSuccess }: AkunFormProps) {
                       className="h-12 pl-10 border-[#d6e7d0] dark:border-gray-600 bg-background-light dark:bg-surface-dark focus:ring-2 focus:ring-primary transition-all"
                     />
                   </div>
+                </FormControl>
+                <FormMessage className="text-xs" />
+              </FormItem>
+            )}
+          />
+
+          {/* Username Field */}
+          <FormField
+            control={form.control}
+            name="username"
+            render={({ field }) => (
+              <FormItem className="space-y-2">
+                <FormLabel className="text-sm font-medium dark:text-white">
+                  Username
+                </FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    type="text"
+                    placeholder="Username"
+                    disabled={isLoading}
+                    className="h-12 border-[#d6e7d0] dark:border-gray-600 bg-background-light dark:bg-surface-dark focus:ring-2 focus:ring-primary transition-all"
+                  />
                 </FormControl>
                 <FormMessage className="text-xs" />
               </FormItem>

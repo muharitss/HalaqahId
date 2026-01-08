@@ -17,6 +17,7 @@ export const setoranSchema = z.object({
 
 export const registerSchema = z.object({
   email: z.string().email("Format email tidak valid"),
+  username: z.string().min(3, "Username minimal 3 karakter"),
   password: z.string().min(8, "Password minimal 8 karakter"),
   confirmPassword: z.string()
 }).refine((data) => data.password === data.confirmPassword, {
