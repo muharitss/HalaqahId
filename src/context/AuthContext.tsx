@@ -8,7 +8,7 @@ interface User {
   id_user: number;
   email: string;
   role: Role;
-  nama: string;
+  username: string;
   token?: string;
 }
 
@@ -64,7 +64,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const fullUser: User = {
         ...userData,
         token: parsedData.token,
-        nama: userData.nama || "User"
+        username: userData.username || "User"
       };
 
       setUser(fullUser);
@@ -85,7 +85,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const userData: User = {
         ...response.data.user,
         token: response.data.token,
-        nama: response.data.user.nama || "User"
+        username: response.data.user.username || "User"
       };
 
       setUser(userData);

@@ -23,7 +23,7 @@ export interface ApiResponse<T> {
 export const akunService = {
   // Mendapatkan daftar semua muhafidz
   getAllMuhafiz: async (): Promise<ApiResponse<Muhafiz[]>> => {
-    const response = await axiosClient.get<ApiResponse<Muhafiz[]>>("/muhafiz");
+    const response = await axiosClient.get<ApiResponse<Muhafiz[]>>("auth/muhafiz");
     return response.data;
   },
 

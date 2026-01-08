@@ -54,14 +54,14 @@ export default function DashboardLayout() {
 
             <div className="flex flex-col text-left">
               <h1 className="text-sm font-semibold dark:text-white leading-tight">Selamat Datang,</h1>
-              <p className="text-xs text-text-secondary dark:text-text-secondary-dark">{user?.nama}</p>
+              <p className="text-xs text-text-secondary dark:text-text-secondary-dark">{user?.username}</p>
             </div>
           </div>
 
           <div className="flex items-center gap-4">
             <ThemeToggle variant="simple" />
             <div className="h-8 w-8 rounded-full bg-primary/20 border border-primary/50 flex items-center justify-center text-primary font-bold text-xs uppercase">
-              {user?.nama?.substring(0, 2)}
+              {user?.username?.substring(0, 2)}
             </div>
           </div>
         </header>
