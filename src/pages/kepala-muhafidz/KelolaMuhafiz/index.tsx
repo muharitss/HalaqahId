@@ -180,8 +180,8 @@ export default function KelolaMuhafizPage() {
               <thead className="bg-accent/30 dark:bg-background-dark/50 text-muted-foreground font-medium">
                 <tr>
                   <th className="px-6 py-4 text-left">ID</th>
-                  <th className="px-6 py-4 text-left">Email</th>
                   <th className="px-6 py-4 text-left">Username</th>
+                  <th className="px-6 py-4 text-left">Email</th>
                   <th className="px-6 py-4 text-left">Role</th>
                   <th className="px-6 py-4 text-left">Status</th>
                 </tr>
@@ -194,14 +194,14 @@ export default function KelolaMuhafizPage() {
                         #{muhafiz.id_user}
                       </span>
                     </td>
+                    <td className="px-6 py-4 dark:text-text-secondary-dark">
+                      {muhafiz.username || "Belum diisi"}
+                    </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
                         <FontAwesomeIcon icon={faEnvelope} className="text-sm text-text-secondary-light dark:text-text-secondary-dark" />
                         <span className="font-medium dark:text-white">{muhafiz.email}</span>
                       </div>
-                    </td>
-                    <td className="px-6 py-4 dark:text-text-secondary-dark">
-                      {muhafiz.username || "Belum diisi"}
                     </td>
                     <td className="px-6 py-4">
                       <span className="inline-flex items-center rounded-full bg-blue-100 dark:bg-blue-900/30 px-3 py-1 text-xs font-medium text-blue-700 dark:text-blue-300">
