@@ -74,7 +74,7 @@ export const AppRouter = () => {
           <Route element={<ProtectedRoute allowedRoles={["superadmin"]} />}>
             <Route path="/kepala-muhafidz" element={<KepalaMuhafidzDashboard />} />
             <Route path="/kepala-muhafidz/muhafiz" element={<KelolaMuhafizPage />} />
-            {/* <Route path="/kepala-muhafidz/halaqah" element={<KelolaHalaqahPage />} /> */}
+            <Route path="/kepala-muhafidz/halaqah" element={<KelolaHalaqahPage />} />
             {/* Tambahkan route superadmin lainnya di sini */}
             <Route path="/kepala-muhafidz/*" element={<div>Sub-routes for superadmin</div>} />
           </Route>
