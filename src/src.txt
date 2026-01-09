@@ -1119,56 +1119,6 @@ export {
 }
 
 
---- FILE: ./components/ui/input.tsx ---
-
-import * as React from "react"
-
-import { cn } from "@/lib/utils"
-
-function Input({ className, type, ...props }: React.ComponentProps<"input">) {
-  return (
-    <input
-      type={type}
-      data-slot="input"
-      className={cn(
-        `
-        h-9 w-full min-w-0 rounded-md border
-        bg-[var(--input)]
-        text-[var(--foreground)]
-        border-[var(--border)]
-        px-3 py-1 text-base shadow-xs
-        transition-[color,box-shadow]
-        outline-none
-
-        placeholder:text-[var(--muted)]
-        selection:bg-primary
-        selection:text-primary-foreground
-
-        focus-visible:border-ring
-        focus-visible:ring-ring/50
-        focus-visible:ring-[3px]
-
-        disabled:pointer-events-none
-        disabled:cursor-not-allowed
-        disabled:opacity-50
-
-        file:inline-flex
-        file:h-7
-        file:border-0
-        file:bg-transparent
-        file:text-sm
-        file:font-medium
-        `,
-        className
-      )}
-      {...props}
-    />
-  )
-}
-
-export { Input }
-
-
 --- FILE: ./components/ui/select.tsx ---
 
 import * as React from "react"
@@ -1588,6 +1538,315 @@ export { Tabs, TabsList, TabsTrigger, TabsContent }
 
 
 
+--- FILE: ./components/ui/dropdown-menu.tsx ---
+
+import * as React from "react"
+import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu"
+import { CheckIcon, ChevronRightIcon, CircleIcon } from "lucide-react"
+
+import { cn } from "@/lib/utils"
+
+function DropdownMenu({
+  ...props
+}: React.ComponentProps<typeof DropdownMenuPrimitive.Root>) {
+  return <DropdownMenuPrimitive.Root data-slot="dropdown-menu" {...props} />
+}
+
+function DropdownMenuPortal({
+  ...props
+}: React.ComponentProps<typeof DropdownMenuPrimitive.Portal>) {
+  return (
+    <DropdownMenuPrimitive.Portal data-slot="dropdown-menu-portal" {...props} />
+  )
+}
+
+function DropdownMenuTrigger({
+  ...props
+}: React.ComponentProps<typeof DropdownMenuPrimitive.Trigger>) {
+  return (
+    <DropdownMenuPrimitive.Trigger
+      data-slot="dropdown-menu-trigger"
+      {...props}
+    />
+  )
+}
+
+function DropdownMenuContent({
+  className,
+  sideOffset = 4,
+  ...props
+}: React.ComponentProps<typeof DropdownMenuPrimitive.Content>) {
+  return (
+    <DropdownMenuPrimitive.Portal>
+      <DropdownMenuPrimitive.Content
+        data-slot="dropdown-menu-content"
+        sideOffset={sideOffset}
+        className={cn(
+          "bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 max-h-(--radix-dropdown-menu-content-available-height) min-w-[8rem] origin-(--radix-dropdown-menu-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-md border p-1 shadow-md",
+          className
+        )}
+        {...props}
+      />
+    </DropdownMenuPrimitive.Portal>
+  )
+}
+
+function DropdownMenuGroup({
+  ...props
+}: React.ComponentProps<typeof DropdownMenuPrimitive.Group>) {
+  return (
+    <DropdownMenuPrimitive.Group data-slot="dropdown-menu-group" {...props} />
+  )
+}
+
+function DropdownMenuItem({
+  className,
+  inset,
+  variant = "default",
+  ...props
+}: React.ComponentProps<typeof DropdownMenuPrimitive.Item> & {
+  inset?: boolean
+  variant?: "default" | "destructive"
+}) {
+  return (
+    <DropdownMenuPrimitive.Item
+      data-slot="dropdown-menu-item"
+      data-inset={inset}
+      data-variant={variant}
+      className={cn(
+        "focus:bg-accent focus:text-accent-foreground data-[variant=destructive]:text-destructive data-[variant=destructive]:focus:bg-destructive/10 dark:data-[variant=destructive]:focus:bg-destructive/20 data-[variant=destructive]:focus:text-destructive data-[variant=destructive]:*:[svg]:!text-destructive [&_svg:not([class*='text-'])]:text-muted-foreground relative flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[inset]:pl-8 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+function DropdownMenuCheckboxItem({
+  className,
+  children,
+  checked,
+  ...props
+}: React.ComponentProps<typeof DropdownMenuPrimitive.CheckboxItem>) {
+  return (
+    <DropdownMenuPrimitive.CheckboxItem
+      data-slot="dropdown-menu-checkbox-item"
+      className={cn(
+        "focus:bg-accent focus:text-accent-foreground relative flex cursor-default items-center gap-2 rounded-sm py-1.5 pr-2 pl-8 text-sm outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        className
+      )}
+      checked={checked}
+      {...props}
+    >
+      <span className="pointer-events-none absolute left-2 flex size-3.5 items-center justify-center">
+        <DropdownMenuPrimitive.ItemIndicator>
+          <CheckIcon className="size-4" />
+        </DropdownMenuPrimitive.ItemIndicator>
+      </span>
+      {children}
+    </DropdownMenuPrimitive.CheckboxItem>
+  )
+}
+
+function DropdownMenuRadioGroup({
+  ...props
+}: React.ComponentProps<typeof DropdownMenuPrimitive.RadioGroup>) {
+  return (
+    <DropdownMenuPrimitive.RadioGroup
+      data-slot="dropdown-menu-radio-group"
+      {...props}
+    />
+  )
+}
+
+function DropdownMenuRadioItem({
+  className,
+  children,
+  ...props
+}: React.ComponentProps<typeof DropdownMenuPrimitive.RadioItem>) {
+  return (
+    <DropdownMenuPrimitive.RadioItem
+      data-slot="dropdown-menu-radio-item"
+      className={cn(
+        "focus:bg-accent focus:text-accent-foreground relative flex cursor-default items-center gap-2 rounded-sm py-1.5 pr-2 pl-8 text-sm outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        className
+      )}
+      {...props}
+    >
+      <span className="pointer-events-none absolute left-2 flex size-3.5 items-center justify-center">
+        <DropdownMenuPrimitive.ItemIndicator>
+          <CircleIcon className="size-2 fill-current" />
+        </DropdownMenuPrimitive.ItemIndicator>
+      </span>
+      {children}
+    </DropdownMenuPrimitive.RadioItem>
+  )
+}
+
+function DropdownMenuLabel({
+  className,
+  inset,
+  ...props
+}: React.ComponentProps<typeof DropdownMenuPrimitive.Label> & {
+  inset?: boolean
+}) {
+  return (
+    <DropdownMenuPrimitive.Label
+      data-slot="dropdown-menu-label"
+      data-inset={inset}
+      className={cn(
+        "px-2 py-1.5 text-sm font-medium data-[inset]:pl-8",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+function DropdownMenuSeparator({
+  className,
+  ...props
+}: React.ComponentProps<typeof DropdownMenuPrimitive.Separator>) {
+  return (
+    <DropdownMenuPrimitive.Separator
+      data-slot="dropdown-menu-separator"
+      className={cn("bg-border -mx-1 my-1 h-px", className)}
+      {...props}
+    />
+  )
+}
+
+function DropdownMenuShortcut({
+  className,
+  ...props
+}: React.ComponentProps<"span">) {
+  return (
+    <span
+      data-slot="dropdown-menu-shortcut"
+      className={cn(
+        "text-muted-foreground ml-auto text-xs tracking-widest",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+function DropdownMenuSub({
+  ...props
+}: React.ComponentProps<typeof DropdownMenuPrimitive.Sub>) {
+  return <DropdownMenuPrimitive.Sub data-slot="dropdown-menu-sub" {...props} />
+}
+
+function DropdownMenuSubTrigger({
+  className,
+  inset,
+  children,
+  ...props
+}: React.ComponentProps<typeof DropdownMenuPrimitive.SubTrigger> & {
+  inset?: boolean
+}) {
+  return (
+    <DropdownMenuPrimitive.SubTrigger
+      data-slot="dropdown-menu-sub-trigger"
+      data-inset={inset}
+      className={cn(
+        "focus:bg-accent focus:text-accent-foreground data-[state=open]:bg-accent data-[state=open]:text-accent-foreground [&_svg:not([class*='text-'])]:text-muted-foreground flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden select-none data-[inset]:pl-8 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        className
+      )}
+      {...props}
+    >
+      {children}
+      <ChevronRightIcon className="ml-auto size-4" />
+    </DropdownMenuPrimitive.SubTrigger>
+  )
+}
+
+function DropdownMenuSubContent({
+  className,
+  ...props
+}: React.ComponentProps<typeof DropdownMenuPrimitive.SubContent>) {
+  return (
+    <DropdownMenuPrimitive.SubContent
+      data-slot="dropdown-menu-sub-content"
+      className={cn(
+        "bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 min-w-[8rem] origin-(--radix-dropdown-menu-content-transform-origin) overflow-hidden rounded-md border p-1 shadow-lg",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+export {
+  DropdownMenu,
+  DropdownMenuPortal,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuLabel,
+  DropdownMenuItem,
+  DropdownMenuCheckboxItem,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuShortcut,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
+}
+
+
+--- FILE: ./components/ui/input.tsx ---
+
+import * as React from "react"
+
+import { cn } from "@/lib/utils"
+
+function Input({ className, type, ...props }: React.ComponentProps<"input">) {
+  return (
+    <input
+      type={type}
+      data-slot="input"
+      className={cn(
+        `
+        h-9 w-full min-w-0 rounded-md border
+        bg-[var(--input)]
+        text-[var(--foreground)]
+        border-[var(--border)]
+        px-3 py-1 text-base shadow-xs
+        transition-[color,box-shadow]
+        outline-none
+
+        placeholder:text-[var(--muted)]
+        selection:bg-primary
+        selection:text-primary-foreground
+
+        focus-visible:border-ring
+        focus-visible:ring-ring/50
+        focus-visible:ring-[3px]
+
+        disabled:pointer-events-none
+        disabled:cursor-not-allowed
+        disabled:opacity-50
+
+        file:inline-flex
+        file:h-7
+        file:border-0
+        file:bg-transparent
+        file:text-sm
+        file:font-medium
+        `,
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+export { Input }
+
+
 --- FILE: ./components/ThemeToggle.tsx ---
 
 import { useAuth } from "@/context/AuthContext";
@@ -1849,41 +2108,495 @@ export default function LoginPage() {
 
 --- FILE: ./pages/kepala-muhafidz/KelolaMuhafiz/BuatAkun.tsx ---
 
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { AkunForm } from "@/components/forms/AkunForm";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faUserTie, faPlus } from "@fortawesome/free-solid-svg-icons";
 
+interface BuatAkunProps {
+  onSuccess: () => void;
+}
+
+export function BuatAkun({ onSuccess }: BuatAkunProps) {
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button className="bg-primary hover:bg-primary-dark text-white">
+          <FontAwesomeIcon icon={faPlus} className="mr-2" />
+          Tambah Muhafidz
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <FontAwesomeIcon icon={faUserTie} />
+            Buat Akun Muhafidz Baru
+          </DialogTitle>
+        </DialogHeader>
+        <AkunForm onSuccess={onSuccess} />
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 --- FILE: ./pages/kepala-muhafidz/KelolaMuhafiz/DaftarAkun.tsx ---
 
+import { type Muhafiz } from "@/services/akunService";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { 
+  faUserTie, 
+  faEnvelope,
+  faEdit,
+  faTrash,
+  faPlus
+} from "@fortawesome/free-solid-svg-icons";
+import { MoreHorizontalIcon } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
+interface DaftarAkunProps {
+  muhafizList: Muhafiz[];
+  isLoading: boolean;
+  onEditClick: (muhafiz: Muhafiz) => void;
+  onDeleteClick: (muhafiz: Muhafiz) => void;
+  onRefresh: () => void;
+  onCreateClick: () => void;
+}
+
+export function DaftarAkun({ 
+  muhafizList, 
+  isLoading, 
+  onEditClick, 
+  onDeleteClick, 
+  onCreateClick
+}: DaftarAkunProps) {
+  
+  if (isLoading) {
+    return (
+      <div className="p-6 space-y-4">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="flex items-center gap-4">
+            <Skeleton className="h-12 w-12 rounded-full" />
+            <div className="space-y-2 flex-1">
+              <Skeleton className="h-4 w-1/4" />
+              <Skeleton className="h-3 w-1/2" />
+            </div>
+            <Skeleton className="h-8 w-20" />
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (muhafizList.length === 0) {
+    return (
+      <div className="p-12 text-center">
+        <FontAwesomeIcon icon={faUserTie} className="text-5xl text-text-secondary-light dark:text-text-secondary-dark mb-4" />
+        <h4 className="font-medium dark:text-white mb-2">Belum ada muhafidz</h4>
+        <p className="text-text-secondary dark:text-text-secondary-dark mb-4">
+          Mulai dengan menambahkan akun muhafidz baru
+        </p>
+        <Button onClick={onCreateClick}>
+          <FontAwesomeIcon icon={faPlus} className="mr-2" />
+          Tambah Muhafidz Pertama
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full">
+        <thead className="bg-accent/30 dark:bg-background-dark/50 text-muted-foreground font-medium">
+          <tr>
+            <th className="px-6 py-4 text-left">ID</th>
+            <th className="px-6 py-4 text-left">Username</th>
+            <th className="px-6 py-4 text-left">Email</th>
+            <th className="px-6 py-4 text-left">Role</th>
+            <th className="px-6 py-4 text-left">Status</th>
+            <th className="px-6 py-4 text-left">Aksi</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-border dark:divide-border-dark">
+          {muhafizList.map((muhafiz) => (
+            <tr key={muhafiz.id_user} className="hover:bg-accent/5 dark:hover:bg-background-dark/30 transition-colors">
+              <td className="px-6 py-4">
+                <span className="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+                  #{muhafiz.id_user}
+                </span>
+              </td>
+              <td className="px-6 py-4 dark:text-text-secondary-dark">
+                {muhafiz.username || "Belum diisi"}
+              </td>
+              <td className="px-6 py-4">
+                <div className="flex items-center gap-2">
+                  <FontAwesomeIcon icon={faEnvelope} className="text-sm text-text-secondary-light dark:text-text-secondary-dark" />
+                  <span className="font-medium dark:text-white">{muhafiz.email}</span>
+                </div>
+              </td>
+              <td className="px-6 py-4">
+                <span className="inline-flex items-center rounded-full bg-blue-100 dark:bg-blue-900/30 px-3 py-1 text-xs font-medium text-blue-700 dark:text-blue-300">
+                  {muhafiz.role}
+                </span>
+              </td>
+              <td className="px-6 py-4">
+                <span className="inline-flex items-center rounded-full bg-green-100 dark:bg-green-900/30 px-3 py-1 text-xs font-medium text-green-700 dark:text-green-300">
+                  Aktif
+                </span>
+              </td>
+              <td className="px-6 py-4">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <MoreHorizontalIcon className="h-4 w-4" />
+                        </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-40">
+                        <DropdownMenuLabel>Aksi</DropdownMenuLabel>
+                        <DropdownMenuGroup>
+                            <DropdownMenuItem onClick={() => onEditClick(muhafiz)}>
+                            <FontAwesomeIcon icon={faEdit} className="mr-2 h-3 w-3" />
+                            <span>Edit</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                            onClick={() => onDeleteClick(muhafiz)}
+                            className="text-destructive focus:text-destructive"
+                            >
+                            <FontAwesomeIcon icon={faTrash} className="mr-2 h-3 w-3" />
+                            <span>Hapus</span>
+                            </DropdownMenuItem>
+                        </DropdownMenuGroup>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+--- FILE: ./pages/kepala-muhafidz/KelolaMuhafiz/DeleteAkun.tsx ---
+
+import { useState } from "react";
+import { akunService, type Muhafiz } from "@/services/akunService";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faTrash, faXmark } from "@fortawesome/free-solid-svg-icons";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+
+interface DeleteConfirmationProps {
+  muhafiz: Muhafiz | null;
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
+}
+
+export function DeleteAkun({ muhafiz, isOpen, onClose, onSuccess }: DeleteConfirmationProps) {
+  const [confirmText, setConfirmText] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleDelete = async () => {
+    if (!muhafiz || confirmText !== "hapus") return;
+
+    setIsLoading(true);
+    setError("");
+
+    try {
+      const response = await akunService.deleteMuhafiz(muhafiz.id_user);
+      
+      if (response.success) {
+        onSuccess();
+        handleClose();
+      }
+    } catch (err: any) {
+      const message = err.response?.data?.message || "Gagal menghapus muhafidz";
+      setError(message);
+      console.error("Delete error:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleClose = () => {
+    setConfirmText("");
+    setError("");
+    onClose();
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={handleClose}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 text-destructive">
+            <FontAwesomeIcon icon={faTrash} />
+            Hapus Muhafidz?
+          </DialogTitle>
+          <DialogDescription>
+            <div className="space-y-3">
+              <p>Apakah Anda yakin ingin menghapus muhafidz ini?</p>
+              <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3">
+                <p className="font-semibold text-destructive">{muhafiz?.username}</p>
+                <p className="text-sm text-destructive/80">{muhafiz?.email}</p>
+                <p className="text-xs mt-2">ID: #{muhafiz?.id_user}</p>
+              </div>
+              <p className="text-sm text-destructive">
+                <strong>PERINGATAN:</strong> Tindakan ini tidak dapat dibatalkan.
+              </p>
+            </div>
+          </DialogDescription>
+        </DialogHeader>
+
+        {/* Error Alert */}
+        {error && (
+          <Alert variant="destructive">
+            <FontAwesomeIcon icon={faXmark} className="mr-2" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="confirm-delete">
+              Ketik <span className="font-bold text-destructive">"hapus"</span> untuk konfirmasi
+            </Label>
+            <Input
+              id="confirm-delete"
+              value={confirmText}
+              onChange={(e) => setConfirmText(e.target.value)}
+              placeholder="Ketik 'hapus'"
+              className={confirmText && confirmText !== "hapus" ? "border-destructive" : ""}
+              disabled={isLoading}
+            />
+            {confirmText && confirmText !== "hapus" && (
+              <p className="text-sm text-destructive">Kata konfirmasi tidak sesuai</p>
+            )}
+          </div>
+        </div>
+        
+        <DialogFooter>
+          <Button
+            variant="outline"
+            onClick={handleClose}
+            disabled={isLoading}
+          >
+            Batal
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={handleDelete}
+            disabled={confirmText !== "hapus" || isLoading}
+            className="gap-2"
+          >
+            <FontAwesomeIcon icon={faTrash} />
+            {isLoading ? "Menghapus..." : "Hapus Permanent"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 --- FILE: ./pages/kepala-muhafidz/KelolaMuhafiz/EditAkun.tsx ---
 
+import { useState, useEffect } from "react";
+import { akunService, type Muhafiz } from "@/services/akunService";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCheck, faXmark, faEdit } from "@fortawesome/free-solid-svg-icons";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 
+interface EditAkunProps {
+  muhafiz: Muhafiz | null;
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
+}
+
+export function EditAkun({ muhafiz, isOpen, onClose, onSuccess }: EditAkunProps) {
+  const [formData, setFormData] = useState({
+    username: "",
+    email: ""
+  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  // Inisialisasi form data saat muhafiz berubah
+  useEffect(() => {
+    if (muhafiz) {
+      setFormData({
+        username: muhafiz.username || "",
+        email: muhafiz.email
+      });
+    }
+  }, [muhafiz]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!muhafiz) return;
+
+    setIsLoading(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      const response = await akunService.updateMuhafiz(muhafiz.id_user, formData);
+      
+      if (response.success) {
+        setSuccess("Data muhafidz berhasil diperbarui!");
+        setTimeout(() => {
+          onSuccess();
+          onClose();
+        }, 1000);
+      }
+    } catch (err: any) {
+      const message = err.response?.data?.message || "Gagal memperbarui data";
+      setError(message);
+      console.error("Edit error:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleClose = () => {
+    setFormData({ username: "", email: "" });
+    setError("");
+    setSuccess("");
+    onClose();
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={handleClose}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <FontAwesomeIcon icon={faEdit} />
+            Edit Data Muhafidz
+          </DialogTitle>
+          <DialogDescription>
+            Edit informasi muhafidz #{muhafiz?.id_user}
+          </DialogDescription>
+        </DialogHeader>
+
+        {/* Success Alert */}
+        {success && (
+          <Alert variant="default" className="bg-green-50 border-green-200 text-green-800">
+            <FontAwesomeIcon icon={faCheck} className="mr-2" />
+            <AlertDescription>{success}</AlertDescription>
+          </Alert>
+        )}
+
+        {/* Error Alert */}
+        {error && (
+          <Alert variant="destructive">
+            <FontAwesomeIcon icon={faXmark} className="mr-2" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="username">Username</Label>
+            <Input
+              id="username"
+              value={formData.username}
+              onChange={(e) => setFormData({...formData, username: e.target.value})}
+              placeholder="Masukkan username"
+              required
+              disabled={isLoading}
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              value={formData.email}
+              onChange={(e) => setFormData({...formData, email: e.target.value})}
+              placeholder="Masukkan email"
+              required
+              disabled={isLoading}
+            />
+          </div>
+          
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+            <p className="text-sm text-yellow-800">
+              <strong>Perhatian:</strong> Pastikan email belum digunakan oleh akun lain.
+            </p>
+          </div>
+          
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleClose}
+              disabled={isLoading}
+            >
+              Batal
+            </Button>
+            <Button
+              type="submit"
+              disabled={isLoading || !formData.username.trim() || !formData.email.trim()}
+            >
+              {isLoading ? "Menyimpan..." : "Simpan Perubahan"}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 --- FILE: ./pages/kepala-muhafidz/KelolaMuhafiz/index.tsx ---
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { akunService, type Muhafiz } from "@/services/akunService";
-import { AkunForm } from "@/components/forms/AkunForm";
+import { BuatAkun } from "./BuatAkun";
+import { DaftarAkun } from "./DaftarAkun";
+import { EditAkun } from "./EditAkun";
+import { DeleteAkun } from "./DeleteAkun";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { 
   faUserTie, 
-  faPlus, 
   faEnvelope,
   faIdCard,
-//   faSpinner
+  faCheck,
+  faXmark
 } from "@fortawesome/free-solid-svg-icons";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Skeleton } from "@/components/ui/skeleton";
 
 export default function KelolaMuhafizPage() {
   const { user } = useAuth();
   const [muhafizList, setMuhafizList] = useState<Muhafiz[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string>("");
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  
+  // State untuk edit dan delete
+  const [editingMuhafiz, setEditingMuhafiz] = useState<Muhafiz | null>(null);
+  const [deletingMuhafiz, setDeletingMuhafiz] = useState<Muhafiz | null>(null);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
   // Load data muhafiz
   useEffect(() => {
@@ -1907,8 +2620,31 @@ export default function KelolaMuhafizPage() {
   };
 
   const handleRegisterSuccess = () => {
-    setIsDialogOpen(false);
-    loadMuhafiz(); // Refresh list setelah berhasil register
+    setSuccess("Akun muhafidz berhasil dibuat!");
+    loadMuhafiz();
+    setTimeout(() => setSuccess(""), 3000);
+  };
+
+  const handleEditClick = (muhafiz: Muhafiz) => {
+    setEditingMuhafiz(muhafiz);
+    setIsEditOpen(true);
+  };
+
+  const handleEditSuccess = () => {
+    setSuccess("Data muhafidz berhasil diperbarui!");
+    loadMuhafiz();
+    setTimeout(() => setSuccess(""), 3000);
+  };
+
+  const handleDeleteClick = (muhafiz: Muhafiz) => {
+    setDeletingMuhafiz(muhafiz);
+    setIsDeleteOpen(true);
+  };
+
+  const handleDeleteSuccess = () => {
+    setSuccess("Muhafidz berhasil dihapus!");
+    loadMuhafiz();
+    setTimeout(() => setSuccess(""), 3000);
   };
 
   // Cek apakah user adalah superadmin
@@ -1935,29 +2671,22 @@ export default function KelolaMuhafizPage() {
           </p>
         </div>
 
-        {/* Dialog Trigger Button */}
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-primary hover:bg-primary-dark text-white">
-              <FontAwesomeIcon icon={faPlus} className="mr-2" />
-              Tambah Muhafidz
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <FontAwesomeIcon icon={faUserTie} />
-                Buat Akun Muhafidz Baru
-              </DialogTitle>
-            </DialogHeader>
-            <AkunForm onSuccess={handleRegisterSuccess} />
-          </DialogContent>
-        </Dialog>
+        {/* Tombol Buat Akun */}
+        <BuatAkun onSuccess={handleRegisterSuccess} />
       </div>
+
+      {/* Success Alert */}
+      {success && (
+        <Alert variant="default" className="bg-green-50 border-green-200 text-green-800 dark:bg-green-900/20 dark:border-green-800 dark:text-green-300">
+          <FontAwesomeIcon icon={faCheck} className="mr-2" />
+          <AlertDescription>{success}</AlertDescription>
+        </Alert>
+      )}
 
       {/* Error Alert */}
       {error && (
         <Alert variant="destructive">
+          <FontAwesomeIcon icon={faXmark} className="mr-2" />
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
@@ -2003,7 +2732,7 @@ export default function KelolaMuhafizPage() {
         </div>
       </div>
 
-      {/* Table Section */}
+      {/* Tabel Daftar Akun */}
       <div className="rounded-xl border border-border bg-card dark:bg-surface-dark shadow-sm overflow-hidden">
         <div className="p-6 border-b border-border dark:border-border-dark">
           <h3 className="font-semibold text-lg dark:text-white">Daftar Muhafidz</h3>
@@ -2012,77 +2741,31 @@ export default function KelolaMuhafizPage() {
           </p>
         </div>
 
-        {isLoading ? (
-          <div className="p-6 space-y-4">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="flex items-center gap-4">
-                <Skeleton className="h-12 w-12 rounded-full" />
-                <div className="space-y-2 flex-1">
-                  <Skeleton className="h-4 w-1/4" />
-                  <Skeleton className="h-3 w-1/2" />
-                </div>
-                <Skeleton className="h-8 w-20" />
-              </div>
-            ))}
-          </div>
-        ) : muhafizList.length === 0 ? (
-          <div className="p-12 text-center">
-            <FontAwesomeIcon icon={faUserTie} className="text-5xl text-text-secondary-light dark:text-text-secondary-dark mb-4" />
-            <h4 className="font-medium dark:text-white mb-2">Belum ada muhafidz</h4>
-            <p className="text-text-secondary dark:text-text-secondary-dark mb-4">
-              Mulai dengan menambahkan akun muhafidz baru
-            </p>
-            <Button onClick={() => setIsDialogOpen(true)}>
-              <FontAwesomeIcon icon={faPlus} className="mr-2" />
-              Tambah Muhafidz Pertama
-            </Button>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-accent/30 dark:bg-background-dark/50 text-muted-foreground font-medium">
-                <tr>
-                  <th className="px-6 py-4 text-left">ID</th>
-                  <th className="px-6 py-4 text-left">Username</th>
-                  <th className="px-6 py-4 text-left">Email</th>
-                  <th className="px-6 py-4 text-left">Role</th>
-                  <th className="px-6 py-4 text-left">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border dark:divide-border-dark">
-                {muhafizList.map((muhafiz) => (
-                  <tr key={muhafiz.id_user} className="hover:bg-accent/5 dark:hover:bg-background-dark/30 transition-colors">
-                    <td className="px-6 py-4">
-                      <span className="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-                        #{muhafiz.id_user}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 dark:text-text-secondary-dark">
-                      {muhafiz.username || "Belum diisi"}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <FontAwesomeIcon icon={faEnvelope} className="text-sm text-text-secondary-light dark:text-text-secondary-dark" />
-                        <span className="font-medium dark:text-white">{muhafiz.email}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="inline-flex items-center rounded-full bg-blue-100 dark:bg-blue-900/30 px-3 py-1 text-xs font-medium text-blue-700 dark:text-blue-300">
-                        {muhafiz.role}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="inline-flex items-center rounded-full bg-green-100 dark:bg-green-900/30 px-3 py-1 text-xs font-medium text-green-700 dark:text-green-300">
-                        Aktif
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+        <DaftarAkun
+          muhafizList={muhafizList}
+          isLoading={isLoading}
+          onEditClick={handleEditClick}
+          onDeleteClick={handleDeleteClick}
+          onRefresh={loadMuhafiz}
+          onCreateClick={handleRegisterSuccess}
+        />
       </div>
+
+      {/* Dialog Edit Akun */}
+      <EditAkun
+        muhafiz={editingMuhafiz}
+        isOpen={isEditOpen}
+        onClose={() => setIsEditOpen(false)}
+        onSuccess={handleEditSuccess}
+      />
+
+      {/* Dialog Konfirmasi Delete */}
+      <DeleteAkun
+        muhafiz={deletingMuhafiz}
+        isOpen={isDeleteOpen}
+        onClose={() => setIsDeleteOpen(false)}
+        onSuccess={handleDeleteSuccess}
+      />
 
       {/* Informasi Tambahan */}
       <div className="rounded-xl border border-border bg-surface p-6 dark:bg-surface-dark shadow-sm">
@@ -2107,13 +2790,36 @@ export default function KelolaMuhafizPage() {
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-primary">•</span>
-                <span>Rekomendasi password: minimal 8 karakter dengan kombinasi huruf dan angka</span>
+                <span>Edit hanya mengubah username/email, tidak bisa mengubah password</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-primary">•</span>
+                <span>Hapus muhafidz bersifat soft delete (data tidak benar-benar hilang)</span>
               </li>
             </ul>
           </div>
         </div>
       </div>
     </div>
+  );
+}
+
+--- FILE: ./pages/kepala-muhafidz/index.tsx ---
+
+// FILE: ./pages/kepala-muhafidz/index.tsx
+import { Routes, Route, Navigate } from "react-router-dom";
+import KepalaMuhafidzDashboard from "./Dashboard"; // Komponen dashboard khusus
+
+export default function KepalaMuhafidzPage() {
+  return (
+    <Routes>
+      <Route index element={<KepalaMuhafidzDashboard />} />
+      {/* Tambahkan sub-routes lain jika diperlukan */}
+      <Route path="muhafiz" element={<div>Kelola Muhafiz</div>} />
+      <Route path="halaqah" element={<div>Kelola Halaqah</div>} />
+      <Route path="laporan" element={<div>Lihat Laporan</div>} />
+      <Route path="*" element={<Navigate to="." replace />} />
+    </Routes>
   );
 }
 
@@ -2250,7 +2956,7 @@ export default function KepalaMuhafidzDashboard() {
                   <thead>
                     <tr className="border-b border-border dark:border-border-dark">
                       <th className="text-left py-3 px-4 dark:text-white font-medium">No</th>
-                      <th className="text-left py-3 px-4 dark:text-white font-medium">Nama</th>
+                      <th className="text-left py-3 px-4 dark:text-white font-medium">Username</th>
                       <th className="text-left py-3 px-4 dark:text-white font-medium">Email</th>
                       <th className="text-left py-3 px-4 dark:text-white font-medium">ID</th>
                     </tr>
@@ -2260,7 +2966,7 @@ export default function KepalaMuhafidzDashboard() {
                       <tr key={muhafiz.id_user} className="border-b border-border dark:border-border-dark hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
                         <td className="py-3 px-4 dark:text-white">{index + 1}</td>
                         <td className="py-3 px-4 dark:text-white">
-                          {muhafiz.username || 'Tidak ada nama'}
+                          {muhafiz.username || 'Tidak ada username'}
                         </td>
                         <td className="py-3 px-4 dark:text-white">{muhafiz.email}</td>
                         <td className="py-3 px-4 dark:text-white">{muhafiz.id_user}</td>
@@ -2274,25 +2980,6 @@ export default function KepalaMuhafidzDashboard() {
         </>
       )}
     </div>
-  );
-}
-
---- FILE: ./pages/kepala-muhafidz/index.tsx ---
-
-// FILE: ./pages/kepala-muhafidz/index.tsx
-import { Routes, Route, Navigate } from "react-router-dom";
-import KepalaMuhafidzDashboard from "./Dashboard"; // Komponen dashboard khusus
-
-export default function KepalaMuhafidzPage() {
-  return (
-    <Routes>
-      <Route index element={<KepalaMuhafidzDashboard />} />
-      {/* Tambahkan sub-routes lain jika diperlukan */}
-      <Route path="muhafiz" element={<div>Kelola Muhafiz</div>} />
-      <Route path="halaqah" element={<div>Kelola Halaqah</div>} />
-      <Route path="laporan" element={<div>Lihat Laporan</div>} />
-      <Route path="*" element={<Navigate to="." replace />} />
-    </Routes>
   );
 }
 
@@ -2547,6 +3234,32 @@ export default function AbsensiPage() {
 --- FILE: ./pages/muhafidz/ProgresSantri.tsx ---
 
 
+
+--- FILE: ./pages/muhafidz/index.tsx ---
+
+import { Routes, Route, Navigate } from "react-router-dom";
+import SetoranPage from "./Setoran";
+import AbsensiPage from "./Absensi"; // Kita akan buat file ini
+
+export default function MuhafidzPage() {
+  return (
+    <Routes>
+      {/* Default redirect ke absensi atau setoran */}
+      <Route index element={<AbsensiPage />} />
+      
+      <Route path="/setoran" element={<SetoranPage />} />
+      
+      {/* Halaman Form Setoran spesifik santri */}
+      <Route path="setoran/:santriId" element={<div>Halaman Form Setoran (Coming Soon)</div>} />
+      
+      {/* Halaman Riwayat */}
+      <Route path="riwayat" element={<div>Halaman Riwayat (Coming Soon)</div>} />
+
+      {/* Fallback */}
+      <Route path="*" element={<Navigate to="." replace />} />
+    </Routes>
+  );
+}
 
 --- FILE: ./pages/muhafidz/Setoran.tsx ---
 
@@ -2803,51 +3516,6 @@ export default function InputSetoranPage() {
     </div>
   );
 }
-
---- FILE: ./pages/muhafidz/index.tsx ---
-
-import { Routes, Route, Navigate } from "react-router-dom";
-import SetoranPage from "./Setoran";
-import AbsensiPage from "./Absensi"; // Kita akan buat file ini
-
-export default function MuhafidzPage() {
-  return (
-    <Routes>
-      {/* Default redirect ke absensi atau setoran */}
-      <Route index element={<AbsensiPage />} />
-      
-      <Route path="/setoran" element={<SetoranPage />} />
-      
-      {/* Halaman Form Setoran spesifik santri */}
-      <Route path="setoran/:santriId" element={<div>Halaman Form Setoran (Coming Soon)</div>} />
-      
-      {/* Halaman Riwayat */}
-      <Route path="riwayat" element={<div>Halaman Riwayat (Coming Soon)</div>} />
-
-      {/* Fallback */}
-      <Route path="*" element={<Navigate to="." replace />} />
-    </Routes>
-  );
-}
-
---- FILE: ./App.tsx ---
-
-import { BrowserRouter } from "react-router-dom";
-import { AuthProvider } from "@/context/AuthContext";
-import { AppRouter } from "@/routes";
-import "./App.css";
-
-function App() {
-  return (
-    <BrowserRouter>
-      <AuthProvider>
-        <AppRouter />
-      </AuthProvider>
-    </BrowserRouter>
-  );
-}
-
-export default App;
 
 --- FILE: ./context/AuthContext.tsx ---
 
@@ -3255,60 +3923,6 @@ Menghapus akun Muhafiz secara halus (data tetap ada di DB tapi tidak muncul di a
 ---
 
 **Status:** 🟢 **Production Ready (Main Branch)**
-
---- FILE: ./assets/book-open-solid-full.svg ---
-
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><!--!Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.--><path d="M320 205.3L320 514.6L320.5 514.4C375.1 491.7 433.7 480 492.8 480L512 480L512 160L492.8 160C450.6 160 408.7 168.4 369.7 184.6C352.9 191.6 336.3 198.5 320 205.3zM294.9 125.5L320 136L345.1 125.5C391.9 106 442.1 96 492.8 96L528 96C554.5 96 576 117.5 576 144L576 496C576 522.5 554.5 544 528 544L492.8 544C442.1 544 391.9 554 345.1 573.5L332.3 578.8C324.4 582.1 315.6 582.1 307.7 578.8L294.9 573.5C248.1 554 197.9 544 147.2 544L112 544C85.5 544 64 522.5 64 496L64 144C64 117.5 85.5 96 112 96L147.2 96C197.9 96 248.1 106 294.9 125.5z"/></svg>
-
---- FILE: ./App.css ---
-
-/* @import "tailwindcss";
-@import "tw-animate-css";
-
-@custom-variant dark (&:is(.dark *));
-
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  text-align: center;
-}
-
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
-}
-
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
-}
-
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
-} */
-
 
 --- FILE: ./api/axiosClient.ts ---
 
@@ -3802,6 +4416,11 @@ export interface RegisterData {
   password: string;
 }
 
+export interface UpdateData {
+  username?: string;
+  email?: string;
+}
+
 export interface ApiResponse<T> {
   success: boolean;
   message: string;
@@ -3821,18 +4440,87 @@ export const akunService = {
     return response.data;
   },
 
-  // Reset password (jika nanti ada endpoint-nya)
-  resetPassword: async (_userId: number, _newPassword: string): Promise<ApiResponse<null>> => {
-    // Endpoint belum tersedia di dokumentasi
-    throw new Error("Endpoint reset password belum tersedia");
+  // Edit data muhafiz
+  updateMuhafiz: async (userId: number, data: UpdateData): Promise<ApiResponse<Muhafiz>> => {
+    const response = await axiosClient.patch<ApiResponse<Muhafiz>>(`/auth/muhafiz/${userId}`, data);
+    return response.data;
   },
 
-  // Hapus akun (jika nanti ada endpoint-nya)
-  deleteMuhafiz: async (_userId: number): Promise<ApiResponse<null>> => {
-    // Endpoint belum tersedia di dokumentasi
-    throw new Error("Endpoint delete belum tersedia");
+  // Hapus akun muhafiz (soft delete)
+  deleteMuhafiz: async (userId: number): Promise<ApiResponse<null>> => {
+    const response = await axiosClient.delete<ApiResponse<null>>(`/auth/muhafiz/${userId}`);
+    return response.data;
   }
 };
+
+--- FILE: ./App.css ---
+
+/* @import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
+}
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em #61dafbaa);
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+.card {
+  padding: 2em;
+}
+
+.read-the-docs {
+  color: #888;
+} */
+
+
+--- FILE: ./App.tsx ---
+
+import { BrowserRouter } from "react-router-dom";
+import { AuthProvider } from "@/context/AuthContext";
+import { AppRouter } from "@/routes";
+import "./App.css";
+
+function App() {
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        <AppRouter />
+      </AuthProvider>
+    </BrowserRouter>
+  );
+}
+
+export default App;
 
 --- FILE: ./src.txt ---
 
