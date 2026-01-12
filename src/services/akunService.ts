@@ -44,6 +44,13 @@ export const akunService = {
     return response.data;
   },
 
+    impersonateMuhafiz: async (userId: number): Promise<ApiResponse<{ user: Muhafiz; token: string }>> => {
+      const response = await axiosClient.post<ApiResponse<{ user: Muhafiz; token: string }>>(
+        `/auth/impersonate/${userId}`
+      );
+      return response.data;
+    },
+
   // Hapus akun muhafiz (soft delete)
   deleteMuhafiz: async (userId: number): Promise<ApiResponse<null>> => {
     const response = await axiosClient.delete<ApiResponse<null>>(`/auth/muhafiz/${userId}`);
