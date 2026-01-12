@@ -6,40 +6,81 @@ export interface Muhafiz {
   username: string;
   role: "muhafiz";
   nama?: string;
+  created_at?: string;
+  updated_at?: string;
+  deleted_at?: string; // Untuk soft delete
 }
 
 export interface RegisterData {
   email: string;
   username: string;
   password: string;
+  // Note: Tidak ada field nama di dokumentasi register
 }
 
-export interface UpdateData {
+export interface UpdateMuhafizData {
   username?: string;
   email?: string;
+  // Note: Tidak ada field nama di dokumentasi update
 }
 
-export interface ApiResponse<T> {
+export interface ApiResponse<T = any> {
   success: boolean;
   message: string;
   data: T;
 }
 
 export const akunService = {
-  // Mendapatkan daftar semua muhafidz
   getAllMuhafiz: async (): Promise<ApiResponse<Muhafiz[]>> => {
-    const response = await axiosClient.get<ApiResponse<Muhafiz[]>>("auth/muhafiz");
+    const response = await axiosClient.get<ApiResponse<Muhafiz[]>>("/auth/muhafiz");
     return response.data;
   },
 
-  // Mendaftarkan muhafiz baru
+  getMuhafizById: async (userId: number): Promise<ApiResponse<Muhafiz>> => {
+    try {
+      const response = await axiosClient.get<ApiResponse<Muhafiz>>(`/auth/muhafiz/${userId}`);
+      return response.data;
+    } catch (error: any) {
+      // Jika endpoint tidak tersedia, bisa fallback ke getAll dan filter
+      if (error.response?.status === 404) {
+        throw new Error("Endpoint detail muhafiz tidak tersedia");
+      }
+      throw error;
+    }
+  },
+
+  searchMuhafiz: async (keyword: string): Promise<ApiResponse<Muhafiz[]>> => {
+    try {
+      // Jika backend punya endpoint search
+      const response = await axiosClient.get<ApiResponse<Muhafiz[]>>(
+        `/auth/muhafiz/search?q=${encodeURIComponent(keyword)}`
+      );
+      return response.data;
+    } catch (error: any) {
+      // Fallback: ambil semua data dan filter di client-side
+      if (error.response?.status === 404) {
+        const allResponse = await akunService.getAllMuhafiz();
+        const filteredData = allResponse.data.filter(muhafiz =>
+          muhafiz.username.toLowerCase().includes(keyword.toLowerCase()) ||
+          muhafiz.email.toLowerCase().includes(keyword.toLowerCase()) ||
+          (muhafiz.nama && muhafiz.nama.toLowerCase().includes(keyword.toLowerCase()))
+        );
+        return {
+          success: true,
+          message: `Menemukan ${filteredData.length} hasil untuk "${keyword}"`,
+          data: filteredData
+        };
+      }
+      throw error;
+    }
+  },
+
   registerMuhafiz: async (data: RegisterData): Promise<ApiResponse<{ user: Muhafiz }>> => {
     const response = await axiosClient.post<ApiResponse<{ user: Muhafiz }>>("/auth/register", data);
     return response.data;
   },
 
-  // Edit data muhafiz
-  updateMuhafiz: async (userId: number, data: UpdateData): Promise<ApiResponse<Muhafiz>> => {
+  updateMuhafiz: async (userId: number, data: UpdateMuhafizData): Promise<ApiResponse<Muhafiz>> => {
     const response = await axiosClient.patch<ApiResponse<Muhafiz>>(`/auth/muhafiz/${userId}`, data);
     return response.data;
   },
@@ -55,5 +96,62 @@ export const akunService = {
   deleteMuhafiz: async (userId: number): Promise<ApiResponse<null>> => {
     const response = await axiosClient.delete<ApiResponse<null>>(`/auth/muhafiz/${userId}`);
     return response.data;
-  }
+  },
+
+  bulkDeleteMuhafiz: async (userIds: number[]): Promise<ApiResponse<null>> => {
+    try {
+      const response = await axiosClient.post<ApiResponse<null>>("/auth/muhafiz/bulk-delete", {
+        user_ids: userIds
+      });
+      return response.data;
+    } catch (error: any) {
+      // Jika endpoint tidak tersedia, hapus satu per satu
+      if (error.response?.status === 404) {
+        console.warn("Endpoint bulk delete tidak tersedia, melakukan delete satu per satu");
+        
+        const results = await Promise.allSettled(
+          userIds.map(id => akunService.deleteMuhafiz(id))
+        );
+        
+        const successes = results.filter(r => r.status === 'fulfilled').length;
+        const failures = results.filter(r => r.status === 'rejected').length;
+        
+        if (failures === 0) {
+          return {
+            success: true,
+            message: `Berhasil menghapus ${successes} akun muhafiz`,
+            data: null
+          };
+        } else {
+          throw new Error(`Gagal menghapus ${failures} dari ${userIds.length} akun`);
+        }
+      }
+      throw error;
+    }
+  },
+
+  // validateUsername: async (username: string): Promise<boolean> => {
+  //   try {
+  //     // Coba daftar dengan username dummy untuk cek ketersediaan
+  //     // Atau tunggu error dari backend saat register/update
+  //     return true; // Default true, validasi akan dilakukan oleh backend
+  //   } catch (error) {
+  //     return false;
+  //   }
+  // },
+
+  // validateEmail: async (email: string): Promise<boolean> => {
+  //   try {
+  //     // Cek melalui search atau tunggu error dari backend
+  //     return true;
+  //   } catch (error) {
+  //     return false;
+  //   }
+  // }
 };
+
+// Type untuk data update
+export interface UpdateData {
+  username?: string;
+  email?: string;
+}
