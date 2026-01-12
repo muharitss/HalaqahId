@@ -163,18 +163,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       try {
         const response = await authService.getCurrentUser();
-        const userData = response.data.user;
+        const userData = response.data?.user || response.data;
         
+        if (!userData) {
+          throw new Error("No user data received from API");
+        }
+
         const fullUser: User = {
           ...userData,
           token: parsedData.token,
           username: userData.username || "User"
-        };
+        };  
 
         setUser(fullUser);
         saveUserToStorage(fullUser);
         
-        if (userData.role === "superadmin") {
+        if (userData?.role === "superadmin") {
           saveSuperadminSession(fullUser);
         }
       } catch (error) {
