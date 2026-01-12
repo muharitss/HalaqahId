@@ -14,7 +14,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Spinner } from "@/components/ui/spinner";
 import {
   Select,
@@ -23,9 +23,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { toast } from "sonner";
 
+// Import Icons
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBook, faPlus } from "@fortawesome/free-solid-svg-icons";
+import { faBook, faPlus, faCheck, faExclamationTriangle } from "@fortawesome/free-solid-svg-icons";
 
 const halaqahSchema = z.object({
   nama_halaqah: z.string().min(3, "Nama halaqah minimal 3 karakter"),
@@ -48,7 +50,6 @@ interface HalaqahFormProps {
 export function HalaqahForm({ onSuccess, initialData }: HalaqahFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMuhafiz, setLoadingMuhafiz] = useState(false);
-  const [successMessage, setSuccessMessage] = useState<string>("");
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [availableMuhafiz, setAvailableMuhafiz] = useState<Array<{ id_user: number; username: string; email: string }>>([]);
 
@@ -61,7 +62,6 @@ export function HalaqahForm({ onSuccess, initialData }: HalaqahFormProps) {
     },
   });
 
-  // Load daftar muhafiz yang tersedia
   useEffect(() => {
     loadAvailableMuhafiz();
   }, []);
@@ -73,6 +73,7 @@ export function HalaqahForm({ onSuccess, initialData }: HalaqahFormProps) {
       setAvailableMuhafiz(response.data);
     } catch (error) {
       console.error("Error loading muhafiz:", error);
+      toast.error("Gagal memuat daftar muhafidz");
     } finally {
       setLoadingMuhafiz(false);
     }
@@ -81,7 +82,6 @@ export function HalaqahForm({ onSuccess, initialData }: HalaqahFormProps) {
   async function onSubmit(values: HalaqahFormValues) {
     setIsLoading(true);
     setErrorMessage("");
-    setSuccessMessage("");
 
     try {
       const data: CreateHalaqahData = {
@@ -91,34 +91,32 @@ export function HalaqahForm({ onSuccess, initialData }: HalaqahFormProps) {
       };
 
       if (initialData?.id_halaqah) {
-        // Update existing halaqah
         await halaqahService.updateHalaqah(initialData.id_halaqah, data);
-        setSuccessMessage("Halaqah berhasil diperbarui!");
+        toast.success("Halaqah berhasil diperbarui");
       } else {
-        // Create new halaqah
         await halaqahService.createHalaqah(data);
-        setSuccessMessage("Halaqah berhasil dibuat!");
+        toast.success("Halaqah baru berhasil dibuat");
       }
 
       form.reset();
-      if (onSuccess) {
-        setTimeout(() => onSuccess(), 1500);
-      }
+      if (onSuccess) onSuccess(); // Langsung tutup modal/refresh table
     } catch (error: any) {
-      console.error("Error:", error);
-      const message = error.response?.data?.message || "Terjadi kesalahan saat menyimpan halaqah";
-      setErrorMessage(message);
+      const message = error.response?.data?.message || "Terjadi kesalahan saat menyimpan data";
+      setErrorMessage(message); // Alert tetap digunakan untuk error agar user bisa baca detailnya
     } finally {
       setIsLoading(false);
     }
   }
 
   return (
-    <div className="space-y-6">
-      {/* Alert Messages */}
-      {successMessage && (
-        <Alert variant="default" className="bg-green-50 border-green-200 text-green-800">
-          <AlertDescription>{successMessage}</AlertDescription>
+    <div className="space-y-6 text-left">
+      {availableMuhafiz.length === 0 && !loadingMuhafiz && (
+        <Alert variant="destructive" className="bg-destructive/5 border-destructive/20 text-destructive">
+          <FontAwesomeIcon icon={faExclamationTriangle} className="h-4 w-4" />
+          <AlertTitle>Muhafidz Tidak Tersedia</AlertTitle>
+          <AlertDescription className="text-xs">
+            Semua muhafidz sudah memiliki halaqah. Silahkan buat akun muhafidz baru terlebih dahulu sebelum membuat halaqah.
+          </AlertDescription>
         </Alert>
       )}
 
@@ -131,43 +129,40 @@ export function HalaqahForm({ onSuccess, initialData }: HalaqahFormProps) {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
           
-          {/* Nama Halaqah Field */}
           <FormField
             control={form.control}
             name="nama_halaqah"
             render={({ field }) => (
               <FormItem className="space-y-2">
-                <FormLabel className="text-sm font-medium">Nama Halaqah</FormLabel>
+                <FormLabel>Nama Halaqah</FormLabel>
                 <FormControl>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary-light">
-                      <FontAwesomeIcon icon={faBook} className="text-[18px]" />
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                      <FontAwesomeIcon icon={faBook} />
                     </span>
                     <Input
                       {...field}
-                      type="text"
-                      placeholder="Contoh: Halaqah Al-Quran A"
+                      placeholder="Contoh: Halaqah Abu Bakar"
                       disabled={isLoading}
-                      className="h-12 pl-10 border-[#d6e7d0]"
+                      className="pl-10 h-11"
                     />
                   </div>
                 </FormControl>
-                <FormMessage className="text-xs" />
+                <FormMessage />
               </FormItem>
             )}
           />
 
-          {/* Jenis Halaqah Field */}
           <FormField
             control={form.control}
             name="jenis"
             render={({ field }) => (
               <FormItem className="space-y-2">
-                <FormLabel className="text-sm font-medium">Jenis Halaqah</FormLabel>
+                <FormLabel>Jenis Halaqah</FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
-                    <SelectTrigger className="h-12">
-                      <SelectValue placeholder="Pilih jenis halaqah" />
+                    <SelectTrigger className="h-11">
+                      <SelectValue placeholder="Pilih jenis" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -176,28 +171,26 @@ export function HalaqahForm({ onSuccess, initialData }: HalaqahFormProps) {
                     <SelectItem value="KHUSUS">Khusus</SelectItem>
                   </SelectContent>
                 </Select>
-                <FormMessage className="text-xs" />
+                <FormMessage />
               </FormItem>
             )}
           />
 
-          {/* Muhafidz Field */}
           <FormField
             control={form.control}
             name="muhafidz_id"
             render={({ field }) => (
               <FormItem className="space-y-2">
-                <FormLabel className="text-sm font-medium">Muhafidz</FormLabel>
+                <FormLabel>Muhafidz</FormLabel>
                 <Select 
                   onValueChange={(value) => field.onChange(parseInt(value))} 
-                  defaultValue={field.value?.toString()}
+                  defaultValue={field.value ? field.value.toString() : undefined}
                 >
                   <FormControl>
-                    <SelectTrigger className="h-12" disabled={loadingMuhafiz || isLoading}>
+                    <SelectTrigger className="h-11" disabled={loadingMuhafiz || availableMuhafiz.length === 0}>
                       {loadingMuhafiz ? (
                         <span className="flex items-center gap-2">
-                          <Spinner className="h-4 w-4" />
-                          Memuat daftar muhafidz...
+                          <Spinner className="h-4 w-4" /> Memuat...
                         </span>
                       ) : (
                         <SelectValue placeholder="Pilih muhafidz" />
@@ -205,45 +198,29 @@ export function HalaqahForm({ onSuccess, initialData }: HalaqahFormProps) {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {availableMuhafiz.length === 0 ? (
-                      <SelectItem value="0" disabled>
-                        Tidak ada muhafidz tersedia
+                    {availableMuhafiz.map((muhafiz) => (
+                      <SelectItem key={muhafiz.id_user} value={muhafiz.id_user.toString()}>
+                        {muhafiz.username}
                       </SelectItem>
-                    ) : (
-                      availableMuhafiz.map((muhafiz) => (
-                        <SelectItem key={muhafiz.id_user} value={muhafiz.id_user.toString()}>
-                          {muhafiz.username} - {muhafiz.email}
-                        </SelectItem>
-                      ))
-                    )}
+                    ))}
                   </SelectContent>
                 </Select>
-                <FormMessage className="text-xs" />
-                {availableMuhafiz.length === 0 && !loadingMuhafiz && (
-                  <p className="text-xs text-yellow-600">
-                    Semua muhafidz sudah memiliki halaqah. Buat akun muhafidz baru terlebih dahulu.
-                  </p>
-                )}
+                <FormMessage />
               </FormItem>
             )}
           />
 
-          {/* Submit Button */}
           <Button
             type="submit"
             disabled={isLoading || loadingMuhafiz || availableMuhafiz.length === 0}
-            className="w-full h-12 bg-primary hover:bg-primary-dark text-white font-semibold shadow-lg shadow-primary/20 mt-6"
+            className="w-full h-11 mt-2"
           >
             {isLoading ? (
-              <span className="flex items-center gap-2">
-                <Spinner />
-                Menyimpan...
-              </span>
+              <><Spinner className="mr-2 h-4 w-4" /> Menyimpan...</>
             ) : (
-              <span className="flex items-center gap-2">
-                <FontAwesomeIcon icon={faPlus} />
-                {initialData?.id_halaqah ? "Perbarui Halaqah" : "Buat Halaqah"}
-              </span>
+              <><FontAwesomeIcon icon={initialData?.id_halaqah ? faCheck : faPlus} className="mr-2" /> 
+                {initialData?.id_halaqah ? "Simpan Perubahan" : "Buat Halaqah Baru"}
+              </>
             )}
           </Button>
         </form>

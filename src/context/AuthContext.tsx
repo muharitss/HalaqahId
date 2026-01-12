@@ -10,6 +10,7 @@ interface User {
   role: Role;
   username: string;
   token?: string;
+  avatarUrl?: string;
 }
 
 interface AuthContextType {

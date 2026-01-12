@@ -6,6 +6,8 @@ import { Outlet } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBars, faTimes } from "@fortawesome/free-solid-svg-icons";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function DashboardLayout() {
   const { user } = useAuth();
@@ -45,12 +47,14 @@ export default function DashboardLayout() {
 
           <div className="flex items-center gap-4">
             {/* Hamburger Button - Hanya muncul di mobile */}
-            <button 
+            <Button 
+              variant="outline" 
+              size="icon"
               onClick={toggleSidebar}
-              className="flex h-10 w-10 items-center justify-center rounded-lg border border-border lg:hidden dark:text-white"
+              className="lg:hidden" // Sembunyikan di layar besar
             >
               <FontAwesomeIcon icon={isSidebarOpen ? faTimes : faBars} />
-            </button>
+            </Button>
 
             <div className="flex flex-col text-left">
               <h1 className="text-sm font-semibold dark:text-white leading-tight">Selamat Datang,</h1>
@@ -60,9 +64,12 @@ export default function DashboardLayout() {
 
           <div className="flex items-center gap-4">
             <ThemeToggle variant="simple" />
-            <div className="h-8 w-8 rounded-full bg-primary/20 border border-primary/50 flex items-center justify-center text-primary font-bold text-xs uppercase">
-              {user?.username?.substring(0, 2)}
-            </div>
+            <Avatar className="h-9 w-9 border border-primary/20">
+              <AvatarImage src={user?.avatarUrl} alt={user?.username} />
+              <AvatarFallback className="bg-primary/10 text-primary text-xs font-bold uppercase">
+                {user?.username?.substring(0, 2)}
+              </AvatarFallback>
+            </Avatar>
           </div>
         </header>
 
