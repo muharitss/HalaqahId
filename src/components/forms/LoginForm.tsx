@@ -16,6 +16,8 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Spinner } from "@/components/ui/spinner";
 
 // Import FontAwesome
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -24,12 +26,15 @@ import {
   faLock, 
   faArrowRight, 
   faEye, 
-  faEyeSlash 
+  faEyeSlash,
+  faTriangleExclamation 
 } from "@fortawesome/free-solid-svg-icons";
 
 export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
-  const { login, isLoading } = useAuth();
+  const [backendError, setBackendError] = useState<string>("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { login } = useAuth();
   const navigate = useNavigate();
 
   const form = useForm<LoginFormValues>({
@@ -40,29 +45,66 @@ export function LoginForm() {
     },
   });
 
-async function onSubmit(values: LoginFormValues) {
-  try {
-    await login(values);
-    navigate("/");
-  } catch (error: any) {
-    // Tangkap pesan error dari backend
-    console.error("Full Error Object:", error);
-    console.log("Status Code:", error.response?.status);
-    console.log("Response Data:", error.response?.data);
-    const message = error.response?.data?.message || "Terjadi kesalahan koneksi";
-    
-    // Set error ke field password agar muncul di FormMessage
-    form.setError("password", { 
-      type: "manual", 
-      message: message 
-    });
+  async function onSubmit(values: LoginFormValues) {
+    setBackendError("");
+    setIsSubmitting(true);
+
+    try {
+      await login(values);
+      navigate("/", { replace: true });
+    } catch (error: any) {
+      let errorMessage = "Terjadi kesalahan saat login";
+      
+      if (error.response) {
+        const status = error.response.status;
+        
+        // Standar Keamanan: Pesan yang sama untuk 401 (Unauthorized) dan 404 (Not Found)
+        if (status === 401 || status === 404) {
+          errorMessage = "Email atau password yang Anda masukkan salah";
+        } else if (status === 429) {
+          errorMessage = "Terlalu banyak percobaan login. Silakan tunggu sebentar";
+        } else if (status >= 500) {
+          errorMessage = "Masalah koneksi ke server. Silakan coba lagi nanti";
+        }
+      } else {
+        errorMessage = "Gagal terhubung ke server. Periksa koneksi internet Anda";
+      }
+      
+      setBackendError(errorMessage);
+      
+      // Keamanan tambahan: Selalu hapus password saat terjadi error
+      form.setValue("password", "");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
-}
+
+  // Handler untuk mencegah form submission default dan reload
+  // const handleFormSubmit = (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   form.handleSubmit(onSubmit)();
+  // };
+
+  // Reset error ketika user mulai mengetik
+  const handleInputChange = () => {
+    if (backendError) {
+      setBackendError("");
+    }
+  };
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
         
+        {backendError && (
+          <Alert variant="destructive" className="animate-in fade-in duration-300">
+            <FontAwesomeIcon icon={faTriangleExclamation} className="h-4 w-4" />
+            <AlertDescription className="text-sm">
+              {backendError}
+            </AlertDescription>
+          </Alert>
+        )}
+
         {/* Email Field */}
         <FormField
           control={form.control}
@@ -81,8 +123,12 @@ async function onSubmit(values: LoginFormValues) {
                     {...field}
                     type="email"
                     placeholder="ustadz@example.com"
-                    disabled={isLoading}
+                    disabled={isSubmitting}
                     className="h-12 pl-10 border-[#d6e7d0] dark:border-gray-600 bg-background-light dark:bg-surface-dark focus:ring-2 focus:ring-primary transition-all"
+                    onChange={(e) => {
+                      field.onChange(e);
+                      handleInputChange();
+                    }}
                   />
                 </div>
               </FormControl>
@@ -104,6 +150,7 @@ async function onSubmit(values: LoginFormValues) {
                 <a
                   href="#"
                   className="text-xs font-medium text-primary hover:text-primary-dark hover:underline"
+                  onClick={(e) => e.preventDefault()}
                 >
                   Forgot Password?
                 </a>
@@ -117,13 +164,18 @@ async function onSubmit(values: LoginFormValues) {
                     {...field}
                     type={showPassword ? "text" : "password"}
                     placeholder="Masukkan password"
-                    disabled={isLoading}
+                    disabled={isSubmitting}
                     className="h-12 pl-10 pr-10 border-[#d6e7d0] dark:border-gray-600 bg-background-light dark:bg-surface-dark focus:ring-2 focus:ring-primary transition-all"
+                    onChange={(e) => {
+                      field.onChange(e);
+                      handleInputChange();
+                    }}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary-light hover:text-primary transition-colors"
+                    disabled={isSubmitting}
                   >
                     <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} className="text-[18px]" />
                   </button>
@@ -137,16 +189,13 @@ async function onSubmit(values: LoginFormValues) {
         {/* Submit Button */}
         <Button
           type="submit"
-          disabled={isLoading}
-          className="w-full h-12 bg-primary hover:bg-primary-dark text-white font-semibold shadow-lg shadow-primary/20"
+          disabled={isSubmitting}
+          className="w-full h-12 bg-primary hover:bg-primary-dark text-white font-semibold shadow-lg shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {isLoading ? (
+          {isSubmitting ? (
             <span className="flex items-center gap-2">
-              <svg className="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-              </svg>
-              Mohon tunggu...
+              <Spinner className="h-4 w-4" />
+              Memproses...
             </span>
           ) : (
             <span className="flex items-center gap-2">
@@ -155,6 +204,18 @@ async function onSubmit(values: LoginFormValues) {
             </span>
           )}
         </Button>
+
+        {backendError && (
+          <div className="pt-2 text-center">
+            <p className="text-xs text-text-secondary-light dark:text-gray-400">
+              {backendError.includes("salah") 
+                ? "Periksa kembali email dan password Anda. Perhatikan huruf besar/kecil."
+                : backendError.includes("tidak ditemukan")
+                ? "Email tidak terdaftar. Pastikan email yang dimasukkan benar."
+                : "Silakan coba lagi atau hubungi administrator."}
+            </p>
+          </div>
+        )}
       </form>
     </Form>
   );

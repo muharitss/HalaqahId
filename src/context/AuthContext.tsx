@@ -161,7 +161,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         return;
       }
       
-      // Jika user biasa, coba fetch data dari API
       try {
         const response = await authService.getCurrentUser();
         const userData = response.data.user;
@@ -175,7 +174,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setUser(fullUser);
         saveUserToStorage(fullUser);
         
-        // Jika superadmin, simpan session
         if (userData.role === "superadmin") {
           saveSuperadminSession(fullUser);
         }
@@ -192,9 +190,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   const login = async (values: LoginFormValues) => {
-    setIsLoading(true);
     try {
       const response = await authService.login(values);
+      
+      if (!response.success) {
+        throw new Error(response.message || "Login gagal");
+      }
       
       const userData: User = {
         ...response.data.user,
@@ -206,16 +207,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setUser(userData);
       saveUserToStorage(userData);
       
-      // Jika login sebagai superadmin, simpan session
       if (userData.role === "superadmin") {
         saveSuperadminSession(userData);
       }
-    } catch (error) {
+      
+    } catch (error: any) {
       throw error;
-    } finally {
-      setIsLoading(false);
     }
   };
+
   
   const logout = () => {
     // Hapus semua session

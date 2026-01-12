@@ -287,6 +287,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 // Import FontAwesome
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -295,12 +296,15 @@ import {
   faLock, 
   faArrowRight, 
   faEye, 
-  faEyeSlash 
+  faEyeSlash,
+  faTriangleExclamation 
 } from "@fortawesome/free-solid-svg-icons";
 
 export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
-  const { login, isLoading } = useAuth();
+  const [backendError, setBackendError] = useState<string>("");
+  const [isSubmitting, setIsSubmitting] = useState(false); // State lokal untuk loading
+  const { login } = useAuth();
   const navigate = useNavigate();
 
   const form = useForm<LoginFormValues>({
@@ -311,29 +315,91 @@ export function LoginForm() {
     },
   });
 
-async function onSubmit(values: LoginFormValues) {
-  try {
-    await login(values);
-    navigate("/");
-  } catch (error: any) {
-    // Tangkap pesan error dari backend
-    console.error("Full Error Object:", error);
-    console.log("Status Code:", error.response?.status);
-    console.log("Response Data:", error.response?.data);
-    const message = error.response?.data?.message || "Terjadi kesalahan koneksi";
-    
-    // Set error ke field password agar muncul di FormMessage
-    form.setError("password", { 
-      type: "manual", 
-      message: message 
-    });
+  async function onSubmit(values: LoginFormValues) {
+    setBackendError("");
+    setIsSubmitting(true);
+    console.log("Submitting login form...", values);
+
+    try {
+      await login(values);
+      navigate("/");
+    } catch (error: any) {
+      console.error("Login failed:", {
+        error: error,
+        response: error.response,
+        status: error.response?.status,
+        data: error.response?.data
+      });
+      
+      let errorMessage = "Terjadi kesalahan saat login";
+      
+      if (error.response) {
+        const status = error.response.status;
+        const data = error.response.data;
+        
+        if (status === 401) {
+          errorMessage = "Email atau password salah";
+        } else if (status === 400) {
+          // Handle berbagai jenis error 400
+          if (data.message?.includes("tidak ditemukan") || 
+              data.message?.includes("dihapus") || 
+              data.message?.includes("tidak aktif")) {
+            errorMessage = "Akun tidak ditemukan atau telah dihapus";
+          } else {
+            errorMessage = data.message || "Format data tidak valid";
+          }
+        } else if (status === 403) {
+          errorMessage = "Akun tidak aktif atau telah dihapus";
+        } else if (status === 404) {
+          errorMessage = "Akun tidak ditemukan";
+        } else if (status === 429) {
+          errorMessage = "Terlalu banyak percobaan login. Coba lagi nanti";
+        } else if (status >= 500) {
+          errorMessage = "Server sedang mengalami masalah. Silakan coba lagi nanti";
+        } else {
+          errorMessage = data.message || "Gagal login";
+        }
+      } else if (error.request) {
+        // Tidak ada response dari server
+        errorMessage = "Tidak ada koneksi ke server. Periksa koneksi internet Anda";
+      } else {
+        // Error di konfigurasi request
+        errorMessage = "Terjadi kesalahan tidak terduga";
+      }
+      
+      setBackendError(errorMessage);
+      
+      // Clear form jika akun tidak ditemukan
+      if (errorMessage.includes("tidak ditemukan") || errorMessage.includes("dihapus")) {
+        form.reset({
+          email: "",
+          password: "",
+        });
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   }
-}
+
+  // Handler untuk mencegah form submission default
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    form.handleSubmit(onSubmit)();
+  };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+      <form onSubmit={handleFormSubmit} className="space-y-5">
         
+        {backendError && (
+          <Alert variant="destructive" className="animate-in fade-in duration-300">
+            <FontAwesomeIcon icon={faTriangleExclamation} className="h-4 w-4" />
+            <AlertDescription className="text-sm">
+              {backendError}
+            </AlertDescription>
+          </Alert>
+        )}
+
         {/* Email Field */}
         <FormField
           control={form.control}
@@ -352,8 +418,12 @@ async function onSubmit(values: LoginFormValues) {
                     {...field}
                     type="email"
                     placeholder="ustadz@example.com"
-                    disabled={isLoading}
+                    disabled={isSubmitting}
                     className="h-12 pl-10 border-[#d6e7d0] dark:border-gray-600 bg-background-light dark:bg-surface-dark focus:ring-2 focus:ring-primary transition-all"
+                    onChange={(e) => {
+                      field.onChange(e);
+                      if (backendError) setBackendError("");
+                    }}
                   />
                 </div>
               </FormControl>
@@ -375,6 +445,7 @@ async function onSubmit(values: LoginFormValues) {
                 <a
                   href="#"
                   className="text-xs font-medium text-primary hover:text-primary-dark hover:underline"
+                  onClick={(e) => e.preventDefault()}
                 >
                   Forgot Password?
                 </a>
@@ -388,13 +459,18 @@ async function onSubmit(values: LoginFormValues) {
                     {...field}
                     type={showPassword ? "text" : "password"}
                     placeholder="Masukkan password"
-                    disabled={isLoading}
+                    disabled={isSubmitting}
                     className="h-12 pl-10 pr-10 border-[#d6e7d0] dark:border-gray-600 bg-background-light dark:bg-surface-dark focus:ring-2 focus:ring-primary transition-all"
+                    onChange={(e) => {
+                      field.onChange(e);
+                      if (backendError) setBackendError("");
+                    }}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary-light hover:text-primary transition-colors"
+                    disabled={isSubmitting}
                   >
                     <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} className="text-[18px]" />
                   </button>
@@ -408,16 +484,16 @@ async function onSubmit(values: LoginFormValues) {
         {/* Submit Button */}
         <Button
           type="submit"
-          disabled={isLoading}
-          className="w-full h-12 bg-primary hover:bg-primary-dark text-white font-semibold shadow-lg shadow-primary/20"
+          disabled={isSubmitting}
+          className="w-full h-12 bg-primary hover:bg-primary-dark text-white font-semibold shadow-lg shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {isLoading ? (
+          {isSubmitting ? (
             <span className="flex items-center gap-2">
               <svg className="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
               </svg>
-              Mohon tunggu...
+              Memproses...
             </span>
           ) : (
             <span className="flex items-center gap-2">
@@ -426,6 +502,16 @@ async function onSubmit(values: LoginFormValues) {
             </span>
           )}
         </Button>
+
+        {backendError && (
+          <div className="pt-2 text-center">
+            <p className="text-xs text-text-secondary-light dark:text-gray-400">
+              {backendError.includes("salah") 
+                ? "Tips: Pastikan email dan password benar. Perhatikan huruf besar/kecil."
+                : "Silakan coba lagi atau hubungi administrator."}
+            </p>
+          </div>
+        )}
       </form>
     </Form>
   );
@@ -663,6 +749,30 @@ export function HalaqahForm({ onSuccess, initialData }: HalaqahFormProps) {
     </div>
   );
 }
+
+--- FILE: ./components/forms/HalaqahForm/HalaqahForm.tsx ---
+
+
+
+--- FILE: ./components/forms/HalaqahForm/validation.ts ---
+
+import * as z from "zod";
+
+export const halaqahSchema = z.object({
+  nama_halaqah: z.string().min(3, "Nama halaqah minimal 3 karakter"),
+  kode_halaqah: z.string().min(3, "Kode halaqah minimal 3 karakter"),
+  deskripsi: z.string().optional(),
+  id_muhafidz: z.number().min(1, "Pilih muhafidz pengampu"),
+  hari: z.enum(["senin", "selasa", "rabu", "kamis", "jumat", "sabtu", "minggu"]),
+  jam_mulai: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Format jam tidak valid"),
+  jam_selesai: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Format jam tidak valid"),
+  lokasi: z.string().min(3, "Lokasi minimal 3 karakter"),
+  kapasitas_maks: z.number().min(1, "Kapasitas minimal 1").max(50, "Kapasitas maksimal 50"),
+  status: z.enum(["aktif", "nonaktif", "penuh"]).default("aktif"),
+});
+
+// Cek apakah type inference benar:
+export type HalaqahFormData = z.infer<typeof halaqahSchema>;
 
 --- FILE: ./components/ui/button.tsx ---
 
@@ -2113,6 +2223,28 @@ const Toaster = ({ ...props }: ToasterProps) => {
 export { Toaster }
 
 
+--- FILE: ./components/ui/textarea.tsx ---
+
+import * as React from "react"
+
+import { cn } from "@/lib/utils"
+
+function Textarea({ className, ...props }: React.ComponentProps<"textarea">) {
+  return (
+    <textarea
+      data-slot="textarea"
+      className={cn(
+        "border-input placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 flex field-sizing-content min-h-16 w-full rounded-md border bg-transparent px-3 py-2 text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+export { Textarea }
+
+
 --- FILE: ./components/ThemeToggle.tsx ---
 
 import { useAuth } from "@/context/AuthContext";
@@ -2176,7 +2308,7 @@ export function ThemeToggle({ variant = "default" }: ThemeToggleProps) {
 --- FILE: ./components/shared/Sidebar.tsx ---
 
 import { useAuth } from "@/context/AuthContext";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { 
   faChartPie, 
@@ -2186,13 +2318,23 @@ import {
   faUserTie,
   faSignOutAlt,
   faBookOpen,
-  faTimes
+  faTimes,
+  faArrowLeft, 
+  faUserShield 
 } from "@fortawesome/free-solid-svg-icons";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 export function Sidebar({ onClose }: { onClose?: () => void }) {
-  const { user, logout } = useAuth();
+  const { user, logout, stopImpersonating, isImpersonating } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
+
+  // Handler untuk kembali ke superadmin
+  const handleBackToSuperadmin = async () => {
+    await stopImpersonating();
+    navigate("/kepala-muhafidz");
+  };
 
   // Definisi Menu berdasarkan Role (Sesuai Flowchart)
   const menuItems = user?.role === "superadmin" 
@@ -2217,7 +2359,13 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-white shadow-lg shadow-primary/20">
             <FontAwesomeIcon icon={faBookOpen} />
           </div>
-          <span className="text-xl font-bold tracking-tight dark:text-white font-display">HalaqahId</span>
+          <div>
+            <span className="text-xl font-bold tracking-tight dark:text-white font-display block">HalaqahId</span>
+            {/* Tampilkan status impersonate */}
+            {isImpersonating && (
+              <span className="text-xs text-yellow-500 font-medium">Sebagai Muhafidz</span>
+            )}
+          </div>
         </div>
         
         {/* Tombol Close - Hanya muncul di mobile */}
@@ -2225,6 +2373,20 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
           <FontAwesomeIcon icon={faTimes} />
         </button>
       </div>
+
+      {/* Tombol Kembali ke Superadmin (hanya saat impersonate) */}
+      {isImpersonating && (
+        <div className="px-4 py-2">
+          <Button
+            onClick={handleBackToSuperadmin}
+            className="w-full bg-yellow-500 hover:bg-yellow-600 text-white"
+            size="sm"
+          >
+            <FontAwesomeIcon icon={faArrowLeft} className="mr-2" />
+            Kembali ke Superadmin
+          </Button>
+        </div>
+      )}
 
       {/* Navigation */}
       <nav className="flex-1 space-y-1 px-3 py-4">
@@ -2234,7 +2396,7 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
             <Link
               key={item.name}
               to={item.path}
-              onClick={onClose} // Tutup sidebar setelah klik link di mobile
+              onClick={onClose}
               className={cn(
                 "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200",
                 isActive 
@@ -2249,14 +2411,36 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
         })}
       </nav>
 
-      {/* Logout Button */}
+      {/* User Info & Logout */}
       <div className="border-t border-border p-4">
+        <div className="mb-3 px-2">
+          <div className="flex items-center gap-2">
+            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+              {isImpersonating ? (
+                <FontAwesomeIcon icon={faUserTie} className="text-primary text-sm" />
+              ) : user?.role === "superadmin" ? (
+                <FontAwesomeIcon icon={faUserShield} className="text-primary text-sm" />
+              ) : (
+                <FontAwesomeIcon icon={faUserTie} className="text-primary text-sm" />
+              )}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium dark:text-white truncate">
+                {user?.username}
+              </p>
+              <p className="text-xs text-text-secondary dark:text-text-secondary-dark">
+                {isImpersonating ? "Muhafidz" : user?.role === "superadmin" ? "Superadmin" : "Muhafidz"}
+              </p>
+            </div>
+          </div>
+        </div>
+
         <button
           onClick={logout}
           className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors"
         >
           <FontAwesomeIcon icon={faSignOutAlt} />
-          Keluar
+          {isImpersonating ? "Logout dari Muhafidz" : "Keluar"}
         </button>
       </div>
     </aside>
@@ -2267,6 +2451,10 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
 
 
 
+--- FILE: ./components/tables/HalaqahTable.tsx ---
+
+
+
 --- FILE: ./pages/auth/LoginPage.tsx ---
 
 import { LoginForm } from "@/components/forms/LoginForm";
@@ -2274,8 +2462,31 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBookOpen } from "@fortawesome/free-solid-svg-icons";
 import loginBg from "@/assets/login-bg.png"; 
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { useEffect } from "react";
+
+
 
 export default function LoginPage() {
+  useEffect(() => {
+    // Mencegah reload halaman ketika form di-submit
+    const handleFormSubmit = (e: SubmitEvent) => {
+      e.preventDefault();
+    };
+    
+    // Attach event listener ke semua form di halaman ini
+    const forms = document.querySelectorAll('form');
+    forms.forEach(form => {
+      form.addEventListener('submit', handleFormSubmit);
+    });
+    
+    return () => {
+      // Cleanup
+      forms.forEach(form => {
+        form.removeEventListener('submit', handleFormSubmit);
+      });
+    };
+  }, []);
+
   return (
     <div className="flex min-h-screen w-full overflow-hidden bg-background-light dark:bg-background-dark">
 
@@ -2417,7 +2628,8 @@ import {
   faEnvelope,
   faEdit,
   faTrash,
-  faPlus
+  faPlus,
+  faSignInAlt
 } from "@fortawesome/free-solid-svg-icons";
 import { MoreHorizontalIcon } from "lucide-react";
 import {
@@ -2434,6 +2646,7 @@ interface DaftarAkunProps {
   isLoading: boolean;
   onEditClick: (muhafiz: Muhafiz) => void;
   onDeleteClick: (muhafiz: Muhafiz) => void;
+  onImpersonateClick: (muhafiz: Muhafiz) => void;
   onRefresh: () => void;
   onCreateClick: () => void;
 }
@@ -2443,6 +2656,7 @@ export function DaftarAkun({
   isLoading, 
   onEditClick, 
   onDeleteClick, 
+  onImpersonateClick,
   onCreateClick
 }: DaftarAkunProps) {
   
@@ -2520,29 +2734,34 @@ export function DaftarAkun({
                 </span>
               </td>
               <td className="px-6 py-4">
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <MoreHorizontalIcon className="h-4 w-4" />
-                        </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-40">
-                        <DropdownMenuLabel>Aksi</DropdownMenuLabel>
-                        <DropdownMenuGroup>
-                            <DropdownMenuItem onClick={() => onEditClick(muhafiz)}>
-                            <FontAwesomeIcon icon={faEdit} className="mr-2 h-3 w-3" />
-                            <span>Edit</span>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem 
-                            onClick={() => onDeleteClick(muhafiz)}
-                            className="text-destructive focus:text-destructive"
-                            >
-                            <FontAwesomeIcon icon={faTrash} className="mr-2 h-3 w-3" />
-                            <span>Hapus</span>
-                            </DropdownMenuItem>
-                        </DropdownMenuGroup>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                      <MoreHorizontalIcon className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuLabel>Aksi</DropdownMenuLabel>
+                    <DropdownMenuGroup>
+                      <DropdownMenuItem onClick={() => onImpersonateClick(muhafiz)}>
+                        <FontAwesomeIcon icon={faSignInAlt} className="mr-2 h-3 w-3" />
+                        <span>Login Sebagai</span>
+                      </DropdownMenuItem>
+                      
+                      <DropdownMenuItem onClick={() => onEditClick(muhafiz)}>
+                        <FontAwesomeIcon icon={faEdit} className="mr-2 h-3 w-3" />
+                        <span>Edit</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        onClick={() => onDeleteClick(muhafiz)}
+                        className="text-destructive focus:text-destructive"
+                      >
+                        <FontAwesomeIcon icon={faTrash} className="mr-2 h-3 w-3" />
+                        <span>Hapus</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuGroup>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </td>
             </tr>
           ))}
@@ -2850,9 +3069,11 @@ import {
   faCheck,
   faXmark
 } from "@fortawesome/free-solid-svg-icons";
+// import { useNavigate } from "react-router-dom"; 
 
 export default function KelolaMuhafizPage() {
-  const { user } = useAuth();
+  const { user, impersonate } = useAuth();
+  // const navigate = useNavigate();
   const [muhafizList, setMuhafizList] = useState<Muhafiz[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
@@ -2911,6 +3132,40 @@ export default function KelolaMuhafizPage() {
     setSuccess("Muhafidz berhasil dihapus!");
     loadMuhafiz();
     setTimeout(() => setSuccess(""), 3000);
+  };
+
+  const handleImpersonateClick = async (muhafiz: Muhafiz) => {
+    if (!confirm(`Login ke akun ${muhafiz.username}?`)) return;
+    
+    setIsLoading(true);
+    try {
+      // 1. Dapatkan token untuk muhafiz
+      const response = await akunService.impersonateMuhafiz(muhafiz.id_user);
+      
+      if (response.success) {
+        // 2. Buat data user untuk muhafiz
+        const impersonatedUser = {
+          ...response.data.user,
+          token: response.data.token,
+          isImpersonating: true
+        };
+
+        // 3. Simpan user asli (superadmin)
+        if (user) {
+          // 4. Panggil fungsi impersonate dari AuthContext
+          await impersonate(impersonatedUser, user);
+          
+          // 5. Tampilkan pesan sukses
+          setSuccess(`Berhasil login sebagai ${muhafiz.username}`);
+        }
+      }
+    } catch (error: any) {
+      const message = error.response?.data?.message || "Gagal login sebagai muhafidz";
+      setError(message);
+      console.error("Impersonate error:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Cek apakah user adalah superadmin
@@ -3012,6 +3267,7 @@ export default function KelolaMuhafizPage() {
           isLoading={isLoading}
           onEditClick={handleEditClick}
           onDeleteClick={handleDeleteClick}
+          onImpersonateClick={handleImpersonateClick}
           onRefresh={loadMuhafiz}
           onCreateClick={handleRegisterSuccess}
         />
@@ -3523,170 +3779,6 @@ export function BuatHalaqah({ onSuccess }: BuatHalaqahProps) {
   );
 }
 
---- FILE: ./pages/kepala-muhafidz/KelolaHalaqah/DaftarHalaqah.tsx ---
-
-import { type Halaqah } from "@/services/halaqahService";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { 
-  faBook, 
-  faUserTie,
-  faUsers,
-  faEdit,
-  faTrash,
-  faPlus
-} from "@fortawesome/free-solid-svg-icons";
-import { MoreHorizontalIcon } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-
-interface DaftarHalaqahProps {
-  halaqahList: Halaqah[];
-  isLoading: boolean;
-  onEditClick: (halaqah: Halaqah) => void;
-  onDeleteClick: (halaqah: Halaqah) => void;
-  onRefresh: () => void;
-  onCreateClick: () => void;
-}
-
-export function DaftarHalaqah({ 
-  halaqahList, 
-  isLoading, 
-  onEditClick, 
-  onDeleteClick, 
-  onCreateClick
-}: DaftarHalaqahProps) {
-  
-  if (isLoading) {
-    return (
-      <div className="p-6 space-y-4">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="flex items-center gap-4">
-            <Skeleton className="h-12 w-12 rounded-full" />
-            <div className="space-y-2 flex-1">
-              <Skeleton className="h-4 w-1/4" />
-              <Skeleton className="h-3 w-1/2" />
-            </div>
-            <Skeleton className="h-8 w-20" />
-          </div>
-        ))}
-      </div>
-    );
-  }
-
-  if (halaqahList.length === 0) {
-    return (
-      <div className="p-12 text-center">
-        <FontAwesomeIcon icon={faBook} className="text-5xl text-text-secondary-light dark:text-text-secondary-dark mb-4" />
-        <h4 className="font-medium dark:text-white mb-2">Belum ada halaqah</h4>
-        <p className="text-text-secondary dark:text-text-secondary-dark mb-4">
-          Mulai dengan membuat halaqah pertama
-        </p>
-        <Button onClick={onCreateClick}>
-          <FontAwesomeIcon icon={faPlus} className="mr-2" />
-          Buat Halaqah Pertama
-        </Button>
-      </div>
-    );
-  }
-
-  // Fungsi untuk menentukan warna berdasarkan jenis halaqah
-  const getJenisColor = (jenis: string) => {
-    switch (jenis) {
-      case "BACAAN": return "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300";
-      case "HAFALAN": return "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300";
-      case "KHUSUS": return "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300";
-      default: return "bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-300";
-    }
-  };
-
-  return (
-    <div className="overflow-x-auto">
-      <table className="w-full">
-        <thead className="bg-accent/30 dark:bg-background-dark/50 text-muted-foreground font-medium">
-          <tr>
-            <th className="px-6 py-4 text-left">ID</th>
-            <th className="px-6 py-4 text-left">Nama Halaqah</th>
-            <th className="px-6 py-4 text-left">Jenis</th>
-            <th className="px-6 py-4 text-left">Muhafidz</th>
-            <th className="px-6 py-4 text-left">Jml. Santri</th>
-            <th className="px-6 py-4 text-left">Aksi</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-border dark:divide-border-dark">
-          {halaqahList.map((halaqah) => (
-            <tr key={halaqah.id_halaqah} className="hover:bg-accent/5 dark:hover:bg-background-dark/30 transition-colors">
-              <td className="px-6 py-4">
-                <span className="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-                  #{halaqah.id_halaqah}
-                </span>
-              </td>
-              <td className="px-6 py-4">
-                <div className="flex items-center gap-2">
-                  <FontAwesomeIcon icon={faBook} className="text-sm text-text-secondary-light dark:text-text-secondary-dark" />
-                  <span className="font-medium dark:text-white">{halaqah.nama_halaqah}</span>
-                </div>
-              </td>
-              <td className="px-6 py-4">
-                <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${getJenisColor(halaqah.jenis)}`}>
-                  {halaqah.jenis}
-                </span>
-              </td>
-              <td className="px-6 py-4">
-                <div className="flex items-center gap-2">
-                  <FontAwesomeIcon icon={faUserTie} className="text-sm text-text-secondary-light dark:text-text-secondary-dark" />
-                  <div>
-                    <p className="font-medium dark:text-white">{halaqah.muhafidz.username}</p>
-                    <p className="text-xs text-text-secondary-light dark:text-text-secondary-dark">{halaqah.muhafidz.email}</p>
-                  </div>
-                </div>
-              </td>
-              <td className="px-6 py-4">
-                <div className="flex items-center gap-2">
-                  <FontAwesomeIcon icon={faUsers} className="text-sm text-text-secondary-light dark:text-text-secondary-dark" />
-                  <span className="font-medium dark:text-white">{halaqah.jumlah_santri || 0}</span>
-                </div>
-              </td>
-              <td className="px-6 py-4">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                      <MoreHorizontalIcon className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-40">
-                    <DropdownMenuLabel>Aksi</DropdownMenuLabel>
-                    <DropdownMenuGroup>
-                      <DropdownMenuItem onClick={() => onEditClick(halaqah)}>
-                        <FontAwesomeIcon icon={faEdit} className="mr-2 h-3 w-3" />
-                        <span>Edit</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem 
-                        onClick={() => onDeleteClick(halaqah)}
-                        className="text-destructive focus:text-destructive"
-                      >
-                        <FontAwesomeIcon icon={faTrash} className="mr-2 h-3 w-3" />
-                        <span>Hapus</span>
-                      </DropdownMenuItem>
-                    </DropdownMenuGroup>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
 --- FILE: ./pages/kepala-muhafidz/KelolaHalaqah/EditHalaqah.tsx ---
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -3855,246 +3947,528 @@ export function DeleteHalaqah({ halaqah, isOpen, onClose, onSuccess }: DeleteHal
   );
 }
 
---- FILE: ./pages/muhafidz/Absensi.tsx ---
+--- FILE: ./pages/kepala-muhafidz/KelolaHalaqah/DaftarHalaqah.tsx ---
 
-import { useState } from "react";
-type Status = "hadir" | "absen" | "izin";
+import { type Halaqah } from "@/services/halaqahService";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { 
+  faBook, 
+  faUserTie,
+  faUsers,
+  faEdit,
+  faTrash,
+  faPlus
+} from "@fortawesome/free-solid-svg-icons";
+import { MoreHorizontalIcon } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
-interface Halaqah {
-  id: number;
-  nama: string;
-  muhafidz: string;
+interface DaftarHalaqahProps {
+  halaqahList: Halaqah[];
+  isLoading: boolean;
+  onEditClick: (halaqah: Halaqah) => void;
+  onDeleteClick: (halaqah: Halaqah) => void;
+  onRefresh: () => void;
+  onCreateClick: () => void;
 }
 
-interface Santri {
-  id: number;
-  nama: string;
-  halaqahId: number;
-}
-
-interface Absensi {
-  santriId: number;
-  status: Status;
-  keterangan?: string;
-}
-
-export default function AbsensiPage() {
-  const [_halaqah, _setHalaqah] = useState<Halaqah>({
-    id: 1,
-    nama: "Halaqah A",
-    muhafidz: "Ust. Ahmad",
-  });
-
-  const [santri, _setSantri] = useState<Santri[]>([
-    { id: 1, nama: "Ahmad", halaqahId: 1 },
-    { id: 2, nama: "Burhan", halaqahId: 1 },
-    { id: 3, nama: "Cahya", halaqahId: 1 },
-    { id: 4, nama: "Dafa", halaqahId: 1 },
-    { id: 5, nama: "Ehsan", halaqahId: 1 },
-    { id: 6, nama: "Fahri", halaqahId: 1 },
-    { id: 7, nama: "Gamal", halaqahId: 1 },
-    { id: 8, nama: "Hamzah", halaqahId: 1 },
-  ]);
-
-  const [absensi, setAbsensi] = useState<Absensi[]>([
-    { santriId: 1, status: "hadir" },
-    { santriId: 2, status: "izin", keterangan: "Sakit" },
-  ]);
-
-  const handleStatusChange = (santriId: number, status: Status) => {
-    setAbsensi((prev) => {
-      const exists = prev.find((a) => a.santriId === santriId);
-
-      if (exists) {
-        return prev.map((a) =>
-          a.santriId === santriId
-            ? {
-                ...a,
-                status,
-                keterangan: status === "izin" ? a.keterangan : undefined,
-              }
-            : a
-        );
-      }
-
-      return [...prev, { santriId, status }];
-    });
-  };
-
-  const handleKeteranganChange = (santriId: number, value: string) => {
-    setAbsensi((prev) =>
-      prev.map((a) =>
-        a.santriId === santriId
-          ? { ...a, keterangan: value }
-          : a
-      )
+export function DaftarHalaqah({ 
+  halaqahList, 
+  isLoading, 
+  onEditClick, 
+  onDeleteClick, 
+  onCreateClick
+}: DaftarHalaqahProps) {
+  
+  if (isLoading) {
+    return (
+      <div className="p-6 space-y-4">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="flex items-center gap-4">
+            <Skeleton className="h-12 w-12 rounded-full" />
+            <div className="space-y-2 flex-1">
+              <Skeleton className="h-4 w-1/4" />
+              <Skeleton className="h-3 w-1/2" />
+            </div>
+            <Skeleton className="h-8 w-20" />
+          </div>
+        ))}
+      </div>
     );
-  };
+  }
 
-  const handleSubmit = () => {
-    const invalid = absensi.find(
-      (a) => a.status === "izin" && (!a.keterangan || a.keterangan.trim() === "")
+  if (halaqahList.length === 0) {
+    return (
+      <div className="p-12 text-center">
+        <FontAwesomeIcon icon={faBook} className="text-5xl text-text-secondary-light dark:text-text-secondary-dark mb-4" />
+        <h4 className="font-medium dark:text-white mb-2">Belum ada halaqah</h4>
+        <p className="text-text-secondary dark:text-text-secondary-dark mb-4">
+          Mulai dengan membuat halaqah pertama
+        </p>
+        <Button onClick={onCreateClick}>
+          <FontAwesomeIcon icon={faPlus} className="mr-2" />
+          Buat Halaqah Pertama
+        </Button>
+      </div>
     );
+  }
 
-    if (invalid) {
-      alert("Gagal menyimpan!\nIzin wajib diisi keterangan.");
-      return;
+  // Fungsi untuk menentukan warna berdasarkan jenis halaqah
+  const getJenisColor = (jenis: string) => {
+    switch (jenis) {
+      case "BACAAN": return "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300";
+      case "HAFALAN": return "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300";
+      case "KHUSUS": return "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300";
+      default: return "bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-300";
     }
-
-    console.log("Payload ke backend:", {
-      tanggal: new Date(),
-      absensi,
-    });
-
-    alert("Absensi berhasil disimpan");
   };
-
-  const rows = santri.map((s) => {
-    const data = absensi.find((a) => a.santriId === s.id);
-
-    return {
-      santriId: s.id,
-      namaSantri: s.nama,
-      status: data?.status ?? "absen",
-      keterangan: data?.keterangan,
-    };
-  });
-
-  const summary = {
-    total: rows.length,
-    hadir: rows.filter((r) => r.status === "hadir").length,
-    izin: rows.filter((r) => r.status === "izin").length,
-    absen: rows.filter((r) => r.status === "absen").length,
-  };
-
-  const hasInvalidIzin = rows.some(
-    (row) =>
-      row.status === "izin" &&
-      (!row.keterangan || row.keterangan.trim() === "")
-  );
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
-      <header className="flex flex-col text-left">
-        <h2 className="text-2xl font-bold text-foreground dark:text-foreground-dark">
-          Absensi Hari Ini
-        </h2>
-        <p className="text-muted-foreground dark:text-text-secondary-dark text-sm">
-          {new Date().toLocaleDateString("id-ID", {
-            day: "2-digit",
-            month: "long",
-            year: "numeric",
-          })}
-        </p>
-      </header>
+    <div className="overflow-x-auto">
+      <table className="w-full">
+        <thead className="bg-accent/30 dark:bg-background-dark/50 text-muted-foreground font-medium">
+          <tr>
+            <th className="px-6 py-4 text-left">ID</th>
+            <th className="px-6 py-4 text-left">Nama Halaqah</th>
+            <th className="px-6 py-4 text-left">Jenis</th>
+            <th className="px-6 py-4 text-left">Muhafidz</th>
+            <th className="px-6 py-4 text-left">Jml. Santri</th>
+            <th className="px-6 py-4 text-left">Aksi</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-border dark:divide-border-dark">
+          {halaqahList.map((halaqah) => (
+            <tr key={halaqah.id_halaqah} className="hover:bg-accent/5 dark:hover:bg-background-dark/30 transition-colors">
+              <td className="px-6 py-4">
+                <span className="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+                  #{halaqah.id_halaqah}
+                </span>
+              </td>
+              <td className="px-6 py-4">
+                <div className="flex items-center gap-2">
+                  <FontAwesomeIcon icon={faBook} className="text-sm text-text-secondary-light dark:text-text-secondary-dark" />
+                  <span className="font-medium dark:text-white">{halaqah.nama_halaqah}</span>
+                </div>
+              </td>
+              <td className="px-6 py-4">
+                <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${getJenisColor(halaqah.jenis)}`}>
+                  {halaqah.jenis}
+                </span>
+              </td>
+              <td className="px-6 py-4">
+                <div className="flex items-center gap-2">
+                  <FontAwesomeIcon icon={faUserTie} className="text-sm text-text-secondary-light dark:text-text-secondary-dark" />
+                  <div>
+                    <p className="font-medium dark:text-white">{halaqah.muhafidz.username}</p>
+                    <p className="text-xs text-text-secondary-light dark:text-text-secondary-dark">{halaqah.muhafidz.email}</p>
+                  </div>
+                </div>
+              </td>
+              <td className="px-6 py-4">
+                <div className="flex items-center gap-2">
+                  <FontAwesomeIcon icon={faUsers} className="text-sm text-text-secondary-light dark:text-text-secondary-dark" />
+                  <span className="font-medium dark:text-white">{halaqah.jumlah_santri || 0}</span>
+                </div>
+              </td>
+              <td className="px-6 py-4">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                      <MoreHorizontalIcon className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-40">
+                    <DropdownMenuLabel>Aksi</DropdownMenuLabel>
+                    <DropdownMenuGroup>
+                      <DropdownMenuItem onClick={() => onEditClick(halaqah)}>
+                        <FontAwesomeIcon icon={faEdit} className="mr-2 h-3 w-3" />
+                        <span>Edit</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        onClick={() => onDeleteClick(halaqah)}
+                        className="text-destructive focus:text-destructive"
+                      >
+                        <FontAwesomeIcon icon={faTrash} className="mr-2 h-3 w-3" />
+                        <span>Hapus</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuGroup>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
 
-      <div className="overflow-hidden rounded-xl border border-border dark:border-border-dark bg-card dark:bg-surface-dark shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left">
-            <thead className="bg-accent/50 dark:bg-background-dark/50 text-foreground dark:text-foreground-dark">
-              <tr>
-                <th className="px-6 py-4 font-semibold">Nama Santri</th>
-                <th className="px-6 py-4 font-semibold">Status</th>
-                <th className="px-6 py-4 font-semibold">Keterangan</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border dark:divide-border-dark">
-              {rows.map((row) => (
-                <tr
-                  key={row.santriId}
-                  className={`
-                    transition-colors
-                    ${
-                      row.status === "izin" &&
-                      (!row.keterangan || row.keterangan.trim() === "")
-                        ? "bg-destructive/10"
-                        : "hover:bg-accent/5"
-                    }
-                  `}
-                >
-                  <td className="px-6 py-4 font-medium dark:text-foreground-dark">
-                    {row.namaSantri}
-                  </td>
 
-                  <td className="px-6 py-4">
-                    <select
-                      value={row.status}
-                      onChange={(e) =>
-                        handleStatusChange(row.santriId, e.target.value as Status)
-                      }
-                      className="bg-background dark:bg-background-dark text-foreground dark:text-foreground-dark border border-border dark:border-border-dark rounded-md px-3 py-1.5 focus:ring-2 focus:ring-primary outline-none"
-                    >
-                      <option value="hadir">Hadir</option>
-                      <option value="absen">Absen</option>
-                      <option value="izin">Izin</option>
-                    </select>
-                  </td>
+--- FILE: ./pages/kepala-muhafidz/KelolaHalaqah/DetailHalaqah.tsx ---
 
-                  <td className="px-6 py-4">
-                    {row.status === "izin" ? (
-                      <div className="space-y-1">
-                        <input
-                          type="text"
-                          value={row.keterangan || ""}
-                          onChange={(e) =>
-                            handleKeteranganChange(row.santriId, e.target.value)
-                          }
-                          placeholder="Alasan izin..."
-                          className="w-full max-w-xs rounded-md border px-3 py-1.5 outline-none
-                            border-border focus:ring-2 focus:ring-primary"
-                        />
 
-                        {(!row.keterangan || row.keterangan.trim() === "") && (
-                          <p className="text-xs text-destructive">
-                            Keterangan wajib diisi
-                          </p>
-                        )}
-                      </div>
-                    ) : (
-                      <span className="text-muted italic text-xs">N/A</span>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+
+--- FILE: ./pages/kepala-muhafidz/KelolaHalaqah/JadwalHalaqah.tsx ---
+
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Calendar, ChevronLeft, ChevronRight, Clock, MapPin, Users, User } from "lucide-react";
+
+const DAYS = ["senin", "selasa", "rabu", "kamis", "jumat", "sabtu", "minggu"];
+const DAY_LABELS = {
+  senin: "Senin",
+  selasa: "Selasa",
+  rabu: "Rabu",
+  kamis: "Kamis",
+  jumat: "Jumat",
+  sabtu: "Sabtu",
+  minggu: "Minggu"
+};
+
+// Mock data jadwal (tanpa level)
+const mockJadwal = [
+  {
+    id: 1,
+    nama_halaqah: "Halaqah Al-Fatihah",
+    kode: "HQA-001",
+    hari: "senin",
+    jam_mulai: "08:00",
+    jam_selesai: "10:00",
+    lokasi: "Masjid Al-Ikhlas",
+    muhafidz: "Ust. Ahmad Hidayat",
+    jumlah_santri: 15,
+    kapasitas: 20,
+    status: "aktif"
+  },
+  {
+    id: 2,
+    nama_halaqah: "Halaqah Al-Baqarah",
+    kode: "HQA-002",
+    hari: "senin",
+    jam_mulai: "10:00",
+    jam_selesai: "12:00",
+    lokasi: "Ruang 101",
+    muhafidz: "Ust. Bambang Prasetyo",
+    jumlah_santri: 18,
+    kapasitas: 20,
+    status: "aktif"
+  },
+  {
+    id: 3,
+    nama_halaqah: "Halaqah Ali Imran",
+    kode: "HQA-003",
+    hari: "selasa",
+    jam_mulai: "14:00",
+    jam_selesai: "16:00",
+    lokasi: "Masjid Al-Falah",
+    muhafidz: "Ust. Cahyo Nugroho",
+    jumlah_santri: 12,
+    kapasitas: 15,
+    status: "penuh"
+  },
+  {
+    id: 4,
+    nama_halaqah: "Halaqah An-Nisa",
+    kode: "HQA-004",
+    hari: "rabu",
+    jam_mulai: "09:00",
+    jam_selesai: "11:00",
+    lokasi: "Ruang 102",
+    muhafidz: "Ust. Dani Setiawan",
+    jumlah_santri: 16,
+    kapasitas: 20,
+    status: "aktif"
+  }
+];
+
+export default function JadwalHalaqah() {
+  const [currentWeek, setCurrentWeek] = useState(0);
+  const [selectedDay, setSelectedDay] = useState<string | null>(null);
+
+  const getStatusColor = (status: string) => {
+    const colors: Record<string, string> = {
+      aktif: "border-l-green-500 bg-green-50 dark:bg-green-900/20",
+      penuh: "border-l-blue-500 bg-blue-50 dark:bg-blue-900/20",
+      nonaktif: "border-l-gray-500 bg-gray-50 dark:bg-gray-900/20"
+    };
+    return colors[status] || "border-l-gray-500 bg-gray-50";
+  };
+
+  const getStatusBadge = (status: string) => {
+    const config: Record<string, { label: string; color: string }> = {
+      aktif: { label: "Aktif", color: "bg-green-100 text-green-800" },
+      penuh: { label: "Penuh", color: "bg-blue-100 text-blue-800" },
+      nonaktif: { label: "Nonaktif", color: "bg-gray-100 text-gray-800" }
+    };
+    const cfg = config[status];
+    return cfg ? <Badge className={`${cfg.color} text-xs`}>{cfg.label}</Badge> : null;
+  };
+
+  // Filter jadwal berdasarkan hari yang dipilih
+  const filteredJadwal = selectedDay
+    ? mockJadwal.filter(j => j.hari === selectedDay)
+    : mockJadwal;
+
+  // Hitung statistik per hari
+//   const hariStats = DAYS.reduce((acc, day) => {
+//     const count = mockJadwal.filter(j => j.hari === day).length;
+//     return { ...acc, [day]: count };
+//   }, {} as Record<string, number>);
+
+  return (
+    <div className="space-y-6">
+      {/* Header dengan navigasi minggu */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="text-left">
+          <h2 className="text-xl font-bold dark:text-white">Jadwal Halaqah</h2>
+          <p className="text-sm text-text-secondary dark:text-text-secondary-dark">
+            Lihat jadwal pertemuan halaqah berdasarkan hari
+          </p>
+        </div>
+        
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentWeek(prev => prev - 1)}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <span className="text-sm font-medium">
+              Minggu ke-{currentWeek + 1}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentWeek(prev => prev + 1)}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+          
+          <Button
+            variant={selectedDay ? "outline" : "default"}
+            onClick={() => setSelectedDay(null)}
+            size="sm"
+          >
+            Semua Hari
+          </Button>
         </div>
       </div>
 
-      <div className="mt-auto sticky bottom-0 bg-card dark:bg-surface-dark rounded-xl border border-border dark:border-border-dark backdrop-blur">
-        <div className="flex items-center justify-between gap-6 px-6 py-5">
+      {/* Grid Hari */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-2">
+        {DAYS.map((day) => {
+          const dayJadwal = mockJadwal.filter(j => j.hari === day);
+          const isSelected = selectedDay === day;
+          
+          return (
+            <Card 
+              key={day}
+              className={`cursor-pointer transition-all hover:shadow-md ${
+                isSelected 
+                  ? "border-primary bg-primary/5" 
+                  : "hover:border-primary/50"
+              }`}
+              onClick={() => setSelectedDay(isSelected ? null : day)}
+            >
+              <CardContent className="p-4">
+                <div className="flex flex-col items-center text-center">
+                  <span className="font-semibold text-lg">
+                    {DAY_LABELS[day as keyof typeof DAY_LABELS]}
+                  </span>
+                  <div className="mt-2">
+                    <Badge 
+                      variant={dayJadwal.length > 0 ? "default" : "outline"}
+                      className={dayJadwal.length > 0 ? "bg-primary" : ""}
+                    >
+                      {dayJadwal.length} Halaqah
+                    </Badge>
+                  </div>
+                  {dayJadwal.length > 0 && (
+                    <div className="mt-3 space-y-1 w-full">
+                      {dayJadwal.slice(0, 2).map((j) => (
+                        <div 
+                          key={j.id}
+                          className={`text-xs p-2 rounded border-l-4 ${getStatusColor(j.status)}`}
+                        >
+                          <p className="font-medium truncate">{j.kode}</p>
+                          <p className="text-gray-600 dark:text-gray-400">{j.jam_mulai}</p>
+                        </div>
+                      ))}
+                      {dayJadwal.length > 2 && (
+                        <p className="text-xs text-gray-500 mt-1">
+                          +{dayJadwal.length - 2} lainnya
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
 
-          {/* Summary */}
-          <div className="flex gap-4">
+      {/* Statistik Ringkas */}
+      <Card className="bg-accent/30">
+        <CardContent className="p-4">
+          <div className="flex flex-wrap gap-4 justify-between">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-primary">
+                {mockJadwal.length}
+              </div>
+              <div className="text-sm text-gray-500">Total Halaqah</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-green-600">
+                {mockJadwal.filter(j => j.status === "aktif").length}
+              </div>
+              <div className="text-sm text-gray-500">Halaqah Aktif</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-blue-600">
+                {mockJadwal.filter(j => j.status === "penuh").length}
+              </div>
+              <div className="text-sm text-gray-500">Halaqah Penuh</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-gray-600">
+                {mockJadwal.reduce((sum, j) => sum + j.jumlah_santri, 0)}
+              </div>
+              <div className="text-sm text-gray-500">Total Santri</div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Detail Jadwal */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Calendar className="h-5 w-5" />
+            {selectedDay 
+              ? `Jadwal Hari ${DAY_LABELS[selectedDay as keyof typeof DAY_LABELS]}` 
+              : "Semua Jadwal Halaqah"}
+            <Badge variant="outline" className="ml-2">
+              {filteredJadwal.length} Halaqah
+            </Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {filteredJadwal.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              <Calendar className="h-12 w-12 mx-auto text-gray-300 mb-4" />
+              <p>Tidak ada jadwal halaqah</p>
+              <p className="text-sm text-gray-400">Pilih hari lain atau buat halaqah baru</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {filteredJadwal.map((jadwal) => (
+                <Card 
+                  key={jadwal.id}
+                  className={`border-l-4 overflow-hidden ${getStatusColor(jadwal.status)}`}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-bold text-lg">{jadwal.nama_halaqah}</h3>
+                          <span className="font-mono text-sm text-gray-500">
+                            {jadwal.kode}
+                          </span>
+                          {getStatusBadge(jadwal.status)}
+                        </div>
+                        
+                        <div className="flex flex-wrap gap-4 text-sm">
+                          <div className="flex items-center gap-1">
+                            <Clock className="h-4 w-4 text-gray-400" />
+                            <span>{jadwal.jam_mulai} - {jadwal.jam_selesai}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <MapPin className="h-4 w-4 text-gray-400" />
+                            <span>{jadwal.lokasi}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Users className="h-4 w-4 text-gray-400" />
+                            <span>
+                              {jadwal.jumlah_santri}/{jadwal.kapasitas} santri
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <User className="h-4 w-4 text-gray-400" />
+                            <span>{jadwal.muhafidz}</span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="flex flex-col items-end gap-2">
+                        <div className="text-right">
+                          <div className="font-medium">{jadwal.muhafidz}</div>
+                          <div className="text-sm text-gray-500">Muhafidz</div>
+                        </div>
+                        <Button variant="outline" size="sm">
+                          Lihat Detail
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    {/* Progress bar untuk kapasitas */}
+                    <div className="mt-3">
+                      <div className="flex justify-between text-xs text-gray-500 mb-1">
+                        <span>Kapasitas</span>
+                        <span>{Math.round((jadwal.jumlah_santri / jadwal.kapasitas) * 100)}% terisi</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div 
+                          className={`h-2 rounded-full ${
+                            jadwal.status === "penuh" 
+                              ? "bg-blue-500" 
+                              : jadwal.jumlah_santri / jadwal.kapasitas > 0.8
+                              ? "bg-yellow-500"
+                              : "bg-green-500"
+                          }`}
+                          style={{ width: `${(jadwal.jumlah_santri / jadwal.kapasitas) * 100}%` }}
+                        />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Legend */}
+      <Card className="bg-accent/30">
+        <CardContent className="p-4">
+          <div className="flex flex-wrap gap-4 items-center">
+            <span className="text-sm font-medium">Legenda Status:</span>
             {[
-              { label: "Total", value: summary.total, color: "text-foreground dark:text-foreground-dark"},
-              { label: "Hadir", value: summary.hadir, color: "text-primary" },
-              { label: "Izin", value: summary.izin, color: "text-yellow-500" },
-              { label: "Absen", value: summary.absen, color: "text-red-500" },
+              { status: "aktif", label: "Aktif", color: "bg-green-500" },
+              { status: "penuh", label: "Penuh", color: "bg-blue-500" },
+              { status: "nonaktif", label: "Nonaktif", color: "bg-gray-500" }
             ].map((item) => (
-              <div
-                key={item.label}
-                className="bg-background/40 dark:bg-background-dark/40 border border-border/40 rounded-2xl px-4 py-3 text-sm shadow-sm"
-              >
-                <p className="text-muted-foreground">{item.label}</p>
-                <p className={`font-bold text-lg ${item.color ?? ""}`}>
-                  {item.value}
-                </p>
+              <div key={item.status} className="flex items-center gap-2">
+                <div className={`w-3 h-3 rounded-full ${item.color}`} />
+                <span className="text-sm">{item.label}</span>
               </div>
             ))}
           </div>
-
-          {/* Action */}
-          <button
-            onClick={handleSubmit}
-            disabled={hasInvalidIzin}
-            className={`bg-primary hover:bg-primary/90 text-white px-8 py-3 rounded-2xl font-semibold shadow-lg shadow-primary/20 transition-all active:scale-
-              ${hasInvalidIzin ? "bg-muted text-muted-foreground cursor-not-allowed" : "bg-primary hover:bg-primary-dark text-white active:scale-95"}`}
-          >
-            Simpan Absensi
-          </button>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
@@ -5171,8 +5545,404 @@ export default function ProgresSantriPage() {
   );
 }
 
+--- FILE: ./pages/muhafidz/Absensi.tsx ---
+
+import { useState } from "react";
+type Status = "hadir" | "sakit" | "izin" | "terlambat" | "absen";
+
+interface Halaqah {
+  id: number;
+  nama: string;
+  muhafidz: string;
+}
+
+interface Santri {
+  id: number;
+  nama: string;
+  halaqahId: number;
+}
+
+interface Absensi {
+  santriId: number;
+  status: Status;
+}
+
+// Tipe data Setoran
+interface Setoran {
+  id: number;
+  santriId: number;
+  surah: string;
+  ayat_mulai: number;
+  ayat_selesai: number;
+  nilai: number;
+  catatan: string;
+  tanggal: Date;
+}
+
+export default function AbsensiPage() {
+  const [_halaqah, _setHalaqah] = useState<Halaqah>({
+    id: 1,
+    nama: "Halaqah A",
+    muhafidz: "Ust. Ahmad",
+  });
+
+  const [santri, _setSantri] = useState<Santri[]>([
+    { id: 1, nama: "Ahmad", halaqahId: 1 },
+    { id: 2, nama: "Burhan", halaqahId: 1 },
+    { id: 3, nama: "Cahya", halaqahId: 1 },
+    { id: 4, nama: "Dafa", halaqahId: 1 },
+    { id: 5, nama: "Ehsan", halaqahId: 1 },
+    { id: 6, nama: "Fahri", halaqahId: 1 },
+    { id: 7, nama: "Gamal", halaqahId: 1 },
+    { id: 8, nama: "Hamzah", halaqahId: 1 },
+  ]);
+
+  const [absensi, setAbsensi] = useState<Absensi[]>([
+    { santriId: 1, status: "hadir" },
+    { santriId: 2, status: "sakit" },
+    { santriId: 3, status: "izin" },
+    { santriId: 4, status: "absen" },
+    { santriId: 5, status: "absen" },
+    { santriId: 6, status: "absen" },
+    { santriId: 7, status: "hadir" },
+    { santriId: 8, status: "sakit" },
+  ]);
+
+  // Data mock setoran (dari page Setoran)
+  const [setoran, _setSetoran] = useState<Setoran[]>([
+    { 
+      id: 1, 
+      santriId: 1, 
+      surah: "Al-Baqarah", 
+      ayat_mulai: 1, 
+      ayat_selesai: 10, 
+      nilai: 90, 
+      catatan: "Tajwid sudah bagus",
+      tanggal: new Date() 
+    },
+    { 
+      id: 2, 
+      santriId: 3, 
+      surah: "An-Naba", 
+      ayat_mulai: 1, 
+      ayat_selesai: 40, 
+      nilai: 85, 
+      catatan: "Perlu perbaikan makhraj",
+      tanggal: new Date() 
+    },
+    { 
+      id: 3, 
+      santriId: 7, 
+      surah: "Al-Fatihah", 
+      ayat_mulai: 1, 
+      ayat_selesai: 7, 
+      nilai: 95, 
+      catatan: "Sangat lancar",
+      tanggal: new Date() 
+    },
+    { 
+      id: 4, 
+      santriId: 1, 
+      surah: "Al-Baqarah", 
+      ayat_mulai: 11, 
+      ayat_selesai: 15, 
+      nilai: 92, 
+      catatan: "Hafalan mantap",
+      tanggal: new Date() 
+    },
+    { 
+      id: 5, 
+      santriId: 2, 
+      surah: "Al-Kahf", 
+      ayat_mulai: 1, 
+      ayat_selesai: 10, 
+      nilai: 88, 
+      catatan: "Perlu pengulangan",
+      tanggal: new Date() 
+    },
+  ]);
+
+  const handleStatusChange = (santriId: number, status: Status) => {
+    setAbsensi((prev) => {
+      const exists = prev.find((a) => a.santriId === santriId);
+
+      if (exists) {
+        return prev.map((a) =>
+          a.santriId === santriId ? { ...a, status } : a
+        );
+      }
+
+      return [...prev, { santriId, status }];
+    });
+  };
+
+  const handleSubmit = () => {
+    console.log("Payload ke backend:", {
+      tanggal: new Date(),
+      absensi,
+    });
+
+    alert("Absensi berhasil disimpan");
+  };
+
+  // Fungsi untuk mendapatkan setoran hari ini berdasarkan santriId
+  const getTodaySetoran = (santriId: number): Setoran[] => {
+    const today = new Date().toDateString();
+    return setoran.filter(s => 
+      s.santriId === santriId && 
+      new Date(s.tanggal).toDateString() === today
+    );
+  };
+
+  // Fungsi untuk mendapatkan setoran terbaru (dari hari ini atau sebelumnya)
+  const getLatestSetoran = (santriId: number): Setoran | undefined => {
+    const santriSetoran = setoran
+      .filter(s => s.santriId === santriId)
+      .sort((a, b) => new Date(b.tanggal).getTime() - new Date(a.tanggal).getTime());
+    
+    return santriSetoran[0];
+  };
+
+  const rows = santri.map((s) => {
+    const data = absensi.find((a) => a.santriId === s.id);
+    const todaySetoran = getTodaySetoran(s.id);
+    const latestSetoran = getLatestSetoran(s.id);
+    const sudahSetorHariIni = todaySetoran.length > 0;
+
+    return {
+      santriId: s.id,
+      namaSantri: s.nama,
+      status: data?.status ?? "absen",
+      sudahSetor: sudahSetorHariIni,
+      setoranHariIni: todaySetoran,
+      setoranTerakhir: latestSetoran,
+      totalSetoranHariIni: todaySetoran.length,
+    };
+  });
+
+  // Summary untuk kehadiran
+  const summaryKehadiran = {
+    total: rows.length,
+    hadir: rows.filter((r) => r.status === "hadir").length,
+    izin: rows.filter((r) => r.status === "izin").length,
+    sakit: rows.filter((r) => r.status === "sakit").length,
+    terlambat: rows.filter((r) => r.status === "terlambat").length,
+    absen: rows.filter((r) => r.status === "absen").length,
+  };
+
+  // Summary untuk setoran
+  const summarySetoran = {
+    totalSetoran: rows.reduce((acc, row) => acc + row.totalSetoranHariIni, 0),
+    santriSudahSetor: rows.filter(r => r.sudahSetor).length,
+  };
+
+  return (
+    <div className="space-y-6 animate-in fade-in duration-500">
+      <header className="flex flex-col text-left">
+        <h2 className="text-2xl font-bold text-foreground dark:text-foreground-dark">
+          Absensi Hari Ini
+        </h2>
+        <p className="text-muted-foreground dark:text-text-secondary-dark text-sm">
+          {new Date().toLocaleDateString("id-ID", {
+            day: "2-digit",
+            month: "long",
+            year: "numeric",
+          })}
+        </p>
+      </header>
+
+      <div className="overflow-hidden rounded-xl border border-border dark:border-border-dark bg-card dark:bg-surface-dark shadow-sm">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm text-left">
+            <thead className="bg-accent/50 dark:bg-background-dark/50 text-foreground dark:text-foreground-dark">
+              <tr>
+                <th className="px-6 py-4 font-semibold">Nama Santri</th>
+                <th className="px-6 py-4 font-semibold">Status</th>
+                <th className="px-6 py-4 font-semibold">Info Setoran</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border dark:divide-border-dark">
+              {rows.map((row) => {
+                const statusColors = {
+                  hadir: "text-green-600 dark:text-green-400",
+                  sakit: "text-yellow-600 dark:text-yellow-400",
+                  izin: "text-blue-600 dark:text-blue-400",
+                  terlambat: "text-orange-600 dark:text-orange-400",
+                  absen: "text-red-600 dark:text-red-400",
+                };
+
+                const statusText = {
+                  hadir: "Hadir",
+                  sakit: "Sakit",
+                  izin: "Izin",
+                  terlambat: "Terlambat",
+                  absen: "Absen",
+                };
+
+                return (
+                  <tr
+                    key={row.santriId}
+                    className="hover:bg-accent/5 transition-colors"
+                  >
+                    <td className="px-6 py-4 font-medium dark:text-foreground-dark">
+                      {row.namaSantri}
+                    </td>
+
+                    <td className="px-6 py-4">
+                      <select
+                        value={row.status}
+                        onChange={(e) =>
+                          handleStatusChange(row.santriId, e.target.value as Status)
+                        }
+                        className={`bg-background dark:bg-background-dark border border-border dark:border-border-dark rounded-md px-3 py-1.5 focus:ring-2 focus:ring-primary outline-none ${statusColors[row.status]}`}
+                      >
+                        <option value="hadir">Hadir</option>
+                        <option value="sakit">Sakit</option>
+                        <option value="izin">Izin</option>
+                        <option value="terlambat">Terlambat</option>
+                        <option value="absen">Absen</option>
+                      </select>
+                      <div className={`text-xs mt-1 ${statusColors[row.status]}`}>
+                        {statusText[row.status]}
+                      </div>
+                    </td>
+
+                    {/* Kolom Info Setoran */}
+                    <td className="px-6 py-4">
+                      {row.sudahSetor ? (
+                        <div className="space-y-2">
+                          {/* Centang untuk yang sudah setor */}
+                          <div className="flex items-center gap-2">
+                            <div className="w-5 h-5 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                              <svg 
+                                className="w-3 h-3 text-green-600 dark:text-green-400" 
+                                fill="none" 
+                                stroke="currentColor" 
+                                viewBox="0 0 24 24"
+                              >
+                                <path 
+                                  strokeLinecap="round" 
+                                  strokeLinejoin="round" 
+                                  strokeWidth="3" 
+                                  d="M5 13l4 4L19 7" 
+                                />
+                              </svg>
+                            </div>
+                            <span className="text-sm font-medium text-green-700 dark:text-green-300">
+                              Sudah Setor
+                            </span>
+                          </div>
+
+                          {/* Info detail setoran - HANYA surat dan ayat */}
+                          <div className="space-y-1 ml-7">
+                            {row.setoranHariIni.map((setor) => (
+                              <div key={setor.id} className="text-sm">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-medium dark:text-foreground-dark">
+                                    {setor.surah}
+                                  </span>
+                                  <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+                                    Ayat {setor.ayat_mulai}-{setor.ayat_selesai}
+                                  </span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ) : row.setoranTerakhir ? (
+                        // Tampilkan setoran terakhir jika belum setor hari ini
+                        <div className="space-y-1">
+                          <div className="text-sm dark:text-foreground-dark">
+                            <span className="text-muted-foreground">Terakhir: </span>
+                            {row.setoranTerakhir.surah}
+                            <span className="text-xs ml-2">
+                              (Ayat {row.setoranTerakhir.ayat_mulai}-{row.setoranTerakhir.ayat_selesai})
+                            </span>
+                          </div>
+                        </div>
+                      ) : (
+                        <span className="text-muted italic text-xs">Belum ada setoran</span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div className="mt-auto sticky bottom-0 bg-card dark:bg-surface-dark rounded-xl border border-border dark:border-border-dark backdrop-blur">
+        <div className="flex items-center justify-between gap-6 px-6 py-5">
+          {/* Container untuk dua baris summary */}
+          <div className="flex-1">
+            {/* Baris 1: Summary Kehadiran */}
+            <div className="flex flex-wrap gap-4 mb-4">
+              {[
+                { label: "Total", value: summaryKehadiran.total, color: "text-foreground dark:text-foreground-dark" },
+                { label: "Hadir", value: summaryKehadiran.hadir, color: "text-green-600 dark:text-green-400" },
+                { label: "Sakit", value: summaryKehadiran.sakit, color: "text-yellow-600 dark:text-yellow-400" },
+                { label: "Izin", value: summaryKehadiran.izin, color: "text-blue-600 dark:text-blue-400" },
+                { label: "Terlambat", value: summaryKehadiran.terlambat, color: "text-orange-600 dark:text-orange-400" },
+                { label: "Absen", value: summaryKehadiran.absen, color: "text-red-600 dark:text-red-400" },
+              ].map((item) => (
+                <div
+                  key={item.label}
+                  className="bg-background/40 dark:bg-background-dark/40 border border-border/40 rounded-2xl px-4 py-3 text-sm shadow-sm min-w-[80px]"
+                >
+                  <p className="text-muted-foreground text-xs">{item.label}</p>
+                  <p className={`font-bold text-lg ${item.color ?? ""}`}>
+                    {item.value}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            {/* Baris 2: Summary Setoran */}
+            <div className="flex flex-wrap gap-4">
+              {[
+                { 
+                  label: "Total Setoran", 
+                  value: summarySetoran.totalSetoran, 
+                  color: "text-emerald-600 dark:text-emerald-400" 
+                },
+                { 
+                  label: "Sudah Setor", 
+                  value: summarySetoran.santriSudahSetor, 
+                  color: "text-emerald-600 dark:text-emerald-400" 
+                },
+              ].map((item) => (
+                <div
+                  key={item.label}
+                  className="bg-background/40 dark:bg-background-dark/40 border border-border/40 rounded-2xl px-4 py-3 text-sm shadow-sm min-w-[80px]"
+                >
+                  <p className="text-muted-foreground text-xs">{item.label}</p>
+                  <p className={`font-bold text-lg ${item.color ?? ""}`}>
+                    {item.value}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Tombol Simpan Absensi di sebelah kanan */}
+          <div className="flex-shrink-0">
+            <button
+              onClick={handleSubmit}
+              className="bg-primary hover:bg-primary/90 text-white px-8 py-3 rounded-2xl font-semibold shadow-lg shadow-primary/20 transition-all active:scale-95 whitespace-nowrap"
+            >
+              Simpan Absensi
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 --- FILE: ./context/AuthContext.tsx ---
 
+// FILE: ./context/AuthContext.tsx
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { type LoginFormValues } from "@/utils/zodSchema";
 import { authService } from "@/services/authService";
@@ -5186,6 +5956,13 @@ interface User {
   username: string;
   token?: string;
   avatarUrl?: string;
+  isImpersonating?: boolean; 
+  originalUser?: { 
+    id_user: number;
+    role: Role;
+    username: string;
+    token: string;
+  };
 }
 
 interface AuthContextType {
@@ -5196,6 +5973,9 @@ interface AuthContextType {
   isDarkMode: boolean;
   toggleDarkMode: () => void;
   refreshUser: () => Promise<void>;
+  impersonate: (userData: User, originalUser: User) => Promise<void>;
+  stopImpersonating: () => Promise<void>;
+  isImpersonating: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -5204,6 +5984,97 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isDarkMode, setIsDarkMode] = useState(false);
+
+  // Helper untuk simpan user ke localStorage
+  const saveUserToStorage = (userData: User | null) => {
+    if (userData) {
+      localStorage.setItem("user", JSON.stringify(userData));
+    } else {
+      localStorage.removeItem("user");
+    }
+  };
+
+  // NEW: Helper untuk simpan superadmin session
+  const saveSuperadminSession = (superadminData: User) => {
+    if (superadminData.role === "superadmin") {
+      localStorage.setItem("superadmin_session", JSON.stringify({
+        id_user: superadminData.id_user,
+        token: superadminData.token,
+        username: superadminData.username,
+        email: superadminData.email
+      }));
+    }
+  };
+
+  // NEW: Function untuk impersonate
+  const impersonate = async (impersonatedUser: User, originalUser: User) => {
+    const userData: User = {
+      ...impersonatedUser,
+      isImpersonating: true,
+      originalUser: {
+        id_user: originalUser.id_user,
+        role: originalUser.role,
+        username: originalUser.username,
+        token: originalUser.token!
+      }
+    };
+
+    setUser(userData);
+    saveUserToStorage(userData);
+    
+    // Simpan session superadmin di storage terpisah
+    if (originalUser.role === "superadmin") {
+      localStorage.setItem("superadmin_session", JSON.stringify({
+        id_user: originalUser.id_user,
+        token: originalUser.token,
+        username: originalUser.username,
+        email: originalUser.email
+      }));
+    }
+  };
+
+  // Function untuk kembali ke superadmin
+  const stopImpersonating = async () => {
+    const superadminSession = localStorage.getItem("superadmin_session");
+    
+    if (superadminSession) {
+      try {
+        const sessionData = JSON.parse(superadminSession);
+        
+        // Set user kembali ke superadmin
+        const superadminUser: User = {
+          ...sessionData,
+          role: "superadmin" as Role,
+          isImpersonating: false,
+          originalUser: undefined
+        };
+
+        setUser(superadminUser);
+        saveUserToStorage(superadminUser);
+        
+        // Refresh token untuk memastikan valid
+        try {
+          const response = await authService.getCurrentUser();
+          const updatedUser = {
+            ...superadminUser,
+            ...response.data.user
+          };
+          
+          setUser(updatedUser);
+          saveUserToStorage(updatedUser);
+        } catch (error) {
+          console.warn("Failed to refresh superadmin token:", error);
+          // Tetap lanjut dengan token yang ada
+        }
+        
+      } catch (error) {
+        console.error("Failed to restore superadmin session:", error);
+        logout();
+      }
+    } else {
+      logout();
+    }
+  };
 
   const initializeTheme = () => {
     const savedTheme = localStorage.getItem("theme");
@@ -5225,19 +6096,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
 
     try {
-      // Parse data dari localStorage untuk cek token
-      const parsedData = JSON.parse(savedData);
-      if (!parsedData.token) {
-        logout();
+      const parsedData = JSON.parse(savedData) as User;
+      
+      // Jika sedang impersonate, langsung set user dari localStorage
+      if (parsedData.isImpersonating) {
+        setUser(parsedData);
+        setIsLoading(false);
         return;
       }
-
-      // Coba ambil data user dari endpoint /auth/me
+      
       try {
         const response = await authService.getCurrentUser();
         const userData = response.data.user;
         
-        // Gabungkan dengan token dari localStorage
         const fullUser: User = {
           ...userData,
           token: parsedData.token,
@@ -5245,10 +6116,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         };
 
         setUser(fullUser);
-        localStorage.setItem("user", JSON.stringify(fullUser));
+        saveUserToStorage(fullUser);
+        
+        if (userData.role === "superadmin") {
+          saveSuperadminSession(fullUser);
+        }
       } catch (error) {
         console.error("Failed to fetch user from API:", error);
-        // Jika gagal fetch user, tetap set user dari localStorage
         setUser(parsedData);
       }
     } catch (error) {
@@ -5264,25 +6138,45 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       const response = await authService.login(values);
       
+      // Validasi response
+      if (!response.success) {
+        throw new Error(response.message || "Login gagal");
+      }
+      
       const userData: User = {
         ...response.data.user,
         token: response.data.token,
-        username: response.data.user.username || "User"
+        username: response.data.user.username || "User",
+        isImpersonating: false
       };
 
       setUser(userData);
-      localStorage.setItem("user", JSON.stringify(userData));
-    } catch (error) {
-      throw error;
+      saveUserToStorage(userData);
+      
+      if (userData.role === "superadmin") {
+        saveSuperadminSession(userData);
+      }
+      
+    } catch (error: any) {
+      if (error.response) {
+        throw error;
+      } else if (error.request) {
+        throw new Error("Tidak ada koneksi ke server");
+      } else {
+        throw error;
+      }
     } finally {
       setIsLoading(false);
     }
   };
+
   
   const logout = () => {
+    // Hapus semua session
     setUser(null);
     setIsLoading(false);
     localStorage.removeItem("user");
+    localStorage.removeItem("superadmin_session");
   };
 
   const toggleDarkMode = () => {
@@ -5310,7 +6204,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       isLoading,
       isDarkMode,
       toggleDarkMode,
-      refreshUser
+      refreshUser,
+      impersonate,
+      stopImpersonating,
+      isImpersonating: user?.isImpersonating || false
     }}>
       {children}
     </AuthContext.Provider>
@@ -5463,130 +6360,12 @@ export type LoginFormValues = z.infer<typeof loginSchema>;
 export type SetoranFormValues = z.infer<typeof setoranSchema>;
 export type RegisterFormValues = z.infer<typeof registerSchema>;
 
---- FILE: ./assets/api.md ---
-
-## 📚 Dokumentasi API Halaqah ID - Update Day 3
-
-Berikut adalah dokumentasi teknis fitur **RBAC (Role-Based Access Control)**, **Username Identity**, dan **Manajemen Akun Muhafiz** yang telah aktif di `main` branch.
-
-### 🛠️ Ringkasan Sistem
-
-Sistem menggunakan **JWT Authentication** dengan pembagian role yang ketat.
-
-* **Base URL:** `https://halaqahid-backend.vercel.app`
-* **Prefix:** `/api/halaqah`
-
----
-
-### 🔐 Keamanan (Middleware)
-
-Setiap request ke endpoint bertanda 🔐 wajib menyertakan header:
-`Authorization: Bearer <your_jwt_token>`
-
----
-
-### 📡 Endpoint Authentication
-
-#### 1. Login (Public)
-
-Digunakan untuk mendapatkan token. Sekarang mendukung login via **Email**.
-
-* **URL:** `POST /auth/login`
-* **Body:**
-
-```json
-{
-  "email": "admin@mail.com",
-  "password": "admin123"
-}
-
-```
-
-#### 2. Get Profile (`/me`) 🔐
-
-Mendapatkan data user yang sedang login dari token.
-
-* **URL:** `GET /auth/me`
-* **Akses:** Semua Role (Superadmin & Muhafiz)
-
----
-
-### 👥 Manajemen User (Admin Only 🔐)
-
-#### 1. Register Muhafiz
-
-Membuat akun Muhafiz baru dengan identitas **Username**.
-
-* **URL:** `POST /auth/register`
-* **Body:**
-
-```json
-{
-  "username": "muhafiz_kece",
-  "email": "muhafiz@mail.com",
-  "password": "password123"
-}
-
-```
-
-#### 2. Get All Muhafiz List
-
-Mengambil semua daftar Muhafiz yang aktif (tidak terhapus).
-
-* **URL:** `GET /auth/muhafiz`
-* **Akses:** Superadmin Saja.
-
-#### 3. Update Muhafiz (Partial Update)
-
-Mengubah data Muhafiz (Username/Email) secara spesifik.
-
-* **URL:** `PATCH /auth/muhafiz/:id`
-* **Body (Opsional):**
-
-```json
-{
-  "username": "username_baru"
-}
-
-```
-
-#### 4. Delete Muhafiz (Soft Delete)
-
-Menghapus akun Muhafiz secara halus (data tetap ada di DB tapi tidak muncul di aplikasi).
-
-* **URL:** `DELETE /auth/muhafiz/:id`
-
----
-
-### ⚠️ Tabel Response Error
-
-| HTTP Status | Pesan Error | Penjelasan |
-| --- | --- | --- |
-| **401** | `Akses ditolak, token tidak ada` | Token tidak valid atau tidak dikirim. |
-| **403** | `Akses ditolak: Role muhafiz tidak diizinkan` | User login sebagai muhafiz mencoba akses fitur admin. |
-| **400** | `Email sudah terdaftar` | Email sudah ada di database. |
-| **400** | `Username sudah digunakan` | Username sudah dipakai oleh user lain. |
-| **404** | `Muhafiz tidak ditemukan` | ID user tidak ada atau user tersebut bukan role muhafiz. |
-
----
-
-### 💡 Catatan Implementasi Frontend
-
-1. **Username Display:** Menampilkan `username` di dashboard sebagai identitas utama.
-2. **PATCH Method:** Gunakan `PATCH` untuk edit profil agar hanya mengirim field yang berubah.
-3. **Soft Delete Handling:** User yang sudah dihapus akan hilang dari list `GET /muhafiz`.
-4. **Validation Error:** Jika dapet status `400` dengan pesan "Username sudah digunakan", beri peringatan pada input username di UI.
-
----
-
-**Status:** 🟢 **Production Ready (Main Branch)**
-
 --- FILE: ./api/axiosClient.ts ---
 
 import axios from "axios";
 
 const axiosClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "https://halaqahid-backend.vercel.app/api/halaqah",
+  baseURL: import.meta.env.VITE_API_URL || "https://halaqah-id-be.vercel.app/api/halaqah",
   headers: {
     "Content-Type": "application/json",
   },
@@ -5607,29 +6386,14 @@ axiosClient.interceptors.request.use((config) => {
     }
   }
   return config;
+}, (error) => {
+  return Promise.reject(error);
 });
 
 // RESPONSE INTERCEPTOR
 axiosClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    const originalRequest = error.config;
-    const isLoginRequest = error.config?.url?.includes('/login');
-    
-    // Handle 401 Unauthorized
-    if (error.response?.status === 401 && !isLoginRequest && !originalRequest._retry) {
-      // Tandai request sudah di-retry
-      originalRequest._retry = true;
-      
-      // Coba refresh token jika ada mekanisme refresh token
-      // Untuk sekarang, cukup logout jika 401
-      if (localStorage.getItem("user")) {
-        localStorage.removeItem("user");
-        window.location.href = "/login";
-      }
-    }
-    
-    // Log error untuk debugging
     console.error("API Error:", {
       status: error.response?.status,
       data: error.response?.data,
@@ -5646,6 +6410,39 @@ export default axiosClient;
 --- FILE: ./hooks/useAkun.ts ---
 
 
+
+--- FILE: ./hooks/useHalaqah.tsx ---
+
+import { useState, useCallback } from "react";
+import { halaqahService, type Halaqah } from "@/services/halaqahService"; 
+
+export const useHalaqah = () => {
+  const [halaqah, setHalaqah] = useState<Halaqah[]>([]); 
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchHalaqah = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await halaqahService.getAllHalaqah(); 
+      setHalaqah(response.data);
+    
+    } catch (err) {
+      setError("Gagal mengambil data halaqah");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  return {
+    halaqah,
+    loading,
+    error,
+    fetchHalaqah
+  };
+};
 
 --- FILE: ./index.css ---
 
@@ -5936,6 +6733,18 @@ export default axiosClient;
   }
 }
 
+/* Style untuk input ketika ada error */
+input[data-error="true"] {
+  border-color: hsl(var(--destructive)) !important;
+  animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-2px); }
+  20%, 40%, 60%, 80% { transform: translateX(2px); }
+}
+
 --- FILE: ./layouts/DashboardLayout.tsx ---
 
 import { useState } from "react";
@@ -5944,13 +6753,13 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/context/AuthContext";
 import { Outlet } from "react-router-dom"; 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBars, faTimes } from "@fortawesome/free-solid-svg-icons";
+import { faBars, faTimes, faUserTie } from "@fortawesome/free-solid-svg-icons";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function DashboardLayout() {
-  const { user } = useAuth();
+  const { user, isImpersonating } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
@@ -5998,7 +6807,18 @@ export default function DashboardLayout() {
 
             <div className="flex flex-col text-left">
               <h1 className="text-sm font-semibold dark:text-white leading-tight">Selamat Datang,</h1>
-              <p className="text-xs text-text-secondary dark:text-text-secondary-dark">{user?.username}</p>
+               <div className="flex items-center gap-2">
+                <p className="text-xs text-text-secondary dark:text-text-secondary-dark">
+                  {user?.username}
+                </p>
+                {/* NEW: Tampilkan badge impersonate */}
+                {isImpersonating && (
+                  <span className="inline-flex items-center rounded-full bg-yellow-500/10 px-2 py-0.5 text-xs font-medium text-yellow-600 dark:text-yellow-400">
+                    <FontAwesomeIcon icon={faUserTie} className="mr-1 h-2 w-2" />
+                    Muhafidz Mode
+                  </span>
+                )}
+              </div>
             </div>
           </div>
 
@@ -6006,8 +6826,11 @@ export default function DashboardLayout() {
             <ThemeToggle variant="simple" />
             <Avatar className="h-9 w-9 border border-primary/20">
               <AvatarImage src={user?.avatarUrl} alt={user?.username} />
-              <AvatarFallback className="bg-primary/10 text-primary text-xs font-bold uppercase">
-                {user?.username?.substring(0, 2)}
+              <AvatarFallback className={cn(
+                "text-xs font-bold uppercase",
+                isImpersonating ? "bg-yellow-500/10 text-yellow-600" : "bg-primary/10 text-primary"
+              )}>
+                {isImpersonating ? "MU" : "SU"} {/* MU untuk Muhafidz, SU untuk Superadmin */}
               </AvatarFallback>
             </Avatar>
           </div>
@@ -6059,61 +6882,6 @@ export const authService = {
 
   logout: () => {
     localStorage.removeItem("user");
-  }
-};
-
---- FILE: ./services/akunService.ts ---
-
-import axiosClient from "@/api/axiosClient";
-
-export interface Muhafiz {
-  id_user: number;
-  email: string;
-  username: string;
-  role: "muhafiz";
-  nama?: string;
-}
-
-export interface RegisterData {
-  email: string;
-  username: string;
-  password: string;
-}
-
-export interface UpdateData {
-  username?: string;
-  email?: string;
-}
-
-export interface ApiResponse<T> {
-  success: boolean;
-  message: string;
-  data: T;
-}
-
-export const akunService = {
-  // Mendapatkan daftar semua muhafidz
-  getAllMuhafiz: async (): Promise<ApiResponse<Muhafiz[]>> => {
-    const response = await axiosClient.get<ApiResponse<Muhafiz[]>>("auth/muhafiz");
-    return response.data;
-  },
-
-  // Mendaftarkan muhafiz baru
-  registerMuhafiz: async (data: RegisterData): Promise<ApiResponse<{ user: Muhafiz }>> => {
-    const response = await axiosClient.post<ApiResponse<{ user: Muhafiz }>>("/auth/register", data);
-    return response.data;
-  },
-
-  // Edit data muhafiz
-  updateMuhafiz: async (userId: number, data: UpdateData): Promise<ApiResponse<Muhafiz>> => {
-    const response = await axiosClient.patch<ApiResponse<Muhafiz>>(`/auth/muhafiz/${userId}`, data);
-    return response.data;
-  },
-
-  // Hapus akun muhafiz (soft delete)
-  deleteMuhafiz: async (userId: number): Promise<ApiResponse<null>> => {
-    const response = await axiosClient.delete<ApiResponse<null>>(`/auth/muhafiz/${userId}`);
-    return response.data;
   }
 };
 
@@ -6183,6 +6951,166 @@ export const halaqahService = {
     return response.data;
   }
 };
+
+--- FILE: ./services/akunService.ts ---
+
+import axiosClient from "@/api/axiosClient";
+
+export interface Muhafiz {
+  id_user: number;
+  email: string;
+  username: string;
+  role: "muhafiz";
+  nama?: string;
+  created_at?: string;
+  updated_at?: string;
+  deleted_at?: string; // Untuk soft delete
+}
+
+export interface RegisterData {
+  email: string;
+  username: string;
+  password: string;
+  // Note: Tidak ada field nama di dokumentasi register
+}
+
+export interface UpdateMuhafizData {
+  username?: string;
+  email?: string;
+  // Note: Tidak ada field nama di dokumentasi update
+}
+
+export interface ApiResponse<T = any> {
+  success: boolean;
+  message: string;
+  data: T;
+}
+
+export const akunService = {
+  getAllMuhafiz: async (): Promise<ApiResponse<Muhafiz[]>> => {
+    const response = await axiosClient.get<ApiResponse<Muhafiz[]>>("/auth/muhafiz");
+    return response.data;
+  },
+
+  getMuhafizById: async (userId: number): Promise<ApiResponse<Muhafiz>> => {
+    try {
+      const response = await axiosClient.get<ApiResponse<Muhafiz>>(`/auth/muhafiz/${userId}`);
+      return response.data;
+    } catch (error: any) {
+      // Jika endpoint tidak tersedia, bisa fallback ke getAll dan filter
+      if (error.response?.status === 404) {
+        throw new Error("Endpoint detail muhafiz tidak tersedia");
+      }
+      throw error;
+    }
+  },
+
+  searchMuhafiz: async (keyword: string): Promise<ApiResponse<Muhafiz[]>> => {
+    try {
+      // Jika backend punya endpoint search
+      const response = await axiosClient.get<ApiResponse<Muhafiz[]>>(
+        `/auth/muhafiz/search?q=${encodeURIComponent(keyword)}`
+      );
+      return response.data;
+    } catch (error: any) {
+      // Fallback: ambil semua data dan filter di client-side
+      if (error.response?.status === 404) {
+        const allResponse = await akunService.getAllMuhafiz();
+        const filteredData = allResponse.data.filter(muhafiz =>
+          muhafiz.username.toLowerCase().includes(keyword.toLowerCase()) ||
+          muhafiz.email.toLowerCase().includes(keyword.toLowerCase()) ||
+          (muhafiz.nama && muhafiz.nama.toLowerCase().includes(keyword.toLowerCase()))
+        );
+        return {
+          success: true,
+          message: `Menemukan ${filteredData.length} hasil untuk "${keyword}"`,
+          data: filteredData
+        };
+      }
+      throw error;
+    }
+  },
+
+  registerMuhafiz: async (data: RegisterData): Promise<ApiResponse<{ user: Muhafiz }>> => {
+    const response = await axiosClient.post<ApiResponse<{ user: Muhafiz }>>("/auth/register", data);
+    return response.data;
+  },
+
+  updateMuhafiz: async (userId: number, data: UpdateMuhafizData): Promise<ApiResponse<Muhafiz>> => {
+    const response = await axiosClient.patch<ApiResponse<Muhafiz>>(`/auth/muhafiz/${userId}`, data);
+    return response.data;
+  },
+
+    impersonateMuhafiz: async (userId: number): Promise<ApiResponse<{ user: Muhafiz; token: string }>> => {
+      const response = await axiosClient.post<ApiResponse<{ user: Muhafiz; token: string }>>(
+        `/auth/impersonate/${userId}`
+      );
+      return response.data;
+    },
+
+  // Hapus akun muhafiz (soft delete)
+  deleteMuhafiz: async (userId: number): Promise<ApiResponse<null>> => {
+    const response = await axiosClient.delete<ApiResponse<null>>(`/auth/muhafiz/${userId}`);
+    return response.data;
+  },
+
+  bulkDeleteMuhafiz: async (userIds: number[]): Promise<ApiResponse<null>> => {
+    try {
+      const response = await axiosClient.post<ApiResponse<null>>("/auth/muhafiz/bulk-delete", {
+        user_ids: userIds
+      });
+      return response.data;
+    } catch (error: any) {
+      // Jika endpoint tidak tersedia, hapus satu per satu
+      if (error.response?.status === 404) {
+        console.warn("Endpoint bulk delete tidak tersedia, melakukan delete satu per satu");
+        
+        const results = await Promise.allSettled(
+          userIds.map(id => akunService.deleteMuhafiz(id))
+        );
+        
+        const successes = results.filter(r => r.status === 'fulfilled').length;
+        const failures = results.filter(r => r.status === 'rejected').length;
+        
+        if (failures === 0) {
+          return {
+            success: true,
+            message: `Berhasil menghapus ${successes} akun muhafiz`,
+            data: null
+          };
+        } else {
+          throw new Error(`Gagal menghapus ${failures} dari ${userIds.length} akun`);
+        }
+      }
+      throw error;
+    }
+  },
+
+  // validateUsername: async (username: string): Promise<boolean> => {
+  //   try {
+  //     // Coba daftar dengan username dummy untuk cek ketersediaan
+  //     // Atau tunggu error dari backend saat register/update
+  //     return true; // Default true, validasi akan dilakukan oleh backend
+  //   } catch (error) {
+  //     return false;
+  //   }
+  // },
+
+  // validateEmail: async (email: string): Promise<boolean> => {
+  //   try {
+  //     // Cek melalui search atau tunggu error dari backend
+  //     return true;
+  //   } catch (error) {
+  //     return false;
+  //   }
+  // }
+};
+
+// Type untuk data update
+export interface UpdateData {
+  username?: string;
+  email?: string;
+}
 
 --- FILE: ./App.css ---
 
