@@ -27,7 +27,7 @@ export default function DashboardLayout() {
             </div>
 
             <div className="flex items-center gap-3">
-              <ThemeToggle variant="simple" />
+              <ThemeToggle />
               <Avatar className="h-8 w-8 border">
                 <AvatarImage src={user?.avatarUrl} />
                 <AvatarFallback className={isImpersonating ? "bg-yellow-500/10 text-yellow-600" : "bg-primary/10 text-primary"}>

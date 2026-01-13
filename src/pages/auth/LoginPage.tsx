@@ -9,7 +9,7 @@ export default function LoginPage() {
     <div className="flex min-h-screen w-full overflow-hidden bg-background-light dark:bg-background-dark">
 
       <div className="absolute top-4 right-4 z-50">
-        <ThemeToggle variant="simple"/>
+        <ThemeToggle/>
       </div>
       
       {/* --- Bagian Kiri: Branding & Image (Hanya muncul di Desktop) --- */}
