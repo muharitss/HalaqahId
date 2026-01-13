@@ -1,6 +1,6 @@
 import { AppSidebar } from "@/components/shared/Sidebar";
 import { MobileDock } from "@/components/shared/MobileDock";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { useAuth } from "@/context/AuthContext";
 import { Outlet, useNavigate } from "react-router-dom"; 
 import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
@@ -35,28 +35,27 @@ export default function DashboardLayout() {
       
       <SidebarInset className={isMobile ? "pb-20" : ""}>
         <header className="flex h-16 shrink-0 items-center justify-between border-b px-4 lg:px-6 sticky top-0 bg-background/95 backdrop-blur z-40">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 md:gap-4">
             {!isMobile && <SidebarTrigger />}
+            
             {isMobile && (
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-md">
-                <FontAwesomeIcon icon={faBookOpen} className="text-sm" />
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-md">
+                <FontAwesomeIcon icon={faBookOpen} className="text-base" />
               </div>
             )}
+
             <Separator orientation="vertical" className="h-6 hidden sm:block" />
-            <div className="flex flex-col text-left">
-              <h1 className="text-sm md:text-lg font-semibold leading-tight">
-                {isMobile ? user?.username : `Halo, ${user?.username}`}
-              </h1>
-            </div>
+            
+            <h1 className="text-sm md:text-lg font-semibold leading-tight">
+              {isMobile ? user?.username : `Halo, ${user?.username}`}
+            </h1>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="hidden sm:block">
-              <ThemeToggle />
-            </div>
+          <div className="flex items-center gap-1 sm:gap-3">
+            <ThemeToggle />
 
             <DropdownMenu>
-              <DropdownMenuTrigger className="focus:outline-none">
+              <DropdownMenuTrigger className="focus:outline-none ml-1">
                 <Avatar className="h-8 w-8 border hover:opacity-80 transition-opacity">
                   <AvatarImage src={user?.avatarUrl} />
                   <AvatarFallback className={isImpersonating ? "bg-yellow-500/10 text-yellow-600" : "bg-primary/10 text-primary"}>
@@ -74,24 +73,20 @@ export default function DashboardLayout() {
                 </DropdownMenuLabel>
                 
                 <DropdownMenuSeparator />
-                <div className="sm:hidden px-2 py-1.5 flex items-center justify-between text-sm">
-                  <span className="ml-1">Mode Tampilan</span>
-                  <ThemeToggle />
-                </div>
 
                 {isImpersonating && (
-                  <DropdownMenuItem onClick={handleBackToSuperadmin} className="text-yellow-600 focus:text-yellow-600 focus:bg-yellow-500/10">
+                  <DropdownMenuItem onClick={handleBackToSuperadmin} className="text-yellow-600 focus:text-yellow-600 focus:bg-yellow-500/10 cursor-pointer">
                     <FontAwesomeIcon icon={faArrowLeft} className="mr-2 h-4 w-4" />
                     Kembali ke Admin
                   </DropdownMenuItem>
                 )}
 
-                <DropdownMenuItem onClick={() => navigate("/profile")}>
+                <DropdownMenuItem onClick={() => navigate("/profile")} className="cursor-pointer">
                   <FontAwesomeIcon icon={faUser} className="mr-2 h-4 w-4" />
                   Profil Saya
                 </DropdownMenuItem>
 
-                <DropdownMenuItem onClick={() => navigate("/settings")}>
+                <DropdownMenuItem onClick={() => navigate("/settings")} className="cursor-pointer">
                   <FontAwesomeIcon icon={faGear} className="mr-2 h-4 w-4" />
                   Pengaturan
                 </DropdownMenuItem>
@@ -100,7 +95,7 @@ export default function DashboardLayout() {
                 
                 <DropdownMenuItem 
                   onClick={logout} 
-                  className="text-destructive focus:bg-destructive focus:text-destructive-foreground"
+                  className="text-destructive focus:bg-destructive focus:text-destructive-foreground cursor-pointer"
                 >
                   <FontAwesomeIcon icon={faSignOutAlt} className="mr-2 h-4 w-4" />
                   Keluar

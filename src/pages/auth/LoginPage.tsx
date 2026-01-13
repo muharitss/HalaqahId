@@ -1,7 +1,7 @@
 import { LoginForm } from "@/components/forms/LoginForm";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBookOpen } from "@fortawesome/free-solid-svg-icons";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { LoginCarousel } from "@/components/ui/LoginCarousel";
 
 export default function LoginPage() {
