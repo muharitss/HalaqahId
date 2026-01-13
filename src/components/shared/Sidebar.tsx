@@ -53,7 +53,7 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon" className="bg-sidebar text-sidebar-foreground">
-      <SidebarHeader className="h-16 border-b flex flex-row items-center gap-3 px-4">
+      <SidebarHeader className="h-16 border-b flex flex-row items-center gap-3">
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-md">
           <FontAwesomeIcon icon={faBookOpen} className="text-sm" />
         </div>
