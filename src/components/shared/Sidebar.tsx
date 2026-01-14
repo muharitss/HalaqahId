@@ -2,32 +2,41 @@ import { useAuth } from "@/context/AuthContext";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { 
-  faChartPie, 
-  faUsers, 
-  faBook, 
-  faClipboardCheck, 
-  faUserTie,
-  faSignOutAlt,
-  faBookOpen,
-  faTimes,
-  faArrowLeft, 
-  faUserShield 
+  faChartPie, faUsers, faBook, faClipboardCheck, 
+  faUserTie, faSignOutAlt, faBookOpen, faArrowLeft, faUserShield 
 } from "@fortawesome/free-solid-svg-icons";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarGroupContent,
+  useSidebar,
+} from "@/components/ui/sidebar";
+import { useEffect } from "react";
 
-export function Sidebar({ onClose }: { onClose?: () => void }) {
+export function AppSidebar() {
   const { user, logout, stopImpersonating, isImpersonating } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const { isMobile, setOpenMobile } = useSidebar()
 
-  // Handler untuk kembali ke superadmin
+  useEffect(() => {
+    if (isMobile) {
+      setOpenMobile(false)
+    }
+  }, [location.pathname])
+
   const handleBackToSuperadmin = async () => {
     await stopImpersonating();
     navigate("/kepala-muhafidz");
   };
 
-  // Definisi Menu berdasarkan Role (Sesuai Flowchart)
   const menuItems = user?.role === "superadmin" 
     ? [
         { name: "Dashboard", path: "/kepala-muhafidz", icon: faChartPie },
@@ -43,97 +52,77 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
       ];
 
   return (
-    <aside className="flex h-screen w-64 flex-col border-r border-border bg-surface-light dark:bg-surface-dark transition-colors duration-300">
-      {/* Logo Section */}
-      <div className="flex h-20 items-center justify-between px-6"> 
-        <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-white shadow-lg shadow-primary/20">
-            <FontAwesomeIcon icon={faBookOpen} />
-          </div>
-          <div>
-            <span className="text-xl font-bold tracking-tight dark:text-white font-display block">HalaqahId</span>
-            {/* Tampilkan status impersonate */}
-            {isImpersonating && (
-              <span className="text-xs text-yellow-500 font-medium">Sebagai Muhafidz</span>
-            )}
-          </div>
+    <Sidebar collapsible="icon" className="bg-sidebar text-sidebar-foreground">
+      <SidebarHeader className="h-16 border-b flex flex-row items-center gap-3">
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-md">
+          <FontAwesomeIcon icon={faBookOpen} className="text-sm" />
         </div>
-        
-        {/* Tombol Close - Hanya muncul di mobile */}
-        <button onClick={onClose} className="lg:hidden text-text-secondary dark:text-white">
-          <FontAwesomeIcon icon={faTimes} />
-        </button>
-      </div>
-
-      {/* Tombol Kembali ke Superadmin (hanya saat impersonate) */}
-      {isImpersonating && (
-        <div className="px-4 py-2">
-          <Button
-            onClick={handleBackToSuperadmin}
-            className="w-full bg-yellow-500 hover:bg-yellow-600 text-white"
-            size="sm"
-          >
-            <FontAwesomeIcon icon={faArrowLeft} className="mr-2" />
-            Kembali ke Superadmin
-          </Button>
+        <div className="flex flex-col overflow-hidden whitespace-nowrap group-data-[collapsible=icon]:hidden">
+          <span className="font-bold tracking-tight">HalaqahId</span>
+          {isImpersonating && <span className="text-[10px] text-yellow-500 font-semibold uppercase">Muhafidz Mode</span>}
         </div>
-      )}
+      </SidebarHeader>
 
-      {/* Navigation */}
-      <nav className="flex-1 space-y-1 px-3 py-4">
-        {menuItems.map((item) => {
-          const isActive = location.pathname === item.path;
-          return (
-            <Link
-              key={item.name}
-              to={item.path}
-              onClick={onClose}
-              className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200",
-                isActive 
-                  ? "bg-primary/10 text-primary dark:bg-primary/20" 
-                  : "text-text-secondary hover:bg-accent/50 dark:text-text-secondary-dark dark:hover:bg-accent/10"
-              )}
+      <SidebarContent>
+        {isImpersonating && (
+          <SidebarGroup className="group-data-[collapsible=icon]:hidden">
+            <SidebarGroupContent>
+              <SidebarMenuButton 
+                onClick={handleBackToSuperadmin}
+                className="bg-yellow-500/10 text-yellow-600 hover:bg-yellow-500/20 hover:text-yellow-700"
+              >
+                <FontAwesomeIcon icon={faArrowLeft} />
+                <span>Kembali ke Admin</span>
+              </SidebarMenuButton>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Main Menu</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {menuItems.map((item) => (
+                <SidebarMenuItem key={item.name}>
+                  <SidebarMenuButton 
+                    asChild 
+                    isActive={location.pathname === item.path}
+                    tooltip={item.name}
+                  >
+                    <Link to={item.path}>
+                      <FontAwesomeIcon icon={item.icon} />
+                      <span>{item.name}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+
+      <SidebarFooter className="border-t p-4 group-data-[collapsible=icon]:p-2">
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <div className="flex items-center gap-3 px-2 py-2 group-data-[collapsible=icon]:hidden">
+              <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                <FontAwesomeIcon icon={user?.role === "superadmin" ? faUserShield : faUserTie} className="text-primary" />
+              </div>
+              <div className="flex flex-1 flex-col overflow-hidden text-left">
+                <span className="text-sm font-medium truncate">{user?.username}</span>
+                <span className="text-xs text-muted-foreground capitalize">{user?.role}</span>
+              </div>
+            </div>
+            <SidebarMenuButton 
+              onClick={logout}
+              className="text-destructive hover:text-destructive hover:bg-destructive/10"
             >
-              <FontAwesomeIcon icon={item.icon} className={cn("w-5", isActive ? "text-primary" : "opacity-70")} />
-              {item.name}
-            </Link>
-          );
-        })}
-      </nav>
-
-      {/* User Info & Logout */}
-      <div className="border-t border-border p-4">
-        <div className="mb-3 px-2">
-          <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-              {isImpersonating ? (
-                <FontAwesomeIcon icon={faUserTie} className="text-primary text-sm" />
-              ) : user?.role === "superadmin" ? (
-                <FontAwesomeIcon icon={faUserShield} className="text-primary text-sm" />
-              ) : (
-                <FontAwesomeIcon icon={faUserTie} className="text-primary text-sm" />
-              )}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium dark:text-white truncate">
-                {user?.username}
-              </p>
-              <p className="text-xs text-text-secondary dark:text-text-secondary-dark">
-                {isImpersonating ? "Muhafidz" : user?.role === "superadmin" ? "Superadmin" : "Muhafidz"}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <button
-          onClick={logout}
-          className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors"
-        >
-          <FontAwesomeIcon icon={faSignOutAlt} />
-          {isImpersonating ? "Logout dari Muhafidz" : "Keluar"}
-        </button>
-      </div>
-    </aside>
+              <FontAwesomeIcon icon={faSignOutAlt} />
+              <span>Keluar</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
+    </Sidebar>
   );
 }

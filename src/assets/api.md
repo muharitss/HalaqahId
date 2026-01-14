@@ -1,13 +1,14 @@
-## 📚 Dokumentasi API Halaqah ID - Update Day 3
+## 📚 Dokumentasi API Halaqah ID - Update Day 4
 
-Berikut adalah dokumentasi teknis fitur **RBAC (Role-Based Access Control)**, **Username Identity**, dan **Manajemen Akun Muhafiz** yang telah aktif di `main` branch.
+Berikut adalah dokumentasi teknis fitur **RBAC (Role-Based Access Control)**, **Username Identity**, **Manajemen Akun Muhafiz**, dan **Manajemen Halaqah** yang telah aktif di `main` branch.
 
 ### 🛠️ Ringkasan Sistem
 
 Sistem menggunakan **JWT Authentication** dengan pembagian role yang ketat.
 
-* **Base URL:** `https://halaqahid-backend.vercel.app`
-* **Prefix:** `/api/halaqah`
+* **Base URL:** `https://halaqah-id-be.vercel.app`
+* **Prefix API:** `/api`
+* **Prefix Auth:** `/api/halaqah/auth`
 
 ---
 
@@ -22,7 +23,7 @@ Setiap request ke endpoint bertanda 🔐 wajib menyertakan header:
 
 #### 1. Login (Public)
 
-Digunakan untuk mendapatkan token. Sekarang mendukung login via **Email**.
+Sekarang mendukung login via **Email** atau **Username**. User yang sudah di-soft delete tidak bisa login.
 
 * **URL:** `POST /auth/login`
 * **Body:**
@@ -42,13 +43,19 @@ Mendapatkan data user yang sedang login dari token.
 * **URL:** `GET /auth/me`
 * **Akses:** Semua Role (Superadmin & Muhafiz)
 
+#### 3. Impersonate (Login As) 🔐
+
+Admin "masuk" sebagai Muhafiz untuk pengecekan data tanpa perlu password muhafiz.
+
+* **URL:** `POST /auth/impersonate/:id`
+* **Akses:** Superadmin Saja.
+* **Response:** Mengembalikan token baru dengan identitas Muhafiz terkait.
+
 ---
 
 ### 👥 Manajemen User (Admin Only 🔐)
 
 #### 1. Register Muhafiz
-
-Membuat akun Muhafiz baru dengan identitas **Username**.
 
 * **URL:** `POST /auth/register`
 * **Body:**
@@ -64,30 +71,67 @@ Membuat akun Muhafiz baru dengan identitas **Username**.
 
 #### 2. Get All Muhafiz List
 
-Mengambil semua daftar Muhafiz yang aktif (tidak terhapus).
+Daftar muhafiz yang aktif (belum di-soft delete).
 
 * **URL:** `GET /auth/muhafiz`
-* **Akses:** Superadmin Saja.
 
-#### 3. Update Muhafiz (Partial Update)
-
-Mengubah data Muhafiz (Username/Email) secara spesifik.
+#### 3. Update Muhafiz (Partial)
 
 * **URL:** `PATCH /auth/muhafiz/:id`
-* **Body (Opsional):**
-
-```json
-{
-  "username": "username_baru"
-}
-
-```
 
 #### 4. Delete Muhafiz (Soft Delete)
 
-Menghapus akun Muhafiz secara halus (data tetap ada di DB tapi tidak muncul di aplikasi).
-
 * **URL:** `DELETE /auth/muhafiz/:id`
+
+---
+
+### 🏛️ Manajemen Halaqah (Admin Only 🔐)
+
+#### 1. Create Halaqah
+
+Menghubungkan kelompok baru ke satu Muhafiz (Unique).
+
+* **URL:** `POST /api/halaqah`
+* **Body:** `{"name_halaqah": "Nama Kelompok", "muhafiz_id": 5}`
+
+#### 2. List Halaqah (Active)
+
+* **URL:** `GET /api/halaqah`
+
+``` json
+{
+    "success": true,
+    "message": "Data halaqah berhasil diambil",
+    "data": [
+        {
+            "id_halaqah": 1,
+            "name_halaqah": "TES\n",
+            "muhafiz_id": 8,
+            "deleted_at": null,
+            "muhafiz": {
+                "id_user": 8,
+                "username": "Muhammad",
+                "email": "muhafiz_baru1@mail.com"
+            },
+            "_count": {
+                "santri": 0
+            }
+        }
+    ]
+}
+```
+
+#### 3. Soft Delete Halaqah
+
+* **URL:** `DELETE /api/halaqah/:id`
+
+#### 4. Trash List (Deleted Only)
+
+* **URL:** `GET /api/halaqah/deleted`
+
+#### 5. Restore Halaqah
+
+* **URL:** `PATCH /api/halaqah/restore/:id`
 
 ---
 
@@ -95,21 +139,19 @@ Menghapus akun Muhafiz secara halus (data tetap ada di DB tapi tidak muncul di a
 
 | HTTP Status | Pesan Error | Penjelasan |
 | --- | --- | --- |
-| **401** | `Akses ditolak, token tidak ada` | Token tidak valid atau tidak dikirim. |
-| **403** | `Akses ditolak: Role muhafiz tidak diizinkan` | User login sebagai muhafiz mencoba akses fitur admin. |
-| **400** | `Email sudah terdaftar` | Email sudah ada di database. |
-| **400** | `Username sudah digunakan` | Username sudah dipakai oleh user lain. |
-| **404** | `Muhafiz tidak ditemukan` | ID user tidak ada atau user tersebut bukan role muhafiz. |
+| **401** | `Invalid email or password` | Password salah atau akun sudah di-soft delete. |
+| **403** | `Akses ditolak: Role muhafiz...` | Muhafiz mencoba akses fitur khusus Admin. |
+| **400** | `Username/Email sudah digunakan` | Duplikasi data pada field unik. |
+| **400** | `muhafiz_id sudah digunakan` | Muhafiz sudah memiliki halaqah lain. |
+| **500** | `JWT_SECRET is missing` | Konfigurasi server belum lengkap (Environment Variable). |
 
 ---
 
 ### 💡 Catatan Implementasi Frontend
 
-1. **Username Display:** Menampilkan `username` di dashboard sebagai identitas utama.
-2. **PATCH Method:** Gunakan `PATCH` untuk edit profil agar hanya mengirim field yang berubah.
-3. **Soft Delete Handling:** User yang sudah dihapus akan hilang dari list `GET /muhafiz`.
-4. **Validation Error:** Jika dapet status `400` dengan pesan "Username sudah digunakan", beri peringatan pada input username di UI.
+1. **Token Replacement:** Saat menggunakan fitur Impersonate, segera ganti token di LocalStorage dengan token baru dari response agar role berubah.
+2. **Soft Delete Logic:** User/Halaqah yang dihapus tidak akan muncul di `GET` utama, gunakan endpoint `/deleted` untuk melihat data di "Sampah".
 
 ---
 
-**Status:** 🟢 **Production Ready (Main Branch)**
+**Status:** 🟢 **Production Ready**

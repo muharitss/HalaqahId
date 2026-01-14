@@ -1,99 +1,118 @@
-import { useState } from "react";
-import { Sidebar } from "@/components/shared/Sidebar";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import { AppSidebar } from "@/components/shared/Sidebar";
+import { MobileDock } from "@/components/shared/MobileDock";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { useAuth } from "@/context/AuthContext";
-import { Outlet } from "react-router-dom"; 
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBars, faTimes, faUserTie } from "@fortawesome/free-solid-svg-icons";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+import { Outlet, useNavigate } from "react-router-dom"; 
+import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
+import { useIsMobile } from "@/hooks/use-mobile";
+
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faGear, faSignOutAlt, faUser, faArrowLeft, faBookOpen } from "@fortawesome/free-solid-svg-icons";
 
 export default function DashboardLayout() {
-  const { user, isImpersonating } = useAuth();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const { user, logout, stopImpersonating, isImpersonating } = useAuth();
+  const isMobile = useIsMobile();
+  const navigate = useNavigate();
 
-  const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
+  const handleBackToSuperadmin = async () => {
+    await stopImpersonating();
+    navigate("/kepala-muhafidz");
+  };
 
   return (
-    <div className="flex min-h-screen bg-background dark:bg-background-dark font-display relative">
+    <SidebarProvider>
+      {!isMobile && <AppSidebar />}
       
-      {/* Sidebar - Desktop & Mobile */}
-      {/* Overlay untuk mobile saat sidebar terbuka */}
-      {isSidebarOpen && (
-        <div 
-          className="fixed inset-0 z-40 bg-black/50 lg:hidden transition-opacity"
-          onClick={() => setIsSidebarOpen(false)}
-        />
-      )}
-
-      <div className={cn(
-        "fixed inset-y-0 left-0 z-50 transform lg:relative lg:translate-x-0 transition duration-300 ease-in-out lg:block",
-        isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-      )}>
-        <Sidebar onClose={() => setIsSidebarOpen(false)} />
-      </div>
-
-      <div className="flex flex-1 flex-col min-w-0 overflow-hidden">
-        {/* Top Navbar */}
-        <header className="
-            fixed top-0 left-0 right-0 z-40
-            lg:static
-            flex h-16 items-center justify-between
-            border-b border-border
-            bg-surface-light px-4 lg:px-8
-            dark:bg-surface-dark
-          "> 
-
-          <div className="flex items-center gap-4">
-            {/* Hamburger Button - Hanya muncul di mobile */}
-            <Button 
-              variant="outline" 
-              size="icon"
-              onClick={toggleSidebar}
-              className="lg:hidden" // Sembunyikan di layar besar
-            >
-              <FontAwesomeIcon icon={isSidebarOpen ? faTimes : faBars} />
-            </Button>
-
-            <div className="flex flex-col text-left">
-              <h1 className="text-sm font-semibold dark:text-white leading-tight">Selamat Datang,</h1>
-               <div className="flex items-center gap-2">
-                <p className="text-xs text-text-secondary dark:text-text-secondary-dark">
-                  {user?.username}
-                </p>
-                {/* NEW: Tampilkan badge impersonate */}
-                {isImpersonating && (
-                  <span className="inline-flex items-center rounded-full bg-yellow-500/10 px-2 py-0.5 text-xs font-medium text-yellow-600 dark:text-yellow-400">
-                    <FontAwesomeIcon icon={faUserTie} className="mr-1 h-2 w-2" />
-                    Muhafidz Mode
-                  </span>
-                )}
+      <SidebarInset className={isMobile ? "pb-20" : ""}>
+        <header className="flex h-16 shrink-0 items-center justify-between border-b px-4 lg:px-6 sticky top-0 bg-background/95 backdrop-blur z-40">
+          <div className="flex items-center gap-3 md:gap-4">
+            {!isMobile && <SidebarTrigger />}
+            
+            {isMobile && (
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-md">
+                <FontAwesomeIcon icon={faBookOpen} className="text-base" />
               </div>
-            </div>
+            )}
+
+            <Separator orientation="vertical" className="h-6 hidden sm:block" />
+            
+            <h1 className="text-sm md:text-lg font-semibold leading-tight">
+              {isMobile ? user?.username : `Halo, ${user?.username}`}
+            </h1>
           </div>
 
-          <div className="flex items-center gap-4">
-            <ThemeToggle variant="simple" />
-            <Avatar className="h-9 w-9 border border-primary/20">
-              <AvatarImage src={user?.avatarUrl} alt={user?.username} />
-              <AvatarFallback className={cn(
-                "text-xs font-bold uppercase",
-                isImpersonating ? "bg-yellow-500/10 text-yellow-600" : "bg-primary/10 text-primary"
-              )}>
-                {isImpersonating ? "MU" : "SU"} {/* MU untuk Muhafidz, SU untuk Superadmin */}
-              </AvatarFallback>
-            </Avatar>
+          <div className="flex items-center gap-1 sm:gap-3">
+            <ThemeToggle />
+
+            <DropdownMenu>
+              <DropdownMenuTrigger className="focus:outline-none ml-1">
+                <Avatar className="h-8 w-8 border hover:opacity-80 transition-opacity">
+                  <AvatarImage src={user?.avatarUrl} />
+                  <AvatarFallback className={isImpersonating ? "bg-yellow-500/10 text-yellow-600" : "bg-primary/10 text-primary"}>
+                    {user?.username?.[0]?.toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+              </DropdownMenuTrigger>
+              
+              <DropdownMenuContent align="end" className="w-56 mt-2">
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium leading-none">{user?.username}</p>
+                    <p className="text-xs leading-none text-muted-foreground capitalize">{user?.role}</p>
+                  </div>
+                </DropdownMenuLabel>
+                
+                <DropdownMenuSeparator />
+
+                {isImpersonating && (
+                  <DropdownMenuItem onClick={handleBackToSuperadmin} className="text-yellow-600 focus:text-yellow-600 focus:bg-yellow-500/10 cursor-pointer">
+                    <FontAwesomeIcon icon={faArrowLeft} className="mr-2 h-4 w-4" />
+                    Kembali ke Admin
+                  </DropdownMenuItem>
+                )}
+
+                <DropdownMenuItem onClick={() => navigate("/profile")} className="cursor-pointer">
+                  <FontAwesomeIcon icon={faUser} className="mr-2 h-4 w-4" />
+                  Profil Saya
+                </DropdownMenuItem>
+
+                <DropdownMenuItem onClick={() => navigate("/settings")} className="cursor-pointer">
+                  <FontAwesomeIcon icon={faGear} className="mr-2 h-4 w-4" />
+                  Pengaturan
+                </DropdownMenuItem>
+
+                <DropdownMenuSeparator />
+                
+                <DropdownMenuItem 
+                  onClick={logout} 
+                  className="text-destructive focus:bg-destructive focus:text-destructive-foreground cursor-pointer"
+                >
+                  <FontAwesomeIcon icon={faSignOutAlt} className="mr-2 h-4 w-4" />
+                  Keluar
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </header>
 
-        {/* Dynamic Page Content */}
-        <main className="flex-1 overflow-y-auto p-4 lg:p-8 pt-20 lg:pt-4 text-left">
-          <div className="mx-auto max-w-7xl">
+        <main className="flex-1 overflow-y-auto">
+          <div className="container mx-auto p-4 lg:p-8 max-w-7xl">
             <Outlet /> 
           </div>
         </main>
-      </div>
-    </div>
+
+        {isMobile && <MobileDock />}
+      </SidebarInset>
+    </SidebarProvider>
   );
 }

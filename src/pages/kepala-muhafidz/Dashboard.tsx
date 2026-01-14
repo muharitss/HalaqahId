@@ -1,157 +1,178 @@
-import { useState, useEffect } from 'react';
-import { akunService } from '@/services/akunService'; // Sesuaikan path
+"use client"
+
+import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { akunService, type Muhafiz } from "@/services/akunService";
+
+// Shadcn UI Components
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { 
+  type ChartConfig, 
+  ChartContainer, 
+  ChartTooltip, 
+  ChartTooltipContent, 
+  ChartLegend, 
+  ChartLegendContent 
+} from "@/components/ui/chart";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+
+// Recharts Components
+import { Bar, BarChart, CartesianGrid, XAxis, Pie, PieChart, Cell } from "recharts";
+
+// Icons
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faArrowRight, faChartLine, faUsersViewfinder } from "@fortawesome/free-solid-svg-icons";
+
+// 1. Konfigurasi Chart: Menghubungkan variabel CSS ke Chart
+const chartConfig = {
+  setoran: { 
+    label: "Total Setoran", 
+    color: "var(--primary)"
+  },
+  juz30: { label: "Juz 30", color: "var(--primary)" },
+  juzLow: { label: "Juz 1-5", color: "color-mix(in srgb, var(--primary), transparent 30%)" },
+  juzMid: { label: "Juz 6-10", color: "color-mix(in srgb, var(--primary), transparent 60%)" },
+  juzHigh: { label: "Juz 10+", color: "color-mix(in srgb, var(--primary), transparent 80%)" },
+} satisfies ChartConfig;
+
+const dataSetoranMingguan = [
+  { day: "Senin", setoran: 145 },
+  { day: "Selasa", setoran: 152 },
+  { day: "Rabu", setoran: 138 },
+  { day: "Kamis", setoran: 165 },
+  { day: "Jumat", setoran: 148 },
+  { day: "Sabtu", setoran: 80 },
+];
+
+const dataDistribusiHafalan = [
+  { category: "juz30", santri: 80 },
+  { category: "juzLow", santri: 45 },
+  { category: "juzMid", santri: 25 },
+  { category: "juzHigh", santri: 15 },
+];
 
 export default function KepalaMuhafidzDashboard() {
-  const [muhafizData, setMuhafizData] = useState<any[]>([]);
-  const [totalMuhafiz, setTotalMuhafiz] = useState<number>(0);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const [muhafizData, setMuhafizData] = useState<Muhafiz[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Fetch data dari API
   useEffect(() => {
-    const fetchMuhafizData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        
-        const response = await akunService.getAllMuhafiz();
-        
-        if (response.success && response.data) {
-          setMuhafizData(response.data);
-          setTotalMuhafiz(response.data.length);
-        } else {
-          setError(response.message || 'Gagal mengambil data muhafiz');
-        }
-      } catch (err: any) {
-        console.error('Error fetching muhafiz data:', err);
-        setError(err.message || 'Terjadi kesalahan saat mengambil data');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchMuhafizData();
+    akunService.getAllMuhafiz().then(res => {
+      if (res.success) setMuhafizData(res.data);
+      setLoading(false);
+    });
   }, []);
 
-  // Menghitung statistik sederhana
-  const totalHalaqah = muhafizData.length * 2; // Contoh: asumsi setiap muhafiz menangani 2 halaqah
-  const kehadiranHariIni = muhafizData.length > 0 ? '85%' : '0%'; // Data dummy, bisa diganti dengan API jika ada
-
   return (
-    <div className="space-y-6">
-      <header className="text-left">
-        <h2 className="text-2xl font-bold dark:text-white">Dashboard Kepala Muhafidz</h2>
-        <p className="text-text-secondary dark:text-text-secondary-dark text-sm">
-          Selamat datang di dashboard manajemen halaqah
-        </p>
-      </header>
-
-      {/* Loading State */}
-      {loading && (
-        <div className="rounded-xl border border-border bg-surface p-6 dark:bg-surface-dark shadow-sm">
-          <div className="flex justify-center items-center py-10">
-            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
-            <span className="ml-3 dark:text-white">Memuat data...</span>
-          </div>
+    <div className="space-y-8 animate-in fade-in duration-700">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight text-primary">Dashboard Utama</h2>
+          <p className="text-muted-foreground">Analisis data halaqah dan performa muhafidz.</p>
         </div>
-      )}
+      </div>
 
-      {/* Error State */}
-      {error && !loading && (
-        <div className="rounded-xl border border-border bg-surface p-6 dark:bg-surface-dark shadow-sm">
-          <div className="text-center py-6">
-            <div className="text-red-500 mb-2">
-              <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <h3 className="text-lg font-semibold dark:text-white mb-2">Gagal Memuat Data</h3>
-            <p className="text-text-secondary dark:text-text-secondary-dark">{error}</p>
-            <button
-              onClick={() => window.location.reload()}
-              className="mt-4 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors"
-            >
-              Coba Lagi
-            </button>
-          </div>
-        </div>
-      )}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        {/* Bar Chart */}
+        <Card className="lg:col-span-3 border-none shadow-sm bg-muted/20">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <FontAwesomeIcon icon={faChartLine} className="text-primary" />
+              Aktivitas Setoran
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer config={chartConfig} className="h-[250px] w-full">
+              <BarChart data={dataSetoranMingguan}>
+                <CartesianGrid vertical={false} strokeOpacity={0.1} />
+                <XAxis dataKey="day" tickLine={false} axisLine={false} fontSize={12} />
+                <ChartTooltip content={<ChartTooltipContent />} />
+                <Bar 
+                  dataKey="setoran" 
+                  fill="var(--color-setoran)" 
+                  radius={[4, 4, 0, 0]} 
+                  barSize={40} 
+                />
+              </BarChart>
+            </ChartContainer>
+          </CardContent>
+        </Card>
 
-      {/* Widget/Statistik - Tampilkan hanya jika tidak loading dan tidak error */}
-      {!loading && !error && (
-        <>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="rounded-xl border border-border bg-surface p-6 dark:bg-surface-dark shadow-sm">
-              <h3 className="font-semibold text-lg mb-2 dark:text-white">Total Muhafiz</h3>
-              <p className="text-3xl font-bold text-primary">{totalMuhafiz}</p>
-              <p className="text-sm text-text-secondary dark:text-text-secondary-dark mt-2">
-                Total musyrif yang terdaftar
-              </p>
-            </div>
-            <div className="rounded-xl border border-border bg-surface p-6 dark:bg-surface-dark shadow-sm">
-              <h3 className="font-semibold text-lg mb-2 dark:text-white">Total Halaqah</h3>
-              <p className="text-3xl font-bold text-primary">{totalHalaqah}</p>
-              <p className="text-sm text-text-secondary dark:text-text-secondary-dark mt-2">
-                Estimasi jumlah halaqah aktif
-              </p>
-            </div>
-            <div className="rounded-xl border border-border bg-surface p-6 dark:bg-surface-dark shadow-sm">
-              <h3 className="font-semibold text-lg mb-2 dark:text-white">Kehadiran Hari Ini</h3>
-              <p className="text-3xl font-bold text-primary">{kehadiranHariIni}</p>
-              <p className="text-sm text-text-secondary dark:text-text-secondary-dark mt-2">
-                Rata-rata kehadiran musyrif
-              </p>
-            </div>
-          </div>
+        {/* Pie Chart */}
+        <Card className="lg:col-span-2 border-none shadow-sm bg-muted/20">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <FontAwesomeIcon icon={faUsersViewfinder} className="text-primary" />
+              Progres Santri
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer config={chartConfig} className="mx-auto aspect-square max-h-[250px]">
+              <PieChart>
+                <ChartTooltip content={<ChartTooltipContent hideLabel />} />
+                <Pie 
+                  data={dataDistribusiHafalan} 
+                  dataKey="santri" 
+                  nameKey="category" 
+                  innerRadius={60} 
+                  outerRadius={80}
+                  paddingAngle={2}
+                >
+                  {dataDistribusiHafalan.map((entry, index) => (
+                    <Cell 
+                      key={`cell-${index}`} 
+                      fill={`var(--color-${entry.category})`} 
+                    />
+                  ))}
+                </Pie>
+                <ChartLegend content={<ChartLegendContent />} className="text-xs" />
+              </PieChart>
+            </ChartContainer>
+          </CardContent>
+        </Card>
+      </div>
 
-          {/* Tabel Daftar Muhafiz */}
-          <div className="rounded-xl border border-border bg-surface p-6 dark:bg-surface-dark shadow-sm">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="font-semibold text-lg dark:text-white">Daftar Muhafiz</h3>
-              <span className="text-sm text-text-secondary dark:text-text-secondary-dark">
-                Total: {totalMuhafiz} orang
-              </span>
-            </div>
-
-            {muhafizData.length === 0 ? (
-              <div className="text-center py-10">
-                <svg className="w-16 h-16 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <p className="mt-4 dark:text-white">Belum ada data muhafiz</p>
-                <p className="text-sm text-text-secondary dark:text-text-secondary-dark">
-                  Data akan muncul setelah muhafiz terdaftar
-                </p>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-border dark:border-border-dark">
-                      <th className="text-left py-3 px-4 dark:text-white font-medium">No</th>
-                      <th className="text-left py-3 px-4 dark:text-white font-medium">Username</th>
-                      <th className="text-left py-3 px-4 dark:text-white font-medium">Email</th>
-                      <th className="text-left py-3 px-4 dark:text-white font-medium">ID</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {muhafizData.map((muhafiz, index) => (
-                      <tr key={muhafiz.id_user} className="border-b border-border dark:border-border-dark hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-                        <td className="py-3 px-4 dark:text-white">{index + 1}</td>
-                        <td className="py-3 px-4 dark:text-white">
-                          {muhafiz.username || 'Tidak ada username'}
-                        </td>
-                        <td className="py-3 px-4 dark:text-white">{muhafiz.email}</td>
-                        <td className="py-3 px-4 dark:text-white">{muhafiz.id_user}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-        </>
-      )}
+      {/* Tabel */}
+      <Card className="shadow-none border-none bg-card/50">
+        <CardHeader className="flex flex-row items-center justify-between border-b bg-muted/10 py-4 px-6">
+          <CardTitle className="text-base font-semibold">Muhafidz Baru Terdaftar</CardTitle>
+          <Button variant="link" size="sm" asChild className="text-primary">
+            <Link to="/kelola-muhafiz">Lihat Semua <FontAwesomeIcon icon={faArrowRight} className="ml-2 h-3 w-3" /></Link>
+          </Button>
+        </CardHeader>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader className="bg-muted/5">
+              <TableRow>
+                <TableHead className="pl-6">ID</TableHead>
+                <TableHead>Nama Muhafidz</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead className="text-right pr-6">Status</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {loading ? (
+                <TableRow><TableCell colSpan={4} className="text-center py-10">Memuat data...</TableCell></TableRow>
+              ) : (
+                muhafizData.slice(0, 5).map((m) => (
+                  <TableRow key={m.id_user} className="hover:bg-primary/5 transition-colors">
+                    <TableCell className="pl-6"><Badge variant="outline" className="border-primary/20">#{m.id_user}</Badge></TableCell>
+                    <TableCell className="font-medium">{m.username}</TableCell>
+                    <TableCell className="text-muted-foreground">{m.email}</TableCell>
+                    <TableCell className="text-right pr-6">
+                      <div className="flex items-center justify-end gap-2 text-primary font-medium">
+                        <span className="h-2 w-2 rounded-full bg-primary shadow-[0_0_8px_var(--primary)]" />
+                        Aktif
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </div>
   );
 }

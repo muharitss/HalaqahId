@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { HalaqahForm } from "@/components/forms/HalaqahForm";
@@ -9,8 +10,15 @@ interface BuatHalaqahProps {
 }
 
 export function BuatHalaqah({ onSuccess }: BuatHalaqahProps) {
+  const [open, setOpen] = useState(false);
+
+  const handleSuccess = () => {
+    onSuccess();
+    setOpen(false);
+  };
+
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button className="bg-primary hover:bg-primary-dark text-white">
           <FontAwesomeIcon icon={faPlus} className="mr-2" />
@@ -24,7 +32,7 @@ export function BuatHalaqah({ onSuccess }: BuatHalaqahProps) {
             Buat Halaqah Baru
           </DialogTitle>
         </DialogHeader>
-        <HalaqahForm onSuccess={onSuccess} />
+        <HalaqahForm onSuccess={handleSuccess} />
       </DialogContent>
     </Dialog>
   );

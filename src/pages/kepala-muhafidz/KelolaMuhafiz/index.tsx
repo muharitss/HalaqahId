@@ -1,224 +1,171 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { akunService, type Muhafiz } from "@/services/akunService";
+import { toast } from "sonner"; 
+
 import { BuatAkun } from "./BuatAkun";
 import { DaftarAkun } from "./DaftarAkun";
 import { EditAkun } from "./EditAkun";
 import { DeleteAkun } from "./DeleteAkun";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Separator } from "@/components/ui/separator";
+
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { 
   faUserTie, 
-  faEnvelope,
-  faIdCard,
-  faCheck,
-  faXmark
+  faInfoCircle,
+  faLock,
+  faShieldHalved
 } from "@fortawesome/free-solid-svg-icons";
-// import { useNavigate } from "react-router-dom"; 
 
 export default function KelolaMuhafizPage() {
   const { user, impersonate } = useAuth();
-  // const navigate = useNavigate();
   const [muhafizList, setMuhafizList] = useState<Muhafiz[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
   
-  // State untuk edit dan delete
   const [editingMuhafiz, setEditingMuhafiz] = useState<Muhafiz | null>(null);
   const [deletingMuhafiz, setDeletingMuhafiz] = useState<Muhafiz | null>(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
-  // Load data muhafiz
   useEffect(() => {
     loadMuhafiz();
   }, []);
 
   const loadMuhafiz = async () => {
     setIsLoading(true);
-    setError("");
     try {
       const response = await akunService.getAllMuhafiz();
-      if (response.success) {
-        setMuhafizList(response.data);
-      }
+      if (response.success) setMuhafizList(response.data);
     } catch (err: any) {
-      setError("Gagal memuat data muhafiz: " + err.message);
-      console.error("Load muhafiz error:", err);
+      toast.error("Gagal memuat data muhafiz");
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleRegisterSuccess = () => {
-    setSuccess("Akun muhafidz berhasil dibuat!");
+    toast.success("Akun muhafidz berhasil dibuat");
     loadMuhafiz();
-    setTimeout(() => setSuccess(""), 3000);
-  };
-
-  const handleEditClick = (muhafiz: Muhafiz) => {
-    setEditingMuhafiz(muhafiz);
-    setIsEditOpen(true);
   };
 
   const handleEditSuccess = () => {
-    setSuccess("Data muhafidz berhasil diperbarui!");
+    toast.success("Data muhafidz berhasil diperbarui");
     loadMuhafiz();
-    setTimeout(() => setSuccess(""), 3000);
-  };
-
-  const handleDeleteClick = (muhafiz: Muhafiz) => {
-    setDeletingMuhafiz(muhafiz);
-    setIsDeleteOpen(true);
   };
 
   const handleDeleteSuccess = () => {
-    setSuccess("Muhafidz berhasil dihapus!");
+    toast.success("Muhafidz berhasil dihapus");
     loadMuhafiz();
-    setTimeout(() => setSuccess(""), 3000);
   };
 
   const handleImpersonateClick = async (muhafiz: Muhafiz) => {
-    if (!confirm(`Login ke akun ${muhafiz.username}?`)) return;
-    
-    setIsLoading(true);
-    try {
-      // 1. Dapatkan token untuk muhafiz
+    const promise = async () => {
       const response = await akunService.impersonateMuhafiz(muhafiz.id_user);
-      
-      if (response.success) {
-        // 2. Buat data user untuk muhafiz
+      if (response.success && user) {
         const impersonatedUser = {
           ...response.data.user,
           token: response.data.token,
           isImpersonating: true
         };
-
-        // 3. Simpan user asli (superadmin)
-        if (user) {
-          // 4. Panggil fungsi impersonate dari AuthContext
-          await impersonate(impersonatedUser, user);
-          
-          // 5. Tampilkan pesan sukses
-          setSuccess(`Berhasil login sebagai ${muhafiz.username}`);
-        }
+        await impersonate(impersonatedUser, user);
+        return response;
       }
-    } catch (error: any) {
-      const message = error.response?.data?.message || "Gagal login sebagai muhafidz";
-      setError(message);
-      console.error("Impersonate error:", error);
-    } finally {
-      setIsLoading(false);
-    }
+      throw new Error("Gagal login");
+    };
+
+    toast.promise(promise(), {
+      loading: `Menyiapkan sesi untuk ${muhafiz.username}...`,
+      success: `Berhasil login sebagai ${muhafiz.username}`,
+      error: "Gagal login sebagai muhafidz",
+    });
   };
 
-  // Cek apakah user adalah superadmin
   if (user?.role !== "superadmin") {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] text-center p-6">
-        <FontAwesomeIcon icon={faUserTie} className="text-6xl text-destructive mb-4" />
-        <h2 className="text-2xl font-bold dark:text-white mb-2">Akses Ditolak</h2>
-        <p className="text-text-secondary dark:text-text-secondary-dark">
-          Hanya Kepala Muhafidz yang dapat mengakses halaman ini.
+      <div className="flex flex-col items-center justify-center min-h-[500px] animate-in fade-in zoom-in-95 duration-300">
+        <div className="bg-destructive/10 p-6 rounded-full mb-6">
+          <FontAwesomeIcon icon={faShieldHalved} className="text-6xl text-destructive" />
+        </div>
+        <h2 className="text-2xl font-bold tracking-tight">Akses Ditolak</h2>
+        <p className="text-muted-foreground mt-2 max-w-[300px] text-center">
+          Maaf, halaman ini hanya dapat diakses oleh administrator pusat.
         </p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
-      {/* Header */}
+    <div className="space-y-8 animate-in fade-in duration-500">
+      
+      {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold dark:text-white">Kelola Akun Muhafidz</h2>
-          <p className="text-text-secondary dark:text-text-secondary-dark text-sm">
-            Kelola akun muhafidz di bawah yayasan Anda
+          <h2 className="text-3xl font-bold tracking-tight">Kelola Akun Muhafidz</h2>
+          <p className="text-muted-foreground">
+            Manajemen hak akses dan profil pengampu halaqah
           </p>
         </div>
-
-        {/* Tombol Buat Akun */}
         <BuatAkun onSuccess={handleRegisterSuccess} />
       </div>
 
-      {/* Success Alert */}
-      {success && (
-        <Alert variant="default" className="bg-green-50 border-green-200 text-green-800 dark:bg-green-900/20 dark:border-green-800 dark:text-green-300">
-          <FontAwesomeIcon icon={faCheck} className="mr-2" />
-          <AlertDescription>{success}</AlertDescription>
-        </Alert>
-      )}
+      {/* Main Table Card */}
+      <Card className="shadow-sm border-border">
+        <CardHeader className="px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Daftar Akun</CardTitle>
+              <CardDescription>
+                Total terdaftar: <span className="font-bold text-foreground">{muhafizList.length} Akun</span>
+              </CardDescription>
+            </div>
+            <FontAwesomeIcon icon={faUserTie} className="text-muted-foreground/30 h-8 w-8" />
+          </div>
+        </CardHeader>
+        <Separator />
+        <CardContent className="p-0">
+          <DaftarAkun
+            muhafizList={muhafizList}
+            isLoading={isLoading}
+            onEditClick={(m) => { setEditingMuhafiz(m); setIsEditOpen(true); }}
+            onDeleteClick={(m) => { setDeletingMuhafiz(m); setIsDeleteOpen(true); }}
+            onImpersonateClick={handleImpersonateClick}
+            onRefresh={loadMuhafiz}
+            onCreateClick={handleRegisterSuccess}
+          />
+        </CardContent>
+      </Card>
 
-      {/* Error Alert */}
-      {error && (
-        <Alert variant="destructive">
-          <FontAwesomeIcon icon={faXmark} className="mr-2" />
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-
-      {/* Stats Card */}
+      {/* Security & Guidelines */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="rounded-xl border border-border bg-surface p-6 dark:bg-surface-dark shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-              <FontAwesomeIcon icon={faUserTie} className="text-primary" />
+        <Alert className="bg-primary/5 border-primary/20 md:col-span-2">
+          <FontAwesomeIcon icon={faInfoCircle} className="h-4 w-4 text-primary" />
+          <AlertTitle className="font-bold text-primary">Panduan Pengelolaan</AlertTitle>
+          <AlertDescription className="mt-2 text-muted-foreground text-sm space-y-1">
+            <p>• Gunakan fitur <strong>Login Sebagai</strong> untuk pengecekan data muhafidz.</p>
+            <p>• Penghapusan akun menggunakan metode <em>soft-delete</em>.</p>
+            <p>• Email muhafidz harus unik dan valid untuk pengiriman laporan.</p>
+          </AlertDescription>
+        </Alert>
+
+        <Card className="bg-muted/30">
+          <CardContent className="p-4 flex items-center gap-4">
+            <div className="h-10 w-10 rounded-full bg-background flex items-center justify-center border shadow-sm">
+              <FontAwesomeIcon icon={faLock} className="text-muted-foreground h-4 w-4" />
             </div>
             <div>
-              <p className="text-sm text-text-secondary dark:text-text-secondary-dark">Total Muhafidz</p>
-              <p className="text-2xl font-bold dark:text-white">
-                {isLoading ? "--" : muhafizList.length}
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Keamanan Akun</p>
+              <p className="text-[11px] leading-tight text-muted-foreground mt-1 italic">
+                Password dienkripsi otomatis oleh sistem menggunakan hash Bcrypt.
               </p>
             </div>
-          </div>
-        </div>
-
-        <div className="rounded-xl border border-border bg-surface p-6 dark:bg-surface-dark shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
-              <FontAwesomeIcon icon={faIdCard} className="text-green-600 dark:text-green-400" />
-            </div>
-            <div>
-              <p className="text-sm text-text-secondary dark:text-text-secondary-dark">Role</p>
-              <p className="text-2xl font-bold dark:text-white">Muhafiz</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="rounded-xl border border-border bg-surface p-6 dark:bg-surface-dark shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center">
-              <FontAwesomeIcon icon={faEnvelope} className="text-blue-600 dark:text-blue-400" />
-            </div>
-            <div>
-              <p className="text-sm text-text-secondary dark:text-text-secondary-dark">Status</p>
-              <p className="text-2xl font-bold dark:text-white">Aktif</p>
-            </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Tabel Daftar Akun */}
-      <div className="rounded-xl border border-border bg-card dark:bg-surface-dark shadow-sm overflow-hidden">
-        <div className="p-6 border-b border-border dark:border-border-dark">
-          <h3 className="font-semibold text-lg dark:text-white">Daftar Muhafidz</h3>
-          <p className="text-sm text-text-secondary dark:text-text-secondary-dark">
-            Semua akun muhafidz yang terdaftar
-          </p>
-        </div>
-
-        <DaftarAkun
-          muhafizList={muhafizList}
-          isLoading={isLoading}
-          onEditClick={handleEditClick}
-          onDeleteClick={handleDeleteClick}
-          onImpersonateClick={handleImpersonateClick}
-          onRefresh={loadMuhafiz}
-          onCreateClick={handleRegisterSuccess}
-        />
-      </div>
-
-      {/* Dialog Edit Akun */}
+      {/* Modals */}
       <EditAkun
         muhafiz={editingMuhafiz}
         isOpen={isEditOpen}
@@ -226,47 +173,12 @@ export default function KelolaMuhafizPage() {
         onSuccess={handleEditSuccess}
       />
 
-      {/* Dialog Konfirmasi Delete */}
       <DeleteAkun
         muhafiz={deletingMuhafiz}
         isOpen={isDeleteOpen}
         onClose={() => setIsDeleteOpen(false)}
         onSuccess={handleDeleteSuccess}
       />
-
-      {/* Informasi Tambahan */}
-      <div className="rounded-xl border border-border bg-surface p-6 dark:bg-surface-dark shadow-sm">
-        <div className="flex items-start gap-3">
-          <div className="h-10 w-10 rounded-lg bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center flex-shrink-0">
-            <FontAwesomeIcon icon={faIdCard} className="text-blue-600 dark:text-blue-400" />
-          </div>
-          <div>
-            <h4 className="font-semibold dark:text-white mb-2">Informasi Penting</h4>
-            <ul className="text-sm text-text-secondary dark:text-text-secondary-dark space-y-2">
-              <li className="flex items-start gap-2">
-                <span className="text-primary">•</span>
-                <span>Password akan di-hash secara otomatis oleh sistem</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-primary">•</span>
-                <span>Akun yang dibuat langsung aktif dan dapat digunakan untuk login</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-primary">•</span>
-                <span>Pastikan email yang digunakan belum terdaftar sebelumnya</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-primary">•</span>
-                <span>Edit hanya mengubah username/email, tidak bisa mengubah password</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-primary">•</span>
-                <span>Hapus muhafidz bersifat soft delete (data tidak benar-benar hilang)</span>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }

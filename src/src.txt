@@ -1,18 +1,228 @@
 
+--- FILE: ./components/forms/LoginForm.tsx ---
 
---- FILE: ./main.tsx ---
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useNavigate } from "react-router-dom";
+import { loginSchema, type LoginFormValues } from "@/utils/zodSchema";
+import { useAuth } from "@/context/AuthContext";
 
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.tsx'
+// Import Shadcn UI
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Spinner } from "@/components/ui/spinner";
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-)
+// Import FontAwesome
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { 
+  faEnvelope, 
+  faLock, 
+  faArrowRight, 
+  faEye, 
+  faEyeSlash,
+  faTriangleExclamation 
+} from "@fortawesome/free-solid-svg-icons";
 
+export function LoginForm() {
+  const [showPassword, setShowPassword] = useState(false);
+  const [backendError, setBackendError] = useState<string>("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { login } = useAuth();
+  const navigate = useNavigate();
+
+  const form = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
+
+  async function onSubmit(values: LoginFormValues) {
+    setBackendError("");
+    setIsSubmitting(true);
+
+    try {
+      await login(values);
+      navigate("/", { replace: true });
+    } catch (error: any) {
+      let errorMessage = "Terjadi kesalahan saat login";
+      
+      if (error.response) {
+        const status = error.response.status;
+        
+        // Standar Keamanan: Pesan yang sama untuk 401 (Unauthorized) dan 404 (Not Found)
+        if (status === 401 || status === 404) {
+          errorMessage = "Email atau password yang Anda masukkan salah";
+        } else if (status === 429) {
+          errorMessage = "Terlalu banyak percobaan login. Silakan tunggu sebentar";
+        } else if (status >= 500) {
+          errorMessage = "Masalah koneksi ke server. Silakan coba lagi nanti";
+        }
+      } else {
+        errorMessage = "Gagal terhubung ke server. Periksa koneksi internet Anda";
+      }
+      
+      setBackendError(errorMessage);
+      
+      // Keamanan tambahan: Selalu hapus password saat terjadi error
+      form.setValue("password", "");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  // Handler untuk mencegah form submission default dan reload
+  // const handleFormSubmit = (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   form.handleSubmit(onSubmit)();
+  // };
+
+  // Reset error ketika user mulai mengetik
+  const handleInputChange = () => {
+    if (backendError) {
+      setBackendError("");
+    }
+  };
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+        
+        {backendError && (
+          <Alert variant="destructive" className="animate-in fade-in duration-300">
+            <FontAwesomeIcon icon={faTriangleExclamation} className="h-4 w-4" />
+            <AlertDescription className="text-sm">
+              {backendError}
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* Email Field */}
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem className="space-y-2">
+              <FormLabel className="text-sm font-medium dark:text-white">
+                Email Address
+              </FormLabel>
+              <FormControl>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary-light dark:text-gray-400">
+                    <FontAwesomeIcon icon={faEnvelope} className="text-[18px]" />
+                  </span>
+                  <Input
+                    {...field}
+                    type="email"
+                    placeholder="ustadz@example.com"
+                    disabled={isSubmitting}
+                    className="h-12 pl-10 border-[#d6e7d0] dark:border-gray-600 bg-background-light dark:bg-surface-dark focus:ring-2 focus:ring-primary transition-all"
+                    onChange={(e) => {
+                      field.onChange(e);
+                      handleInputChange();
+                    }}
+                  />
+                </div>
+              </FormControl>
+              <FormMessage className="text-xs" />
+            </FormItem>
+          )}
+        />
+
+        {/* Password Field */}
+        <FormField
+          control={form.control}
+          name="password"
+          render={({ field }) => (
+            <FormItem className="space-y-2">
+              <div className="flex items-center justify-between">
+                <FormLabel className="text-sm font-medium dark:text-white">
+                  Password
+                </FormLabel>
+                <a
+                  href="#"
+                  className="text-xs font-medium text-primary hover:text-primary-dark hover:underline"
+                  onClick={(e) => e.preventDefault()}
+                >
+                  Forgot Password?
+                </a>
+              </div>
+              <FormControl>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary-light dark:text-gray-400">
+                    <FontAwesomeIcon icon={faLock} className="text-[18px]" />
+                  </span>
+                  <Input
+                    {...field}
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Masukkan password"
+                    disabled={isSubmitting}
+                    className="h-12 pl-10 pr-10 border-[#d6e7d0] dark:border-gray-600 bg-background-light dark:bg-surface-dark focus:ring-2 focus:ring-primary transition-all"
+                    onChange={(e) => {
+                      field.onChange(e);
+                      handleInputChange();
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary-light hover:text-primary transition-colors"
+                    disabled={isSubmitting}
+                  >
+                    <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} className="text-[18px]" />
+                  </button>
+                </div>
+              </FormControl>
+              <FormMessage className="text-xs" />
+            </FormItem>
+          )}
+        />
+
+        {/* Submit Button */}
+        <Button
+          type="submit"
+          disabled={isSubmitting}
+          className="w-full h-12 bg-primary hover:bg-primary-dark text-white font-semibold shadow-lg shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isSubmitting ? (
+            <span className="flex items-center gap-2">
+              <Spinner className="h-4 w-4" />
+              Memproses...
+            </span>
+          ) : (
+            <span className="flex items-center gap-2">
+              Sign In
+              <FontAwesomeIcon icon={faArrowRight} className="text-sm" />
+            </span>
+          )}
+        </Button>
+
+        {backendError && (
+          <div className="pt-2 text-center">
+            <p className="text-xs text-text-secondary-light dark:text-gray-400">
+              {backendError.includes("salah") 
+                ? "Periksa kembali email dan password Anda. Perhatikan huruf besar/kecil."
+                : backendError.includes("tidak ditemukan")
+                ? "Email tidak terdaftar. Pastikan email yang dimasukkan benar."
+                : "Silakan coba lagi atau hubungi administrator."}
+            </p>
+          </div>
+        )}
+      </form>
+    </Form>
+  );
+}
 
 --- FILE: ./components/forms/AkunForm.tsx ---
 
@@ -267,263 +477,14 @@ export function AkunForm({ onSuccess }: AkunFormProps) {
   );
 }
 
---- FILE: ./components/forms/LoginForm.tsx ---
-
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useNavigate } from "react-router-dom";
-import { loginSchema, type LoginFormValues } from "@/utils/zodSchema";
-import { useAuth } from "@/context/AuthContext";
-
-// Import Shadcn UI
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-
-// Import FontAwesome
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { 
-  faEnvelope, 
-  faLock, 
-  faArrowRight, 
-  faEye, 
-  faEyeSlash,
-  faTriangleExclamation 
-} from "@fortawesome/free-solid-svg-icons";
-
-export function LoginForm() {
-  const [showPassword, setShowPassword] = useState(false);
-  const [backendError, setBackendError] = useState<string>("");
-  const [isSubmitting, setIsSubmitting] = useState(false); // State lokal untuk loading
-  const { login } = useAuth();
-  const navigate = useNavigate();
-
-  const form = useForm<LoginFormValues>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-    },
-  });
-
-  async function onSubmit(values: LoginFormValues) {
-    setBackendError("");
-    setIsSubmitting(true);
-    console.log("Submitting login form...", values);
-
-    try {
-      await login(values);
-      navigate("/");
-    } catch (error: any) {
-      console.error("Login failed:", {
-        error: error,
-        response: error.response,
-        status: error.response?.status,
-        data: error.response?.data
-      });
-      
-      let errorMessage = "Terjadi kesalahan saat login";
-      
-      if (error.response) {
-        const status = error.response.status;
-        const data = error.response.data;
-        
-        if (status === 401) {
-          errorMessage = "Email atau password salah";
-        } else if (status === 400) {
-          // Handle berbagai jenis error 400
-          if (data.message?.includes("tidak ditemukan") || 
-              data.message?.includes("dihapus") || 
-              data.message?.includes("tidak aktif")) {
-            errorMessage = "Akun tidak ditemukan atau telah dihapus";
-          } else {
-            errorMessage = data.message || "Format data tidak valid";
-          }
-        } else if (status === 403) {
-          errorMessage = "Akun tidak aktif atau telah dihapus";
-        } else if (status === 404) {
-          errorMessage = "Akun tidak ditemukan";
-        } else if (status === 429) {
-          errorMessage = "Terlalu banyak percobaan login. Coba lagi nanti";
-        } else if (status >= 500) {
-          errorMessage = "Server sedang mengalami masalah. Silakan coba lagi nanti";
-        } else {
-          errorMessage = data.message || "Gagal login";
-        }
-      } else if (error.request) {
-        // Tidak ada response dari server
-        errorMessage = "Tidak ada koneksi ke server. Periksa koneksi internet Anda";
-      } else {
-        // Error di konfigurasi request
-        errorMessage = "Terjadi kesalahan tidak terduga";
-      }
-      
-      setBackendError(errorMessage);
-      
-      // Clear form jika akun tidak ditemukan
-      if (errorMessage.includes("tidak ditemukan") || errorMessage.includes("dihapus")) {
-        form.reset({
-          email: "",
-          password: "",
-        });
-      }
-    } finally {
-      setIsSubmitting(false);
-    }
-  }
-
-  // Handler untuk mencegah form submission default
-  const handleFormSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    form.handleSubmit(onSubmit)();
-  };
-
-  return (
-    <Form {...form}>
-      <form onSubmit={handleFormSubmit} className="space-y-5">
-        
-        {backendError && (
-          <Alert variant="destructive" className="animate-in fade-in duration-300">
-            <FontAwesomeIcon icon={faTriangleExclamation} className="h-4 w-4" />
-            <AlertDescription className="text-sm">
-              {backendError}
-            </AlertDescription>
-          </Alert>
-        )}
-
-        {/* Email Field */}
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem className="space-y-2">
-              <FormLabel className="text-sm font-medium dark:text-white">
-                Email Address
-              </FormLabel>
-              <FormControl>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary-light dark:text-gray-400">
-                    <FontAwesomeIcon icon={faEnvelope} className="text-[18px]" />
-                  </span>
-                  <Input
-                    {...field}
-                    type="email"
-                    placeholder="ustadz@example.com"
-                    disabled={isSubmitting}
-                    className="h-12 pl-10 border-[#d6e7d0] dark:border-gray-600 bg-background-light dark:bg-surface-dark focus:ring-2 focus:ring-primary transition-all"
-                    onChange={(e) => {
-                      field.onChange(e);
-                      if (backendError) setBackendError("");
-                    }}
-                  />
-                </div>
-              </FormControl>
-              <FormMessage className="text-xs" />
-            </FormItem>
-          )}
-        />
-
-        {/* Password Field */}
-        <FormField
-          control={form.control}
-          name="password"
-          render={({ field }) => (
-            <FormItem className="space-y-2">
-              <div className="flex items-center justify-between">
-                <FormLabel className="text-sm font-medium dark:text-white">
-                  Password
-                </FormLabel>
-                <a
-                  href="#"
-                  className="text-xs font-medium text-primary hover:text-primary-dark hover:underline"
-                  onClick={(e) => e.preventDefault()}
-                >
-                  Forgot Password?
-                </a>
-              </div>
-              <FormControl>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary-light dark:text-gray-400">
-                    <FontAwesomeIcon icon={faLock} className="text-[18px]" />
-                  </span>
-                  <Input
-                    {...field}
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Masukkan password"
-                    disabled={isSubmitting}
-                    className="h-12 pl-10 pr-10 border-[#d6e7d0] dark:border-gray-600 bg-background-light dark:bg-surface-dark focus:ring-2 focus:ring-primary transition-all"
-                    onChange={(e) => {
-                      field.onChange(e);
-                      if (backendError) setBackendError("");
-                    }}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary-light hover:text-primary transition-colors"
-                    disabled={isSubmitting}
-                  >
-                    <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} className="text-[18px]" />
-                  </button>
-                </div>
-              </FormControl>
-              <FormMessage className="text-xs" />
-            </FormItem>
-          )}
-        />
-
-        {/* Submit Button */}
-        <Button
-          type="submit"
-          disabled={isSubmitting}
-          className="w-full h-12 bg-primary hover:bg-primary-dark text-white font-semibold shadow-lg shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {isSubmitting ? (
-            <span className="flex items-center gap-2">
-              <svg className="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-              </svg>
-              Memproses...
-            </span>
-          ) : (
-            <span className="flex items-center gap-2">
-              Sign In
-              <FontAwesomeIcon icon={faArrowRight} className="text-sm" />
-            </span>
-          )}
-        </Button>
-
-        {backendError && (
-          <div className="pt-2 text-center">
-            <p className="text-xs text-text-secondary-light dark:text-gray-400">
-              {backendError.includes("salah") 
-                ? "Tips: Pastikan email dan password benar. Perhatikan huruf besar/kecil."
-                : "Silakan coba lagi atau hubungi administrator."}
-            </p>
-          </div>
-        )}
-      </form>
-    </Form>
-  );
-}
-
 --- FILE: ./components/forms/HalaqahForm.tsx ---
 
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { halaqahService, type CreateHalaqahData } from "@/services/halaqahService";
+import { halaqahService, type CreateHalaqahData, type UpdateHalaqahData } from "@/services/halaqahService";
+import { akunService } from "@/services/akunService"; // Import service muhafiz
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -548,12 +509,12 @@ import { toast } from "sonner";
 
 // Import Icons
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBook, faPlus, faCheck, faExclamationTriangle } from "@fortawesome/free-solid-svg-icons";
+import { faBook, faPlus, faCheck, faExclamationTriangle, faUserTie } from "@fortawesome/free-solid-svg-icons";
 
+// Sesuai dengan dokumentasi API: hanya name_halaqah dan muhafiz_id
 const halaqahSchema = z.object({
-  nama_halaqah: z.string().min(3, "Nama halaqah minimal 3 karakter"),
-  jenis: z.enum(["BACAAN", "HAFALAN", "KHUSUS"]),
-  muhafidz_id: z.number().min(1, "Pilih muhafidz"),
+  name_halaqah: z.string().min(3, "Nama halaqah minimal 3 karakter"),
+  muhafiz_id: z.number().min(1, "Pilih muhafiz"), // Field yang benar dari API
 });
 
 type HalaqahFormValues = z.infer<typeof halaqahSchema>;
@@ -562,9 +523,8 @@ interface HalaqahFormProps {
   onSuccess?: () => void;
   initialData?: {
     id_halaqah?: number;
-    nama_halaqah?: string;
-    jenis?: "BACAAN" | "HAFALAN" | "KHUSUS";
-    muhafidz_id?: number;
+    name_halaqah?: string;
+    muhafiz_id?: number; // Field yang benar dari API
   };
 }
 
@@ -572,47 +532,79 @@ export function HalaqahForm({ onSuccess, initialData }: HalaqahFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMuhafiz, setLoadingMuhafiz] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
-  const [availableMuhafiz, setAvailableMuhafiz] = useState<Array<{ id_user: number; username: string; email: string }>>([]);
+  const [allMuhafiz, setAllMuhafiz] = useState<Array<{ id_user: number; username: string; email: string }>>([]);
+  const [halaqahList, setHalaqahList] = useState<any[]>([]);
 
   const form = useForm<HalaqahFormValues>({
     resolver: zodResolver(halaqahSchema),
     defaultValues: {
-      nama_halaqah: initialData?.nama_halaqah || "",
-      jenis: initialData?.jenis || "HAFALAN",
-      muhafidz_id: initialData?.muhafidz_id || 0,
+      name_halaqah: initialData?.name_halaqah || "",
+      muhafiz_id: initialData?.muhafiz_id || 0, // Field yang benar
     },
   });
 
   useEffect(() => {
-    loadAvailableMuhafiz();
+    loadMuhafizAndHalaqah();
   }, []);
 
-  const loadAvailableMuhafiz = async () => {
+  const loadMuhafizAndHalaqah = async () => {
     setLoadingMuhafiz(true);
     try {
-      const response = await halaqahService.getAvailableMuhafiz();
-      setAvailableMuhafiz(response.data);
+      // 1. Ambil semua muhafiz
+      const muhafizResponse = await akunService.getAllMuhafiz();
+      const muhafizList = muhafizResponse.data.map(m => ({
+        id_user: m.id_user,
+        username: m.username,
+        email: m.email
+      }));
+      setAllMuhafiz(muhafizList);
+
+      // 2. Ambil semua halaqah untuk mengecek yang sudah punya halaqah
+      const halaqahResponse = await halaqahService.getAllHalaqah();
+      setHalaqahList(halaqahResponse.data);
     } catch (error) {
-      console.error("Error loading muhafiz:", error);
-      toast.error("Gagal memuat daftar muhafidz");
+      console.error("Error loading data:", error);
+      toast.error("Gagal memuat data");
     } finally {
       setLoadingMuhafiz(false);
     }
   };
+
+  // Filter muhafiz yang belum memiliki halaqah
+  const getAvailableMuhafiz = () => {
+    const muhafizWithHalaqah = new Set(halaqahList.map(h => h.muhafiz_id));
+    
+    // Jika sedang edit, tambahkan muhafiz yang sedang mengampu halaqah ini
+    if (initialData?.muhafiz_id) {
+      return allMuhafiz.filter(m => 
+        !muhafizWithHalaqah.has(m.id_user) || m.id_user === initialData.muhafiz_id
+      );
+    }
+    
+    return allMuhafiz.filter(m => !muhafizWithHalaqah.has(m.id_user));
+  };
+
+  const availableMuhafiz = getAvailableMuhafiz();
 
   async function onSubmit(values: HalaqahFormValues) {
     setIsLoading(true);
     setErrorMessage("");
 
     try {
+      // Data yang sesuai dengan dokumentasi API
       const data: CreateHalaqahData = {
-        nama_halaqah: values.nama_halaqah,
-        jenis: values.jenis,
-        muhafidz_id: values.muhafidz_id,
+        name_halaqah: values.name_halaqah,
+        muhafiz_id: values.muhafiz_id,
+        // Tidak ada field 'jenis' dalam dokumentasi API
       };
 
       if (initialData?.id_halaqah) {
-        await halaqahService.updateHalaqah(initialData.id_halaqah, data);
+        // Untuk update, gunakan UpdateHalaqahData
+        const updateData: UpdateHalaqahData = {
+          name_halaqah: values.name_halaqah,
+          muhafiz_id: values.muhafiz_id,
+        };
+        await halaqahService.updateHalaqah(initialData.id_halaqah, updateData);
         toast.success("Halaqah berhasil diperbarui");
       } else {
         await halaqahService.createHalaqah(data);
@@ -620,10 +612,15 @@ export function HalaqahForm({ onSuccess, initialData }: HalaqahFormProps) {
       }
 
       form.reset();
-      if (onSuccess) onSuccess(); // Langsung tutup modal/refresh table
+      if (onSuccess) onSuccess();
     } catch (error: any) {
       const message = error.response?.data?.message || "Terjadi kesalahan saat menyimpan data";
-      setErrorMessage(message); // Alert tetap digunakan untuk error agar user bisa baca detailnya
+      setErrorMessage(message);
+      
+      // Handle error spesifik dari API
+      if (error.response?.data?.message?.includes("muhafiz_id sudah digunakan")) {
+        toast.error("Muhafiz ini sudah memiliki halaqah");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -634,9 +631,9 @@ export function HalaqahForm({ onSuccess, initialData }: HalaqahFormProps) {
       {availableMuhafiz.length === 0 && !loadingMuhafiz && (
         <Alert variant="destructive" className="bg-destructive/5 border-destructive/20 text-destructive">
           <FontAwesomeIcon icon={faExclamationTriangle} className="h-4 w-4" />
-          <AlertTitle>Muhafidz Tidak Tersedia</AlertTitle>
+          <AlertTitle>Muhafiz Tidak Tersedia</AlertTitle>
           <AlertDescription className="text-xs">
-            Semua muhafidz sudah memiliki halaqah. Silahkan buat akun muhafidz baru terlebih dahulu sebelum membuat halaqah.
+            Semua muhafiz sudah memiliki halaqah. Silahkan buat akun muhafiz baru terlebih dahulu sebelum membuat halaqah.
           </AlertDescription>
         </Alert>
       )}
@@ -652,7 +649,7 @@ export function HalaqahForm({ onSuccess, initialData }: HalaqahFormProps) {
           
           <FormField
             control={form.control}
-            name="nama_halaqah"
+            name="name_halaqah"
             render={({ field }) => (
               <FormItem className="space-y-2">
                 <FormLabel>Nama Halaqah</FormLabel>
@@ -674,62 +671,59 @@ export function HalaqahForm({ onSuccess, initialData }: HalaqahFormProps) {
             )}
           />
 
+          {/* Hapus field 'jenis' karena tidak ada dalam dokumentasi API */}
+          
           <FormField
             control={form.control}
-            name="jenis"
+            name="muhafiz_id"
             render={({ field }) => (
               <FormItem className="space-y-2">
-                <FormLabel>Jenis Halaqah</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger className="h-11">
-                      <SelectValue placeholder="Pilih jenis" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="BACAAN">Bacaan</SelectItem>
-                    <SelectItem value="HAFALAN">Hafalan</SelectItem>
-                    <SelectItem value="KHUSUS">Khusus</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="muhafidz_id"
-            render={({ field }) => (
-              <FormItem className="space-y-2">
-                <FormLabel>Muhafidz</FormLabel>
+                <FormLabel>Muhafiz</FormLabel>
                 <Select 
                   onValueChange={(value) => field.onChange(parseInt(value))} 
                   defaultValue={field.value ? field.value.toString() : undefined}
+                  disabled={loadingMuhafiz || availableMuhafiz.length === 0}
                 >
                   <FormControl>
-                    <SelectTrigger className="h-11" disabled={loadingMuhafiz || availableMuhafiz.length === 0}>
+                    <SelectTrigger className="h-11">
                       {loadingMuhafiz ? (
                         <span className="flex items-center gap-2">
                           <Spinner className="h-4 w-4" /> Memuat...
                         </span>
                       ) : (
-                        <SelectValue placeholder="Pilih muhafidz" />
+                        <SelectValue placeholder="Pilih muhafiz" />
                       )}
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
                     {availableMuhafiz.map((muhafiz) => (
                       <SelectItem key={muhafiz.id_user} value={muhafiz.id_user.toString()}>
-                        {muhafiz.username}
+                        <div className="flex items-center gap-2">
+                          <FontAwesomeIcon icon={faUserTie} className="text-sm" />
+                          <div>
+                            <div className="font-medium">{muhafiz.username}</div>
+                            <div className="text-xs text-muted-foreground">{muhafiz.email}</div>
+                          </div>
+                        </div>
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
                 <FormMessage />
+                {availableMuhafiz.length > 0 && (
+                  <p className="text-xs text-muted-foreground">
+                    {availableMuhafiz.length} muhafiz tersedia
+                  </p>
+                )}
               </FormItem>
             )}
           />
+
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+            <p className="text-xs text-yellow-800">
+              <strong>Perhatian:</strong> Setiap muhafiz hanya dapat memiliki satu halaqah.
+            </p>
+          </div>
 
           <Button
             type="submit"
@@ -2462,31 +2456,8 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBookOpen } from "@fortawesome/free-solid-svg-icons";
 import loginBg from "@/assets/login-bg.png"; 
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { useEffect } from "react";
-
-
 
 export default function LoginPage() {
-  useEffect(() => {
-    // Mencegah reload halaman ketika form di-submit
-    const handleFormSubmit = (e: SubmitEvent) => {
-      e.preventDefault();
-    };
-    
-    // Attach event listener ke semua form di halaman ini
-    const forms = document.querySelectorAll('form');
-    forms.forEach(form => {
-      form.addEventListener('submit', handleFormSubmit);
-    });
-    
-    return () => {
-      // Cleanup
-      forms.forEach(form => {
-        form.removeEventListener('submit', handleFormSubmit);
-      });
-    };
-  }, []);
-
   return (
     <div className="flex min-h-screen w-full overflow-hidden bg-background-light dark:bg-background-dark">
 
@@ -3505,248 +3476,13 @@ export default function KepalaMuhafidzDashboard() {
   );
 }
 
---- FILE: ./pages/kepala-muhafidz/KelolaHalaqah/index.tsx ---
+--- FILE: ./pages/kepala-muhafidz/KelolaHalaqah/DetailHalaqah.tsx ---
 
-import { useState, useEffect } from "react";
-import { useAuth } from "@/context/AuthContext";
-import { halaqahService, type Halaqah } from "@/services/halaqahService";
-import { BuatHalaqah } from "./BuatHalaqah";
-import { DaftarHalaqah } from "./DaftarHalaqah";
-import { EditHalaqah } from "./EditHalaqah";
-import { DeleteHalaqah } from "./DeleteHalaqah";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { 
-  faBook, 
-  faUsers,
-  faCheck,
-  faXmark
-} from "@fortawesome/free-solid-svg-icons";
 
-export default function KelolaHalaqahPage() {
-  const { user } = useAuth();
-  const [halaqahList, setHalaqahList] = useState<Halaqah[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
-  
-  // State untuk edit dan delete
-  const [editingHalaqah, setEditingHalaqah] = useState<Halaqah | null>(null);
-  const [deletingHalaqah, setDeletingHalaqah] = useState<Halaqah | null>(null);
-  const [isEditOpen, setIsEditOpen] = useState(false);
-  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-
-  // Load data halaqah
-  useEffect(() => {
-    loadHalaqah();
-  }, []);
-
-  const loadHalaqah = async () => {
-    setIsLoading(true);
-    setError("");
-    try {
-      const response = await halaqahService.getAllHalaqah();
-      if (response.success) {
-        setHalaqahList(response.data);
-      }
-    } catch (err: any) {
-      setError("Gagal memuat data halaqah");
-      console.error("Load halaqah error:", err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleCreateSuccess = () => {
-    setSuccess("Halaqah berhasil dibuat!");
-    loadHalaqah();
-    setTimeout(() => setSuccess(""), 3000);
-  };
-
-  const handleEditClick = (halaqah: Halaqah) => {
-    setEditingHalaqah(halaqah);
-    setIsEditOpen(true);
-  };
-
-  const handleEditSuccess = () => {
-    setSuccess("Halaqah berhasil diperbarui!");
-    loadHalaqah();
-    setTimeout(() => setSuccess(""), 3000);
-  };
-
-  const handleDeleteClick = (halaqah: Halaqah) => {
-    setDeletingHalaqah(halaqah);
-    setIsDeleteOpen(true);
-  };
-
-  const handleDeleteSuccess = () => {
-    setSuccess("Halaqah berhasil dihapus!");
-    loadHalaqah();
-    setTimeout(() => setSuccess(""), 3000);
-  };
-
-  // Cek apakah user adalah superadmin
-  if (user?.role !== "superadmin") {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] text-center p-6">
-        <FontAwesomeIcon icon={faBook} className="text-6xl text-destructive mb-4" />
-        <h2 className="text-2xl font-bold dark:text-white mb-2">Akses Ditolak</h2>
-        <p className="text-text-secondary dark:text-text-secondary-dark">
-          Hanya Kepala Muhafidz yang dapat mengakses halaman ini.
-        </p>
-      </div>
-    );
-  }
-
-  // Hitung statistik
-  const totalHalaqah = halaqahList.length;
-  const totalMuhafiz = new Set(halaqahList.map(h => h.muhafidz_id)).size;
-  const totalSantri = halaqahList.reduce((sum, h) => sum + (h.jumlah_santri || 0), 0);
-
-  return (
-    <div className="space-y-6 animate-in fade-in duration-500">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-bold dark:text-white">Kelola Halaqah</h2>
-          <p className="text-text-secondary dark:text-text-secondary-dark text-sm">
-            Kelola halaqah di bawah yayasan Anda
-          </p>
-        </div>
-
-        {/* Tombol Buat Halaqah */}
-        <BuatHalaqah onSuccess={handleCreateSuccess} />
-      </div>
-
-      {/* Success Alert */}
-      {success && (
-        <Alert variant="default" className="bg-green-50 border-green-200 text-green-800">
-          <FontAwesomeIcon icon={faCheck} className="mr-2" />
-          <AlertDescription>{success}</AlertDescription>
-        </Alert>
-      )}
-
-      {/* Error Alert */}
-      {error && (
-        <Alert variant="destructive">
-          <FontAwesomeIcon icon={faXmark} className="mr-2" />
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-
-      {/* Stats Card */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="rounded-xl border border-border bg-surface p-6 dark:bg-surface-dark shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-              <FontAwesomeIcon icon={faBook} className="text-primary" />
-            </div>
-            <div>
-              <p className="text-sm text-text-secondary dark:text-text-secondary-dark">Total Halaqah</p>
-              <p className="text-2xl font-bold dark:text-white">{totalHalaqah}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="rounded-xl border border-border bg-surface p-6 dark:bg-surface-dark shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center">
-              <FontAwesomeIcon icon={faUsers} className="text-blue-600 dark:text-blue-400" />
-            </div>
-            <div>
-              <p className="text-sm text-text-secondary dark:text-text-secondary-dark">Total Muhafidz</p>
-              <p className="text-2xl font-bold dark:text-white">{totalMuhafiz}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="rounded-xl border border-border bg-surface p-6 dark:bg-surface-dark shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
-              <FontAwesomeIcon icon={faUsers} className="text-green-600 dark:text-green-400" />
-            </div>
-            <div>
-              <p className="text-sm text-text-secondary dark:text-text-secondary-dark">Total Santri</p>
-              <p className="text-2xl font-bold dark:text-white">{totalSantri}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Tabel Daftar Halaqah */}
-      <div className="rounded-xl border border-border bg-card dark:bg-surface-dark shadow-sm overflow-hidden">
-        <div className="p-6 border-b border-border dark:border-border-dark">
-          <h3 className="font-semibold text-lg dark:text-white">Daftar Halaqah</h3>
-          <p className="text-sm text-text-secondary dark:text-text-secondary-dark">
-            Semua halaqah yang terdaftar
-          </p>
-        </div>
-
-        <DaftarHalaqah
-          halaqahList={halaqahList}
-          isLoading={isLoading}
-          onEditClick={handleEditClick}
-          onDeleteClick={handleDeleteClick}
-          onRefresh={loadHalaqah}
-          onCreateClick={handleCreateSuccess}
-        />
-      </div>
-
-      {/* Dialog Edit Halaqah */}
-      <EditHalaqah
-        halaqah={editingHalaqah}
-        isOpen={isEditOpen}
-        onClose={() => setIsEditOpen(false)}
-        onSuccess={handleEditSuccess}
-      />
-
-      {/* Dialog Konfirmasi Delete */}
-      <DeleteHalaqah
-        halaqah={deletingHalaqah}
-        isOpen={isDeleteOpen}
-        onClose={() => setIsDeleteOpen(false)}
-        onSuccess={handleDeleteSuccess}
-      />
-
-      {/* Informasi Tambahan */}
-      <div className="rounded-xl border border-border bg-surface p-6 dark:bg-surface-dark shadow-sm">
-        <div className="flex items-start gap-3">
-          <div className="h-10 w-10 rounded-lg bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center flex-shrink-0">
-            <FontAwesomeIcon icon={faBook} className="text-blue-600 dark:text-blue-400" />
-          </div>
-          <div>
-            <h4 className="font-semibold dark:text-white mb-2">Informasi Penting</h4>
-            <ul className="text-sm text-text-secondary dark:text-text-secondary-dark space-y-2">
-              <li className="flex items-start gap-2">
-                <span className="text-primary">•</span>
-                <span><strong>Bacaan:</strong> Fokus pada pembelajaran membaca Al-Quran</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-primary">•</span>
-                <span><strong>Hafalan:</strong> Fokus pada menghafal Al-Quran</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-primary">•</span>
-                <span><strong>Khusus:</strong> Program khusus seperti Tahfidz, Tafsir, dll.</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-primary">•</span>
-                <span>Setiap muhafidz hanya dapat memimpin 1 halaqah</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-primary">•</span>
-                <span>Hapus halaqah akan memutus relasi dengan muhafidz dan santri</span>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 --- FILE: ./pages/kepala-muhafidz/KelolaHalaqah/BuatHalaqah.tsx ---
 
+import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { HalaqahForm } from "@/components/forms/HalaqahForm";
@@ -3758,8 +3494,15 @@ interface BuatHalaqahProps {
 }
 
 export function BuatHalaqah({ onSuccess }: BuatHalaqahProps) {
+  const [open, setOpen] = useState(false);
+
+  const handleSuccess = () => {
+    onSuccess();
+    setOpen(false);
+  };
+
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button className="bg-primary hover:bg-primary-dark text-white">
           <FontAwesomeIcon icon={faPlus} className="mr-2" />
@@ -3773,51 +3516,161 @@ export function BuatHalaqah({ onSuccess }: BuatHalaqahProps) {
             Buat Halaqah Baru
           </DialogTitle>
         </DialogHeader>
-        <HalaqahForm onSuccess={onSuccess} />
+        <HalaqahForm onSuccess={handleSuccess} />
       </DialogContent>
     </Dialog>
   );
 }
 
---- FILE: ./pages/kepala-muhafidz/KelolaHalaqah/EditHalaqah.tsx ---
+--- FILE: ./pages/kepala-muhafidz/KelolaHalaqah/DaftarHalaqah.tsx ---
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { HalaqahForm } from "@/components/forms/HalaqahForm";
+import { type Halaqah } from "@/services/halaqahService";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { 
+  faBook, 
+  faUserTie,
+  faEdit,
+  faTrash,
+  faUsers,
+  faPlus
+} from "@fortawesome/free-solid-svg-icons";
+import { MoreHorizontalIcon } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
-interface EditHalaqahProps {
-  halaqah: any | null;
-  isOpen: boolean;
-  onClose: () => void;
-  onSuccess: () => void;
+interface DaftarHalaqahProps {
+  halaqahList: Halaqah[];
+  isLoading: boolean;
+  onEditClick: (halaqah: Halaqah) => void;
+  onDeleteClick: (halaqah: Halaqah) => void;
+  onRefresh: () => void;
+  onCreateClick: () => void;
 }
 
-export function EditHalaqah({ halaqah, isOpen, onClose, onSuccess }: EditHalaqahProps) {
+export function DaftarHalaqah({ 
+  halaqahList, 
+  isLoading, 
+  onEditClick, 
+  onDeleteClick,
+  onCreateClick
+}: DaftarHalaqahProps) {
+  
+  if (isLoading) {
+    return (
+      <div className="p-6 space-y-4">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="flex items-center gap-4">
+            <Skeleton className="h-12 w-12 rounded-full" />
+            <div className="space-y-2 flex-1">
+              <Skeleton className="h-4 w-1/4" />
+              <Skeleton className="h-3 w-1/2" />
+            </div>
+            <Skeleton className="h-8 w-20" />
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (halaqahList.length === 0) {
+    return (
+      <div className="p-12 text-center">
+        <FontAwesomeIcon icon={faBook} className="text-5xl text-text-secondary-light dark:text-text-secondary-dark mb-4" />
+        <h4 className="font-medium dark:text-white mb-2">Belum ada halaqah</h4>
+        <p className="text-text-secondary dark:text-text-secondary-dark mb-4">
+          Mulai dengan menambahkan halaqah baru
+        </p>
+        <Button onClick={onCreateClick}>
+          <FontAwesomeIcon icon={faPlus} className="mr-2" />
+          Tambah Halaqah Pertama
+        </Button>
+      </div>
+    );
+  }
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Edit Halaqah</DialogTitle>
-          <DialogDescription>
-            Edit informasi halaqah #{halaqah?.id_halaqah}
-          </DialogDescription>
-        </DialogHeader>
-        
-        {halaqah && (
-          <HalaqahForm
-            initialData={{
-              id_halaqah: halaqah.id_halaqah,
-              nama_halaqah: halaqah.nama_halaqah,
-              jenis: halaqah.jenis,
-              muhafidz_id: halaqah.muhafidz_id
-            }}
-            onSuccess={() => {
-              onSuccess();
-              onClose();
-            }}
-          />
-        )}
-      </DialogContent>
-    </Dialog>
+    <div className="overflow-x-auto">
+      <table className="w-full">
+        <thead className="bg-accent/30 dark:bg-background-dark/50 text-muted-foreground font-medium">
+          <tr>
+            <th className="px-6 py-4 text-left">ID</th>
+            <th className="px-6 py-4 text-left">Nama Halaqah</th>
+            <th className="px-6 py-4 text-left">Jenis</th>
+            <th className="px-6 py-4 text-left">Muhafidz</th>
+            <th className="px-6 py-4 text-left">Aksi</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-border dark:divide-border-dark">
+          {halaqahList.map((halaqah) => (
+            <tr key={halaqah.id_halaqah} className="hover:bg-accent/5 dark:hover:bg-background-dark/30 transition-colors">
+              <td className="px-6 py-4">
+                <span className="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+                  #{halaqah.id_halaqah}
+                </span>
+              </td>
+              <td className="px-6 py-4">
+                <div className="flex items-center gap-2">
+                  <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                    <FontAwesomeIcon icon={faBook} className="text-primary text-sm" />
+                  </div>
+                  <span className="font-medium dark:text-white">{halaqah.name_halaqah}</span>
+                </div>
+              </td>
+              <td className="px-6 py-4">
+                <div className="flex items-center gap-2">
+                  <div className="h-6 w-6 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                    <FontAwesomeIcon icon={faUserTie} className="text-blue-600 dark:text-blue-400 text-xs" />
+                  </div>
+                  <div>
+                    <p className="font-medium dark:text-white">{halaqah.muhafiz.username}</p>
+                    <p className="text-xs text-text-secondary dark:text-text-secondary-dark">{halaqah.muhafiz.email}</p>
+                  </div>
+                </div>
+              </td>
+              <td className="px-6 py-4">
+                <div className="flex items-center gap-2">
+                  <FontAwesomeIcon icon={faUsers} className="text-sm text-text-secondary-light dark:text-text-secondary-dark" />
+                  <span className="font-medium dark:text-white">{halaqah._count.santri || 0}</span>
+                </div>
+              </td>
+              <td className="px-6 py-4">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                      <MoreHorizontalIcon className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuLabel>Aksi</DropdownMenuLabel>
+                    <DropdownMenuGroup>
+                      <DropdownMenuItem onClick={() => onEditClick(halaqah)}>
+                        <FontAwesomeIcon icon={faEdit} className="mr-2 h-3 w-3" />
+                        <span>Edit</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        onClick={() => onDeleteClick(halaqah)}
+                        className="text-destructive focus:text-destructive"
+                      >
+                        <FontAwesomeIcon icon={faTrash} className="mr-2 h-3 w-3" />
+                        <span>Hapus</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuGroup>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
 
@@ -3861,7 +3714,7 @@ export function DeleteHalaqah({ halaqah, isOpen, onClose, onSuccess }: DeleteHal
     } catch (err: any) {
       const message = err.response?.data?.message || "Gagal menghapus halaqah";
       setError(message);
-      console.error("Delete error:", err);
+      console.error("Delete halaqah error:", err);
     } finally {
       setIsLoading(false);
     }
@@ -3885,13 +3738,14 @@ export function DeleteHalaqah({ halaqah, isOpen, onClose, onSuccess }: DeleteHal
             <div className="space-y-3">
               <p>Apakah Anda yakin ingin menghapus halaqah ini?</p>
               <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3">
-                <p className="font-semibold text-destructive">{halaqah?.nama_halaqah}</p>
-                <p className="text-sm text-destructive/80">Jenis: {halaqah?.jenis}</p>
-                <p className="text-sm text-destructive/80">Muhafidz: {halaqah?.muhafidz.username}</p>
+                <p className="font-semibold text-destructive">{halaqah?.name_halaqah}</p>
+                <p className="text-sm text-destructive/80">
+                  Muhafidz: {halaqah?.muhafiz.username} ({halaqah?.muhafiz.email})
+                </p>
                 <p className="text-xs mt-2">ID: #{halaqah?.id_halaqah}</p>
               </div>
               <p className="text-sm text-destructive">
-                <strong>PERINGATAN:</strong> Hapus halaqah juga akan menghapus semua santri di dalamnya!
+                <strong>PERINGATAN:</strong> Tindakan ini akan menghapus halaqah secara permanen.
               </p>
             </div>
           </DialogDescription>
@@ -3947,174 +3801,149 @@ export function DeleteHalaqah({ halaqah, isOpen, onClose, onSuccess }: DeleteHal
   );
 }
 
---- FILE: ./pages/kepala-muhafidz/KelolaHalaqah/DaftarHalaqah.tsx ---
+--- FILE: ./pages/kepala-muhafidz/KelolaHalaqah/EditHalaqah.tsx ---
 
-import { type Halaqah } from "@/services/halaqahService";
+import { useState, useEffect } from "react";
+import { halaqahService, type Halaqah, type UpdateHalaqahData } from "@/services/halaqahService";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { 
-  faBook, 
-  faUserTie,
-  faUsers,
-  faEdit,
-  faTrash,
-  faPlus
-} from "@fortawesome/free-solid-svg-icons";
-import { MoreHorizontalIcon } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { faCheck, faXmark, faEdit } from "@fortawesome/free-solid-svg-icons";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 
-interface DaftarHalaqahProps {
-  halaqahList: Halaqah[];
-  isLoading: boolean;
-  onEditClick: (halaqah: Halaqah) => void;
-  onDeleteClick: (halaqah: Halaqah) => void;
-  onRefresh: () => void;
-  onCreateClick: () => void;
+interface EditHalaqahProps {
+  halaqah: Halaqah | null;
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
 }
 
-export function DaftarHalaqah({ 
-  halaqahList, 
-  isLoading, 
-  onEditClick, 
-  onDeleteClick, 
-  onCreateClick
-}: DaftarHalaqahProps) {
-  
-  if (isLoading) {
-    return (
-      <div className="p-6 space-y-4">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="flex items-center gap-4">
-            <Skeleton className="h-12 w-12 rounded-full" />
-            <div className="space-y-2 flex-1">
-              <Skeleton className="h-4 w-1/4" />
-              <Skeleton className="h-3 w-1/2" />
-            </div>
-            <Skeleton className="h-8 w-20" />
-          </div>
-        ))}
-      </div>
-    );
-  }
+export function EditHalaqah({ halaqah, isOpen, onClose, onSuccess }: EditHalaqahProps) {
+  const [formData, setFormData] = useState<UpdateHalaqahData>({
+    name_halaqah: "",
+  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
-  if (halaqahList.length === 0) {
-    return (
-      <div className="p-12 text-center">
-        <FontAwesomeIcon icon={faBook} className="text-5xl text-text-secondary-light dark:text-text-secondary-dark mb-4" />
-        <h4 className="font-medium dark:text-white mb-2">Belum ada halaqah</h4>
-        <p className="text-text-secondary dark:text-text-secondary-dark mb-4">
-          Mulai dengan membuat halaqah pertama
-        </p>
-        <Button onClick={onCreateClick}>
-          <FontAwesomeIcon icon={faPlus} className="mr-2" />
-          Buat Halaqah Pertama
-        </Button>
-      </div>
-    );
-  }
+  // Inisialisasi form data saat halaqah berubah
+  useEffect(() => {
+    if (halaqah) {
+      setFormData({
+        name_halaqah: halaqah.name_halaqah || "",
+        muhafiz_id: halaqah.muhafiz_id
+      });
+    }
+  }, [halaqah]);
 
-  // Fungsi untuk menentukan warna berdasarkan jenis halaqah
-  const getJenisColor = (jenis: string) => {
-    switch (jenis) {
-      case "BACAAN": return "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300";
-      case "HAFALAN": return "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300";
-      case "KHUSUS": return "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300";
-      default: return "bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-300";
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!halaqah) return;
+
+    setIsLoading(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      const response = await halaqahService.updateHalaqah(halaqah.id_halaqah, formData);
+      
+      if (response.success) {
+        setSuccess("Data halaqah berhasil diperbarui!");
+        setTimeout(() => {
+          onSuccess();
+          onClose();
+        }, 1000);
+      }
+    } catch (err: any) {
+      const message = err.response?.data?.message || "Gagal memperbarui data halaqah";
+      setError(message);
+      console.error("Edit halaqah error:", err);
+    } finally {
+      setIsLoading(false);
     }
   };
 
+  const handleClose = () => {
+    setFormData({ name_halaqah: "" });
+    setError("");
+    setSuccess("");
+    onClose();
+  };
+
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full">
-        <thead className="bg-accent/30 dark:bg-background-dark/50 text-muted-foreground font-medium">
-          <tr>
-            <th className="px-6 py-4 text-left">ID</th>
-            <th className="px-6 py-4 text-left">Nama Halaqah</th>
-            <th className="px-6 py-4 text-left">Jenis</th>
-            <th className="px-6 py-4 text-left">Muhafidz</th>
-            <th className="px-6 py-4 text-left">Jml. Santri</th>
-            <th className="px-6 py-4 text-left">Aksi</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-border dark:divide-border-dark">
-          {halaqahList.map((halaqah) => (
-            <tr key={halaqah.id_halaqah} className="hover:bg-accent/5 dark:hover:bg-background-dark/30 transition-colors">
-              <td className="px-6 py-4">
-                <span className="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-                  #{halaqah.id_halaqah}
-                </span>
-              </td>
-              <td className="px-6 py-4">
-                <div className="flex items-center gap-2">
-                  <FontAwesomeIcon icon={faBook} className="text-sm text-text-secondary-light dark:text-text-secondary-dark" />
-                  <span className="font-medium dark:text-white">{halaqah.nama_halaqah}</span>
-                </div>
-              </td>
-              <td className="px-6 py-4">
-                <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${getJenisColor(halaqah.jenis)}`}>
-                  {halaqah.jenis}
-                </span>
-              </td>
-              <td className="px-6 py-4">
-                <div className="flex items-center gap-2">
-                  <FontAwesomeIcon icon={faUserTie} className="text-sm text-text-secondary-light dark:text-text-secondary-dark" />
-                  <div>
-                    <p className="font-medium dark:text-white">{halaqah.muhafidz.username}</p>
-                    <p className="text-xs text-text-secondary-light dark:text-text-secondary-dark">{halaqah.muhafidz.email}</p>
-                  </div>
-                </div>
-              </td>
-              <td className="px-6 py-4">
-                <div className="flex items-center gap-2">
-                  <FontAwesomeIcon icon={faUsers} className="text-sm text-text-secondary-light dark:text-text-secondary-dark" />
-                  <span className="font-medium dark:text-white">{halaqah.jumlah_santri || 0}</span>
-                </div>
-              </td>
-              <td className="px-6 py-4">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                      <MoreHorizontalIcon className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-40">
-                    <DropdownMenuLabel>Aksi</DropdownMenuLabel>
-                    <DropdownMenuGroup>
-                      <DropdownMenuItem onClick={() => onEditClick(halaqah)}>
-                        <FontAwesomeIcon icon={faEdit} className="mr-2 h-3 w-3" />
-                        <span>Edit</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem 
-                        onClick={() => onDeleteClick(halaqah)}
-                        className="text-destructive focus:text-destructive"
-                      >
-                        <FontAwesomeIcon icon={faTrash} className="mr-2 h-3 w-3" />
-                        <span>Hapus</span>
-                      </DropdownMenuItem>
-                    </DropdownMenuGroup>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <FontAwesomeIcon icon={faEdit} />
+            Edit Data Halaqah
+          </DialogTitle>
+          <DialogDescription>
+            Edit informasi halaqah #{halaqah?.id_halaqah}
+          </DialogDescription>
+        </DialogHeader>
+
+        {/* Success Alert */}
+        {success && (
+          <Alert variant="default" className="bg-green-50 border-green-200 text-green-800">
+            <FontAwesomeIcon icon={faCheck} className="mr-2" />
+            <AlertDescription>{success}</AlertDescription>
+          </Alert>
+        )}
+
+        {/* Error Alert */}
+        {error && (
+          <Alert variant="destructive">
+            <FontAwesomeIcon icon={faXmark} className="mr-2" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="name_halaqah">name Halaqah</Label>
+            <Input
+              id="name_halaqah"
+              value={formData.name_halaqah}
+              onChange={(e) => setFormData({...formData, name_halaqah: e.target.value})}
+              placeholder="Masukkan name halaqah"
+              required
+              disabled={isLoading}
+            />
+          </div>
+          
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+            <p className="text-sm text-blue-800">
+              <strong>Muhafidz:</strong> {halaqah?.muhafiz.username} ({halaqah?.muhafiz.email})
+            </p>
+            <p className="text-xs text-blue-600 mt-1">
+              ID Muhafidz: #{halaqah?.muhafiz_id}
+            </p>
+          </div>
+          
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleClose}
+              disabled={isLoading}
+            >
+              Batal
+            </Button>
+            <Button
+              type="submit"
+              disabled={isLoading || !formData.name_halaqah?.trim()}
+            >
+              {isLoading ? "Menyimpan..." : "Simpan Perubahan"}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
-
-
---- FILE: ./pages/kepala-muhafidz/KelolaHalaqah/DetailHalaqah.tsx ---
-
-
 
 --- FILE: ./pages/kepala-muhafidz/KelolaHalaqah/JadwalHalaqah.tsx ---
 
@@ -4469,6 +4298,252 @@ export default function JadwalHalaqah() {
           </div>
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+--- FILE: ./pages/kepala-muhafidz/KelolaHalaqah/index.tsx ---
+
+import { useState, useEffect } from "react";
+import { useAuth } from "@/context/AuthContext";
+import { halaqahService, type Halaqah } from "@/services/halaqahService";
+import { BuatHalaqah } from "./BuatHalaqah";
+import { DaftarHalaqah } from "./DaftarHalaqah";
+import { EditHalaqah } from "./EditHalaqah";
+import { DeleteHalaqah } from "./DeleteHalaqah";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { 
+  faBook, 
+  faUserTie,
+  faUsers,
+  faCheck,
+  faXmark
+} from "@fortawesome/free-solid-svg-icons";
+
+export default function KelolaHalaqahPage() {
+  const { user } = useAuth();
+  const [halaqahList, setHalaqahList] = useState<Halaqah[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  
+  // State untuk edit dan delete
+  const [editingHalaqah, setEditingHalaqah] = useState<Halaqah | null>(null);
+  const [deletingHalaqah, setDeletingHalaqah] = useState<Halaqah | null>(null);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+
+  // Load data halaqah
+  useEffect(() => {
+    loadHalaqah();
+  }, []);
+
+  const loadHalaqah = async () => {
+    setIsLoading(true);
+    setError("");
+    try {
+      const response = await halaqahService.getAllHalaqah();
+      if (response.success) {
+        // Hitung jumlah santri jika belum ada di response
+        const halaqahWithCount = response.data.map(h => ({
+          ...h,
+          jumlah_santri: h._count.santri || 0
+        }));
+        setHalaqahList(halaqahWithCount);
+      }
+    } catch (err: any) {
+      setError("Gagal memuat data halaqah: " + (err.message || "Server error"));
+      console.error("Load halaqah error:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCreateSuccess = () => {
+    setSuccess("Halaqah berhasil dibuat!");
+    loadHalaqah();
+    setTimeout(() => setSuccess(""), 3000);
+  };
+
+  const handleEditClick = (halaqah: Halaqah) => {
+    setEditingHalaqah(halaqah);
+    setIsEditOpen(true);
+  };
+
+  const handleEditSuccess = () => {
+    setSuccess("Data halaqah berhasil diperbarui!");
+    loadHalaqah();
+    setTimeout(() => setSuccess(""), 3000);
+  };
+
+  const handleDeleteClick = (halaqah: Halaqah) => {
+    setDeletingHalaqah(halaqah);
+    setIsDeleteOpen(true);
+  };
+
+  const handleDeleteSuccess = () => {
+    setSuccess("Halaqah berhasil dihapus!");
+    loadHalaqah();
+    setTimeout(() => setSuccess(""), 3000);
+  };
+
+  // Cek apakah user adalah superadmin
+  if (user?.role !== "superadmin") {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] text-center p-6">
+        <FontAwesomeIcon icon={faBook} className="text-6xl text-destructive mb-4" />
+        <h2 className="text-2xl font-bold dark:text-white mb-2">Akses Ditolak</h2>
+        <p className="text-text-secondary dark:text-text-secondary-dark">
+          Hanya Kepala Muhafidz yang dapat mengakses halaman ini.
+        </p>
+      </div>
+    );
+  }
+
+  // Hitung statistik
+  const totalSantri = halaqahList.reduce((sum, h) => sum + (h._count.santri || 0), 0);
+
+  return (
+    <div className="space-y-6 animate-in fade-in duration-500">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-bold dark:text-white">Kelola Halaqah</h2>
+          <p className="text-text-secondary dark:text-text-secondary-dark text-sm">
+            Kelola semua halaqah di bawah yayasan Anda
+          </p>
+        </div>
+
+        {/* Tombol Buat Halaqah */}
+        <BuatHalaqah onSuccess={handleCreateSuccess} />
+      </div>
+
+      {/* Success Alert */}
+      {success && (
+        <Alert variant="default" className="bg-green-50 border-green-200 text-green-800 dark:bg-green-900/20 dark:border-green-800 dark:text-green-300">
+          <FontAwesomeIcon icon={faCheck} className="mr-2" />
+          <AlertDescription>{success}</AlertDescription>
+        </Alert>
+      )}
+
+      {/* Error Alert */}
+      {error && (
+        <Alert variant="destructive">
+          <FontAwesomeIcon icon={faXmark} className="mr-2" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
+      {/* Stats Card */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="rounded-xl border border-border bg-surface p-6 dark:bg-surface-dark shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+              <FontAwesomeIcon icon={faBook} className="text-primary" />
+            </div>
+            <div>
+              <p className="text-sm text-text-secondary dark:text-text-secondary-dark">Total Halaqah</p>
+              <p className="text-2xl font-bold dark:text-white">
+                {isLoading ? "--" : halaqahList.length}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-border bg-surface p-6 dark:bg-surface-dark shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-lg bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
+              <FontAwesomeIcon icon={faUsers} className="text-green-600 dark:text-green-400" />
+            </div>
+            <div>
+              <p className="text-sm text-text-secondary dark:text-text-secondary-dark">Total Santri</p>
+              <p className="text-2xl font-bold dark:text-white">
+                {isLoading ? "--" : totalSantri}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-border bg-surface p-6 dark:bg-surface-dark shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-lg bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center">
+              <FontAwesomeIcon icon={faUserTie} className="text-blue-600 dark:text-blue-400" />
+            </div>
+            <div>
+              <p className="text-sm text-text-secondary dark:text-text-secondary-dark">Muhafidz Terisi</p>
+              <p className="text-2xl font-bold dark:text-white">
+                {isLoading ? "--" : new Set(halaqahList.map(h => h.muhafiz_id)).size}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Tabel Daftar Halaqah */}
+      <div className="rounded-xl border border-border bg-card dark:bg-surface-dark shadow-sm overflow-hidden">
+        <div className="p-6 border-b border-border dark:border-border-dark">
+          <h3 className="font-semibold text-lg dark:text-white">Daftar Halaqah</h3>
+          <p className="text-sm text-text-secondary dark:text-text-secondary-dark">
+            Semua halaqah yang terdaftar di sistem
+          </p>
+        </div>
+
+        <DaftarHalaqah
+          halaqahList={halaqahList}
+          isLoading={isLoading}
+          onEditClick={handleEditClick}
+          onDeleteClick={handleDeleteClick}
+          onRefresh={loadHalaqah}
+          onCreateClick={handleCreateSuccess}
+        />
+      </div>
+
+      {/* Dialog Edit Halaqah */}
+      <EditHalaqah
+        halaqah={editingHalaqah}
+        isOpen={isEditOpen}
+        onClose={() => setIsEditOpen(false)}
+        onSuccess={handleEditSuccess}
+      />
+
+      {/* Dialog Konfirmasi Delete */}
+      <DeleteHalaqah
+        halaqah={deletingHalaqah}
+        isOpen={isDeleteOpen}
+        onClose={() => setIsDeleteOpen(false)}
+        onSuccess={handleDeleteSuccess}
+      />
+
+      {/* Informasi Tambahan */}
+      <div className="rounded-xl border border-border bg-surface p-6 dark:bg-surface-dark shadow-sm">
+        <div className="flex items-start gap-3">
+          <div className="h-10 w-10 rounded-lg bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center flex-shrink-0">
+            <FontAwesomeIcon icon={faBook} className="text-blue-600 dark:text-blue-400" />
+          </div>
+          <div>
+            <h4 className="font-semibold dark:text-white mb-2">Informasi Penting</h4>
+            <ul className="text-sm text-text-secondary dark:text-text-secondary-dark space-y-2">
+              <li className="flex items-start gap-2">
+                <span className="text-primary">•</span>
+                <span>Setiap halaqah hanya bisa memiliki satu muhafidz</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-primary">•</span>
+                <span>Halaqah yang dihapus tidak bisa dikembalikan</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-primary">•</span>
+                <span>Pastikan muhafidz belum memiliki halaqah lain sebelum ditugaskan</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-primary">•</span>
+                <span>Jenis halaqah tidak bisa diubah setelah dibuat</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -6107,18 +6182,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       try {
         const response = await authService.getCurrentUser();
-        const userData = response.data.user;
+        const userData = response.data?.user || response.data;
         
+        if (!userData) {
+          throw new Error("No user data received from API");
+        }
+
         const fullUser: User = {
           ...userData,
           token: parsedData.token,
           username: userData.username || "User"
-        };
+        };  
 
         setUser(fullUser);
         saveUserToStorage(fullUser);
         
-        if (userData.role === "superadmin") {
+        if (userData?.role === "superadmin") {
           saveSuperadminSession(fullUser);
         }
       } catch (error) {
@@ -6134,11 +6213,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   const login = async (values: LoginFormValues) => {
-    setIsLoading(true);
     try {
       const response = await authService.login(values);
       
-      // Validasi response
       if (!response.success) {
         throw new Error(response.message || "Login gagal");
       }
@@ -6158,15 +6235,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
       
     } catch (error: any) {
-      if (error.response) {
-        throw error;
-      } else if (error.request) {
-        throw new Error("Tidak ada koneksi ke server");
-      } else {
-        throw error;
-      }
-    } finally {
-      setIsLoading(false);
+      throw error;
     }
   };
 
@@ -6360,207 +6429,100 @@ export type LoginFormValues = z.infer<typeof loginSchema>;
 export type SetoranFormValues = z.infer<typeof setoranSchema>;
 export type RegisterFormValues = z.infer<typeof registerSchema>;
 
---- FILE: ./api/axiosClient.ts ---
-
-import axios from "axios";
-
-const axiosClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "https://halaqah-id-be.vercel.app/api/halaqah",
-  headers: {
-    "Content-Type": "application/json",
-  },
-  timeout: 10000, 
-});
-
-// REQUEST INTERCEPTOR
-axiosClient.interceptors.request.use((config) => {
-  const savedData = localStorage.getItem("user");
-  if (savedData) {
-    try {
-      const { token } = JSON.parse(savedData);
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-    } catch (e) {
-      console.error("Gagal parse data user dari localStorage", e);
-    }
-  }
-  return config;
-}, (error) => {
-  return Promise.reject(error);
-});
-
-// RESPONSE INTERCEPTOR
-axiosClient.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    console.error("API Error:", {
-      status: error.response?.status,
-      data: error.response?.data,
-      url: error.config?.url,
-      method: error.config?.method
-    });
-    
-    return Promise.reject(error);
-  }
-);
-
-export default axiosClient;
-
---- FILE: ./hooks/useAkun.ts ---
-
-
-
---- FILE: ./hooks/useHalaqah.tsx ---
-
-import { useState, useCallback } from "react";
-import { halaqahService, type Halaqah } from "@/services/halaqahService"; 
-
-export const useHalaqah = () => {
-  const [halaqah, setHalaqah] = useState<Halaqah[]>([]); 
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchHalaqah = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await halaqahService.getAllHalaqah(); 
-      setHalaqah(response.data);
-    
-    } catch (err) {
-      setError("Gagal mengambil data halaqah");
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  return {
-    halaqah,
-    loading,
-    error,
-    fetchHalaqah
-  };
-};
-
 --- FILE: ./index.css ---
 
 @import "tailwindcss";
 @import "tw-animate-css";
 
-/* Theme Variables */
-:root {
-  --background: oklch(0.9711 0.0074 80.7211);
-  --foreground: oklch(0.3000 0.0358 30.2042);
-  --card: oklch(0.9711 0.0074 80.7211);
-  --card-foreground: oklch(0.3000 0.0358 30.2042);
-  --popover: oklch(0.9711 0.0074 80.7211);
-  --popover-foreground: oklch(0.3000 0.0358 30.2042);
-  --primary: oklch(0.5234 0.1347 144.1672);
-  --primary-foreground: oklch(1.0000 0 0);
-  --secondary: oklch(0.9571 0.0210 147.6360);
-  --secondary-foreground: oklch(0.4254 0.1159 144.3078);
-  --muted: oklch(0.9370 0.0142 74.4218);
-  --muted-foreground: oklch(0.4495 0.0486 39.2110);
-  --accent: oklch(0.8952 0.0504 146.0366);
-  --accent-foreground: oklch(0.4254 0.1159 144.3078);
-  --destructive: oklch(0.5386 0.1937 26.7249);
-  --destructive-foreground: oklch(1.0000 0 0);
-  --border: oklch(0.8805 0.0208 74.6428);
-  --input: oklch(0.8805 0.0208 74.6428);
-  --ring: oklch(0.5234 0.1347 144.1672);
-  --chart-1: oklch(0.6731 0.1624 144.2083);
-  --chart-2: oklch(0.5752 0.1446 144.1813);
-  --chart-3: oklch(0.5234 0.1347 144.1672);
-  --chart-4: oklch(0.4254 0.1159 144.3078);
-  --chart-5: oklch(0.2157 0.0453 145.7256);
-  --sidebar: oklch(0.9370 0.0142 74.4218);
-  --sidebar-foreground: oklch(0.3000 0.0358 30.2042);
-  --sidebar-primary: oklch(0.5234 0.1347 144.1672);
-  --sidebar-primary-foreground: oklch(1.0000 0 0);
-  --sidebar-accent: oklch(0.8952 0.0504 146.0366);
-  --sidebar-accent-foreground: oklch(0.4254 0.1159 144.3078);
-  --sidebar-border: oklch(0.8805 0.0208 74.6428);
-  --sidebar-ring: oklch(0.5234 0.1347 144.1672);
-  --font-sans: Montserrat, sans-serif;
-  --font-serif: Merriweather, serif;
-  --font-mono: Source Code Pro, monospace;
-  --radius: 0.5rem;
-  --shadow-x: 0;
-  --shadow-y: 1px;
-  --shadow-blur: 3px;
-  --shadow-spread: 0px;
-  --shadow-opacity: 0.1;
-  --shadow-color: oklch(0 0 0);
-  --shadow-2xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
-  --shadow-xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
-  --shadow-sm: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 1px 2px -1px hsl(0 0% 0% / 0.10);
-  --shadow: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 1px 2px -1px hsl(0 0% 0% / 0.10);
-  --shadow-md: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 2px 4px -1px hsl(0 0% 0% / 0.10);
-  --shadow-lg: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 4px 6px -1px hsl(0 0% 0% / 0.10);
-  --shadow-xl: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 8px 10px -1px hsl(0 0% 0% / 0.10);
-  --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
-  --tracking-normal: 0em;
-  --spacing: 0.25rem;
+@layer base {
+  :root {
+    --radius: 0.65rem;
+    
+    /* LIGHT MODE: Background Putih, Teks Gelap */
+    --background: oklch(1 0 0); /* Putih */
+    --foreground: oklch(0.141 0.005 285.823); /* Hitam Kebiruan */
+    
+    --card: oklch(1 0 0);
+    --card-foreground: oklch(0.141 0.005 285.823);
+    
+    --popover: oklch(1 0 0);
+    --popover-foreground: oklch(0.141 0.005 285.823);
+    
+    /* Primary Hijau */
+    --primary: oklch(0.648 0.2 131.684);
+    --primary-foreground: oklch(0.985 0 0); /* Teks di atas hijau harus Putih */
+    
+    --secondary: oklch(0.967 0.001 286.375);
+    --secondary-foreground: oklch(0.21 0.006 285.885);
+    
+    --muted: oklch(0.967 0.001 286.375);
+    --muted-foreground: oklch(0.552 0.016 285.938);
+    
+    --accent: oklch(0.967 0.001 286.375);
+    --accent-foreground: oklch(0.21 0.006 285.885);
+    
+    --destructive: oklch(0.577 0.245 27.325);
+    --destructive-foreground: oklch(0.985 0 0);
+    
+    --border: oklch(0.92 0.004 286.32);
+    --input: oklch(0.92 0.004 286.32);
+    --ring: oklch(0.648 0.2 131.684);
+
+    /* Sidebar Light */
+    --sidebar-background: oklch(0.985 0 0);
+    --sidebar-foreground: oklch(0.141 0.005 285.823);
+    --sidebar-primary: oklch(0.648 0.2 131.684);
+    --sidebar-primary-foreground: oklch(0.985 0 0);
+    --sidebar-accent: oklch(0.967 0.001 286.375);
+    --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
+    --sidebar-border: oklch(0.92 0.004 286.32);
+    --sidebar-ring: oklch(0.648 0.2 131.684);
+  }
+
+  .dark {
+    /* DARK MODE: Background Gelap, Teks Putih */
+    --background: oklch(0.141 0.005 285.823); /* Hitam Kebiruan */
+    --foreground: oklch(0.985 0 0); /* Putih */
+    
+    --card: oklch(0.21 0.006 285.885);
+    --card-foreground: oklch(0.985 0 0);
+    
+    --popover: oklch(0.21 0.006 285.885);
+    --popover-foreground: oklch(0.985 0 0);
+    
+    --primary: oklch(0.648 0.2 131.684);
+    --primary-foreground: oklch(0.985 0 0);
+    
+    --secondary: oklch(0.274 0.006 286.033);
+    --secondary-foreground: oklch(0.985 0 0);
+    
+    --muted: oklch(0.274 0.006 286.033);
+    --muted-foreground: oklch(0.705 0.015 286.067);
+    
+    --accent: oklch(0.274 0.006 286.033);
+    --accent-foreground: oklch(0.985 0 0);
+    
+    --destructive: oklch(0.704 0.191 22.216);
+    --destructive-foreground: oklch(0.985 0 0);
+    
+    --border: oklch(1 0 0 / 0.1);
+    --input: oklch(1 0 0 / 0.15);
+    --ring: oklch(0.405 0.101 131.063);
+
+    /* Sidebar Dark */
+    --sidebar-background: oklch(0.21 0.006 285.885);
+    --sidebar-foreground: oklch(0.985 0 0);
+    --sidebar-primary: oklch(0.768 0.233 130.85);
+    --sidebar-primary-foreground: oklch(0.985 0 0);
+    --sidebar-accent: oklch(0.274 0.006 286.033);
+    --sidebar-accent-foreground: oklch(0.985 0 0);
+    --sidebar-border: oklch(1 0 0 / 0.1);
+    --sidebar-ring: oklch(0.405 0.101 131.063);
+  }
 }
 
-.dark {
-  --background: oklch(0.2683 0.0279 150.7681);
-  --foreground: oklch(0.9423 0.0097 72.6595);
-  --card: oklch(0.3327 0.0271 146.9867);
-  --card-foreground: oklch(0.9423 0.0097 72.6595);
-  --popover: oklch(0.3327 0.0271 146.9867);
-  --popover-foreground: oklch(0.9423 0.0097 72.6595);
-  --primary: oklch(0.6731 0.1624 144.2083);
-  --primary-foreground: oklch(0.2157 0.0453 145.7256);
-  --secondary: oklch(0.3942 0.0265 142.9926);
-  --secondary-foreground: oklch(0.8970 0.0166 142.5518);
-  --muted: oklch(0.2926 0.0212 147.7496);
-  --muted-foreground: oklch(0.8579 0.0174 76.0955);
-  --accent: oklch(0.5752 0.1446 144.1813);
-  --accent-foreground: oklch(0.9423 0.0097 72.6595);
-  --destructive: oklch(0.5386 0.1937 26.7249);
-  --destructive-foreground: oklch(0.9423 0.0097 72.6595);
-  --border: oklch(0.3942 0.0265 142.9926);
-  --input: oklch(0.3942 0.0265 142.9926);
-  --ring: oklch(0.6731 0.1624 144.2083);
-  --chart-1: oklch(0.7660 0.1179 145.2950);
-  --chart-2: oklch(0.7185 0.1417 144.8887);
-  --chart-3: oklch(0.6731 0.1624 144.2083);
-  --chart-4: oklch(0.6291 0.1543 144.2031);
-  --chart-5: oklch(0.5752 0.1446 144.1813);
-  --sidebar: oklch(0.2683 0.0279 150.7681);
-  --sidebar-foreground: oklch(0.9423 0.0097 72.6595);
-  --sidebar-primary: oklch(0.6731 0.1624 144.2083);
-  --sidebar-primary-foreground: oklch(0.2157 0.0453 145.7256);
-  --sidebar-accent: oklch(0.5752 0.1446 144.1813);
-  --sidebar-accent-foreground: oklch(0.9423 0.0097 72.6595);
-  --sidebar-border: oklch(0.3942 0.0265 142.9926);
-  --sidebar-ring: oklch(0.6731 0.1624 144.2083);
-  --font-sans: Montserrat, sans-serif;
-  --font-serif: Merriweather, serif;
-  --font-mono: Source Code Pro, monospace;
-  --radius: 0.5rem;
-  --shadow-x: 0;
-  --shadow-y: 1px;
-  --shadow-blur: 3px;
-  --shadow-spread: 0px;
-  --shadow-opacity: 0.1;
-  --shadow-color: oklch(0 0 0);
-  --shadow-2xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
-  --shadow-xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
-  --shadow-sm: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 1px 2px -1px hsl(0 0% 0% / 0.10);
-  --shadow: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 1px 2px -1px hsl(0 0% 0% / 0.10);
-  --shadow-md: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 2px 4px -1px hsl(0 0% 0% / 0.10);
-  --shadow-lg: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 4px 6px -1px hsl(0 0% 0% / 0.10);
-  --shadow-xl: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 8px 10px -1px hsl(0 0% 0% / 0.10);
-  --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
-}
-
-/* Theme Configuration */
 @theme {
-  /* Color Mapping */
+  /* Pastikan mapping ini benar agar @apply text-foreground bekerja */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -6580,12 +6542,8 @@ export const useHalaqah = () => {
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-  --color-sidebar: var(--sidebar);
+
+  --color-sidebar: var(--sidebar-background);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
   --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
@@ -6594,156 +6552,19 @@ export const useHalaqah = () => {
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 
-  /* Fonts */
-  --font-sans: var(--font-sans), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  --font-mono: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  --font-serif: var(--font-serif), ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
-  --font-display: var(--font-sans); /* Untuk kompatibilitas dengan kode sebelumnya */
-
-  /* Border Radius */
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-
-  /* Shadows */
-  --shadow-2xs: var(--shadow-2xs);
-  --shadow-xs: var(--shadow-xs);
-  --shadow-sm: var(--shadow-sm);
-  --shadow: var(--shadow);
-  --shadow-md: var(--shadow-md);
-  --shadow-lg: var(--shadow-lg);
-  --shadow-xl: var(--shadow-xl);
-  --shadow-2xl: var(--shadow-2xl);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
 }
 
-/* Custom Variant untuk Dark Mode */
-@custom-variant dark (&:is(.dark *));
-
-/* Base Styles */
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border;
   }
-  
   body {
-    @apply bg-background text-foreground font-sans;
-    font-feature-settings: "rlig" 1, "calt" 1;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+    @apply bg-background text-foreground; /* Ini kuncinya: menerapkan warna teks utama */
   }
-  
-  html {
-    scroll-behavior: smooth;
-  }
-  
-  /* Selection color */
-  ::selection {
-    @apply bg-primary/20 text-foreground;
-  }
-  
-  /* Scrollbar styling */
-  ::-webkit-scrollbar {
-    @apply w-2;
-  }
-  
-  ::-webkit-scrollbar-track {
-    @apply bg-muted;
-  }
-  
-  ::-webkit-scrollbar-thumb {
-    @apply bg-border rounded-full;
-  }
-  
-  ::-webkit-scrollbar-thumb:hover {
-    @apply bg-muted-foreground/30;
-  }
-}
-
-/* Utility Classes */
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
-  
-  .glass {
-    @apply backdrop-blur-sm bg-white/10 dark:bg-black/10 border border-white/20 dark:border-white/10;
-  }
-  
-  .animate-in {
-    animation: animate-in 0.5s ease-out;
-  }
-  
-  .fade-in {
-    animation: fade-in 0.5s ease-out;
-  }
-  
-  .slide-in-from-top {
-    animation: slide-in-from-top 0.3s ease-out;
-  }
-  
-  .slide-in-from-bottom {
-    animation: slide-in-from-bottom 0.3s ease-out;
-  }
-}
-
-/* Font Import */
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400;1,700;1,900&family=Source+Code+Pro:ital,wght@0,200..900;1,200..900&display=swap');
-
-/* Animations */
-@keyframes animate-in {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes fade-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes slide-in-from-top {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes slide-in-from-bottom {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Style untuk input ketika ada error */
-input[data-error="true"] {
-  border-color: hsl(var(--destructive)) !important;
-  animation: shake 0.5s ease-in-out;
-}
-
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  10%, 30%, 50%, 70%, 90% { transform: translateX(-2px); }
-  20%, 40%, 60%, 80% { transform: translateX(2px); }
-}
+} 
 
 --- FILE: ./layouts/DashboardLayout.tsx ---
 
@@ -6846,111 +6667,6 @@ export default function DashboardLayout() {
     </div>
   );
 }
-
---- FILE: ./services/authService.ts ---
-
-import axiosClient from "@/api/axiosClient";
-import { type LoginFormValues } from "@/utils/zodSchema";
-
-// Interface respons dari backend (disesuaikan dengan skema Prisma)
-export interface AuthResponse {
-  success: boolean;
-  message: string;
-  data: { 
-    user: {
-      id_user: number;
-      email: string;
-      username: string;
-      role: "superadmin" | "muhafiz";
-    };
-    token: string;
-  };
-}
-
-export const authService = {
-  login: async (credentials: LoginFormValues): Promise<AuthResponse> => {
-    // Endpoint: /auth/login
-    const response = await axiosClient.post<AuthResponse>("/auth/login", credentials);
-    return response.data;
-  },
-
-  getCurrentUser: async (): Promise<AuthResponse> => {
-    // Endpoint: /auth/me
-    const response = await axiosClient.get<AuthResponse>("/auth/me");
-    return response.data;
-  },
-
-  logout: () => {
-    localStorage.removeItem("user");
-  }
-};
-
---- FILE: ./services/halaqahService.ts ---
-
-import axiosClient from "@/api/axiosClient";
-
-export interface Halaqah {
-  id_halaqah: number;
-  nama_halaqah: string;
-  jenis: "BACAAN" | "HAFALAN" | "KHUSUS";
-  muhafidz_id: number;
-  muhafidz: {
-    id_user: number;
-    username: string;
-    email: string;
-  };
-  jumlah_santri?: number;
-}
-
-export interface CreateHalaqahData {
-  nama_halaqah: string;
-  jenis: "BACAAN" | "HAFALAN" | "KHUSUS";
-  muhafidz_id: number;
-}
-
-export interface UpdateHalaqahData {
-  nama_halaqah?: string;
-  jenis?: "BACAAN" | "HAFALAN" | "KHUSUS";
-  muhafidz_id?: number;
-}
-
-export interface ApiResponse<T> {
-  success: boolean;
-  message: string;
-  data: T;
-}
-
-export const halaqahService = {
-  // Mendapatkan semua halaqah
-  getAllHalaqah: async (): Promise<ApiResponse<Halaqah[]>> => {
-    const response = await axiosClient.get<ApiResponse<Halaqah[]>>("/halaqah");
-    return response.data;
-  },
-
-  // Membuat halaqah baru
-  createHalaqah: async (data: CreateHalaqahData): Promise<ApiResponse<Halaqah>> => {
-    const response = await axiosClient.post<ApiResponse<Halaqah>>("/halaqah", data);
-    return response.data;
-  },
-
-  // Mengupdate halaqah
-  updateHalaqah: async (id: number, data: UpdateHalaqahData): Promise<ApiResponse<Halaqah>> => {
-    const response = await axiosClient.patch<ApiResponse<Halaqah>>(`/halaqah/${id}`, data);
-    return response.data;
-  },
-
-  // Menghapus halaqah
-  deleteHalaqah: async (id: number): Promise<ApiResponse<null>> => {
-    const response = await axiosClient.delete<ApiResponse<null>>(`/halaqah/${id}`);
-    return response.data;
-  },
-
-  // Mendapatkan daftar muhafiz yang belum punya halaqah
-  getAvailableMuhafiz: async (): Promise<ApiResponse<Array<{ id_user: number; username: string; email: string }>>> => {
-    const response = await axiosClient.get<ApiResponse<Array<{ id_user: number; username: string; email: string }>>>("/halaqah/available-muhafiz");
-    return response.data;
-  }
-};
 
 --- FILE: ./services/akunService.ts ---
 
@@ -7111,6 +6827,120 @@ export interface UpdateData {
   username?: string;
   email?: string;
 }
+
+--- FILE: ./services/authService.ts ---
+
+import axiosClient from "@/api/axiosClient";
+import { type LoginFormValues } from "@/utils/zodSchema";
+
+// Interface respons dari backend (disesuaikan dengan skema Prisma)
+export interface AuthResponse {
+  success: boolean;
+  message: string;
+  data: { 
+    user: {
+      id_user: number;
+      email: string;
+      username: string;
+      role: "superadmin" | "muhafiz";
+    };
+    token: string;
+  };
+}
+
+export const authService = {
+  login: async (credentials: LoginFormValues): Promise<AuthResponse> => {
+    // Endpoint: /auth/login
+    const response = await axiosClient.post<AuthResponse>("/auth/login", credentials);
+    return response.data;
+  },
+
+  getCurrentUser: async (): Promise<AuthResponse> => {
+    // Endpoint: /auth/me
+    const response = await axiosClient.get<AuthResponse>("/auth/me");
+    return response.data;
+  },
+
+  logout: () => {
+    localStorage.removeItem("user");
+  }
+};
+
+--- FILE: ./services/halaqahService.ts ---
+
+import axiosClient from "@/api/axiosClient";
+
+export interface Halaqah {
+  id_halaqah: number;
+  name_halaqah: string; 
+  muhafiz_id: number;
+  deleted_at: string | null;
+  muhafiz: {
+    id_user: number;
+    username: string;
+    email: string;
+  };
+  _count: {
+    santri: number;
+  };
+}
+
+export interface CreateHalaqahData {
+  name_halaqah: string; 
+  muhafiz_id: number;   
+}
+
+export interface UpdateHalaqahData {
+  name_halaqah?: string;
+  muhafiz_id?: number;
+}
+
+export interface ApiResponse<T> {
+  success: boolean;
+  message: string;
+  data: T;
+}
+
+export const halaqahService = {
+  getAllHalaqah: async (): Promise<ApiResponse<Halaqah[]>> => {
+    const response = await axiosClient.get<ApiResponse<Halaqah[]>>("");
+    return response.data;
+  },
+
+  // 2. Create Halaqah - POST /api/halaqah
+  createHalaqah: async (data: CreateHalaqahData): Promise<ApiResponse<Halaqah>> => {
+    // Body yang benar sesuai dokumentasi: {"name_halaqah": "Nama Kelompok", "muhafiz_id": 5}
+    const response = await axiosClient.post<ApiResponse<Halaqah>>("", {
+      name_halaqah: data.name_halaqah,
+      muhafiz_id: data.muhafiz_id
+    });
+    return response.data;
+  },
+
+  // 3. Update Halaqah - PATCH /api/halaqah/:id (diasumsikan sama endpoint)
+  updateHalaqah: async (id: number, data: UpdateHalaqahData): Promise<ApiResponse<Halaqah>> => {
+    const response = await axiosClient.patch<ApiResponse<Halaqah>>(`/${id}`, data);
+    return response.data;
+  },
+
+  // 4. Soft Delete Halaqah - DELETE /api/halaqah/:id
+  deleteHalaqah: async (id: number): Promise<ApiResponse<null>> => {
+    const response = await axiosClient.delete<ApiResponse<null>>(`/${id}`);
+    return response.data;
+  },
+
+  // 5. Trash List (Deleted Only) - GET /api/halaqah/deleted
+  getDeletedHalaqah: async (): Promise<ApiResponse<Halaqah[]>> => {
+    const response = await axiosClient.get<ApiResponse<Halaqah[]>>("/deleted");
+    return response.data;
+  },
+
+  // 6. Restore Halaqah - PATCH /api/halaqah/restore/:id
+  restoreHalaqah: async (id: number): Promise<ApiResponse<Halaqah>> => {
+    const response = await axiosClient.patch<ApiResponse<Halaqah>>(`/restore/${id}`, {});
+    return response.data;
+  }
+};
 
 --- FILE: ./App.css ---
 
