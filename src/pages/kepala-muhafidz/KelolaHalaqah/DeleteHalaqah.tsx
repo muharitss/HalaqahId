@@ -89,7 +89,7 @@ export function DeleteHalaqah({ halaqah, isOpen, onClose, onSuccess }: DeleteHal
 
         <div className="space-y-3 py-2">
           <Label htmlFor="confirm" className="text-xs">
-            Ketik <span className="font-bold uppercase tracking-widest text-destructive">hapus</span> untuk melanjutkan
+            Ketik <span className="font-bold tracking-widest text-destructive">"hapus"</span> untuk melanjutkan
           </Label>
           <Input
             id="confirm"
