@@ -7,7 +7,8 @@ import {
   faEnvelope,
   faEdit,
   faTrash,
-  faPlus
+  faPlus,
+  faSignInAlt
 } from "@fortawesome/free-solid-svg-icons";
 import { MoreHorizontalIcon } from "lucide-react";
 import {
@@ -24,6 +25,7 @@ interface DaftarAkunProps {
   isLoading: boolean;
   onEditClick: (muhafiz: Muhafiz) => void;
   onDeleteClick: (muhafiz: Muhafiz) => void;
+  onImpersonateClick: (muhafiz: Muhafiz) => void;
   onRefresh: () => void;
   onCreateClick: () => void;
 }
@@ -33,6 +35,7 @@ export function DaftarAkun({
   isLoading, 
   onEditClick, 
   onDeleteClick, 
+  onImpersonateClick,
   onCreateClick
 }: DaftarAkunProps) {
   
@@ -110,29 +113,34 @@ export function DaftarAkun({
                 </span>
               </td>
               <td className="px-6 py-4">
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <MoreHorizontalIcon className="h-4 w-4" />
-                        </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-40">
-                        <DropdownMenuLabel>Aksi</DropdownMenuLabel>
-                        <DropdownMenuGroup>
-                            <DropdownMenuItem onClick={() => onEditClick(muhafiz)}>
-                            <FontAwesomeIcon icon={faEdit} className="mr-2 h-3 w-3" />
-                            <span>Edit</span>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem 
-                            onClick={() => onDeleteClick(muhafiz)}
-                            className="text-destructive focus:text-destructive"
-                            >
-                            <FontAwesomeIcon icon={faTrash} className="mr-2 h-3 w-3" />
-                            <span>Hapus</span>
-                            </DropdownMenuItem>
-                        </DropdownMenuGroup>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                      <MoreHorizontalIcon className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuLabel>Aksi</DropdownMenuLabel>
+                    <DropdownMenuGroup>
+                      <DropdownMenuItem onClick={() => onImpersonateClick(muhafiz)}>
+                        <FontAwesomeIcon icon={faSignInAlt} className="mr-2 h-3 w-3" />
+                        <span>Login Sebagai</span>
+                      </DropdownMenuItem>
+                      
+                      <DropdownMenuItem onClick={() => onEditClick(muhafiz)}>
+                        <FontAwesomeIcon icon={faEdit} className="mr-2 h-3 w-3" />
+                        <span>Edit</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        onClick={() => onDeleteClick(muhafiz)}
+                        className="text-destructive focus:text-destructive"
+                      >
+                        <FontAwesomeIcon icon={faTrash} className="mr-2 h-3 w-3" />
+                        <span>Hapus</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuGroup>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </td>
             </tr>
           ))}

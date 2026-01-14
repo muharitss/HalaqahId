@@ -1,6 +1,7 @@
 import { BrowserRouter } from "react-router-dom";
 import { AuthProvider } from "@/context/AuthContext";
 import { AppRouter } from "@/routes";
+import { Toaster } from "@/components/ui/sonner";
 import "./App.css";
 
 function App() {
@@ -8,6 +9,7 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <AppRouter />
+        <Toaster position="top-center" richColors closeButton />
       </AuthProvider>
     </BrowserRouter>
   );

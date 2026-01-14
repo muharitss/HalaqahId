@@ -27,6 +27,7 @@ import {
   faEye,
   faEyeSlash
 } from "@fortawesome/free-solid-svg-icons";
+import { toast } from "sonner";
 
 interface AkunFormProps {
   onSuccess?: () => void;
@@ -55,7 +56,6 @@ export function AkunForm({ onSuccess }: AkunFormProps) {
     setSuccessMessage("");
 
     try {
-      // Kirim data ke backend (hanya email dan password sesuai dokumentasi)
       const response = await akunService.registerMuhafiz({
         email: values.email,
         username: values.username,
@@ -66,18 +66,17 @@ export function AkunForm({ onSuccess }: AkunFormProps) {
         setSuccessMessage(`Akun muhafidz berhasil dibuat! Email: ${values.email}`);
         form.reset();
         if (onSuccess) onSuccess();
+        toast.success("Akun muhafidz berhasil dibuat!");
       }
     } catch (error: any) {
       console.error("Register error:", error);
       const message = error.response?.data?.message || "Terjadi kesalahan saat membuat akun";
       setErrorMessage(message);
+      toast.error(message);
       
-      // Set error ke form field jika email sudah terdaftar
       if (error.response?.status === 400 && message.includes("Email sudah terdaftar")) {
-        form.setError("email", { 
-          type: "manual", 
-          message: "Email sudah terdaftar" 
-        });
+        form.setError("email", { type: "manual", message: "Email sudah terdaftar" });
+        toast.error("Email sudah terdaftar");
       }
     } finally {
       setIsLoading(false);
@@ -88,23 +87,19 @@ export function AkunForm({ onSuccess }: AkunFormProps) {
     <div className="space-y-6">
       {/* Alert Messages */}
       {successMessage && (
-        <Alert variant="default" className="bg-green-50 border-green-200 text-green-800 dark:bg-green-900/20 dark:border-green-800 dark:text-green-300">
-          <AlertDescription>
-            {successMessage}
-          </AlertDescription>
+        <Alert className="bg-green-50 border-green-200 text-green-800 dark:bg-green-900/20 dark:border-green-800 dark:text-green-300">
+          <AlertDescription>{successMessage}</AlertDescription>
         </Alert>
       )}
 
       {errorMessage && (
         <Alert variant="destructive">
-          <AlertDescription>
-            {errorMessage}
-          </AlertDescription>
+          <AlertDescription>{errorMessage}</AlertDescription>
         </Alert>
       )}
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 text-left">
           
           {/* Email Field */}
           <FormField
@@ -112,24 +107,22 @@ export function AkunForm({ onSuccess }: AkunFormProps) {
             name="email"
             render={({ field }) => (
               <FormItem className="space-y-2">
-                <FormLabel className="text-sm font-medium dark:text-white">
-                  Email Address
-                </FormLabel>
+                <FormLabel>Email Address</FormLabel>
                 <FormControl>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary-light dark:text-gray-400">
-                      <FontAwesomeIcon icon={faEnvelope} className="text-[18px]" />
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                      <FontAwesomeIcon icon={faEnvelope} />
                     </span>
                     <Input
                       {...field}
                       type="email"
                       placeholder="muhafiz@example.com"
                       disabled={isLoading}
-                      className="h-12 pl-10 border-[#d6e7d0] dark:border-gray-600 bg-background-light dark:bg-surface-dark focus:ring-2 focus:ring-primary transition-all"
+                      className="pl-10 h-11"
                     />
                   </div>
                 </FormControl>
-                <FormMessage className="text-xs" />
+                <FormMessage />
               </FormItem>
             )}
           />
@@ -140,19 +133,16 @@ export function AkunForm({ onSuccess }: AkunFormProps) {
             name="username"
             render={({ field }) => (
               <FormItem className="space-y-2">
-                <FormLabel className="text-sm font-medium dark:text-white">
-                  Username
-                </FormLabel>
+                <FormLabel>Username</FormLabel>
                 <FormControl>
                   <Input
                     {...field}
-                    type="text"
                     placeholder="Username"
                     disabled={isLoading}
-                    className="h-12 border-[#d6e7d0] dark:border-gray-600 bg-background-light dark:bg-surface-dark focus:ring-2 focus:ring-primary transition-all"
+                    className="h-11"
                   />
                 </FormControl>
-                <FormMessage className="text-xs" />
+                <FormMessage />
               </FormItem>
             )}
           />
@@ -163,31 +153,32 @@ export function AkunForm({ onSuccess }: AkunFormProps) {
             name="password"
             render={({ field }) => (
               <FormItem className="space-y-2">
-                <FormLabel className="text-sm font-medium dark:text-white">
-                  Password
-                </FormLabel>
+                <FormLabel>Password</FormLabel>
                 <FormControl>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary-light dark:text-gray-400">
-                      <FontAwesomeIcon icon={faLock} className="text-[18px]" />
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                      <FontAwesomeIcon icon={faLock} />
                     </span>
                     <Input
                       {...field}
                       type={showPassword ? "text" : "password"}
                       placeholder="Minimal 8 karakter"
                       disabled={isLoading}
-                      className="h-12 pl-10 pr-10 border-[#d6e7d0] dark:border-gray-600 bg-background-light dark:bg-surface-dark focus:ring-2 focus:ring-primary transition-all"
+                      className="pl-10 pr-10 h-11"
                     />
-                    <button
+                    {/* Shadcn Button sebagai toggle password */}
+                    <Button
                       type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 px-0 hover:bg-transparent text-muted-foreground hover:text-primary"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary-light hover:text-primary transition-colors"
                     >
-                      <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} className="text-[18px]" />
-                    </button>
+                      <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
+                    </Button>
                   </div>
                 </FormControl>
-                <FormMessage className="text-xs" />
+                <FormMessage />
               </FormItem>
             )}
           />
@@ -198,58 +189,58 @@ export function AkunForm({ onSuccess }: AkunFormProps) {
             name="confirmPassword"
             render={({ field }) => (
               <FormItem className="space-y-2">
-                <FormLabel className="text-sm font-medium dark:text-white">
-                  Konfirmasi Password
-                </FormLabel>
+                <FormLabel>Konfirmasi Password</FormLabel>
                 <FormControl>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary-light dark:text-gray-400">
-                      <FontAwesomeIcon icon={faLock} className="text-[18px]" />
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                      <FontAwesomeIcon icon={faLock} />
                     </span>
                     <Input
                       {...field}
                       type={showConfirmPassword ? "text" : "password"}
                       placeholder="Ulangi password"
                       disabled={isLoading}
-                      className="h-12 pl-10 pr-10 border-[#d6e7d0] dark:border-gray-600 bg-background-light dark:bg-surface-dark focus:ring-2 focus:ring-primary transition-all"
+                      className="pl-10 pr-10 h-11"
                     />
-                    <button
+                    {/* Shadcn Button sebagai toggle password */}
+                    <Button
                       type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 px-0 hover:bg-transparent text-muted-foreground hover:text-primary"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary-light hover:text-primary transition-colors"
                     >
-                      <FontAwesomeIcon icon={showConfirmPassword ? faEyeSlash : faEye} className="text-[18px]" />
-                    </button>
+                      <FontAwesomeIcon icon={showConfirmPassword ? faEyeSlash : faEye} />
+                    </Button>
                   </div>
                 </FormControl>
-                <FormMessage className="text-xs" />
+                <FormMessage />
               </FormItem>
             )}
           />
 
-          {/* Submit Button */}
+          {/* Submit Button Utama */}
           <Button
             type="submit"
             disabled={isLoading}
-            className="w-full h-12 bg-primary hover:bg-primary-dark text-white font-semibold shadow-lg shadow-primary/20 mt-6"
+            className="w-full h-11 mt-4"
           >
             {isLoading ? (
-              <span className="flex items-center gap-2">
-                <Spinner />
+              <>
+                <Spinner className="mr-2 h-4 w-4" />
                 Membuat Akun...
-              </span>
+              </>
             ) : (
-              <span className="flex items-center gap-2">
-                <FontAwesomeIcon icon={faUserPlus} />
+              <>
+                <FontAwesomeIcon icon={faUserPlus} className="mr-2" />
                 Buat Akun Muhafidz
-              </span>
+              </>
             )}
           </Button>
 
-          {/* Informasi Tambahan */}
-          <div className="pt-4 border-t border-border/50 dark:border-border-dark/50">
-            <p className="text-xs text-text-secondary-light dark:text-text-secondary-dark text-center">
-              Akun yang dibuat akan langsung aktif dan dapat digunakan untuk login oleh muhafidz.
+          <div className="pt-4 border-t">
+            <p className="text-xs text-muted-foreground text-center">
+              Akun yang dibuat akan langsung aktif dan dapat digunakan untuk login.
             </p>
           </div>
         </form>

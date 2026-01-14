@@ -286,7 +286,7 @@ export default function AbsensiPage() {
 
                           {/* Info detail setoran - HANYA surat dan ayat */}
                           <div className="space-y-1 ml-7">
-                            {row.setoranHariIni.map((setor, index) => (
+                            {row.setoranHariIni.map((setor) => (
                               <div key={setor.id} className="text-sm">
                                 <div className="flex items-center gap-2">
                                   <span className="font-medium dark:text-foreground-dark">

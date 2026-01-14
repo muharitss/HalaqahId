@@ -14,9 +14,11 @@ import {
   faCheck,
   faXmark
 } from "@fortawesome/free-solid-svg-icons";
+// import { useNavigate } from "react-router-dom"; 
 
 export default function KelolaMuhafizPage() {
-  const { user } = useAuth();
+  const { user, impersonate } = useAuth();
+  // const navigate = useNavigate();
   const [muhafizList, setMuhafizList] = useState<Muhafiz[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
@@ -75,6 +77,40 @@ export default function KelolaMuhafizPage() {
     setSuccess("Muhafidz berhasil dihapus!");
     loadMuhafiz();
     setTimeout(() => setSuccess(""), 3000);
+  };
+
+  const handleImpersonateClick = async (muhafiz: Muhafiz) => {
+    if (!confirm(`Login ke akun ${muhafiz.username}?`)) return;
+    
+    setIsLoading(true);
+    try {
+      // 1. Dapatkan token untuk muhafiz
+      const response = await akunService.impersonateMuhafiz(muhafiz.id_user);
+      
+      if (response.success) {
+        // 2. Buat data user untuk muhafiz
+        const impersonatedUser = {
+          ...response.data.user,
+          token: response.data.token,
+          isImpersonating: true
+        };
+
+        // 3. Simpan user asli (superadmin)
+        if (user) {
+          // 4. Panggil fungsi impersonate dari AuthContext
+          await impersonate(impersonatedUser, user);
+          
+          // 5. Tampilkan pesan sukses
+          setSuccess(`Berhasil login sebagai ${muhafiz.username}`);
+        }
+      }
+    } catch (error: any) {
+      const message = error.response?.data?.message || "Gagal login sebagai muhafidz";
+      setError(message);
+      console.error("Impersonate error:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Cek apakah user adalah superadmin
@@ -176,6 +212,7 @@ export default function KelolaMuhafizPage() {
           isLoading={isLoading}
           onEditClick={handleEditClick}
           onDeleteClick={handleDeleteClick}
+          onImpersonateClick={handleImpersonateClick}
           onRefresh={loadMuhafiz}
           onCreateClick={handleRegisterSuccess}
         />

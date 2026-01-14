@@ -85,37 +85,14 @@ export const akunService = {
     return response.data;
   },
 
-  // resetMuhafizPassword: async (userId: number): Promise<ApiResponse<{ temporary_password?: string }>> => {
-  //   try {
-  //     // Coba endpoint jika ada
-  //     const response = await axiosClient.post<ApiResponse<{ temporary_password: string }>>(
-  //       `/auth/muhafiz/${userId}/reset-password`
-  //     );
-  //     return response.data;
-  //   } catch (error: any) {
-  //     // Jika endpoint tidak tersedia
-  //     if (error.response?.status === 404) {
-  //       throw new Error("Endpoint reset password belum tersedia");
-  //     }
-  //     throw error;
-  //   }
-  // },
-
-  updateMuhafizPassword: async (userId: number, newPassword: string): Promise<ApiResponse<null>> => {
-    try {
-      const response = await axiosClient.patch<ApiResponse<null>>(
-        `/auth/muhafiz/${userId}/password`,
-        { password: newPassword }
+    impersonateMuhafiz: async (userId: number): Promise<ApiResponse<{ user: Muhafiz; token: string }>> => {
+      const response = await axiosClient.post<ApiResponse<{ user: Muhafiz; token: string }>>(
+        `/auth/impersonate/${userId}`
       );
       return response.data;
-    } catch (error: any) {
-      if (error.response?.status === 404) {
-        throw new Error("Endpoint update password belum tersedia");
-      }
-      throw error;
-    }
-  },
+    },
 
+  // Hapus akun muhafiz (soft delete)
   deleteMuhafiz: async (userId: number): Promise<ApiResponse<null>> => {
     const response = await axiosClient.delete<ApiResponse<null>>(`/auth/muhafiz/${userId}`);
     return response.data;

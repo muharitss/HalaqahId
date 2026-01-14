@@ -129,7 +129,7 @@ export default function KepalaMuhafidzDashboard() {
                   <thead>
                     <tr className="border-b border-border dark:border-border-dark">
                       <th className="text-left py-3 px-4 dark:text-white font-medium">No</th>
-                      <th className="text-left py-3 px-4 dark:text-white font-medium">Nama</th>
+                      <th className="text-left py-3 px-4 dark:text-white font-medium">Username</th>
                       <th className="text-left py-3 px-4 dark:text-white font-medium">Email</th>
                       <th className="text-left py-3 px-4 dark:text-white font-medium">ID</th>
                     </tr>
@@ -139,7 +139,7 @@ export default function KepalaMuhafidzDashboard() {
                       <tr key={muhafiz.id_user} className="border-b border-border dark:border-border-dark hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
                         <td className="py-3 px-4 dark:text-white">{index + 1}</td>
                         <td className="py-3 px-4 dark:text-white">
-                          {muhafiz.username || 'Tidak ada nama'}
+                          {muhafiz.username || 'Tidak ada username'}
                         </td>
                         <td className="py-3 px-4 dark:text-white">{muhafiz.email}</td>
                         <td className="py-3 px-4 dark:text-white">{muhafiz.id_user}</td>

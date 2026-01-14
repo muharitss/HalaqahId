@@ -1,6 +1,8 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import SetoranPage from "./Setoran";
-import AbsensiPage from "./Absensi"; // Kita akan buat file ini
+import AbsensiPage from "./Absensi"; 
+import KelolaSantriPage from "./KelolaSantri"; 
+import ProgresSantriPage from "./ProgresSantri";
 
 export default function MuhafidzPage() {
   return (
@@ -10,8 +12,9 @@ export default function MuhafidzPage() {
       
       <Route path="/setoran" element={<SetoranPage />} />
       
-      {/* Halaman Form Setoran spesifik santri */}
-      <Route path="setoran/:santriId" element={<div>Halaman Form Setoran (Coming Soon)</div>} />
+      <Route path="santri" element={<KelolaSantriPage />} />
+
+      <Route path="progres" element={<ProgresSantriPage />} />
       
       {/* Halaman Riwayat */}
       <Route path="riwayat" element={<div>Halaman Riwayat (Coming Soon)</div>} />
