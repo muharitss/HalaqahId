@@ -144,13 +144,9 @@ export const useSantri = () => {
     
     // Actions
     loadSantri,
-    loadStats,
     createSantri,
     updateSantri,
     deleteSantri,
-    restoreSantri,
-    searchSantri,
-    selectSantri,
     resetError,
     
     // Helper getters

@@ -50,12 +50,11 @@ import {
   faTimes, 
   faEdit,
   faTrash,
-  faUndo,
   faEllipsisH,
-  faUser,
+  faUsers,
   faBullseye,
-  faPhone,
-  faUsers
+  faCalendarCheck,
+  faPhone
 } from "@fortawesome/free-solid-svg-icons";
 import { useSantri } from "@/hooks/useSantri";
 import { useAuth } from "@/hooks/useAuth";
@@ -73,14 +72,10 @@ export default function KelolaSantriPage() {
     santriList,
     isLoading,
     error: santriError,
-    stats,
     loadSantri,
-    loadStats,
     createSantri,
     updateSantri,
     deleteSantri,
-    restoreSantri,
-    selectSantri,
     resetError: resetSantriError
   } = useSantri();
 
@@ -106,17 +101,14 @@ export default function KelolaSantriPage() {
         setHalaqahList(mockHalaqah);
         
         // Load santri data dari hook
-        await Promise.all([
-          loadSantri(),
-          loadStats()
-        ]);
+        await loadSantri();
       } catch (err: any) {
         showFeedback('error', err.message || "Gagal memuat data");
       }
     };
     
     loadInitialData();
-  }, [loadSantri, loadStats]);
+  }, [loadSantri]);
 
   // Show error from hook
   useEffect(() => {
@@ -159,9 +151,16 @@ export default function KelolaSantriPage() {
     setIsModalOpen(true);
   };
 
-  const handleSaveSantri = async (formData: FormData) => {
+  const handleSaveSantri = async (e: React.FormEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
     setIsSubmitting(true);
+    
     try {
+      const form = e.currentTarget as HTMLFormElement;
+      const formData = new FormData(form);
+      
       const data = {
         nama_santri: formData.get("nama_santri") as string,
         nomor_telepon: formData.get("nomor_telepon") as string,
@@ -170,6 +169,19 @@ export default function KelolaSantriPage() {
           ? parseInt(formData.get("halaqah_id") as string) 
           : user?.halaqah_id || 0
       };
+
+      // Validasi sederhana
+      if (!data.nama_santri.trim()) {
+        showFeedback('error', "Nama santri harus diisi");
+        return;
+      }
+
+      if (!data.nomor_telepon.trim() || data.nomor_telepon.length < 10) {
+        showFeedback('error', "Nomor telepon harus valid (minimal 10 digit)");
+        return;
+      }
+
+      console.log("Saving santri data:", data);
 
       if (selectedSantri) {
         // Update
@@ -180,8 +192,10 @@ export default function KelolaSantriPage() {
         await createSantri(data);
         showFeedback('success', `Berhasil menambah santri ${data.nama_santri}`);
       }
+      
       setIsModalOpen(false);
     } catch (error: any) {
+      console.error("Error saving santri:", error);
       showFeedback('error', error.message || "Gagal menyimpan data");
     } finally {
       setIsSubmitting(false);
@@ -199,28 +213,6 @@ export default function KelolaSantriPage() {
     }
   };
 
-  const handleRestoreSantri = async (santri: any) => {
-    try {
-      await restoreSantri(santri.id_santri);
-      showFeedback('success', "Santri berhasil dipulihkan");
-    } catch (error: any) {
-      showFeedback('error', error.message || "Gagal memulihkan santri");
-    }
-  };
-
-  // --- Stats Calculation ---
-  const localStats = {
-    total: santriList.length,
-    active: santriList.filter(s => s.is_active).length,
-    inactive: santriList.filter(s => !s.is_active).length,
-    ringan: santriList.filter(s => s.target === "RINGAN").length,
-    sedang: santriList.filter(s => s.target === "SEDANG").length,
-    intense: santriList.filter(s => s.target === "INTENSE").length,
-  };
-
-  // Gunakan stats dari hook jika ada, kalau tidak gunakan local stats
-  const displayStats = stats || localStats;
-
   // Get current halaqah name
   const currentHalaqahName = user?.halaqah_id 
     ? halaqahList.find(h => h.id_halaqah === user.halaqah_id)?.nama_halaqah 
@@ -232,8 +224,8 @@ export default function KelolaSantriPage() {
       <div className="space-y-6 container mx-auto py-6">
         <Skeleton className="h-8 w-64" />
         <Skeleton className="h-12 w-full" />
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {[1, 2, 3, 4].map(i => (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {[1, 2, 3].map(i => (
             <Skeleton key={i} className="h-24 w-full" />
           ))}
         </div>
@@ -280,65 +272,6 @@ export default function KelolaSantriPage() {
           className="pl-10 h-12" 
         />
       </div>
-
-      {/* 4. Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <Card className="md:col-span-1">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30">
-                <FontAwesomeIcon icon={faUsers} className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Total</p>
-                <p className="text-xl md:text-2xl font-bold">{displayStats.total}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="md:col-span-1">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/30">
-                <FontAwesomeIcon icon={faUser} className="h-5 w-5 text-green-600 dark:text-green-400" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Aktif</p>
-                <p className="text-xl md:text-2xl font-bold">{displayStats.active}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="md:col-span-1">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-amber-100 dark:bg-amber-900/30">
-                <FontAwesomeIcon icon={faBullseye} className="h-5 w-5 text-amber-600 dark:text-amber-400" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Intense</p>
-                <p className="text-xl md:text-2xl font-bold">{displayStats.intense}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="md:col-span-1">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-gray-100 dark:bg-gray-900/30">
-                <FontAwesomeIcon icon={faPhone} className="h-5 w-5 text-gray-600 dark:text-gray-400" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Nonaktif</p>
-                <p className="text-xl md:text-2xl font-bold">{displayStats.inactive}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
       
       {/* 5. Main Table */}
       <Card>
@@ -362,14 +295,13 @@ export default function KelolaSantriPage() {
                   <TableHead className="font-bold">Nomor Telepon</TableHead>
                   <TableHead className="font-bold">Target</TableHead>
                   {isAdmin() && <TableHead className="font-bold">Halaqah</TableHead>}
-                  <TableHead className="font-bold">Status</TableHead>
                   <TableHead className="text-right font-bold">Aksi</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredSantri.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={isAdmin() ? 7 : 6} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={isAdmin() ? 6 : 5} className="text-center py-8 text-muted-foreground">
                       {searchTerm ? "Tidak ada santri yang sesuai dengan pencarian" : "Belum ada data santri"}
                     </TableCell>
                   </TableRow>
@@ -397,15 +329,11 @@ export default function KelolaSantriPage() {
                       </TableCell>
                       {isAdmin() && (
                         <TableCell>
-                          <span className="text-sm">{santri.halaqah_id || `Halaqah ${santri.halaqah_id}`}</span>
+                          <span className="text-sm">
+                            {halaqahList.find(h => h.id_halaqah === santri.halaqah_id)?.nama_halaqah || `Halaqah ${santri.halaqah_id}`}
+                          </span>
                         </TableCell>
                       )}
-                      <TableCell>
-                        <div className="flex items-center gap-1.5">
-                          <div className={`h-2 w-2 rounded-full ${santri.is_active ? 'bg-green-500' : 'bg-gray-400'}`} />
-                          <span className="text-xs">{santri.is_active ? 'Aktif' : 'Nonaktif'}</span>
-                        </div>
-                      </TableCell>
                       <TableCell className="text-right">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
@@ -414,28 +342,18 @@ export default function KelolaSantriPage() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="w-48">
-                            {!santri.is_active && isAdmin() && (
-                              <>
-                                <DropdownMenuItem onClick={() => handleRestoreSantri(santri)}>
-                                  <FontAwesomeIcon icon={faUndo} className="mr-2 h-3 w-3" />
-                                  <span>Pulihkan</span>
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                              </>
-                            )}
                             <DropdownMenuItem onClick={() => handleOpenEditModal(santri)}>
                               <FontAwesomeIcon icon={faEdit} className="mr-2 h-3 w-3" />
                               <span>Edit</span>
                             </DropdownMenuItem>
-                            {santri.is_active && (
-                              <DropdownMenuItem 
-                                onClick={() => handleDeleteSantri(santri)}
-                                className="text-destructive focus:text-destructive focus:bg-destructive/10"
-                              >
-                                <FontAwesomeIcon icon={faTrash} className="mr-2 h-3 w-3" />
-                                <span>Hapus</span>
-                              </DropdownMenuItem>
-                            )}
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem 
+                              onClick={() => handleDeleteSantri(santri)}
+                              className="text-destructive focus:text-destructive focus:bg-destructive/10"
+                            >
+                              <FontAwesomeIcon icon={faTrash} className="mr-2 h-3 w-3" />
+                              <span>Hapus</span>
+                            </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>
@@ -451,7 +369,7 @@ export default function KelolaSantriPage() {
       {/* 6. Info Card */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Informasi</CardTitle>
+          <CardTitle className="text-lg">Informasi Target Hafalan</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-3 text-sm">
@@ -473,9 +391,6 @@ export default function KelolaSantriPage() {
               </Badge>
               <span className="text-muted-foreground">- 4 halaman <strong>atau</strong> 2 lembar per 2 pekan</span>
             </div>
-            <div className="pt-2 text-xs text-muted-foreground">
-              * Hanya Admin yang dapat memulihkan santri yang telah dihapus
-            </div>
           </div>
         </CardContent>
       </Card>
@@ -483,10 +398,7 @@ export default function KelolaSantriPage() {
       {/* 7. Dialog Form */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="sm:max-w-[425px]">
-          <form onSubmit={(e) => {
-            e.preventDefault();
-            handleSaveSantri(new FormData(e.currentTarget));
-          }}>
+          <form onSubmit={handleSaveSantri}>
             <DialogHeader>
               <DialogTitle>
                 {selectedSantri ? "Edit Santri" : "Tambah Santri Baru"}
@@ -501,44 +413,46 @@ export default function KelolaSantriPage() {
             
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
-                <Label htmlFor="nama_santri">Nama Santri</Label>
+                <Label htmlFor="nama_santri">Nama Santri *</Label>
                 <Input 
                   id="nama_santri" 
                   name="nama_santri" 
-                  defaultValue={selectedSantri?.nama_santri} 
+                  defaultValue={selectedSantri?.nama_santri || ""} 
                   required 
+                  placeholder="Nama lengkap santri"
                 />
               </div>
               
               <div className="grid gap-2">
-                <Label htmlFor="nomor_telepon">Nomor Telepon</Label>
+                <Label htmlFor="nomor_telepon">Nomor Telepon *</Label>
                 <Input 
                   id="nomor_telepon" 
                   name="nomor_telepon" 
-                  defaultValue={selectedSantri?.nomor_telepon} 
+                  defaultValue={selectedSantri?.nomor_telepon || ""} 
                   required 
                   placeholder="0812XXXXXX"
+                  type="tel"
                 />
               </div>
               
               <div className="grid gap-2">
-                <Label htmlFor="target">Target Hafalan</Label>
+                <Label htmlFor="target">Target Hafalan *</Label>
                 <Select name="target" defaultValue={selectedSantri?.target || "SEDANG"}>
                   <SelectTrigger>
                     <SelectValue placeholder="Pilih target" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="RINGAN">Ringan (1 halaman per 2 pekan)</SelectItem>
-                    <SelectItem value="SEDANG">Sedang (2 halaman <strong>atau</strong> 1 lembar per 2 pekan)</SelectItem>
-                    <SelectItem value="INTENSE">Intense (4 halaman <strong>atau</strong> 2 lembar per 2 pekan)</SelectItem>
+                    <SelectItem value="SEDANG">Sedang (2 halaman atau 1 lembar per 2 pekan)</SelectItem>
+                    <SelectItem value="INTENSE">Intense (4 halaman atau 2 lembar per 2 pekan)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               
               {isAdmin() && (
                 <div className="grid gap-2">
-                  <Label htmlFor="halaqah_id">Halaqah</Label>
-                  <Select name="halaqah_id" defaultValue={selectedSantri?.halaqah_id?.toString()}>
+                  <Label htmlFor="halaqah_id">Halaqah *</Label>
+                  <Select name="halaqah_id" defaultValue={selectedSantri?.halaqah_id?.toString() || ""}>
                     <SelectTrigger>
                       <SelectValue placeholder="Pilih halaqah" />
                     </SelectTrigger>

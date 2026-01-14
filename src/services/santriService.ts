@@ -80,35 +80,7 @@ export const santriService = {
     }
   },
 
-  // 6. Restore Santri (Admin Only)
-  async restore(id: number): Promise<Santri> {
-    try {
-      const response = await axiosClient.patch(`/santri/${id}/restore`);
-      return response.data.data;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || "Gagal memulihkan santri");
-    }
-  },
-
-  // 7. Get Statistics
-  async getStats(): Promise<SantriStats> {
-    try {
-      const santriList = await this.getAll();
-      
-      return {
-        total: santriList.length,
-        active: santriList.filter(s => s.is_active).length,
-        inactive: santriList.filter(s => !s.is_active).length,
-        ringan: santriList.filter(s => s.target === "RINGAN").length,
-        sedang: santriList.filter(s => s.target === "SEDANG").length,
-        intense: santriList.filter(s => s.target === "INTENSE").length,
-      };
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || "Gagal mengambil statistik");
-    }
-  },
-
-  // 8. Search Santri
+  // 6. Search Santri
   async search(query: string): Promise<Santri[]> {
     try {
       const santriList = await this.getAll();
