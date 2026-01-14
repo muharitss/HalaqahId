@@ -16,6 +16,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import {
   Dialog,
@@ -49,23 +50,14 @@ import {
   faTimes, 
   faEdit,
   faTrash,
-  faUndo,
   faEllipsisH,
-  faUser,
+  faUsers,
   faBullseye,
-  faPhone,
-  faUsers
+  faCalendarCheck,
+  faPhone
 } from "@fortawesome/free-solid-svg-icons";
-
-interface Santri {
-  id_santri: number;
-  nama_santri: string;
-  nomor_telepon: string;
-  target: "RINGAN" | "SEDANG" | "INTENSE";
-  halaqah_id: number;
-  is_active: boolean;
-  halaqah_nama?: string;
-}
+import { useSantri } from "@/hooks/useSantri";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Halaqah {
   id_halaqah: number;
@@ -74,86 +66,57 @@ interface Halaqah {
 }
 
 export default function KelolaSantriPage() {
-  // --- States ---
-  const [santriList, setSantriList] = useState<Santri[]>([]);
+  // --- Hooks ---
+  const { user, isAdmin } = useAuth();
+  const {
+    santriList,
+    isLoading,
+    error: santriError,
+    loadSantri,
+    createSantri,
+    updateSantri,
+    deleteSantri,
+    resetError: resetSantriError
+  } = useSantri();
+
+  // --- Local States ---
   const [halaqahList, setHalaqahList] = useState<Halaqah[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error', msg: string } | null>(null);
-  
-  // State untuk Modal (Tambah/Edit)
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedSantri, setSelectedSantri] = useState<Santri | null>(null);
+  const [selectedSantri, setSelectedSantri] = useState<any>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Mock data - dalam implementasi real, ini akan dari API
+  // Mock data halaqah - dalam implementasi real, ini akan dari API
   const mockHalaqah = [
     { id_halaqah: 1, nama_halaqah: "Halaqah Al-Fatihah", muhafidz_id: 1 },
     { id_halaqah: 2, nama_halaqah: "Halaqah Al-Baqarah", muhafidz_id: 2 },
   ];
 
-  // Mock user role (dalam real app, ini dari auth context)
-  const currentUser = {
-    id: 1,
-    role: "MUHAFIZ" as "ADMIN" | "MUHAFIZ",
-    halaqah_id: 1
-  };
-
   // --- Load Data ---
   useEffect(() => {
-    const loadData = async () => {
-      setIsLoading(true);
+    const loadInitialData = async () => {
       try {
-        // Simulasi API call untuk halaqah
+        // Load halaqah data (mock untuk sekarang)
         setHalaqahList(mockHalaqah);
         
-        // Simulasi API call untuk santri
-        setTimeout(() => {
-          const mockData: Santri[] = [
-            { 
-              id_santri: 1, 
-              nama_santri: "Ahmad Farhan", 
-              nomor_telepon: "081299001122", 
-              target: "SEDANG", 
-              halaqah_id: 1,
-              is_active: true,
-              halaqah_nama: "Halaqah Al-Fatihah"
-            },
-            { 
-              id_santri: 2, 
-              nama_santri: "Zaid Ramadhan", 
-              nomor_telepon: "081299001133", 
-              target: "INTENSE", 
-              halaqah_id: 1,
-              is_active: true,
-              halaqah_nama: "Halaqah Al-Fatihah"
-            },
-            { 
-              id_santri: 3, 
-              nama_santri: "Umar Mukhtar", 
-              nomor_telepon: "081299001144", 
-              target: "RINGAN", 
-              halaqah_id: 1,
-              is_active: true,
-              halaqah_nama: "Halaqah Al-Fatihah"
-            },
-          ];
-          // Filter untuk Muhafiz (hanya santri di halaqahnya)
-          const filteredData = currentUser.role === "ADMIN" 
-            ? mockData 
-            : mockData.filter(s => s.halaqah_id === currentUser.halaqah_id);
-          
-          setSantriList(filteredData);
-          setIsLoading(false);
-        }, 1000);
-      } catch (error) {
-        console.error("Error loading data:", error);
-        showFeedback('error', "Gagal memuat data santri");
-        setIsLoading(false);
+        // Load santri data dari hook
+        await loadSantri();
+      } catch (err: any) {
+        showFeedback('error', err.message || "Gagal memuat data");
       }
     };
-    loadData();
-  }, []);
+    
+    loadInitialData();
+  }, [loadSantri]);
+
+  // Show error from hook
+  useEffect(() => {
+    if (santriError) {
+      showFeedback('error', santriError);
+      resetSantriError();
+    }
+  }, [santriError, resetSantriError]);
 
   // --- Helper Functions ---
   const showFeedback = (type: 'success' | 'error', msg: string) => {
@@ -183,122 +146,64 @@ export default function KelolaSantriPage() {
     setIsModalOpen(true);
   };
 
-  const handleOpenEditModal = (santri: Santri) => {
+  const handleOpenEditModal = (santri: any) => {
     setSelectedSantri(santri);
     setIsModalOpen(true);
   };
 
-  const handleSaveSantri = async (formData: FormData) => {
+  const handleSaveSantri = async (e: React.FormEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
     setIsSubmitting(true);
+    
     try {
+      const form = e.currentTarget as HTMLFormElement;
+      const formData = new FormData(form);
+      
       const data = {
         nama_santri: formData.get("nama_santri") as string,
         nomor_telepon: formData.get("nomor_telepon") as string,
         target: formData.get("target") as "RINGAN" | "SEDANG" | "INTENSE",
-        halaqah_id: currentUser.role === "ADMIN" 
-          ? parseInt(formData.get("halaqah_id") as string)
-          : currentUser.halaqah_id
+        halaqah_id: isAdmin() 
+          ? parseInt(formData.get("halaqah_id") as string) 
+          : user?.halaqah_id || 0
       };
 
       if (selectedSantri) {
         // Update
-        const updated = await mockUpdateSantri(selectedSantri.id_santri, data);
-        setSantriList(prev => prev.map(s => 
-          s.id_santri === selectedSantri.id_santri ? { ...s, ...updated } : s
-        ));
+        await updateSantri(selectedSantri.id_santri, data);
         showFeedback('success', `Berhasil memperbarui data ${data.nama_santri}`);
       } else {
         // Create
-        const newSantri = await mockCreateSantri(data);
-        setSantriList(prev => [...prev, newSantri]);
+        await createSantri(data);
         showFeedback('success', `Berhasil menambah santri ${data.nama_santri}`);
       }
+      
       setIsModalOpen(false);
     } catch (error: any) {
+      console.error("Error saving santri:", error);
       showFeedback('error', error.message || "Gagal menyimpan data");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleDeleteSantri = async (santri: Santri) => {
+  const handleDeleteSantri = async (santri: any) => {
     if (confirm(`Hapus santri ${santri.nama_santri}?`)) {
       try {
-        await mockDeleteSantri(santri.id_santri);
-        setSantriList(prev => prev.filter(s => s.id_santri !== santri.id_santri));
-        showFeedback('success', "Santri berhasil dihapus (soft delete)");
-      } catch (error) {
-        showFeedback('error', "Gagal menghapus santri");
+        await deleteSantri(santri.id_santri);
+        showFeedback('success', "Santri berhasil dihapus");
+      } catch (error: any) {
+        showFeedback('error', error.message || "Gagal menghapus santri");
       }
     }
   };
 
-  const handleRestoreSantri = async (santri: Santri) => {
-    try {
-      await mockRestoreSantri(santri.id_santri);
-      setSantriList(prev => prev.map(s => 
-        s.id_santri === santri.id_santri ? { ...s, is_active: true } : s
-      ));
-      showFeedback('success', "Santri berhasil dipulihkan");
-    } catch (error) {
-      showFeedback('error', "Gagal memulihkan santri");
-    }
-  };
-
-  // Mock API functions
-  const mockCreateSantri = async (data: any): Promise<Santri> => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({
-          id_santri: Date.now(),
-          nama_santri: data.nama_santri,
-          nomor_telepon: data.nomor_telepon,
-          target: data.target,
-          halaqah_id: data.halaqah_id,
-          is_active: true,
-          halaqah_nama: halaqahList.find(h => h.id_halaqah === data.halaqah_id)?.nama_halaqah
-        });
-      }, 500);
-    });
-  };
-
-  const mockUpdateSantri = async (id: number, data: any): Promise<Santri> => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({
-          id_santri: id,
-          nama_santri: data.nama_santri,
-          nomor_telepon: data.nomor_telepon,
-          target: data.target,
-          halaqah_id: data.halaqah_id,
-          is_active: true,
-          halaqah_nama: halaqahList.find(h => h.id_halaqah === data.halaqah_id)?.nama_halaqah
-        });
-      }, 500);
-    });
-  };
-
-  const mockDeleteSantri = async (id: number): Promise<void> => {
-    return new Promise((resolve) => {
-      setTimeout(() => resolve(), 500);
-    });
-  };
-
-  const mockRestoreSantri = async (id: number): Promise<void> => {
-    return new Promise((resolve) => {
-      setTimeout(() => resolve(), 500);
-    });
-  };
-
-  // --- Stats Calculation ---
-  const stats = {
-    total: santriList.length,
-    active: santriList.filter(s => s.is_active).length,
-    inactive: santriList.filter(s => !s.is_active).length,
-    ringan: santriList.filter(s => s.target === "RINGAN").length,
-    sedang: santriList.filter(s => s.target === "SEDANG").length,
-    intense: santriList.filter(s => s.target === "INTENSE").length,
-  };
+  // Get current halaqah name
+  const currentHalaqahName = user?.halaqah_id 
+    ? halaqahList.find(h => h.id_halaqah === user.halaqah_id)?.nama_halaqah 
+    : '-';
 
   // --- Loading State ---
   if (isLoading) {
@@ -306,8 +211,8 @@ export default function KelolaSantriPage() {
       <div className="space-y-6 container mx-auto py-6">
         <Skeleton className="h-8 w-64" />
         <Skeleton className="h-12 w-full" />
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {[1, 2, 3, 4].map(i => (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {[1, 2, 3].map(i => (
             <Skeleton key={i} className="h-24 w-full" />
           ))}
         </div>
@@ -324,9 +229,9 @@ export default function KelolaSantriPage() {
         <div>
           <h2 className="text-2xl font-bold">Kelola Santri</h2>
           <p className="text-muted-foreground text-sm">
-            {currentUser.role === "ADMIN" 
+            {isAdmin() 
               ? "Kelola semua santri dari semua halaqah" 
-              : `Kelola santri di halaqah Anda (${halaqahList.find(h => h.id_halaqah === currentUser.halaqah_id)?.nama_halaqah || '-'})`
+              : `Kelola santri di halaqah Anda (${currentHalaqahName})`
             }
           </p>
         </div>
@@ -354,65 +259,6 @@ export default function KelolaSantriPage() {
           className="pl-10 h-12" 
         />
       </div>
-
-      {/* 4. Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <Card className="md:col-span-1">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30">
-                <FontAwesomeIcon icon={faUsers} className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Total</p>
-                <p className="text-xl md:text-2xl font-bold">{stats.total}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="md:col-span-1">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/30">
-                <FontAwesomeIcon icon={faUser} className="h-5 w-5 text-green-600 dark:text-green-400" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Aktif</p>
-                <p className="text-xl md:text-2xl font-bold">{stats.active}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="md:col-span-1">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-amber-100 dark:bg-amber-900/30">
-                <FontAwesomeIcon icon={faBullseye} className="h-5 w-5 text-amber-600 dark:text-amber-400" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Intense</p>
-                <p className="text-xl md:text-2xl font-bold">{stats.intense}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="md:col-span-1">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-gray-100 dark:bg-gray-900/30">
-                <FontAwesomeIcon icon={faPhone} className="h-5 w-5 text-gray-600 dark:text-gray-400" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Nonaktif</p>
-                <p className="text-xl md:text-2xl font-bold">{stats.inactive}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
       
       {/* 5. Main Table */}
       <Card>
@@ -435,15 +281,14 @@ export default function KelolaSantriPage() {
                   <TableHead className="font-bold">Nama Santri</TableHead>
                   <TableHead className="font-bold">Nomor Telepon</TableHead>
                   <TableHead className="font-bold">Target</TableHead>
-                  {currentUser.role === "ADMIN" && <TableHead className="font-bold">Halaqah</TableHead>}
-                  <TableHead className="font-bold">Status</TableHead>
+                  {isAdmin() && <TableHead className="font-bold">Halaqah</TableHead>}
                   <TableHead className="text-right font-bold">Aksi</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredSantri.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={isAdmin() ? 6 : 5} className="text-center py-8 text-muted-foreground">
                       {searchTerm ? "Tidak ada santri yang sesuai dengan pencarian" : "Belum ada data santri"}
                     </TableCell>
                   </TableRow>
@@ -469,17 +314,13 @@ export default function KelolaSantriPage() {
                           {santri.target}
                         </Badge>
                       </TableCell>
-                      {currentUser.role === "ADMIN" && (
+                      {isAdmin() && (
                         <TableCell>
-                          <span className="text-sm">{santri.halaqah_nama || `Halaqah ${santri.halaqah_id}`}</span>
+                          <span className="text-sm">
+                            {halaqahList.find(h => h.id_halaqah === santri.halaqah_id)?.nama_halaqah || `Halaqah ${santri.halaqah_id}`}
+                          </span>
                         </TableCell>
                       )}
-                      <TableCell>
-                        <div className="flex items-center gap-1.5">
-                          <div className={`h-2 w-2 rounded-full ${santri.is_active ? 'bg-green-500' : 'bg-gray-400'}`} />
-                          <span className="text-xs">{santri.is_active ? 'Aktif' : 'Nonaktif'}</span>
-                        </div>
-                      </TableCell>
                       <TableCell className="text-right">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
@@ -488,28 +329,18 @@ export default function KelolaSantriPage() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="w-48">
-                            {!santri.is_active && currentUser.role === "ADMIN" && (
-                              <>
-                                <DropdownMenuItem onClick={() => handleRestoreSantri(santri)}>
-                                  <FontAwesomeIcon icon={faUndo} className="mr-2 h-3 w-3" />
-                                  <span>Pulihkan</span>
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                              </>
-                            )}
                             <DropdownMenuItem onClick={() => handleOpenEditModal(santri)}>
                               <FontAwesomeIcon icon={faEdit} className="mr-2 h-3 w-3" />
                               <span>Edit</span>
                             </DropdownMenuItem>
-                            {santri.is_active && (
-                              <DropdownMenuItem 
-                                onClick={() => handleDeleteSantri(santri)}
-                                className="text-destructive focus:text-destructive focus:bg-destructive/10"
-                              >
-                                <FontAwesomeIcon icon={faTrash} className="mr-2 h-3 w-3" />
-                                <span>Hapus</span>
-                              </DropdownMenuItem>
-                            )}
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem 
+                              onClick={() => handleDeleteSantri(santri)}
+                              className="text-destructive focus:text-destructive focus:bg-destructive/10"
+                            >
+                              <FontAwesomeIcon icon={faTrash} className="mr-2 h-3 w-3" />
+                              <span>Hapus</span>
+                            </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>
@@ -525,7 +356,7 @@ export default function KelolaSantriPage() {
       {/* 6. Info Card */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Informasi</CardTitle>
+          <CardTitle className="text-lg">Informasi Target Hafalan</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-3 text-sm">
@@ -533,22 +364,19 @@ export default function KelolaSantriPage() {
               <Badge variant="outline" className="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
                 RINGAN
               </Badge>
-              <span className="text-muted-foreground">- 1-2 juz per bulan</span>
+              <span className="text-muted-foreground">- 1 halaman per 2 pekan</span>
             </div>
             <div className="flex items-center gap-2">
               <Badge variant="outline" className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300">
                 SEDANG
               </Badge>
-              <span className="text-muted-foreground">- 3-4 juz per bulan</span>
+              <span className="text-muted-foreground">- 2 halaman <strong>atau</strong> 1 lembar per 2 pekan</span>
             </div>
             <div className="flex items-center gap-2">
               <Badge variant="outline" className="bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300">
                 INTENSE
               </Badge>
-              <span className="text-muted-foreground">- 5+ juz per bulan</span>
-            </div>
-            <div className="pt-2 text-xs text-muted-foreground">
-              * Hanya Admin yang dapat memulihkan santri yang telah dihapus
+              <span className="text-muted-foreground">- 4 halaman <strong>atau</strong> 2 lembar per 2 pekan</span>
             </div>
           </div>
         </CardContent>
@@ -557,10 +385,7 @@ export default function KelolaSantriPage() {
       {/* 7. Dialog Form */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="sm:max-w-[425px]">
-          <form onSubmit={(e) => {
-            e.preventDefault();
-            handleSaveSantri(new FormData(e.currentTarget));
-          }}>
+          <form onSubmit={handleSaveSantri}>
             <DialogHeader>
               <DialogTitle>
                 {selectedSantri ? "Edit Santri" : "Tambah Santri Baru"}
@@ -575,44 +400,46 @@ export default function KelolaSantriPage() {
             
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
-                <Label htmlFor="nama_santri">Nama Santri</Label>
+                <Label htmlFor="nama_santri">Nama Santri *</Label>
                 <Input 
                   id="nama_santri" 
                   name="nama_santri" 
-                  defaultValue={selectedSantri?.nama_santri} 
+                  defaultValue={selectedSantri?.nama_santri || ""} 
                   required 
+                  placeholder="Nama lengkap santri"
                 />
               </div>
               
               <div className="grid gap-2">
-                <Label htmlFor="nomor_telepon">Nomor Telepon</Label>
+                <Label htmlFor="nomor_telepon">Nomor Telepon *</Label>
                 <Input 
                   id="nomor_telepon" 
                   name="nomor_telepon" 
-                  defaultValue={selectedSantri?.nomor_telepon} 
+                  defaultValue={selectedSantri?.nomor_telepon || ""} 
                   required 
                   placeholder="0812XXXXXX"
+                  type="tel"
                 />
               </div>
               
               <div className="grid gap-2">
-                <Label htmlFor="target">Target Hafalan</Label>
+                <Label htmlFor="target">Target Hafalan *</Label>
                 <Select name="target" defaultValue={selectedSantri?.target || "SEDANG"}>
                   <SelectTrigger>
                     <SelectValue placeholder="Pilih target" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="RINGAN">Ringan (1-2 juz/bulan)</SelectItem>
-                    <SelectItem value="SEDANG">Sedang (3-4 juz/bulan)</SelectItem>
-                    <SelectItem value="INTENSE">Intense (5+ juz/bulan)</SelectItem>
+                    <SelectItem value="RINGAN">Ringan (1 halaman per 2 pekan)</SelectItem>
+                    <SelectItem value="SEDANG">Sedang (2 halaman atau 1 lembar per 2 pekan)</SelectItem>
+                    <SelectItem value="INTENSE">Intense (4 halaman atau 2 lembar per 2 pekan)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               
-              {currentUser.role === "ADMIN" && (
+              {isAdmin() && (
                 <div className="grid gap-2">
-                  <Label htmlFor="halaqah_id">Halaqah</Label>
-                  <Select name="halaqah_id" defaultValue={selectedSantri?.halaqah_id.toString()}>
+                  <Label htmlFor="halaqah_id">Halaqah *</Label>
+                  <Select name="halaqah_id" defaultValue={selectedSantri?.halaqah_id?.toString() || ""}>
                     <SelectTrigger>
                       <SelectValue placeholder="Pilih halaqah" />
                     </SelectTrigger>
@@ -647,6 +474,3 @@ export default function KelolaSantriPage() {
     </div>
   );
 }
-
-// Import tambahan untuk DropdownMenuSeparator
-import { DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
