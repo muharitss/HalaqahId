@@ -363,7 +363,7 @@ export default function AbsensiPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {rows.map((row, index) => {
+                {rows.map((row, _index) => {
                   const statusText = row.status.charAt(0).toUpperCase() + row.status.slice(1);
                   
                   return (

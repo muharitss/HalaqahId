@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useAkun } from "@/hooks/useAkun";
 import { useHalaqah } from "@/hooks/useHalaqah";
@@ -11,12 +11,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { RotateCcw, Trash2, UserCog, Database } from "lucide-react";
+import { RotateCcw, Trash2, UserCog } from "lucide-react";
 
 export default function SettingsPage() {
   const { user } = useAuth();
-  const { deletedMuhafiz, fetchDeletedMuhafiz, loading: loadingAkun } = useAkun();
-  const { deletedHalaqah, fetchDeletedHalaqah, loading: loadingHalaqah } = useHalaqah();
+  const { deletedMuhafiz, fetchDeletedMuhafiz } = useAkun();
+  const { deletedHalaqah, fetchDeletedHalaqah } = useHalaqah();
 
   useEffect(() => {
     if (user?.role === "superadmin") {
