@@ -5,6 +5,7 @@ export const useHalaqah = () => {
   const [halaqah, setHalaqah] = useState<Halaqah[]>([]); 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [deletedHalaqah, setDeletedHalaqah] = useState<Halaqah[]>([]);
 
   const fetchHalaqah = useCallback(async () => {
     setLoading(true);
@@ -21,10 +22,24 @@ export const useHalaqah = () => {
     }
   }, []);
 
+  const fetchDeletedHalaqah = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await halaqahService.getDeletedHalaqah();
+      setDeletedHalaqah(response.data);
+    } catch (err) {
+      console.error("Gagal mengambil tempat sampah halaqah");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   return {
     halaqah,
     loading,
     error,
-    fetchHalaqah
+    fetchHalaqah,
+    deletedHalaqah,
+    fetchDeletedHalaqah
   };
 };

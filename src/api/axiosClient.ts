@@ -30,6 +30,9 @@ axiosClient.interceptors.request.use((config) => {
 axiosClient.interceptors.response.use(
   (response) => response,
   (error) => {
+    const serverMessage = error.response?.data?.message || "No message from server";
+    console.error("Detail Error dari Backend:", serverMessage);
+
     console.error("API Error:", {
       status: error.response?.status,
       data: error.response?.data,

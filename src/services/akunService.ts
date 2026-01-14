@@ -8,20 +8,18 @@ export interface Muhafiz {
   nama?: string;
   created_at?: string;
   updated_at?: string;
-  deleted_at?: string; // Untuk soft delete
+  deleted_at?: string; 
 }
 
 export interface RegisterData {
   email: string;
   username: string;
   password: string;
-  // Note: Tidak ada field nama di dokumentasi register
 }
 
 export interface UpdateMuhafizData {
   username?: string;
   email?: string;
-  // Note: Tidak ada field nama di dokumentasi update
 }
 
 export interface ApiResponse<T = any> {
@@ -130,27 +128,17 @@ export const akunService = {
     }
   },
 
-  // validateUsername: async (username: string): Promise<boolean> => {
-  //   try {
-  //     // Coba daftar dengan username dummy untuk cek ketersediaan
-  //     // Atau tunggu error dari backend saat register/update
-  //     return true; // Default true, validasi akan dilakukan oleh backend
-  //   } catch (error) {
-  //     return false;
-  //   }
-  // },
+  getDeletedMuhafiz: async (): Promise<ApiResponse<Muhafiz[]>> => {
+    const response = await axiosClient.get<ApiResponse<Muhafiz[]>>("/auth/muhafiz/deleted");
+    return response.data;
+  },
 
-  // validateEmail: async (email: string): Promise<boolean> => {
-  //   try {
-  //     // Cek melalui search atau tunggu error dari backend
-  //     return true;
-  //   } catch (error) {
-  //     return false;
-  //   }
-  // }
+  restoreMuhafiz: async (userId: number): Promise<ApiResponse<Muhafiz>> => {
+    const response = await axiosClient.patch<ApiResponse<Muhafiz>>(`/auth/muhafiz/restore/${userId}`, {});
+    return response.data;
+  },
 };
 
-// Type untuk data update
 export interface UpdateData {
   username?: string;
   email?: string;

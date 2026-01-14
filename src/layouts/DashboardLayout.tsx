@@ -86,7 +86,13 @@ export default function DashboardLayout() {
                   Profil Saya
                 </DropdownMenuItem>
 
-                <DropdownMenuItem onClick={() => navigate("/settings")} className="cursor-pointer">
+                <DropdownMenuItem 
+                  onClick={() => {
+                    const targetPath = user?.role === "superadmin" ? "/kepala-muhafidz/settings" : "/settings";
+                    navigate(targetPath);
+                  }} 
+                  className="cursor-pointer"
+                >
                   <FontAwesomeIcon icon={faGear} className="mr-2 h-4 w-4" />
                   Pengaturan
                 </DropdownMenuItem>

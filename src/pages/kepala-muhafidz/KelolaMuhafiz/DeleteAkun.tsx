@@ -92,7 +92,7 @@ export function DeleteAkun({ muhafiz, isOpen, onClose, onSuccess }: DeleteAkunPr
 
         <div className="space-y-3 py-2">
           <Label htmlFor="confirm-delete" className="text-xs">
-            Ketik <span className="font-bold uppercase tracking-widest text-destructive">hapus</span> untuk melanjutkan
+            Ketik <span className="font-bold text-destructive">hapus</span> untuk melanjutkan
           </Label>
           <Input
             id="confirm-delete"

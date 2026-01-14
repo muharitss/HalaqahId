@@ -83,6 +83,19 @@ Daftar muhafiz yang aktif (belum di-soft delete).
 
 * **URL:** `DELETE /auth/muhafiz/:id`
 
+#### 1. Get Deleted Muhafiz (Trash)
+
+Melihat daftar muhafiz yang sedang dinonaktifkan (soft deleted).
+
+* **URL:** `GET /halaqah/auth/muhafiz/deleted`
+
+#### 2. Restore Muhafiz
+
+Mengaktifkan kembali akun muhafiz agar bisa login kembali.
+
+* **URL:** `PATCH /halaqah/auth/muhafiz/restore/:id`
+
+
 ---
 
 ### 🏛️ Manajemen Halaqah (Admin Only 🔐)

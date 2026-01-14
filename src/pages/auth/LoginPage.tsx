@@ -33,7 +33,7 @@ export default function LoginPage() {
           <span className="text-xl font-bold dark:text-white">HalaqahId</span>
         </div>
 
-        <div className="mx-auto w-full max-w-md space-y-8 py-30">
+        <div className="mx-auto w-full max-w-md space-y-8 py-30 ">
           <div className="space-y-2 text-center lg:text-left">
             <h2 className="text-3xl font-bold tracking-tight text-text-primary-light dark:text-text-primary-dark">
               Assalamu'alaikum
