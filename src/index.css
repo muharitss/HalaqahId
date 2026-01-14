@@ -1,5 +1,8 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@plugin "daisyui" {
+  themes: false;  
+}
 
 @layer base {
   :root {
