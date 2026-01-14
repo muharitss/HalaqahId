@@ -93,7 +93,7 @@ export default function AbsensiPage() {
     },
     { 
       id: 4, 
-      santriId: 1, 
+      santriId: 5, 
       surah: "Al-Baqarah", 
       ayat_mulai: 11, 
       ayat_selesai: 15, 
