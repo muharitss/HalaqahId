@@ -8,6 +8,7 @@ import DashboardLayout from "@/layouts/DashboardLayout";
 import { Spinner } from "@/components/ui/spinner";
 import KelolaMuhafizPage from "@/pages/kepala-muhafidz/KelolaMuhafiz";
 import KelolaHalaqahPage from "@/pages/kepala-muhafidz/KelolaHalaqah";
+import SettingsPage from "@/pages/settings";
 
 const ProtectedRoute = ({ allowedRoles }: { allowedRoles?: ("superadmin" | "muhafiz")[] }) => {
   const { user, isLoading } = useAuth();
@@ -75,6 +76,7 @@ export const AppRouter = () => {
             <Route path="/kepala-muhafidz" element={<KepalaMuhafidzDashboard />} />
             <Route path="/kepala-muhafidz/muhafiz" element={<KelolaMuhafizPage />} />
             <Route path="/kepala-muhafidz/halaqah" element={<KelolaHalaqahPage />} />
+            <Route path="/kepala-muhafidz/settings" element={<SettingsPage/>} />
             {/* Tambahkan route superadmin lainnya di sini */}
             <Route path="/kepala-muhafidz/*" element={<div>Sub-routes for superadmin</div>} />
           </Route>
