@@ -183,13 +183,20 @@ export default function InputSetoranPage() {
                     control={form.control}
                     name="santri_id"
                     render={({ field }) => (
-                      <FormItem>
+                      <FormItem className="col-span-full"> {/* Gunakan col-span-full agar lebar maksimal */}
                         <FormLabel>Santri</FormLabel>
-                        <Select onValueChange={(v) => field.onChange(parseInt(v))} value={field.value.toString()}>
-                          <FormControl><SelectTrigger><SelectValue placeholder="Pilih santri" /></SelectTrigger></FormControl>
+                        <Select onValueChange={(v) => field.onChange(parseInt(v))} value={field.value?.toString()}>
+                          <FormControl>
+                            <SelectTrigger className="w-full">
+                              {/* Tambahkan Placeholder di sini */}
+                              <SelectValue placeholder="Pilih Nama Santri" />
+                            </SelectTrigger>
+                          </FormControl>
                           <SelectContent>
                             {santriList.map((s) => (
-                              <SelectItem key={s.id_santri} value={s.id_santri.toString()}>{s.nama_santri}</SelectItem>
+                              <SelectItem key={s.id_santri} value={s.id_santri.toString()}>
+                                {s.nama_santri}
+                              </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
@@ -197,73 +204,83 @@ export default function InputSetoranPage() {
                       </FormItem>
                     )}
                   />
+                  
+                  <div className="grid grid-cols-2 gap-4 col-span-full">
+                    {/* Row 2: Kategori & Juz disandingkan */}
+                    <FormField
+                      control={form.control}
+                      name="kategori"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Kategori</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                            <SelectContent>
+                              <SelectItem value="HAFALAN">HAFALAN</SelectItem>
+                              <SelectItem value="MURAJAAH">MURAJAAH</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-                  <FormField
-                    control={form.control}
-                    name="kategori"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Kategori</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
-                          <SelectContent>
-                            <SelectItem value="HAFALAN">HAFALAN</SelectItem>
-                            <SelectItem value="MURAJAAH">MURAJAAH</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                    <FormField
+                      control={form.control}
+                      name="juz"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Juz</FormLabel>
+                          <FormControl>
+                            <Input type="number" {...field} onChange={(e) => field.onChange(parseInt(e.target.value))} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
 
-                  <FormField
-                    control={form.control}
-                    name="juz"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Juz</FormLabel>
-                        <FormControl><Input type="number" {...field} onChange={(e) => field.onChange(parseInt(e.target.value))} /></FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  {/* Row 2: Surah & Ayat */}
                   <FormField
                     control={form.control}
                     name="surah"
                     render={({ field }) => (
-                      <FormItem>
+                      <FormItem className="col-span-full">
                         <FormLabel>Surah</FormLabel>
-                        <FormControl><Input placeholder="Al-Baqarah" {...field} /></FormControl>
+                        <FormControl><Input placeholder="Contoh: Al-Baqarah" {...field} /></FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
 
-                  <FormField
-                    control={form.control}
-                    name="ayat_mulai"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Ayat Mulai</FormLabel>
-                        <FormControl><Input type="number" {...field} onChange={(e) => field.onChange(parseInt(e.target.value))} /></FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <div className="grid grid-cols-2 gap-4 col-span-full">
+                    <FormField
+                      control={form.control}
+                      name="ayat_mulai"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Ayat Mulai</FormLabel>
+                          <FormControl>
+                            <Input type="number" {...field} onChange={(e) => field.onChange(parseInt(e.target.value))} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-                  <FormField
-                    control={form.control}
-                    name="ayat_selesai"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Ayat Selesai</FormLabel>
-                        <FormControl><Input type="number" {...field} onChange={(e) => field.onChange(parseInt(e.target.value))} /></FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                    <FormField
+                      control={form.control}
+                      name="ayat_selesai"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Ayat Selesai</FormLabel>
+                          <FormControl>
+                            <Input type="number" {...field} onChange={(e) => field.onChange(parseInt(e.target.value))} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                 </div>
 
                 <div className="flex justify-end gap-3">
