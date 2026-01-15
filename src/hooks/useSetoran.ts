@@ -4,7 +4,7 @@ import { toast } from "sonner";
 
 export const useSetoran = () => {
   const [loading, setLoading] = useState(false);
-  const [history, setHistory] = useState<any[]>([]);
+  const [history, _setHistory] = useState<any[]>([]);
   const [santriList, setSantriList] = useState<any[]>([]); // Tambahkan state ini
 
   // Fungsi untuk mengambil daftar santri (untuk dropdown)
@@ -20,18 +20,18 @@ export const useSetoran = () => {
   }, []);
 
   // Fungsi untuk mengambil riwayat setoran berdasarkan tanggal
-    const fetchHistory = useCallback(async (date: string) => {
-    setLoading(true); // Mulai loading
-    try {
-        const res = await setoranService.getSetoranByDate(date);
-        setHistory(res.data || []); // Update state dengan data terbaru
-    } catch (err) {
-        console.error(err);
-        setHistory([]); // Kosongkan jika error
-    } finally {
-        setLoading(false); // Selesai loading
-    }
-    }, []);
+    // const fetchHistory = useCallback(async (date: string) => {
+    // setLoading(true); // Mulai loading
+    // try {
+    //     const res = await setoranService.getSetoranByDate(date);
+    //     setHistory(res.data || []); // Update state dengan data terbaru
+    // } catch (err) {
+    //     console.error(err);
+    //     setHistory([]); // Kosongkan jika error
+    // } finally {
+    //     setLoading(false); // Selesai loading
+    // }
+    // }, []);
 
   // Fungsi untuk menambah setoran baru
   const addSetoran = async (values: SetoranPayload) => {
@@ -58,7 +58,7 @@ export const useSetoran = () => {
   return { 
     addSetoran, 
     history, 
-    fetchHistory, 
+    // fetchHistory, 
     santriList, 
     fetchSantri, 
     loading 

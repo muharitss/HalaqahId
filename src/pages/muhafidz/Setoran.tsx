@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
+import {  useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { setoranSchema, type SetoranFormValues } from "@/utils/zodSchema";
-import { format } from "date-fns";
-import { id } from "date-fns/locale";
+// import { format } from "date-fns";
+// import { id } from "date-fns/locale";
 import { useSetoran } from "@/hooks/useSetoran";
 
 // UI Components (Shadcn)
@@ -35,24 +35,25 @@ import {
 import {
   Card,
   CardContent,
-  CardDescription,
+  // CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+// import { Calendar } from "@/components/ui/calendar";
+// import {
+//   Popover,
+//   PopoverContent,
+//   PopoverTrigger,
+// } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import type { SetoranPayload } from "@/services/setoranService";
 
 export default function InputSetoranPage() {
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  // const [selectedDate, _setSelectedDate] = useState<Date>(new Date());
   
   // Ambil data dan fungsi dari hook useSetoran
-  const { history, santriList, loading, fetchHistory, fetchSantri, addSetoran } = useSetoran();
+  const { history, santriList, loading, fetchSantri, addSetoran } = useSetoran();
 
   const form = useForm<SetoranFormValues>({
     resolver: zodResolver(setoranSchema) as any,
@@ -60,12 +61,9 @@ export default function InputSetoranPage() {
       santri_id: 0,
       juz: 1,
       kategori: "HAFALAN" as const,
-      surah: "",
-      ayat_mulai: 1,
-      ayat_selesai: 1,
-      nilai: 80,
-      catatan: "",
-      tanggal: new Date(),
+      surat: "",
+      ayat: "1-10",
+      taqwim: "Mumtaz",
     },
   });
 
@@ -75,45 +73,46 @@ export default function InputSetoranPage() {
   }, [fetchSantri]);
 
   // Fetch riwayat setiap kali tanggal berubah
-  useEffect(() => {
-    const dateStr = format(selectedDate, "yyyy-MM-dd");
-    fetchHistory(dateStr);
-  }, [selectedDate, fetchHistory]);
+  // useEffect(() => {
+  //   const dateStr = format(selectedDate, "yyyy-MM-dd");
+  //   fetchHistory(dateStr);
+  // }, [selectedDate, fetchHistory]);
 
   async function onSubmit(data: SetoranFormValues) {
-      const payload = {
-        santri_id: Number(data.santri_id),
-        juz: Number(data.juz),
-        surat: data.surah,
-        ayat: `${data.ayat_mulai}-${data.ayat_selesai}`,
-        kategori: data.kategori as "HAFALAN" | "MURAJAAH", 
-        taqwim: data.nilai >= 90 ? "Mumtaz" : data.nilai >= 80 ? "Jayyid Jiddan" : "Jayyid",
-        keterangan: data.catatan || "",
-      };
+    // Mapping sesuai dokumentasi API
+    const payload: SetoranPayload = {
+      santri_id: data.santri_id, // Sudah number karena z.coerce
+      juz: data.juz,             // Sudah number
+      surat: data.surat,
+      ayat: data.ayat, // Format "1-10"
+      kategori: data.kategori,
+      taqwim: data.taqwim || "Mumtaz", // Pastikan terisi sesuai spec
+      keterangan: data.keterangan || "",
+    };
 
-      const result = await addSetoran(payload);
+    const result = await addSetoran(payload);
     
     if (result.success) {
+      // Reset form ke state awal kecuali santri (opsional, untuk mempermudah input beruntun)
       form.reset({
         ...form.getValues(),
-        surah: "",
-        ayat_mulai: 1,
-        ayat_selesai: 1,
-        catatan: "",
+        surat: "",
+        ayat: "1-10",
+        keterangan: "",
       });
-      const dateStr = format(selectedDate, "yyyy-MM-dd");
-      await fetchHistory(dateStr);
-      // Refresh list setelah simpan
-      fetchHistory(format(selectedDate, "yyyy-MM-dd"));
+      
+      // Refresh history
+      // const dateStr = format(selectedDate, "yyyy-MM-dd");
+      // await fetchHistory(dateStr);
     }
   }
 
-  const handleDateChange = (date: Date | undefined) => {
-    if (date) {
-      setSelectedDate(date);
-      form.setValue("tanggal", date);
-    }
-  };
+  // const handleDateChange = (date: Date | undefined) => {
+  //   if (date) {
+  //     setSelectedDate(date);
+  //     form.setValue("tanggal", date);
+  //   }
+  // };
 
   // Kalkulasi summary dari data API
   const summary = {
@@ -138,7 +137,7 @@ export default function InputSetoranPage() {
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="text-2xl">Input Setoran Hafalan</CardTitle>
-              <div className="flex items-center gap-3 mt-1">
+              {/* <div className="flex items-center gap-3 mt-1">
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
@@ -161,7 +160,7 @@ export default function InputSetoranPage() {
                 <CardDescription>
                   Pilih tanggal untuk mengisi atau melihat setoran
                 </CardDescription>
-              </div>
+              </div> */}
             </div>
           </div>
         </CardHeader>
@@ -231,7 +230,7 @@ export default function InputSetoranPage() {
                   {/* Row 2: Surah & Ayat */}
                   <FormField
                     control={form.control}
-                    name="surah"
+                    name="surat"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Surah</FormLabel>
@@ -243,11 +242,11 @@ export default function InputSetoranPage() {
 
                   <FormField
                     control={form.control}
-                    name="ayat_mulai"
-                    render={({ field }) => (
+                    name="ayat"
+                    render={() => (
                       <FormItem>
-                        <FormLabel>Ayat Mulai</FormLabel>
-                        <FormControl><Input type="number" {...field} onChange={(e) => field.onChange(parseInt(e.target.value))} /></FormControl>
+                        <FormLabel>Ayat</FormLabel>
+                        <FormControl><Input type="string"/></FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -255,11 +254,11 @@ export default function InputSetoranPage() {
 
                   <FormField
                     control={form.control}
-                    name="ayat_selesai"
-                    render={({ field }) => (
+                    name="taqwim"
+                    render={() => (
                       <FormItem>
-                        <FormLabel>Ayat Selesai</FormLabel>
-                        <FormControl><Input type="number" {...field} onChange={(e) => field.onChange(parseInt(e.target.value))} /></FormControl>
+                        <FormLabel>Taqwim</FormLabel>
+                        <FormControl><Input type="string"  /></FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -343,10 +342,10 @@ function SummaryCard({ label, value, color }: { label: string; value: string | n
   );
 }
 
-function CalendarIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-    </svg>
-  );
-}
+// function CalendarIcon({ className }: { className?: string }) {
+//   return (
+//     <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+//       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+//     </svg>
+//   );
+// }

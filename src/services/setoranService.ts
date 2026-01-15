@@ -4,7 +4,7 @@ export interface SetoranPayload {
   santri_id: number;
   juz: number;
   surat: string;
-  ayat: string; // Format "1-10"
+  ayat: string; 
   kategori: "HAFALAN" | "MURAJAAH";
   taqwim?: string; // Penilaian huruf (A, B, Mumtaz)
   keterangan?: string;
@@ -12,13 +12,21 @@ export interface SetoranPayload {
 
 export interface SetoranResponse {
   id_setoran: number;
-  // ... field lainnya sesuai response backend
+  santri_id: number;
+  tanggal_setoran: string;
+  juz: number;
+  surat: string;
+  ayat: string;
+  kategori: "HAFALAN" | "MURAJAAH";
+  taqwim: string;
+  keterangan: string;
 }
 
 export interface ApiResponse<T> {
   success: boolean;
   message: string;
   data: T;
+  pagination?: number;
 }
 
 export const setoranService = {
@@ -35,8 +43,8 @@ export const setoranService = {
   },
   
   // Ambil history berdasarkan tanggal
-  getSetoranByDate: async (date: string): Promise<ApiResponse<any[]>> => {
-    const response = await axiosClient.get<ApiResponse<any[]>>(`/setoran?date=${date}`);
-    return response.data;
-  }
+  // getSetoranByDate: async (date: string): Promise<ApiResponse<any[]>> => {
+  //   const response = await axiosClient.get<ApiResponse<any[]>>(`/setoran?date=${date}`);
+  //   return response.data;
+  // }
 };
