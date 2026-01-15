@@ -204,6 +204,36 @@ export default function InputSetoranPage() {
                       </FormItem>
                     )}
                   />
+
+                  <FormField
+                    control={form.control}
+                    name="kategori"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Kategori</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                          <SelectContent>
+                            <SelectItem value="HAFALAN">HAFALAN</SelectItem>
+                            <SelectItem value="MURAJAAH">MURAJAAH</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="juz"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Juz</FormLabel>
+                        <FormControl><Input type="number" {...field} onChange={(e) => field.onChange(parseInt(e.target.value))} /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                   
                   <div className="grid grid-cols-2 gap-4 col-span-full">
                     {/* Row 2: Kategori & Juz disandingkan */}
@@ -281,8 +311,7 @@ export default function InputSetoranPage() {
                       )}
                     />
                   </div>
-                </div>
-
+                </div  
                 <div className="flex justify-end gap-3">
                   <Button 
                     type="submit" 

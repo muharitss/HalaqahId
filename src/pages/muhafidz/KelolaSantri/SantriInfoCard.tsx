@@ -1,32 +1,40 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBook } from "@fortawesome/free-solid-svg-icons";
+import { faCircleInfo } from "@fortawesome/free-solid-svg-icons";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 export function SantriInfoCard() {
   const targets = [
-    { label: "Ringan", desc: "1-2 halaman per pertemuan (untuk pemula)", color: "text-green-500" },
-    { label: "Sedang", desc: "3-4 halaman per pertemuan (rata-rata)", color: "text-yellow-500" },
-    { label: "Intens", desc: "5-6 halaman per pertemuan (lanjutan)", color: "text-orange-500" },
-    { label: "Khusus", desc: "Target khusus sesuai kesepakatan", color: "text-purple-500" },
-  ];
+    { label: "Ringan", desc: "1-2 halaman per pertemuan (untuk pemula)", variant: "secondary" },
+    { label: "Sedang", desc: "3-4 halaman per pertemuan (rata-rata)", variant: "outline" },
+    { label: "Intens", desc: "5-6 halaman per pertemuan (lanjutan)", variant: "default" },
+    { label: "Khusus", desc: "Target khusus sesuai kesepakatan", variant: "destructive" },
+  ] as const;
 
   return (
-    <div className="rounded-xl border border-border bg-surface p-6 dark:bg-surface-dark shadow-sm">
-      <div className="flex items-start gap-3">
-        <div className="h-10 w-10 rounded-lg bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center flex-shrink-0">
-          <FontAwesomeIcon icon={faBook} className="text-blue-600 dark:text-blue-400" />
+    <Card className="shadow-sm">
+      <CardHeader className="flex flex-row items-center gap-3 pb-2">
+        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+          <FontAwesomeIcon icon={faCircleInfo} />
         </div>
-        <div>
-          <h4 className="font-semibold dark:text-white mb-2">Keterangan Target Hafalan</h4>
-          <ul className="text-sm text-text-secondary dark:text-text-secondary-dark space-y-2">
-            {targets.map((t, idx) => (
-              <li key={idx} className="flex items-start gap-2">
-                <span className={`font-bold ${t.color}`}>• {t.label}:</span>
-                <span>{t.desc}</span>
-              </li>
-            ))}
-          </ul>
+        <CardTitle className="text-base font-semibold">
+          Informasi Target Hafalan
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="grid gap-4 sm:grid-cols-2">
+          {targets.map((t, idx) => (
+            <div key={idx} className="flex flex-col gap-2 rounded-lg border p-3">
+              <div className="flex items-center gap-2">
+                <Badge variant={t.variant}>{t.label}</Badge>
+              </div>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                {t.desc}
+              </p>
+            </div>
+          ))}
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }

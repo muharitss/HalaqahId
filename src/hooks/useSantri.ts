@@ -3,10 +3,10 @@ import { santriService, type Santri, type CreateSantriData, type UpdateSantriDat
 
 export const useSantri = () => {
   const [santriList, setSantriList] = useState<Santri[]>([]);
-  const [selectedSantri, setSelectedSantri] = useState<Santri | null>(null);
+  const [selectedSantri, _setSelectedSantri] = useState<Santri | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [stats, setStats] = useState<SantriStats | null>(null);
+  const [stats, _setStats] = useState<SantriStats | null>(null);
 
   // Load semua santri
   const loadSantri = useCallback(async () => {
@@ -76,24 +76,24 @@ export const useSantri = () => {
   }, []);
 
   // Search santri
-  const searchSantri = useCallback(async (query: string) => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const results = await santriService.search(query);
-      return results;
-    } catch (err: any) {
-      setError(err.message);
-      throw err;
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  // const searchSantri = useCallback(async (query: string) => {
+  //   setIsLoading(true);
+  //   setError(null);
+  //   try {
+  //     const results = await santriService.search(query);
+  //     return results;
+  //   } catch (err: any) {
+  //     setError(err.message);
+  //     throw err;
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // }, []);
 
   // Pilih santri untuk edit
-  const selectSantri = useCallback((santri: Santri | null) => {
-    setSelectedSantri(santri);
-  }, []);
+  // const selectSantri = useCallback((santri: Santri | null) => {
+  //   setSelectedSantri(santri);
+  // }, []);
 
   // Reset error
   const resetError = useCallback(() => {
