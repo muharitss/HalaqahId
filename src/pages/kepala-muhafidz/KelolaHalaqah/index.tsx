@@ -29,6 +29,7 @@ import {
 import { MoreVertical, Edit2, Trash2 } from "lucide-react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUsers, faUserTie, faPhone, faBullseye, faTrashRestore } from "@fortawesome/free-solid-svg-icons";
+import { HalaqahManagement } from "@/components/ui/TypedText";
 
 export default function KelolaHalaqah() {
   // States
@@ -93,7 +94,7 @@ export default function KelolaHalaqah() {
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Manajemen Halaqah</h1>
+          <HalaqahManagement/>
           <p className="text-muted-foreground">Kelola kelompok bimbingan dan pantau santri di dalamnya.</p>
         </div>
         <div className="flex items-center gap-2">

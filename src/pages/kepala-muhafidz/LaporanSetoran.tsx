@@ -36,9 +36,8 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { 
   faCalendarAlt,  
   faUserGraduate,
-  faClipboardList,
 } from "@fortawesome/free-solid-svg-icons";
-import Title from "@/components/ui/TypedText";
+import Laporan from "@/components/ui/TypedText";
 
 export default function LaporanSetoranPage() {
   const { allSetoran, fetchAllSetoran, loading } = useSetoran();
@@ -68,10 +67,7 @@ export default function LaporanSetoranPage() {
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            <FontAwesomeIcon icon={faClipboardList} className="mr-2 text-primary" />
-            <Title/>
-          </h1>
+          <Laporan/>
           <p className="text-sm text-muted-foreground">Monitoring progres hafalan santri per halaqah.</p>
         </div>
 

@@ -1,12 +1,12 @@
 import { ReactTyped } from "react-typed";
 
-export default function Title() {
+export default function Laporan() {
   return (
-    <h1 className="text-2xl font-semibold">
+    <h1 className="text-3xl font-semibold">
       <ReactTyped
         strings={["Laporan Setoran Hafalan Santri"]}
         typeSpeed={60}
-        backSpeed={22}
+        backSpeed={32}
         backDelay={2800}
         loop
         showCursor={true}
@@ -15,13 +15,13 @@ export default function Title() {
   );
 }
 
-export const Titleas = () => {
+export const HalaqahManagement = () => {
   return (
-    <h1 className="text-2xl font-semibold">
+    <h1 className="text-3xl font-semibold">
       <ReactTyped
-        strings={["Laporan Setoran Hafalan Santri"]}
+        strings={["Kelola Halaqah"]}
         typeSpeed={60}
-        backSpeed={22}
+        backSpeed={32}
         backDelay={2800}
         loop
         showCursor={true}
