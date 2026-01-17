@@ -41,10 +41,10 @@ export const setoranService = {
     const response = await axiosClient.get<ApiResponse<any[]>>("/santri");
     return response.data;
   },
-  
-  // Ambil history berdasarkan tanggal
-  // getSetoranByDate: async (date: string): Promise<ApiResponse<any[]>> => {
-  //   const response = await axiosClient.get<ApiResponse<any[]>>(`/setoran?date=${date}`);
-  //   return response.data;
-  // }
+
+  // GET /setoran
+  getAllSetoran: async (): Promise<ApiResponse<any[]>> => {
+    const response = await axiosClient.get<ApiResponse<any[]>>("/setoran/all");
+    return response.data;
+  },
 };
