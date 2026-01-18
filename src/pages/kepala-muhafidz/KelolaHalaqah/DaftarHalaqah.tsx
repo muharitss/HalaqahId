@@ -28,6 +28,15 @@ import {
 import { type Halaqah } from "@/services/halaqahService";
 import { type Santri } from "@/services/santriService";
 import { Skeleton } from "@/components/ui/skeleton";
+import { library } from '@fortawesome/fontawesome-svg-core'
+
+/* import all the icons in Free Solid, Free Regular, and Brands styles */
+import { fas } from '@fortawesome/free-solid-svg-icons'
+import { far } from '@fortawesome/free-regular-svg-icons'
+import { fab } from '@fortawesome/free-brands-svg-icons'
+
+library.add(fas, far, fab)
+
 
 interface DaftarHalaqahProps {
   halaqahs: Halaqah[];
@@ -52,6 +61,16 @@ export function DaftarHalaqah({
   santriMap,
   onAddSantri
 }: DaftarHalaqahProps) {
+
+  const formatWhatsApp = (phone: string) => {
+    let cleaned = phone.replace(/\D/g, "");
+    
+    if (cleaned.startsWith("0")) {
+      cleaned = "62" + cleaned.substring(1);
+    }
+    
+    return `https://wa.me/${cleaned}`;
+  };
   
   if (isLoading) return <HalaqahLoadingSkeleton />;
 
@@ -141,7 +160,17 @@ export function DaftarHalaqah({
                       daftarSantri.map((s) => (
                         <TableRow key={s.id_santri}>
                           <TableCell className="font-medium">{s.nama_santri}</TableCell>
-                          <TableCell>{s.nomor_telepon}</TableCell>
+                          <TableCell>
+                            <a 
+                              href={formatWhatsApp(s.nomor_telepon)} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-2 text-primary hover:text-primary-dark hover:underline transition-all"
+                            >
+                              <FontAwesomeIcon icon="fa-brands fa-whatsapp" />
+                              {s.nomor_telepon}
+                            </a>
+                          </TableCell>
                           <TableCell>
                             <Badge variant={s.target === "INTENSE" ? "default" : "outline"}>
                               {s.target}
