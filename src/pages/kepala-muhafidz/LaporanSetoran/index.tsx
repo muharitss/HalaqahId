@@ -79,7 +79,7 @@ export default function LaporanSetoranPage() {
     : format(new Date(selectedYear ?? 0, selectedMonth ?? 0), "MMMM yyyy", { locale: id });
 
   return (
-    <div className="p-6 space-y-6 animate-in fade-in duration-500">
+    <div className="space-y-6 animate-in fade-in duration-500">
       
       {/* SECTION 1: HEADER (Statik, tidak loading) */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-6">
