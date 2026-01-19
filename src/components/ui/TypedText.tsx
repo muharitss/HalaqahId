@@ -2,7 +2,7 @@ import { ReactTyped } from "react-typed";
 
 export default function Laporan() {
   return (
-    <h1 className="text-2xl font-semibold">
+    <h1 className="text-3xl font-semibold">
       <ReactTyped
         strings={["Laporan Setoran"]}
         typeSpeed={60}
@@ -17,7 +17,7 @@ export default function Laporan() {
 
 export const HalaqahManagement = () => {
   return (
-    <h1 className="text-2xl font-semibold">
+    <h1 className="text-3xl font-semibold">
       <ReactTyped
         strings={["Kelola Halaqah"]}
         typeSpeed={60}
@@ -32,7 +32,7 @@ export const HalaqahManagement = () => {
 
 export const Settings = () => {
   return (
-    <h1 className="text-2xl font-semibold">
+    <h1 className="text-3xl font-semibold">
       <ReactTyped
         strings={["Pengaturan"]}
         typeSpeed={60}

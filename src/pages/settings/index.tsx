@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { SettingItem } from "./SettingItem";
 import { useAuth } from "@/context/AuthContext";
+import { Settings } from "@/components/ui/TypedText";
 
 export default function SettingsPage() {
   const navigate = useNavigate();
@@ -19,8 +20,8 @@ export default function SettingsPage() {
           <ChevronLeft className="h-5 w-5" />
         </Button>
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Pengaturan</h1>
-          <p className="text-sm text-muted-foreground">Kelola akun dan sistem halaqah Anda</p>
+          <Settings/>
+          <p className="text-sm md:text-base text-muted-foreground">Kelola akun dan sistem halaqah Anda</p>
         </div>
       </div>
 
