@@ -1,186 +1,242 @@
-import { useState, useEffect } from "react";
-import { useAuth } from "@/context/AuthContext";
+import { useEffect, useState, useCallback, useMemo } from "react";
+import { toast } from "sonner";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faUsers } from "@fortawesome/free-solid-svg-icons";
+
+// Services & Hooks
 import { halaqahService, type Halaqah } from "@/services/halaqahService";
+import { type Santri } from "@/services/santriService";
+import { useSantri } from "@/hooks/useSantri";
+
+// Components
 import { BuatHalaqah } from "./BuatHalaqah";
-import { DaftarHalaqah } from "./DaftarHalaqah";
 import { EditHalaqah } from "./EditHalaqah";
 import { DeleteHalaqah } from "./DeleteHalaqah";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { 
-  faBook, 
-  // faUserTie,
-  // faUsers,
-  faInfoCircle
-} from "@fortawesome/free-solid-svg-icons";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
+import { DaftarHalaqah } from "./DaftarHalaqah";
+import { SantriModal } from "../../muhafidz/KelolaSantri/SantriModal";
+import { PindahSantri } from "@/components/forms/PindahSantri";
+import { HalaqahManagement } from "@/components/ui/TypedText";
 
-export default function KelolaHalaqahPage() {
-  const { user } = useAuth();
-  const [halaqahList, setHalaqahList] = useState<Halaqah[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [_error, setError] = useState("");
-  const [_success, setSuccess] = useState("");
-  
-  // State untuk edit dan delete
-  const [editingHalaqah, setEditingHalaqah] = useState<Halaqah | null>(null);
-  const [deletingHalaqah, setDeletingHalaqah] = useState<Halaqah | null>(null);
-  const [isEditOpen, setIsEditOpen] = useState(false);
-  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+// UI Components
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
-  // Load data halaqah
-  useEffect(() => {
-    loadHalaqah();
-  }, []);
+export default function KelolaHalaqah() {
+  // State Halaqah
+  const [halaqahs, setHalaqahs] = useState<Halaqah[]>([]);
+  const [isLoadingHalaqah, setIsLoadingHalaqah] = useState(true);
+  const [selectedHalaqah, setSelectedHalaqah] = useState<Halaqah | null>(null);
+  const [isEditHalaqahOpen, setIsEditHalaqahOpen] = useState(false);
+  const [isDeleteHalaqahOpen, setIsDeleteHalaqahOpen] = useState(false);
 
-  const loadHalaqah = async () => {
-    setIsLoading(true);
-    setError("");
+  // State Santri
+  const [selectedSantri, setSelectedSantri] = useState<Santri | null>(null);
+  const [isSantriModalOpen, setIsSantriModalOpen] = useState(false);
+  const [isDeleteSantriOpen, setIsDeleteSantriOpen] = useState(false);
+  const [isMoveSantriOpen, setIsMoveSantriOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const { santriList, loadSantri, createSantri, updateSantri, deleteSantri } = useSantri();
+
+  // Load Data
+  const fetchData = useCallback(async () => {
+    setIsLoadingHalaqah(true);
     try {
-      const response = await halaqahService.getAllHalaqah();
-      if (response.success) {
-        // Hitung jumlah santri jika belum ada di response
-        const halaqahWithCount = response.data.map(h => ({
-          ...h,
-          jumlah_santri: h._count.santri || 0
-        }));
-        setHalaqahList(halaqahWithCount);
-      }
-    } catch (err: any) {
-      setError("Gagal memuat data halaqah: " + (err.message || "Server error"));
-      console.error("Load halaqah error:", err);
+      const res = await halaqahService.getAllHalaqah();
+      setHalaqahs(res.data);
+      loadSantri();
+    } catch (error) {
+      toast.error("Gagal mengambil data halaqah");
     } finally {
-      setIsLoading(false);
+      setIsLoadingHalaqah(false);
+    }
+  }, [loadSantri]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  // Optimasi: Map santri ke ID Halaqah untuk performa render
+  const santriMap = useMemo(() => {
+    return santriList.reduce((acc, s) => {
+      const key = s.halaqah_id;
+      if (!acc[key]) acc[key] = [];
+      acc[key].push(s);
+      return acc;
+    }, {} as Record<number, Santri[]>);
+  }, [santriList]);
+
+  // --- HANDLER ACTIONS ---
+
+  // Handler Buka Modal Tambah Santri (dari Dropdown Halaqah)
+  const handleOpenAddSantri = (h: Halaqah) => {
+    setSelectedHalaqah(h);
+    setSelectedSantri(null); // Pastikan null untuk mode "Tambah"
+    setIsSantriModalOpen(true);
+  };
+
+  // Handler Buka Modal Edit Santri
+  const handleOpenEditSantri = (s: Santri) => {
+    setSelectedSantri(s);
+    setIsSantriModalOpen(true);
+  };
+
+  // Handler Simpan Santri (Create & Update)
+  const handleSaveSantri = async (payload: any) => {
+    setIsSubmitting(true);
+    try {
+      if (selectedSantri) {
+        // Mode Edit
+        await updateSantri(selectedSantri.id_santri, payload);
+        toast.success("Profil santri diperbarui");
+      } else {
+        // Mode Tambah
+        await createSantri(payload);
+        toast.success("Santri baru berhasil ditambahkan");
+      }
+      setIsSantriModalOpen(false);
+      fetchData();
+    } catch (error: any) {
+      toast.error(error.message || "Gagal menyimpan data santri");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const handleCreateSuccess = () => {
-    setSuccess("Halaqah berhasil dibuat!");
-    loadHalaqah();
-    setTimeout(() => setSuccess(""), 3000);
+  // Delete Santri Confirm
+  const handleDeleteSantriConfirm = async () => {
+    if (!selectedSantri) return;
+    try {
+      await deleteSantri(selectedSantri.id_santri);
+      toast.success("Santri berhasil dihapus");
+      fetchData();
+    } catch (error: any) {
+      toast.error(error.message || "Gagal menghapus santri");
+    } finally {
+      setIsDeleteSantriOpen(false);
+    }
   };
 
-  const handleEditClick = (halaqah: Halaqah) => {
-    setEditingHalaqah(halaqah);
-    setIsEditOpen(true);
+  // Move Santri Confirm
+  const handleMoveSantriConfirm = async (santriId: number, targetHalaqahId: number) => {
+    try {
+      await updateSantri(santriId, { halaqah_id: targetHalaqahId });
+      toast.success("Santri berhasil dipindahkan");
+      fetchData();
+    } catch (error: any) {
+      toast.error(error.message || "Gagal memindahkan santri");
+      throw error;
+    }
   };
-
-  const handleEditSuccess = () => {
-    setSuccess("Data halaqah berhasil diperbarui!");
-    loadHalaqah();
-    setTimeout(() => setSuccess(""), 3000);
-  };
-
-  const handleDeleteClick = (halaqah: Halaqah) => {
-    setDeletingHalaqah(halaqah);
-    setIsDeleteOpen(true);
-  };
-
-  const handleDeleteSuccess = () => {
-    setSuccess("Halaqah berhasil dihapus!");
-    loadHalaqah();
-    setTimeout(() => setSuccess(""), 3000);
-  };
-
-  // Cek apakah user adalah superadmin
-  if (user?.role !== "superadmin") {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] text-center p-6">
-        <FontAwesomeIcon icon={faBook} className="text-6xl text-destructive mb-4" />
-        <h2 className="text-2xl font-bold dark:text-white mb-2">Akses Ditolak</h2>
-        <p className="text-text-secondary dark:text-text-secondary-dark">
-          Hanya Kepala Muhafidz yang dapat mengakses halaman ini.
-        </p>
-      </div>
-    );
-  }
-
-  // Hitung statistik
-  // const totalSantri = halaqahList.reduce((sum, h) => sum + (h._count.santri || 0), 0);
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
-      
-      {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">Kelola Halaqah</h2>
-          <p className="text-muted-foreground">
-            Manajemen unit halaqah dan penugasan muhafidz
-          </p>
-        </div>
-        <BuatHalaqah onSuccess={handleCreateSuccess} />
+    <div className="space-y-4 md:space-y-6 max-w-7xl mx-auto">
+    
+    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-6 px-2 md:px-0">
+      <div>
+        <HalaqahManagement />
+        <p className="text-sm md:text-base text-muted-foreground">
+          Kelola kelompok bimbingan santri.
+        </p>
       </div>
+      <div className="w-full md:w-auto">
+        <BuatHalaqah onSuccess={fetchData} />
+      </div>
+    </div>
 
-      {/* Stats Grid */}
-      {/* <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {[
-          { label: "Total Halaqah", value: halaqahList.length, icon: faBook, color: "text-primary" },
-          { label: "Total Santri", value: totalSantri, icon: faUsers },
-          { label: "Muhafidz Aktif", value: new Set(halaqahList.map(h => h.muhafiz_id)).size, icon: faUserTie },
-        ].map((stat, i) => (
-          <Card key={i}>
-            <CardContent className="flex items-center gap-4 p-6">
-              <div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center">
-                <FontAwesomeIcon icon={stat.icon} className={`h-5 w-5 ${stat.color}`} />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">{stat.label}</p>
-                <p className="text-2xl font-bold">{isLoading ? "..." : stat.value}</p>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div> */}
+      {/* Content */}
+      {!isLoadingHalaqah && halaqahs.length === 0 ? (
+        <EmptyState message="Belum ada halaqah yang dibuat." />
+      ) : (
+        <DaftarHalaqah
+          halaqahs={halaqahs}
+          santriMap={santriMap}
+          isLoading={isLoadingHalaqah}
+          onAddSantri={handleOpenAddSantri}
+          onEdit={(h) => { setSelectedHalaqah(h); setIsEditHalaqahOpen(true); }}
+          onDelete={(h) => { setSelectedHalaqah(h); setIsDeleteHalaqahOpen(true); }}
+          onMoveSantri={(s) => { setSelectedSantri(s); setIsMoveSantriOpen(true); }}
+          onEditSantri={handleOpenEditSantri}
+          onDeleteSantri={(s) => { setSelectedSantri(s); setIsDeleteSantriOpen(true); }}
+        />
+      )}
 
-      {/* Main Table Card */}
-      <Card className="shadow-sm">
-        <CardHeader className="px-6 py-4">
-          <CardTitle>Daftar Halaqah</CardTitle>
-          <CardDescription>
-            Menampilkan semua unit halaqah yang aktif dalam sistem
-          </CardDescription>
-        </CardHeader>
-        <Separator />
-        <CardContent className="p-0">
-          <DaftarHalaqah
-            halaqahList={halaqahList}
-            isLoading={isLoading}
-            onEditClick={handleEditClick}
-            onDeleteClick={handleDeleteClick}
-            onRefresh={loadHalaqah}
-            onCreateClick={handleCreateSuccess}
+      {/* --- MODALS HALAQAH --- */}
+      {selectedHalaqah && (
+        <>
+          <EditHalaqah
+            halaqah={selectedHalaqah}
+            isOpen={isEditHalaqahOpen}
+            onClose={() => setIsEditHalaqahOpen(false)}
+            onSuccess={fetchData}
           />
-        </CardContent>
-      </Card>
+          <DeleteHalaqah
+            halaqah={selectedHalaqah}
+            isOpen={isDeleteHalaqahOpen}
+            onClose={() => setIsDeleteHalaqahOpen(false)}
+            onSuccess={fetchData}
+          />
+        </>
+      )}
 
-      {/* Info & Guidelines */}
-      <Alert className="bg-primary/5 border-primary/20">
-        <FontAwesomeIcon icon={faInfoCircle} className="h-4 w-4 text-primary" />
-        <AlertTitle className="font-bold text-primary">Informasi Sistem</AlertTitle>
-        <AlertDescription className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-1 mt-2 text-muted-foreground text-xs italic">
-          <p>• Satu muhafidz hanya bisa mengampu satu halaqah aktif.</p>
-          <p>• Penghapusan halaqah bersifat permanen (Irreversible).</p>
-          <p>• Perubahan muhafidz akan memperbarui riwayat santri terkait.</p>
-          <p>• Gunakan fitur "Edit" untuk mengubah nama atau pengampu.</p>
-        </AlertDescription>
-      </Alert>
-
-      {/* Modals & Dialogs */}
-      <EditHalaqah
-        halaqah={editingHalaqah}
-        isOpen={isEditOpen}
-        onClose={() => setIsEditOpen(false)}
-        onSuccess={handleEditSuccess}
+      {/* --- MODAL SANTRI (Unified Add/Edit) --- */}
+      <SantriModal
+        isOpen={isSantriModalOpen}
+        onClose={() => setIsSantriModalOpen(false)}
+        selectedSantri={selectedSantri || (selectedHalaqah ? { halaqah_id: selectedHalaqah.id_halaqah } : null)}
+        onSave={handleSaveSantri}
+        isAdmin={true}
+        halaqahList={halaqahs}
+        isSubmitting={isSubmitting}
       />
 
-      <DeleteHalaqah
-        halaqah={deletingHalaqah}
-        isOpen={isDeleteOpen}
-        onClose={() => setIsDeleteOpen(false)}
-        onSuccess={handleDeleteSuccess}
+      {/* Pindah Santri */}
+      <PindahSantri
+        isOpen={isMoveSantriOpen}
+        onClose={() => setIsMoveSantriOpen(false)}
+        santri={selectedSantri}
+        halaqahs={halaqahs}
+        onConfirm={handleMoveSantriConfirm}
       />
+
+      {/* Delete Santri Alert */}
+      <AlertDialog open={isDeleteSantriOpen} onOpenChange={setIsDeleteSantriOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Hapus Santri?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Apakah Anda yakin ingin menghapus <strong>{selectedSantri?.nama_santri}</strong>? 
+              Tindakan ini akan memindahkan data ke tempat sampah.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeleteSantriConfirm} 
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              Hapus Santri
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+}
+
+function EmptyState({ message }: { message: string }) {
+  return (
+    <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed rounded-xl opacity-50">
+      <FontAwesomeIcon icon={faUsers} size="3x" className="mb-4" />
+      <p>{message}</p>
     </div>
   );
 }

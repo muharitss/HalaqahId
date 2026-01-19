@@ -1,29 +1,38 @@
-## 📚 Dokumentasi API Halaqah ID - Update Day 4
+# 📚 Dokumentasi API Halaqah ID
 
-Berikut adalah dokumentasi teknis fitur **RBAC (Role-Based Access Control)**, **Username Identity**, **Manajemen Akun Muhafiz**, dan **Manajemen Halaqah** yang telah aktif di `main` branch.
+**Update Day 4**
 
-### 🛠️ Ringkasan Sistem
+Dokumentasi ini mencakup fitur **RBAC (Role-Based Access Control)**, **Username Identity**, **Manajemen Akun Muhafiz**, **Manajemen Halaqah**, **Manajemen Santri**, dan **Modul Setoran Hafalan** yang sudah aktif dan terverifikasi di `main` branch.
+
+---
+
+## 🛠️ Ringkasan Sistem
 
 Sistem menggunakan **JWT Authentication** dengan pembagian role yang ketat.
 
 * **Base URL:** `https://halaqah-id-be.vercel.app`
 * **Prefix API:** `/api`
 * **Prefix Auth:** `/api/halaqah/auth`
+* **Security:** JWT (Role-Based Access)
 
 ---
 
-### 🔐 Keamanan (Middleware)
+## 🔐 Keamanan (Middleware)
 
-Setiap request ke endpoint bertanda 🔐 wajib menyertakan header:
-`Authorization: Bearer <your_jwt_token>`
+Setiap request ke endpoint bertanda 🔐 **wajib** menyertakan header:
+
+```
+Authorization: Bearer <your_jwt_token>
+```
 
 ---
 
-### 📡 Endpoint Authentication
+## 📡 Endpoint Authentication
 
-#### 1. Login (Public)
+### 1. Login (Public)
 
-Sekarang mendukung login via **Email** atau **Username**. User yang sudah di-soft delete tidak bisa login.
+Mendukung login via **Email** atau **Username**.
+User yang sudah di-*soft delete* tidak bisa login.
 
 * **URL:** `POST /auth/login`
 * **Body:**
@@ -33,29 +42,32 @@ Sekarang mendukung login via **Email** atau **Username**. User yang sudah di-sof
   "email": "admin@mail.com",
   "password": "admin123"
 }
-
 ```
-
-#### 2. Get Profile (`/me`) 🔐
-
-Mendapatkan data user yang sedang login dari token.
-
-* **URL:** `GET /auth/me`
-* **Akses:** Semua Role (Superadmin & Muhafiz)
-
-#### 3. Impersonate (Login As) 🔐
-
-Admin "masuk" sebagai Muhafiz untuk pengecekan data tanpa perlu password muhafiz.
-
-* **URL:** `POST /auth/impersonate/:id`
-* **Akses:** Superadmin Saja.
-* **Response:** Mengembalikan token baru dengan identitas Muhafiz terkait.
 
 ---
 
-### 👥 Manajemen User (Admin Only 🔐)
+### 2. Get Profile (`/me`) 🔐
 
-#### 1. Register Muhafiz
+Mengambil data user berdasarkan token login.
+
+* **URL:** `GET /auth/me`
+* **Akses:** Superadmin, Muhafiz
+
+---
+
+### 3. Impersonate (Login As) 🔐
+
+Superadmin login sebagai Muhafiz tanpa password.
+
+* **URL:** `POST /auth/impersonate/:id`
+* **Akses:** Superadmin
+* **Response:** Token baru dengan identitas Muhafiz
+
+---
+
+## 👥 Manajemen User (Admin Only 🔐)
+
+### 1. Register Muhafiz
 
 * **URL:** `POST /auth/register`
 * **Body:**
@@ -66,105 +78,198 @@ Admin "masuk" sebagai Muhafiz untuk pengecekan data tanpa perlu password muhafiz
   "email": "muhafiz@mail.com",
   "password": "password123"
 }
-
 ```
-
-#### 2. Get All Muhafiz List
-
-Daftar muhafiz yang aktif (belum di-soft delete).
-
-* **URL:** `GET /auth/muhafiz`
-
-#### 3. Update Muhafiz (Partial)
-
-* **URL:** `PATCH /auth/muhafiz/:id`
-
-#### 4. Delete Muhafiz (Soft Delete)
-
-* **URL:** `DELETE /auth/muhafiz/:id`
-
-#### 1. Get Deleted Muhafiz (Trash)
-
-Melihat daftar muhafiz yang sedang dinonaktifkan (soft deleted).
-
-* **URL:** `GET /halaqah/auth/muhafiz/deleted`
-
-#### 2. Restore Muhafiz
-
-Mengaktifkan kembali akun muhafiz agar bisa login kembali.
-
-* **URL:** `PATCH /halaqah/auth/muhafiz/restore/:id`
-
 
 ---
 
-### 🏛️ Manajemen Halaqah (Admin Only 🔐)
+### 2. Get All Muhafiz
 
-#### 1. Create Halaqah
+Daftar Muhafiz aktif (belum di-*soft delete*).
 
-Menghubungkan kelompok baru ke satu Muhafiz (Unique).
+* **URL:** `GET /auth/muhafiz`
+
+---
+
+### 3. Update Muhafiz (Partial)
+
+* **URL:** `PATCH /auth/muhafiz/:id`
+
+---
+
+### 4. Soft Delete Muhafiz
+
+* **URL:** `DELETE /auth/muhafiz/:id`
+
+---
+
+### 5. Trash Muhafiz (Deleted)
+
+* **URL:** `GET /halaqah/auth/muhafiz/deleted`
+
+---
+
+### 6. Restore Muhafiz
+
+* **URL:** `PATCH /halaqah/auth/muhafiz/restore/:id`
+
+---
+
+## 🏛️ Manajemen Halaqah (Admin Only 🔐)
+
+### 1. Create Halaqah
+
+Satu Muhafiz hanya boleh memiliki satu Halaqah.
 
 * **URL:** `POST /api/halaqah`
-* **Body:** `{"name_halaqah": "Nama Kelompok", "muhafiz_id": 5}`
+* **Body:**
 
-#### 2. List Halaqah (Active)
-
-* **URL:** `GET /api/halaqah`
-
-``` json
+```json
 {
-    "success": true,
-    "message": "Data halaqah berhasil diambil",
-    "data": [
-        {
-            "id_halaqah": 1,
-            "name_halaqah": "TES\n",
-            "muhafiz_id": 8,
-            "deleted_at": null,
-            "muhafiz": {
-                "id_user": 8,
-                "username": "Muhammad",
-                "email": "muhafiz_baru1@mail.com"
-            },
-            "_count": {
-                "santri": 0
-            }
-        }
-    ]
+  "name_halaqah": "Nama Kelompok",
+  "muhafiz_id": 5
 }
 ```
 
-#### 3. Soft Delete Halaqah
+---
+
+### 2. List Halaqah (Active)
+
+* **URL:** `GET /api/halaqah`
+
+---
+
+### 3. Soft Delete Halaqah
 
 * **URL:** `DELETE /api/halaqah/:id`
 
-#### 4. Trash List (Deleted Only)
+---
+
+### 4. Trash Halaqah
 
 * **URL:** `GET /api/halaqah/deleted`
 
-#### 5. Restore Halaqah
+---
+
+### 5. Restore Halaqah
 
 * **URL:** `PATCH /api/halaqah/restore/:id`
 
 ---
 
-### ⚠️ Tabel Response Error
+## 📖 Manajemen Santri (Core Feature 🔐)
 
-| HTTP Status | Pesan Error | Penjelasan |
-| --- | --- | --- |
-| **401** | `Invalid email or password` | Password salah atau akun sudah di-soft delete. |
-| **403** | `Akses ditolak: Role muhafiz...` | Muhafiz mencoba akses fitur khusus Admin. |
-| **400** | `Username/Email sudah digunakan` | Duplikasi data pada field unik. |
-| **400** | `muhafiz_id sudah digunakan` | Muhafiz sudah memiliki halaqah lain. |
-| **500** | `JWT_SECRET is missing` | Konfigurasi server belum lengkap (Environment Variable). |
+Sistem menggunakan **Ownership Filter**:
+Muhafiz hanya bisa mengakses santri di halaqahnya sendiri.
 
 ---
 
-### 💡 Catatan Implementasi Frontend
+### 1. Create Santri
 
-1. **Token Replacement:** Saat menggunakan fitur Impersonate, segera ganti token di LocalStorage dengan token baru dari response agar role berubah.
-2. **Soft Delete Logic:** User/Halaqah yang dihapus tidak akan muncul di `GET` utama, gunakan endpoint `/deleted` untuk melihat data di "Sampah".
+* **URL:** `POST /api/santri`
+* **Body:**
+
+```json
+{
+  "nama_santri": "Zaid bin Haritsah",
+  "nomor_telepon": "081299001122",
+  "target": "INTENSE",
+  "halaqah_id": 25
+}
+```
 
 ---
 
-**Status:** 🟢 **Production Ready**
+### 2. Get Santri List (Auto Filter)
+
+* **URL:** `GET /api/santri`
+* **Behavior:**
+
+  * **Admin:** Semua santri
+  * **Muhafiz:** Santri di halaqah sendiri
+
+---
+
+### 3. Update Santri
+
+* **URL:** `PATCH /api/santri/:id`
+* **Note:** Muhafiz akan terkena `403` jika bukan miliknya
+
+---
+
+### 4. Soft Delete & Restore Santri
+
+* **Delete:** `DELETE /api/santri/:id`
+* **Restore:** `PATCH /api/santri/:id/restore` (Admin)
+
+---
+
+## 📘 Modul Setoran Hafalan 🔐
+
+### 1. Simpan Setoran Baru
+
+* **Endpoint:** `POST /setoran`
+* **Role:** `superadmin`, `muhafiz`
+
+**Payload:**
+
+| Field      | Tipe   | Wajib | Keterangan         |
+| ---------- | ------ | ----- | ------------------ |
+| santri_id  | Number | Ya    | ID Santri          |
+| juz        | Number | Ya    | 1–30               |
+| surat      | String | Ya    | Nama Surah         |
+| ayat       | String | Ya    | Rentang ayat       |
+| kategori   | String | Ya    | HAFALAN / MURAJAAH |
+| taqwim     | String | Tidak | Nilai              |
+| keterangan | String | Tidak | Catatan            |
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "message": "Setoran berhasil dicatat",
+  "data": { "id_setoran": 18 }
+}
+```
+
+---
+
+### 2. Riwayat Setoran Per Santri
+
+* **Endpoint:** `GET /setoran/santri/:santriId`
+
+---
+
+### 3. Laporan Global (Admin Only)
+
+* **Endpoint:** `GET /setoran/all`
+
+---
+
+## ⚠️ Error Handling (Global)
+
+| Status | Pesan                | Keterangan       |
+| ------ | -------------------- | ---------------- |
+| 400    | Input tidak valid    | Validasi gagal   |
+| 401    | Unauthorized         | Token invalid    |
+| 403    | Akses ditolak        | Bukan hak akses  |
+| 404    | Data tidak ditemukan | ID salah         |
+| 500    | Server error         | Konfigurasi / DB |
+
+---
+
+## 💡 Catatan Frontend
+
+1. Ganti token saat **Impersonate**
+2. Data *soft delete* tidak muncul di list utama
+3. Validasi enum & field unik di client
+
+---
+
+## ✅ Status
+
+🟢 **Production Ready**
+🟢 **Stable & Verified (Zero 500 Errors)**
+
+---
+👌

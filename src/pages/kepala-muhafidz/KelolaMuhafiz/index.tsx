@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { akunService, type Muhafiz } from "@/services/akunService";
 import { toast } from "sonner"; 
@@ -30,11 +30,7 @@ export default function KelolaMuhafizPage() {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
-  useEffect(() => {
-    loadMuhafiz();
-  }, []);
-
-  const loadMuhafiz = async () => {
+  const loadMuhafiz = useCallback(async () => {
     setIsLoading(true);
     try {
       const response = await akunService.getAllMuhafiz();
@@ -44,7 +40,7 @@ export default function KelolaMuhafizPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   const handleRegisterSuccess = () => {
     toast.success("Akun muhafidz berhasil dibuat");
@@ -82,6 +78,10 @@ export default function KelolaMuhafizPage() {
       error: "Gagal login sebagai muhafidz",
     });
   };
+
+  useEffect(() => {
+    loadMuhafiz();
+  }, [loadMuhafiz]);
 
   if (user?.role !== "superadmin") {
     return (

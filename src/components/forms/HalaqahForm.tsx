@@ -1,212 +1,148 @@
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { halaqahSchema, type HalaqahFormValues } from "@/utils/zodSchema";
 import { halaqahService } from "@/services/halaqahService";
-import { akunService } from "@/services/akunService";
-
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-  FormDescription,
-} from "@/components/ui/form";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Spinner } from "@/components/ui/spinner";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import axiosClient from "@/api/axiosClient"; // Untuk fetch muhafidz
 import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 
-// Import Icons
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { 
-  faBook, 
-  faCheck, 
-  faExclamationTriangle, 
-  faInfoCircle,
-  faPlus 
-} from "@fortawesome/free-solid-svg-icons";
+import { Form, FormControl,FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-const halaqahSchema = z.object({
-  name_halaqah: z.string().min(3, "Nama halaqah minimal 3 karakter"),
-  muhafiz_id: z.number().min(1, "Pilih muhafiz pengampu"),
-});
-
-type HalaqahFormValues = z.infer<typeof halaqahSchema>;
-
-interface HalaqahFormProps {
-  onSuccess?: () => void;
-  initialData?: {
-    id_halaqah?: number;
-    name_halaqah?: string;
-    muhafiz_id?: number;
-  };
+interface Muhafidz {
+  id_user: number;
+  username: string;
 }
 
-export function HalaqahForm({ onSuccess, initialData }: HalaqahFormProps) {
-  const [isLoading, setIsLoading] = useState(false);
-  const [loadingData, setLoadingData] = useState(true);
-  const [errorMessage, setErrorMessage] = useState<string>("");
-  const [allMuhafiz, setAllMuhafiz] = useState<Array<{ id_user: number; username: string; email: string }>>([]);
-  const [halaqahList, setHalaqahList] = useState<any[]>([]);
+interface HalaqahFormProps {
+  initialData?: {
+    id_halaqah: number;
+    name_halaqah: string;
+    muhafiz_id: number;
+  };
+  onSuccess: () => void;
+}
+
+export function HalaqahForm({ initialData, onSuccess }: HalaqahFormProps) {
+  const [muhafidzs, setMuhafidzs] = useState<Muhafidz[]>([]);
+  const [existingHalaqahs, setExistingHalaqahs] = useState<any[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<HalaqahFormValues>({
-    resolver: zodResolver(halaqahSchema),
+    resolver: zodResolver(halaqahSchema) as any,
     defaultValues: {
       name_halaqah: initialData?.name_halaqah || "",
       muhafiz_id: initialData?.muhafiz_id || 0,
     },
   });
 
+  // Ambil daftar muhafidz untuk dropdown
   useEffect(() => {
-    async function loadData() {
+    const fetchData = async () => {
       try {
-        const [muhafizRes, halaqahRes] = await Promise.all([
-          akunService.getAllMuhafiz(),
-          halaqahService.getAllHalaqah()
-        ]);
-        setAllMuhafiz(muhafizRes.data);
-        setHalaqahList(halaqahRes.data);
+        const muhafidzRes = await axiosClient.get("/halaqah/auth/muhafiz");
+        setMuhafidzs(muhafidzRes.data.data || muhafidzRes.data);
+        
+        const halaqahRes = await halaqahService.getAllHalaqah();
+        setExistingHalaqahs(halaqahRes.data || []);
       } catch (error) {
         toast.error("Gagal sinkronisasi data");
-      } finally {
-        setLoadingData(false);
       }
-    }
-    loadData();
+    };
+    fetchData();
   }, []);
 
-  const availableMuhafiz = allMuhafiz.filter(m => {
-    const isTaken = halaqahList.some(h => h.muhafiz_id === m.id_user);
-    // Jika sedang edit, muhafiz yang sekarang harus tetap muncul di pilihan
-    if (initialData?.muhafiz_id === m.id_user) return true;
-    return !isTaken;
-  });
-
-  async function onSubmit(values: HalaqahFormValues) {
-    setIsLoading(true);
-    setErrorMessage("");
-
+  const onSubmit = async (values: HalaqahFormValues) => {
+    setIsSubmitting(true);
     try {
-      if (initialData?.id_halaqah) {
+      if (initialData) {
         await halaqahService.updateHalaqah(initialData.id_halaqah, values);
-        toast.success("Halaqah diperbarui");
+        toast.success("Halaqah berhasil diperbarui");
       } else {
         await halaqahService.createHalaqah(values);
-        toast.success("Halaqah berhasil dibuat");
+        toast.success("Halaqah baru berhasil dibuat");
       }
-      if (onSuccess) onSuccess();
+      onSuccess();
     } catch (error: any) {
-      setErrorMessage(error.response?.data?.message || "Terjadi kesalahan sistem");
+      toast.error(error.response?.data?.message || "Terjadi kesalahan sistem");
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
-  }
+  };
+
+  const availableMuhafidz = useMemo(() => {
+    // Ambil semua ID muhafidz yang sudah mengajar di halaqah manapun
+    const takenIds = existingHalaqahs.map((h) => h.muhafiz_id);
+
+    return muhafidzs.filter((m) => {
+      // Jika mode EDIT, muhafidz saat ini harus tetap muncul
+      if (initialData && m.id_user === initialData.muhafiz_id) {
+        return true;
+      }
+      // Munculkan hanya jika ID nya tidak ada di daftar 'takenIds'
+      return !takenIds.includes(m.id_user);
+    });
+  }, [muhafidzs, existingHalaqahs, initialData]);
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-        
-        {/* Alerts Section */}
-        <div className="space-y-3">
-          {errorMessage && (
-            <Alert variant="destructive">
-              <FontAwesomeIcon icon={faExclamationTriangle} className="h-4 w-4" />
-              <AlertDescription>{errorMessage}</AlertDescription>
-            </Alert>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        {/* Field Name Halaqah tetap sama */}
+        <FormField
+          control={form.control}
+          name="name_halaqah"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Nama Halaqah</FormLabel>
+              <FormControl>
+                <Input placeholder="Contoh: Abu Bakar Ash-Shiddiq" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
           )}
+        />
 
-          {!loadingData && availableMuhafiz.length === 0 && !initialData && (
-            <Alert>
-              <FontAwesomeIcon icon={faInfoCircle} className="h-4 w-4" />
-              <AlertTitle>Muhafiz Penuh</AlertTitle>
-              <AlertDescription>Semua muhafiz sudah memiliki halaqah.</AlertDescription>
-            </Alert>
-          )}
-        </div>
-
-        <div className="grid gap-4 py-2">
-          {/* Nama Halaqah */}
-          <FormField
-            control={form.control}
-            name="name_halaqah"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Nama Halaqah</FormLabel>
+        <FormField
+          control={form.control}
+          name="muhafiz_id"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Muhafidz Pengampu</FormLabel>
+              <Select 
+                onValueChange={(val) => field.onChange(Number(val))} 
+                value={field.value?.toString()} // Gunakan value agar sinkron dengan state
+              >
                 <FormControl>
-                  <div className="relative">
-                    <FontAwesomeIcon icon={faBook} className="absolute left-3 top-3 text-muted-foreground text-sm" />
-                    <Input {...field} placeholder="Contoh: Halaqah Abu Bakar" className="pl-10" disabled={isLoading} />
-                  </div>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pilih Muhafidz" />
+                  </SelectTrigger>
                 </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          {/* Select Muhafiz */}
-          <FormField
-            control={form.control}
-            name="muhafiz_id"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Muhafiz Pengampu</FormLabel>
-                <Select 
-                  onValueChange={(val) => field.onChange(Number(val))} 
-                  value={field.value ? String(field.value) : ""}
-                  disabled={loadingData || isLoading || availableMuhafiz.length === 0}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder={loadingData ? "Memuat..." : "Pilih Muhafiz"} />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {availableMuhafiz.map((m) => (
-                      <SelectItem key={m.id_user} value={String(m.id_user)}>
-                        <div className="flex flex-col text-left">
-                          <span className="font-medium">{m.username}</span>
-                          <span className="text-[10px] text-muted-foreground">{m.email}</span>
-                        </div>
+                <SelectContent>
+                  {availableMuhafidz.length > 0 ? (
+                    availableMuhafidz.map((m) => (
+                      <SelectItem key={m.id_user} value={m.id_user.toString()}>
+                        {m.username}
                       </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormDescription className="text-[11px]">
-                  Satu muhafiz hanya boleh mengampu satu halaqah.
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+                    ))
+                  ) : (
+                    <div className="p-2 text-xs text-center text-muted-foreground">
+                      Semua muhafidz sudah mengampu kelompok.
+                    </div>
+                  )}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-        {/* Footer Actions */}
-        <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-4 border-t">
-          <Button 
-            type="submit" 
-            className="w-full sm:w-auto" 
-            disabled={isLoading || (!initialData && availableMuhafiz.length === 0)}
-          >
-            {isLoading ? (
-              <><Spinner className="mr-2" /> Menyimpan...</>
-            ) : (
-              <><FontAwesomeIcon icon={initialData?.id_halaqah ? faCheck : faPlus} className="mr-2" /> 
-                {initialData?.id_halaqah ? "Simpan Perubahan" : "Buat Halaqah"}
-              </>
-            )}
-          </Button>
-        </div>
+        <Button type="submit" className="w-full" disabled={isSubmitting}>
+          {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {initialData ? "Simpan Perubahan" : "Buat Halaqah"}
+        </Button>
       </form>
     </Form>
   );

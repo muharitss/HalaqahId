@@ -1,186 +1,240 @@
-import { type Halaqah } from "@/services/halaqahService";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faUsers, faUserTie } from "@fortawesome/free-solid-svg-icons";
+import { faWhatsapp } from "@fortawesome/free-brands-svg-icons";
+import { MoreVertical, Edit2, Trash2, ArrowRightLeft, UserPlus } from "lucide-react"; 
+import { 
+  Accordion, 
+  AccordionContent, 
+  AccordionItem, 
+  AccordionTrigger 
+} from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
 } from "@/components/ui/table";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { type Halaqah } from "@/services/halaqahService";
+import { type Santri } from "@/services/santriService";
+import { Skeleton } from "@/components/ui/skeleton";
+import { library } from '@fortawesome/fontawesome-svg-core'
 
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { 
-  faBook, 
-  faEdit,
-  faTrash,
-  faUsers,
-  faPlus,
-  faEllipsisH,
-  faEnvelope
-} from "@fortawesome/free-solid-svg-icons";
+import { fas } from '@fortawesome/free-solid-svg-icons'
+import { far } from '@fortawesome/free-regular-svg-icons'
+import { fab } from '@fortawesome/free-brands-svg-icons'
+
+library.add(fas, far, fab)
 
 interface DaftarHalaqahProps {
-  halaqahList: Halaqah[];
-  isLoading: boolean;
-  onEditClick: (halaqah: Halaqah) => void;
-  onDeleteClick: (halaqah: Halaqah) => void;
-  onRefresh: () => void;
-  onCreateClick: () => void;
+  halaqahs: Halaqah[];
+  santriMap: Record<number, Santri[]>;
+  onEdit: (h: Halaqah) => void;
+  onDelete: (h: Halaqah) => void;
+  onMoveSantri: (s: Santri) => void;
+  onEditSantri: (s: Santri) => void; 
+  onDeleteSantri: (s: Santri) => void; 
+  isLoading?: boolean; 
+  onAddSantri: (h: Halaqah) => void;
 }
 
 export function DaftarHalaqah({ 
-  halaqahList, 
+  halaqahs, 
+  onEdit, 
+  onDelete, 
+  onMoveSantri, 
+  onEditSantri, 
+  onDeleteSantri, 
   isLoading, 
-  onEditClick, 
-  onDeleteClick,
-  onCreateClick
+  santriMap,
+  onAddSantri
 }: DaftarHalaqahProps) {
-  
-  if (isLoading) {
-    return (
-      <div className="rounded-md border bg-card overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-muted/50">
-              <TableHead className="w-[80px]">ID</TableHead>
-              <TableHead>Nama Halaqah</TableHead>
-              <TableHead>Muhafidz</TableHead>
-              <TableHead>Total Santri</TableHead>
-              <TableHead className="text-right">Aksi</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {[1, 2, 3, 4, 5].map((i) => (
-              <TableRow key={i}>
-                <TableCell><Skeleton className="h-5 w-10" /></TableCell>
-                <TableCell><Skeleton className="h-5 w-32" /></TableCell>
-                <TableCell><Skeleton className="h-5 w-40" /></TableCell>
-                <TableCell><Skeleton className="h-5 w-16" /></TableCell>
-                <TableCell className="text-right"><Skeleton className="h-8 w-8 ml-auto rounded-md" /></TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-    );
-  }
 
-  if (halaqahList.length === 0) {
-    return (
-      <div className="flex min-h-[400px] flex-col items-center justify-center rounded-md border border-dashed p-8 text-center animate-in fade-in duration-500">
-        <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-muted">
-          <FontAwesomeIcon icon={faBook} className="h-10 w-10 text-muted-foreground" />
-        </div>
-        <h3 className="mt-4 text-lg font-semibold">Belum ada halaqah</h3>
-        <p className="mb-4 mt-2 text-sm text-muted-foreground">
-          Tambahkan unit halaqah baru untuk mulai mengelola santri.
-        </p>
-        <Button onClick={onCreateClick}>
-          <FontAwesomeIcon icon={faPlus} className="mr-2 h-4 w-4" />
-          Tambah Halaqah Pertama
-        </Button>
-      </div>
-    );
-  }
+  const formatWhatsApp = (phone: string) => {
+    let cleaned = phone.replace(/\D/g, "");
+    if (cleaned.startsWith("0")) {
+      cleaned = "62" + cleaned.substring(1);
+    }
+    return `https://wa.me/${cleaned}`;
+  };
+  
+  if (isLoading) return <HalaqahLoadingSkeleton />;
 
   return (
-    <div className="rounded-md border bg-card overflow-hidden">
-      <Table>
-        <TableHeader>
-          <TableRow className="bg-muted/50 hover:bg-muted/50">
-            <TableHead className="w-[80px] font-bold">ID</TableHead>
-            <TableHead className="font-bold">Nama Halaqah</TableHead>
-            <TableHead className="font-bold">Muhafidz</TableHead>
-            <TableHead className="font-bold">Total Santri</TableHead>
-            <TableHead className="font-bold">Status</TableHead>
-            <TableHead className="text-right font-bold">Aksi</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {halaqahList.map((halaqah) => (
-            <TableRow key={halaqah.id_halaqah}>
-              <TableCell>
-                <Badge variant="outline" className="font-mono font-normal">
-                  #{halaqah.id_halaqah}
-                </Badge>
-              </TableCell>
-              
-              <TableCell className="font-medium">
-                <div className="flex items-center gap-2">
-                  <FontAwesomeIcon icon={faBook} className="text-primary h-3 w-3" />
-                  {halaqah.name_halaqah}
-                </div>
-              </TableCell>
-              
-              <TableCell>
-                <div className="flex flex-col">
-                  <span className="text-sm font-medium">{halaqah.muhafiz.username}</span>
-                  <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                    <FontAwesomeIcon icon={faEnvelope} className="h-2.5 w-2.5" />
-                    {halaqah.muhafiz.email}
+    <Accordion type="single" collapsible className="w-full space-y-3">
+      {halaqahs.map((h) => {
+        const daftarSantri = santriMap[h.id_halaqah] || [];
+
+        return (
+          <AccordionItem 
+            key={h.id_halaqah} 
+            value={h.id_halaqah.toString()} 
+            // Layout: Padding dikurangi dari 4 menjadi 2 pada mobile
+            className="border rounded-xl bg-card px-2 md:px-4 shadow-sm"
+          >
+            <AccordionTrigger className="hover:no-underline py-4">
+              <div className="flex flex-1 items-center justify-between pr-2">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 md:h-12 md:w-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary font-bold text-lg md:text-xl">
+                    {h.name_halaqah.charAt(0)}
+                  </div>
+                  <div className="text-left">
+                    <h3 className="font-bold text-base md:text-lg leading-tight">{h.name_halaqah}</h3>
+                    <div className="flex items-center gap-2 mt-1 text-xs md:text-sm text-muted-foreground">
+                      <span className="flex items-center gap-1">
+                        <FontAwesomeIcon icon={faUserTie} className="text-[10px]" />
+                        {h.muhafiz?.username || "Tanpa Muhafiz"}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <FontAwesomeIcon icon={faUsers} className="text-[10px]" />
+                        {h._count?.santri || 0} Santri
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </TableCell>
-              
-              <TableCell>
-                <div className="flex items-center gap-2">
-                  <Badge variant="secondary" className="font-normal">
-                    <FontAwesomeIcon icon={faUsers} className="mr-1.5 h-2.5 w-2.5" />
-                    {halaqah._count?.santri || 0} Santri
-                  </Badge>
-                </div>
-              </TableCell>
-
-              <TableCell>
-                <div className="flex items-center gap-1.5">
-                  <span className="h-2 w-2 rounded-full bg-green-500" />
-                  <span className="text-xs">Aktif</span>
-                </div>
-              </TableCell>
-
-              <TableCell className="text-right">
+              </div>
+            </AccordionTrigger>
+            
+            <AccordionContent className="px-0 pt-0 pb-4">
+              <div className="flex justify-between items-center py-3 border-t border-dashed mb-2 px-1">
+                <h4 className="text-[10px] md:text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  Daftar Anggota
+                </h4>
+                
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                      <FontAwesomeIcon icon={faEllipsisH} className="h-3 w-3" />
+                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                      <MoreVertical className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-48">
-                    <DropdownMenuLabel>Kelola Halaqah</DropdownMenuLabel>
+                  <DropdownMenuContent align="end" className="w-[160px]">
+                    <DropdownMenuLabel>Aksi Halaqah</DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    <DropdownMenuGroup>
-                      <DropdownMenuItem onClick={() => onEditClick(halaqah)}>
-                        <FontAwesomeIcon icon={faEdit} className="mr-2 h-3.5 w-3.5" />
-                        <span>Edit Data</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem 
-                        onClick={() => onDeleteClick(halaqah)}
-                        className="text-destructive focus:text-destructive focus:bg-destructive/10"
-                      >
-                        <FontAwesomeIcon icon={faTrash} className="mr-2 h-3.5 w-3.5" />
-                        <span>Hapus Permanen</span>
-                      </DropdownMenuItem>
-                    </DropdownMenuGroup>
+                    <DropdownMenuItem onClick={() => onAddSantri(h)} className="cursor-pointer text-primary focus:text-primary font-medium">
+                      <UserPlus className="mr-2 h-4 w-4" /> 
+                      <span>Tambah Santri</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => onEdit(h)} className="cursor-pointer">
+                      <Edit2 className="mr-2 h-4 w-4" />
+                      <span>Edit Data</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => onDelete(h)} 
+                      className="cursor-pointer text-destructive focus:text-destructive"
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      <span>Hapus Halaqah</span>
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+              </div>
+
+              {/* Layout: Tabel dibuat overflow-x-auto agar tidak merusak layout mobile */}
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="hover:bg-transparent">
+                      <TableHead className="h-9 px-2 text-xs font-bold">Nama Santri</TableHead>
+                      <TableHead>Kontak</TableHead>
+                      <TableHead>Target</TableHead>
+                      <TableHead className="text-right w-[100px]">Aksi</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {daftarSantri.length > 0 ? (
+                      daftarSantri.map((s) => (
+                        <TableRow key={s.id_santri}>
+                          <TableCell className="font-medium">
+                            {s.nama_santri}
+                          </TableCell>
+                          <TableCell>
+                            <a 
+                              href={formatWhatsApp(s.nomor_telepon)} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-2 text-primary hover:text-primary-dark hover:underline transition-all"
+                            >
+                              <FontAwesomeIcon icon={faWhatsapp} />
+                              {s.nomor_telepon}
+                            </a>
+                          </TableCell>
+                          <TableCell className="py-2 px-2">
+                            <Badge variant={s.target === "INTENSE" ? "default" : "outline"}>
+                              {s.target}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="py-2 px-2 text-right">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" className="h-8 w-8 p-0">
+                                  <MoreVertical className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="w-[160px]">
+                                <DropdownMenuLabel>Aksi Santri</DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem 
+                                  onClick={() => onMoveSantri(s)} 
+                                  className="cursor-pointer text-blue-600 focus:text-blue-600"
+                                >
+                                  <ArrowRightLeft className="mr-2 h-4 w-4" />
+                                  <span>Pindah Halaqah</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem 
+                                  onClick={() => onEditSantri(s)} 
+                                  className="cursor-pointer"
+                                >
+                                  <Edit2 className="mr-2 h-4 w-4" />
+                                  <span>Edit Profil</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem 
+                                  onClick={() => onDeleteSantri(s)} 
+                                  className="cursor-pointer text-destructive focus:text-destructive"
+                                >
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  <span>Hapus Santri</span>
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={4} className="text-center py-6 text-xs italic opacity-50">
+                          Tidak ada santri di kelompok ini.
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        );
+      })}
+    </Accordion>
+  );
+}
+
+function HalaqahLoadingSkeleton() {
+  return (
+    <div className="space-y-3">
+      {[1, 2, 3].map((i) => (
+        <Skeleton key={i} className="h-16 w-full rounded-xl" />
+      ))}
     </div>
   );
 }

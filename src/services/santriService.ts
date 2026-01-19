@@ -16,7 +16,7 @@ export interface CreateSantriData {
   nama_santri: string;
   nomor_telepon: string;
   target: "RINGAN" | "SEDANG" | "INTENSE";
-  halaqah_id: number; // Admin wajib isi, Muhafiz otomatis terisi
+  halaqah_id: number; 
 }
 
 export interface UpdateSantriData extends Partial<CreateSantriData> {}

@@ -17,8 +17,11 @@ export const useSantri = () => {
       setSantriList(data);
       return data;
     } catch (err: any) {
+      if (err.message.includes("belum memiliki halaqah")) {
+        setSantriList([]); 
+      }
       setError(err.message);
-      throw err;
+      return []; 
     } finally {
       setIsLoading(false);
     }
@@ -58,15 +61,11 @@ export const useSantri = () => {
     }
   }, []);
 
-  // Hapus santri (soft delete)
   const deleteSantri = useCallback(async (id: number) => {
     setIsLoading(true);
-    setError(null);
     try {
       await santriService.delete(id);
-      setSantriList(prev => prev.map(s => 
-        s.id_santri === id ? { ...s, is_active: false } : s
-      ));
+      setSantriList(prev => prev.filter(s => s.id_santri !== id));
     } catch (err: any) {
       setError(err.message);
       throw err;
@@ -75,27 +74,6 @@ export const useSantri = () => {
     }
   }, []);
 
-  // Search santri
-  // const searchSantri = useCallback(async (query: string) => {
-  //   setIsLoading(true);
-  //   setError(null);
-  //   try {
-  //     const results = await santriService.search(query);
-  //     return results;
-  //   } catch (err: any) {
-  //     setError(err.message);
-  //     throw err;
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // }, []);
-
-  // Pilih santri untuk edit
-  // const selectSantri = useCallback((santri: Santri | null) => {
-  //   setSelectedSantri(santri);
-  // }, []);
-
-  // Reset error
   const resetError = useCallback(() => {
     setError(null);
   }, []);

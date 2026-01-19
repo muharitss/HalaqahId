@@ -6,13 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-
-interface Santri {
-  id_santri: number;
-  nama: string;
-  target: "RINGAN" | "SEDANG" | "INTENS" | "CUSTOM_KHUSUS";
-  halaqah_id: number;
-}
+import { type Santri } from "@/services/santriService"; 
 
 export function SantriStats({ santriList }: { santriList: Santri[] }) {
   const stats = [
@@ -32,8 +26,8 @@ export function SantriStats({ santriList }: { santriList: Santri[] }) {
       icon: faBook,
     },
     { 
-      label: "Target Khusus", 
-      value: santriList.filter(s => s.target === "CUSTOM_KHUSUS").length, 
+      label: "Target Intense", // Sesuaikan label dengan nilai INTENSE
+      value: santriList.filter(s => s.target === "INTENSE").length, 
       icon: faBullseye, 
     },
   ];

@@ -6,112 +6,115 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuSeparator, 
+  DropdownMenuTrigger,
+  DropdownMenuLabel,
+  DropdownMenuGroup
 } from "@/components/ui/dropdown-menu";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export function SantriTable({ data, searchTerm, isAdmin, halaqahList, onEdit, onDelete }: any) {
   
   const renderTargetBadge = (target: string) => {
     switch (target) {
       case "RINGAN":
-        return <Badge variant="secondary">RINGAN</Badge>;
+        return <Badge variant="secondary" className="font-normal">RINGAN</Badge>;
       case "SEDANG":
-        return <Badge variant="outline">SEDANG</Badge>;
+        return <Badge variant="outline" className="font-normal">SEDANG</Badge>;
       case "INTENSE":
-        return <Badge variant="default">INTENS</Badge>;
-      case "CUSTOM_KHUSUS": // Jika ada target khusus
-        return <Badge variant="destructive">KHUSUS</Badge>;
+        return <Badge variant="default" className="font-normal">INTENS</Badge>;
+      case "CUSTOM_KHUSUS":
+        return <Badge variant="destructive" className="font-normal">KHUSUS</Badge>;
       default:
-        return <Badge variant="outline">{target}</Badge>;
+        return <Badge variant="outline" className="font-normal">{target}</Badge>;
     }
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Daftar Santri</CardTitle>
-        <CardDescription>
-          {data.length} santri ditemukan {searchTerm && `untuk "${searchTerm}"`}
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="rounded-md border overflow-hidden">
-          <Table>
-            <TableHeader className="bg-muted/50">
-              <TableRow>
-                <TableHead className="font-bold">ID</TableHead>
-                <TableHead className="font-bold">Nama Santri</TableHead>
-                <TableHead className="font-bold">Nomor Telepon</TableHead>
-                <TableHead className="font-bold">Target</TableHead>
-                {isAdmin && <TableHead className="font-bold">Halaqah</TableHead>}
-                <TableHead className="text-right font-bold">Aksi</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {data.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={isAdmin ? 6 : 5} className="text-center py-8 text-muted-foreground">
-                    {searchTerm ? "Tidak ada santri yang sesuai dengan pencarian" : "Belum ada data santri"}
+    <div className="rounded-md border bg-card overflow-hidden">
+      <Table>
+        <TableHeader>
+          <TableRow className="bg-muted/50 hover:bg-muted/50">
+            <TableHead className="w-[80px] font-bold text-foreground">ID</TableHead>
+            <TableHead className="font-bold text-foreground">Nama Santri</TableHead>
+            <TableHead className="font-bold text-foreground">Nomor Telepon</TableHead>
+            <TableHead className="font-bold text-foreground">Target</TableHead>
+            {isAdmin && <TableHead className="font-bold text-foreground">Halaqah</TableHead>}
+            <TableHead className="text-right font-bold text-foreground">Aksi</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {data.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={isAdmin ? 6 : 5} className="text-center py-12 text-muted-foreground">
+                {searchTerm ? (
+                  <p>Tidak ada santri yang sesuai dengan pencarian <span className="font-semibold">"{searchTerm}"</span></p>
+                ) : (
+                  <p>Belum ada data santri</p>
+                )}
+              </TableCell>
+            </TableRow>
+          ) : (
+            data.map((santri: any) => (
+              <TableRow key={santri.id_santri} className="hover:bg-muted/30 transition-colors">
+                <TableCell>
+                  <Badge variant="outline" className="font-mono font-medium">
+                    #{santri.id_santri}
+                  </Badge>
+                </TableCell>
+                <TableCell className="font-medium">
+                  {santri.nama_santri}
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    <FontAwesomeIcon icon={faPhone} className="text-[10px] text-muted-foreground" />
+                    <span className="text-sm">{santri.nomor_telepon || "—"}</span>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  {renderTargetBadge(santri.target)}
+                </TableCell>
+                {isAdmin && (
+                  <TableCell>
+                    <span className="text-sm text-muted-foreground">
+                      {halaqahList.find((h: any) => h.id_halaqah === santri.halaqah_id)?.name_halaqah || `Halaqah ${santri.halaqah_id}`}
+                    </span>
                   </TableCell>
-                </TableRow>
-              ) : (
-                data.map((santri: any) => (
-                  <TableRow key={santri.id_santri}>
-                    <TableCell>
-                      <Badge variant="outline" className="font-mono">
-                        #{santri.id_santri}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      {santri.nama_santri}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <FontAwesomeIcon icon={faPhone} className="text-xs text-muted-foreground" />
-                        <span className="text-sm">{santri.nomor_telepon}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {renderTargetBadge(santri.target)}
-                    </TableCell>
-                    {isAdmin && (
-                      <TableCell>
-                        <span className="text-sm">
-                          {halaqahList.find((h: any) => h.id_halaqah === santri.halaqah_id)?.nama_halaqah || `Halaqah ${santri.halaqah_id}`}
-                        </span>
-                      </TableCell>
-                    )}
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <FontAwesomeIcon icon={faEllipsisH} className="h-3 w-3" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-48">
-                          <DropdownMenuItem onClick={() => onEdit(santri)}>
-                            <FontAwesomeIcon icon={faEdit} className="mr-2 h-3 w-3" /> 
-                            Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem 
-                            onClick={() => onDelete(santri)} 
-                            className="text-destructive focus:text-destructive focus:bg-destructive/10"
-                          >
-                            <FontAwesomeIcon icon={faTrash} className="mr-2 h-3 w-3" /> 
-                            Hapus
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </div>
-      </CardContent>
-    </Card>
+                )}
+                <TableCell className="text-right">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <FontAwesomeIcon icon={faEllipsisH} className="h-3 w-3" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48">
+                      <DropdownMenuLabel>Opsi Santri</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuGroup>
+                        <DropdownMenuItem onClick={() => onEdit(santri)}>
+                          <FontAwesomeIcon icon={faEdit} className="mr-2 h-3 w-3" /> 
+                          <span>Edit Profil</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem 
+                          onClick={() => onDelete(santri)} 
+                          className="text-destructive focus:text-destructive focus:bg-destructive/10"
+                        >
+                          <FontAwesomeIcon icon={faTrash} className="mr-2 h-3 w-3" /> 
+                          <span>Hapus Santri</span>
+                        </DropdownMenuItem>
+                      </DropdownMenuGroup>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </TableCell>
+              </TableRow>
+            ))
+          )}
+        </TableBody>
+      </Table>
+    </div>
   );
 }

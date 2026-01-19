@@ -5,7 +5,8 @@ import { toast } from "sonner";
 export const useSetoran = () => {
   const [loading, setLoading] = useState(false);
   const [history, _setHistory] = useState<any[]>([]);
-  const [santriList, setSantriList] = useState<any[]>([]); // Tambahkan state ini
+  const [santriList, setSantriList] = useState<any[]>([]);
+  const [allSetoran, setAllSetoran] = useState<any[]>([]);
 
   // Fungsi untuk mengambil daftar santri (untuk dropdown)
   const fetchSantri = useCallback(async () => {
@@ -18,20 +19,6 @@ export const useSetoran = () => {
       toast.error("Gagal memuat daftar santri");
     }
   }, []);
-
-  // Fungsi untuk mengambil riwayat setoran berdasarkan tanggal
-    // const fetchHistory = useCallback(async (date: string) => {
-    // setLoading(true); // Mulai loading
-    // try {
-    //     const res = await setoranService.getSetoranByDate(date);
-    //     setHistory(res.data || []); // Update state dengan data terbaru
-    // } catch (err) {
-    //     console.error(err);
-    //     setHistory([]); // Kosongkan jika error
-    // } finally {
-    //     setLoading(false); // Selesai loading
-    // }
-    // }, []);
 
   // Fungsi untuk menambah setoran baru
   const addSetoran = async (values: SetoranPayload) => {
@@ -55,12 +42,25 @@ export const useSetoran = () => {
     }
   };
 
+  const fetchAllSetoran = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await setoranService.getAllSetoran();
+      setAllSetoran(res.data || []);
+    } catch (err) {
+      toast.error("Gagal mengambil semua data setoran");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   return { 
     addSetoran, 
     history, 
-    // fetchHistory, 
     santriList, 
     fetchSantri, 
-    loading 
+    loading,
+    allSetoran,
+    fetchAllSetoran
   };
 };
