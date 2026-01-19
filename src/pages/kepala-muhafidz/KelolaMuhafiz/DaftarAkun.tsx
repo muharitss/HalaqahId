@@ -1,5 +1,5 @@
 import { type Muhafiz } from "@/services/akunService";
-import { halaqahService } from "@/services/halaqahService"; // Import service halaqah
+import { halaqahService } from "@/services/halaqahService";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -52,7 +52,6 @@ export function DaftarAkun({
   onCreateClick
 }: DaftarAkunProps) {
   
-  // State untuk menyimpan ID muhafiz yang sedang aktif memegang halaqah
   const [activeMuhafizIds, setActiveMuhafizIds] = useState<Set<number>>(new Set());
 
   useEffect(() => {
@@ -60,7 +59,6 @@ export function DaftarAkun({
       try {
         const res = await halaqahService.getAllHalaqah();
         if (res.success) {
-          // Ambil semua muhafiz_id dari daftar halaqah yang ada
           const ids = new Set(res.data.map(h => h.muhafiz_id));
           setActiveMuhafizIds(ids);
         }
@@ -129,7 +127,6 @@ export function DaftarAkun({
         </TableHeader>
         <TableBody>
           {muhafizList.map((muhafiz) => {
-            // Check apakah ID user ini ada di dalam Set ID muhafiz halaqah
             const isAktif = activeMuhafizIds.has(muhafiz.id_user);
             
             return (
