@@ -27,6 +27,7 @@ import { Bar, BarChart, CartesianGrid, XAxis, Pie, PieChart, Cell, Area, AreaCha
 // Icons
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowRight, faChartLine, faUsersViewfinder, faCalendarAlt } from "@fortawesome/free-solid-svg-icons";
+import { Dashboard } from "@/components/ui/TypedText";
 
 const chartConfig = {
   setoran: { label: "Total Setoran", color: "var(--primary)" },
@@ -118,7 +119,7 @@ export default function KepalaMuhafidzDashboard() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight text-primary">Dashboard Utama</h2>
+          <Dashboard/>
           <p className="text-muted-foreground">Analisis data halaqah dan performa muhafidz.</p>
         </div>
       </div>

@@ -59,3 +59,18 @@ export const MuhafizManagement = () => {
     </h1>
   );
 }
+
+export const Dashboard = () => {
+  return (
+    <h1 className="text-3xl font-semibold">
+      <ReactTyped
+        strings={["Dashboard"]}
+        typeSpeed={60}
+        backSpeed={32}
+        backDelay={2800}
+        loop
+        showCursor={true}
+      />
+    </h1>
+  );
+}
