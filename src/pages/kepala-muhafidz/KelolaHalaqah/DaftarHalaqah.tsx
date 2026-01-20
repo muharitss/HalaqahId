@@ -61,7 +61,9 @@ export function DaftarHalaqah({
   onAddSantri
 }: DaftarHalaqahProps) {
 
-  const formatWhatsApp = (phone: string) => {
+  const formatWhatsApp = (phone: string | null | undefined) => {
+    if (!phone) return "#"; 
+
     let cleaned = phone.replace(/\D/g, "");
     if (cleaned.startsWith("0")) {
       cleaned = "62" + cleaned.substring(1);

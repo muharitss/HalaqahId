@@ -12,6 +12,7 @@ interface AbsensiTableProps {
 const STATUS_OPTIONS: AbsensiStatus[] = ["HADIR", "IZIN", "SAKIT", "TERLAMBAT", "ALFA"];
 
 export function AbsensiTable({ rows, onStatusChange }: AbsensiTableProps) {
+  console.log("Rows data saat ini:", rows);
   return (
     <div className="rounded-md border overflow-hidden">
       <Table>
@@ -25,7 +26,7 @@ export function AbsensiTable({ rows, onStatusChange }: AbsensiTableProps) {
         </TableHeader>
         <TableBody>
           {rows.map((row) => (
-            <TableRow key={row.santriId}>
+            <TableRow key={row.santri_id}>
               <TableCell>
                 <div className={`h-2 w-2 rounded-full ${getStatusConfig(row.status).color} mx-auto`} />
               </TableCell>
@@ -39,7 +40,11 @@ export function AbsensiTable({ rows, onStatusChange }: AbsensiTableProps) {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start">
                       {STATUS_OPTIONS.map((opt) => (
-                        <DropdownMenuItem key={opt} onClick={() => onStatusChange(row.santriId, opt)}>
+                        <DropdownMenuItem key={opt} onClick={() => {
+                          console.log("Mengubah ID:", row.santri_id, "ke:", opt);
+                          onStatusChange(row.santri_id, opt);
+                        }}
+                        >
                           <div className="flex items-center gap-2">
                             <div className={`h-2 w-2 rounded-full ${getStatusConfig(opt).color}`} />
                             {opt}
