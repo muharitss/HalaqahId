@@ -1,5 +1,5 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEllipsisH, faEdit, faTrash, faPhone } from "@fortawesome/free-solid-svg-icons";
+import { faEllipsisH, faEdit, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,6 +14,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuGroup
 } from "@/components/ui/dropdown-menu";
+import { faWhatsapp } from "@fortawesome/free-brands-svg-icons";
 
 export function SantriTable({ data, searchTerm, isAdmin, halaqahList, onEdit, onDelete }: any) {
   
@@ -32,13 +33,21 @@ export function SantriTable({ data, searchTerm, isAdmin, halaqahList, onEdit, on
     }
   };
 
+  const formatWhatsApp = (phone: string | null | undefined) => {
+    if (!phone) return "#"; 
+
+    let cleaned = phone.replace(/\D/g, "");
+    if (cleaned.startsWith("0")) {
+      cleaned = "62" + cleaned.substring(1);
+    }
+    return `https://wa.me/${cleaned}`;
+  };
+
   return (
-    <div className="rounded-md border bg-card overflow-hidden">
       <Table>
         <TableHeader>
           <TableRow className="bg-muted/50 hover:bg-muted/50">
-            <TableHead className="w-[80px] font-bold text-foreground">ID</TableHead>
-            <TableHead className="font-bold text-foreground">Nama Santri</TableHead>
+            <TableHead className="w-20 font-bold text-foreground">Nama Santri</TableHead>
             <TableHead className="font-bold text-foreground">Nomor Telepon</TableHead>
             <TableHead className="font-bold text-foreground">Target</TableHead>
             {isAdmin && <TableHead className="font-bold text-foreground">Halaqah</TableHead>}
@@ -59,19 +68,19 @@ export function SantriTable({ data, searchTerm, isAdmin, halaqahList, onEdit, on
           ) : (
             data.map((santri: any) => (
               <TableRow key={santri.id_santri} className="hover:bg-muted/30 transition-colors">
-                <TableCell>
-                  <Badge variant="outline" className="font-mono font-medium">
-                    #{santri.id_santri}
-                  </Badge>
-                </TableCell>
                 <TableCell className="font-medium">
                   {santri.nama_santri}
                 </TableCell>
                 <TableCell>
-                  <div className="flex items-center gap-2">
-                    <FontAwesomeIcon icon={faPhone} className="text-[10px] text-muted-foreground" />
-                    <span className="text-sm">{santri.nomor_telepon || "—"}</span>
-                  </div>
+                  <a 
+                    href={formatWhatsApp(santri.nomor_telepon)} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 text-primary hover:text-primary-dark hover:underline transition-all"
+                  >
+                    <FontAwesomeIcon icon={faWhatsapp} />
+                    {santri.nomor_telepon}
+                  </a>
                 </TableCell>
                 <TableCell>
                   {renderTargetBadge(santri.target)}
@@ -115,6 +124,5 @@ export function SantriTable({ data, searchTerm, isAdmin, halaqahList, onEdit, on
           )}
         </TableBody>
       </Table>
-    </div>
   );
 }

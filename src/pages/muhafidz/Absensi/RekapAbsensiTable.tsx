@@ -141,15 +141,18 @@ export const RekapAbsensiTable = () => {
         </Select>
       </div>
 
-      <div className="rounded-md border overflow-x-auto relative shadow-sm">
-        <Table>
+      <div className="rounded-md border overflow-x-auto relative shadow-sm scrollbar-thin">
+        <Table className="border-separate border-spacing-0"> 
           <TableHeader>
             <TableRow className="bg-muted/50 hover:bg-muted/50">
-              <TableHead className="min-w-40 sticky left-0 z-30 bg-muted font-bold border-r">
+              <TableHead className="min-w-40 sticky left-0 z-30 bg-muted font-bold border-r border-b">
                 Nama Santri
               </TableHead>
               {daysInMonth.map((date) => (
-                <TableHead key={date.toString()} className="text-center min-w-8.75 p-0 text-[10px] font-bold border-r">
+                <TableHead 
+                  key={date.toString()} 
+                  className="text-center min-w-8.75 p-0 text-[10px] font-bold border-r border-b"
+                >
                   {getDate(date)}
                 </TableHead>
               ))}
@@ -159,28 +162,25 @@ export const RekapAbsensiTable = () => {
             {loadingSantri || isLoadingData ? (
               Array(5).fill(0).map((_, i) => (
                 <TableRow key={i}>
-                  <TableCell className="sticky left-0 bg-background border-r">
-                    <Skeleton className="h-4 w-24" />
-                  </TableCell>
+                  <TableCell className="sticky left-0 bg-background border-r border-b"><Skeleton className="h-4 w-24" /></TableCell>
                   {daysInMonth.map((d) => (
-                    <TableCell key={d.toString()} className="p-1">
-                      <Skeleton className="h-6 w-6 rounded-sm" />
-                    </TableCell>
+                    <TableCell key={d.toString()} className="p-1 border-r border-b"><Skeleton className="h-6 w-6 rounded-sm" /></TableCell>
                   ))}
                 </TableRow>
               ))
             ) : (
               santriList.map((s) => (
-                <TableRow key={s.id_santri} className="hover:bg-muted/30">
-                  <TableCell className="font-medium sticky left-0 bg-background z-20 border-r shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] py-2 text-xs">
+                <TableRow key={s.id_santri} className="group hover:bg-muted/30">
+                  <TableCell className="font-medium sticky left-0 z-20 bg-background border-r border-b shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] py-2 text-xs">
                     <span className="truncate block w-32 md:w-40">{s.nama_santri}</span>
                   </TableCell>
+                  
                   {daysInMonth.map((date) => {
                     const status = getStatusForCell(s.id_santri, format(date, "yyyy-MM-dd")) as any;
                     return (
                       <TableCell 
                         key={date.toString()} 
-                        className={getStatusStyle(status)}
+                        className={cn(getStatusStyle(status), "border-b")}
                       >
                         {getStatusInitial(status)}
                       </TableCell>
