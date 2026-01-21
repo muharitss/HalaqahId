@@ -29,8 +29,7 @@ export function SantriSkeleton() {
         <Table>
           <TableHeader className="bg-muted/50">
             <TableRow>
-              <TableHead className="w-[100px] pl-6"><Skeleton className="h-4 w-8" /></TableHead>
-              <TableHead><Skeleton className="h-4 w-24" /></TableHead>
+              <TableHead className="w-25 pl-6"><Skeleton className="h-4 w-24" /></TableHead>
               <TableHead><Skeleton className="h-4 w-16" /></TableHead>
               <TableHead className="text-right pr-6"><Skeleton className="h-4 w-12 ml-auto" /></TableHead>
             </TableRow>
@@ -38,8 +37,7 @@ export function SantriSkeleton() {
           <TableBody>
             {[1, 2, 3, 4, 5].map((i) => (
               <TableRow key={i}>
-                <TableCell className="pl-6"><Skeleton className="h-4 w-8" /></TableCell>
-                <TableCell>
+                <TableCell className="pl-6">
                   <div className="flex items-center gap-3">
                     <Skeleton className="h-8 w-8 rounded-full" />
                     <Skeleton className="h-4 w-32" />
