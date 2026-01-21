@@ -11,13 +11,11 @@ export interface AbsensiPayload {
 }
 
 export const absensiService = {
-  // POST /api/absensi
   catatAbsensi: async (payload: AbsensiPayload) => {
     const res = await axiosClient.post<ApiResponse<any>>("/absensi", payload);
     return res.data;
   },
 
-  // GET /api/absensi/halaqah/:id
   getRekapHalaqah: async (halaqahId: number, date?: string, month?: string, year?: string) => {
     const params = new URLSearchParams();
     if (date) params.append("date", date);
@@ -28,5 +26,21 @@ export const absensiService = {
       `/absensi/halaqah/${halaqahId}?${params.toString()}`
     );
     return res.data;
+  },
+
+  getDailyHalaqah: async (halaqahId: number, date: string) => {
+    const res = await axiosClient.get<ApiResponse<any[]>>(
+      `/absensi/halaqah/${halaqahId}?date=${date}`
+    );
+    return res.data;
+  },
+
+  getMonthlyRekap: async (halaqahId: number, dates: string[]) => {
+    const requests = dates.map(date => 
+      absensiService.getDailyHalaqah(halaqahId, date)
+        .then(res => ({ date, data: res.data }))
+        .catch(() => ({ date, data: [] })) 
+    );
+    return Promise.all(requests);
   }
 };
