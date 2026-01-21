@@ -1,41 +1,46 @@
 import axiosClient from "@/api/axiosClient";
-import type { AbsensiStatus } from "@/pages/muhafidz/Absensi/StatusBadge";
+import { type ApiResponse } from "./halaqahService";
 
-export interface AbsensiRecord {
-  id_absensi?: number;
-  id_santri: number;
+export type AbsensiStatus = "HADIR" | "IZIN" | "SAKIT" | "ALFA" | "TERLAMBAT";
+
+export interface AbsensiPayload {
+  santri_id: number;
   status: AbsensiStatus;
-  tanggal: string; // Format: YYYY-MM-DD
   keterangan?: string;
-  created_at?: string;
-  updated_at?: string;
-}
-
-export interface AbsensiResponse {
-  message: string;
-  data: AbsensiRecord[];
+  tanggal?: string; // YYYY-MM-DD
 }
 
 export const absensiService = {
-  // 1. Get Absensi by Date (Mengambil data absensi pada tanggal tertentu)
-  async getByDate(date: string): Promise<AbsensiRecord[]> {
-    try {
-      const response = await axiosClient.get(`/absensi?tanggal=${date}`);
-      return response.data.data;
-    } catch (error: any) {
-      // Jika data tidak ditemukan (misal 404), kita kembalikan array kosong
-      if (error.response?.status === 404) return [];
-      throw new Error(error.response?.data?.message || "Gagal mengambil data absensi");
-    }
+  catatAbsensi: async (payload: AbsensiPayload) => {
+    const res = await axiosClient.post<ApiResponse<any>>("/absensi", payload);
+    return res.data;
   },
 
-  // 2. Upsert/Bulk Create Absensi (Menyimpan banyak data sekaligus)
-  async saveBulk(data: AbsensiRecord[]): Promise<AbsensiRecord[]> {
-    try {
-      const response = await axiosClient.post("/absensi", { data });
-      return response.data.data;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || "Gagal menyimpan data absensi");
-    }
+  getRekapHalaqah: async (halaqahId: number, date?: string, month?: string, year?: string) => {
+    const params = new URLSearchParams();
+    if (date) params.append("date", date);
+    if (month) params.append("month", month);
+    if (year) params.append("year", year);
+
+    const res = await axiosClient.get<ApiResponse<any[]>>(
+      `/absensi/halaqah/${halaqahId}?${params.toString()}`
+    );
+    return res.data;
+  },
+
+  getDailyHalaqah: async (halaqahId: number, date: string) => {
+    const res = await axiosClient.get<ApiResponse<any[]>>(
+      `/absensi/halaqah/${halaqahId}?date=${date}`
+    );
+    return res.data;
+  },
+
+  getMonthlyRekap: async (halaqahId: number, dates: string[]) => {
+    const requests = dates.map(date => 
+      absensiService.getDailyHalaqah(halaqahId, date)
+        .then(res => ({ date, data: res.data }))
+        .catch(() => ({ date, data: [] })) 
+    );
+    return Promise.all(requests);
   }
 };

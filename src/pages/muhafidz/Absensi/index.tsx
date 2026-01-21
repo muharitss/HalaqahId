@@ -1,117 +1,180 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { useState, useEffect, useCallback } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Save, Loader2 } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Skeleton } from "@/components/ui/skeleton";
+import { format } from "date-fns";
+import { id } from "date-fns/locale";
+import { toast } from "sonner";
 
-// Import Components
-import { AbsensiTable } from "./AbsensiTable";
-import { AbsensiActions } from "./AbsensiActions";
-import { AbsensiHeader } from "./AbsensiHeader";
-
-// Import Hooks & Services
+// Hooks & Services
 import { useSantri } from "@/hooks/useSantri";
 import { useAbsensi } from "@/hooks/useAbsensi";
+import { absensiService, type AbsensiStatus } from "@/services/absensiService";
+
+// Modular Components
+import { InputAbsensi } from "./InputAbsensi";
+import { RekapAbsensiTable } from "./RekapAbsensiTable";
+import { CalendarIcon } from "lucide-react";
 
 export default function AbsensiPage() {
+  // --- States ---
+  const { santriList, loadSantri, isLoading: loadingSantri } = useSantri();
+  const { submitAbsensiBulk, isSubmitting } = useAbsensi();
+  
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [attendanceMap, setAttendanceMap] = useState<Record<number, AbsensiStatus>>({});
+  const [alreadySubmittedIds, setAlreadySubmittedIds] = useState<number[]>([]);
+  const [isLoadingSync, setIsLoadingSync] = useState(false);
 
-  // 1. Inisialisasi Hooks
-  const { santriList, loadSantri, isLoading: isLoadingSantri } = useSantri();
-  const { 
-    absensiMap, 
-    loadAbsensiByDate, 
-    submitAbsensi, 
-    updateLocalStatus, 
-    resetLocalAbsensi,
-    isLoading: isSaving 
-  } = useAbsensi();
+  const syncAttendanceData = useCallback(async () => {
+    if (santriList.length === 0) return;
+    
+    setIsLoadingSync(true);
+    setAlreadySubmittedIds([]);
+    setAttendanceMap({});
 
-  // 2. Load Data (Dijalankan setiap kali tanggal berubah)
-  useEffect(() => {
-    const fetchData = async () => {
-      await loadSantri(); // Ambil daftar santri aktif
-      await loadAbsensiByDate(selectedDate); // Ambil data absensi yang sudah ada (jika ada)
-    };
-    fetchData();
-  }, [selectedDate, loadSantri, loadAbsensiByDate]);
-
-  // 3. Handlers
-  const handleSubmit = async () => {
     try {
-      // Mengirim list santri agar hook bisa memetakan status dari absensiMap
-      await submitAbsensi(selectedDate, santriList);
-      alert("Data absensi berhasil disimpan!");
+      const halaqahId = santriList[0].halaqah_id;
+      const tglStr = format(selectedDate, "yyyy-MM-dd");
+      
+      const response = await absensiService.getRekapHalaqah(halaqahId, tglStr);
+      
+      const submittedIds: number[] = [];
+      const currentMap: Record<number, AbsensiStatus> = {};
+
+      if (response.success && Array.isArray(response.data)) {
+        response.data.forEach((item: any) => {
+          submittedIds.push(item.santri_id);
+          currentMap[item.santri_id] = item.status as AbsensiStatus;
+        });
+      }
+
+      setAlreadySubmittedIds(submittedIds);
+      setAttendanceMap(currentMap);
     } catch (error: any) {
-      alert("Gagal menyimpan: " + error.message);
+      console.error("Gagal sinkronisasi data absensi:", error);
+    } finally {
+      setIsLoadingSync(false);
     }
+  }, [santriList, selectedDate]);
+
+  useEffect(() => {
+    loadSantri();
+  }, [loadSantri]);
+
+  useEffect(() => {
+    syncAttendanceData();
+  }, [syncAttendanceData]);
+
+  const handleStatusChange = (id: number, status: AbsensiStatus) => {
+    setAttendanceMap((prev) => ({ ...prev, [id]: status }));
   };
 
-  const handleReset = () => {
-    if (confirm("Reset semua status di tampilan ini ke HADIR?")) {
-      resetLocalAbsensi();
+  const handleSave = async () => {
+    const tanggalStr = format(selectedDate, "yyyy-MM-dd");
+
+    const newEntries = Object.entries(attendanceMap).filter(([id]) => 
+      !alreadySubmittedIds.includes(Number(id))
+    );
+
+    if (newEntries.length === 0) {
+      toast.info("Semua data sudah tersimpan atau tidak ada pilihan baru.");
+      return;
+    }
+
+    const payloads = newEntries.map(([id, status]) => ({
+      santri_id: Number(id),
+      status: status,
+      tanggal: tanggalStr, 
+      keterangan: "-"
+    }));
+
+    try {
+      await submitAbsensiBulk(payloads);
+      await syncAttendanceData();
+    } catch (error) {
     }
   };
-
-  // 4. Transformasi data untuk Tabel
-  const rows = santriList.map((s) => ({
-    santri_id: s.id_santri,
-    namaSantri: s.nama_santri,
-    status: absensiMap[s.id_santri] || "HADIR",
-    setoranTerakhir: null, // Bisa dikembangkan nanti
-  }));
-
-  // 5. State Loading Gabungan
-  const isGlobalLoading = isLoadingSantri;
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-6">
-          <AbsensiHeader 
-            selectedDate={selectedDate} 
-            onDateChange={(d) => d && setSelectedDate(d)} 
-          />
-          
-          <Button 
-            onClick={handleSubmit} 
-            disabled={isSaving || isGlobalLoading}
-            className="bg-green-600 hover:bg-green-700 text-white shadow-sm min-w-[140px]"
-          >
-            {isSaving ? (
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            ) : (
-              <Save className="h-4 w-4 mr-2" />
-            )}
-            {isSaving ? "Menyimpan..." : "Simpan Absensi"}
-          </Button>
-        </CardHeader>
+    <div className="container mx-auto py-6 space-y-6 animate-in fade-in duration-500 pb-20">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Absensi Santri</h1>
+          <p className="text-muted-foreground text-sm">
+            Kelola kehadiran harian dan lihat rekap bulanan halaqah.
+          </p>
+        </div>
+      </div>
 
-        <CardContent>
-          {isGlobalLoading ? (
-            <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
-              <Loader2 className="h-8 w-8 animate-spin mb-2" />
-              <p>Memuat data santri...</p>
-            </div>
-          ) : (
-            <>
-              <AbsensiTable 
-                rows={rows} 
-                onStatusChange={updateLocalStatus} 
+      <Tabs defaultValue="input" className="space-y-4">
+        <TabsList className="bg-muted p-1 w-full md:w-auto grid grid-cols-2">
+          <TabsTrigger value="input">Input Harian</TabsTrigger>
+          <TabsTrigger value="rekap">Rekap Bulanan</TabsTrigger>
+        </TabsList>
+
+        {/* TAB INPUT HARIAN */}
+        <TabsContent value="input" className="space-y-6 mt-0">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="w-full md:w-60 justify-start text-left font-normal border-primary/20 hover:border-primary">
+                  <CalendarIcon className="mr-2 h-4 w-4 text-primary" />
+                  {format(selectedDate, "dd MMMM yyyy", { locale: id })}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="end">
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={(date) => date && setSelectedDate(date)}
+                  disabled={(date) => date > new Date()}
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          <div className="min-h-75">
+            {isLoadingSync || loadingSantri ? (
+              <div className="space-y-4">
+                <Skeleton className="h-12 w-full" />
+                <Skeleton className="h-12 w-full" />
+                <Skeleton className="h-12 w-full" />
+              </div>
+            ) : (
+              <InputAbsensi
+                santriList={santriList}
+                attendanceMap={attendanceMap}
+                alreadySubmittedIds={alreadySubmittedIds}
+                onStatusChange={handleStatusChange}
               />
-              
-              <AbsensiActions 
-                selectedDate={selectedDate}
-                onReset={handleReset}
-                onBackToToday={() => setSelectedDate(new Date())}
-                onSubmit={handleSubmit}
-                loading={isSaving}
-              />
-            </>
-          )}
-        </CardContent>
-      </Card>
+            )}
+          </div>
+
+          <div className="flex items-center justify-between border-t pt-6">
+            <p className="text-sm text-muted-foreground italic">
+              * Pastikan semua data benar sebelum menekan tombol simpan.
+            </p>
+            <Button 
+              onClick={handleSave} 
+              disabled={isSubmitting || isLoadingSync || loadingSantri || santriList.length === 0}
+              className="px-10 h-11"
+            >
+              {isSubmitting ? "Menyimpan..." : "Simpan Absensi"}
+            </Button>
+          </div>
+        </TabsContent>
+
+        {/* TAB REKAP BULANAN */}
+        <TabsContent value="rekap" className="mt-0">
+          <div className="pt-2">
+            <RekapAbsensiTable />
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
