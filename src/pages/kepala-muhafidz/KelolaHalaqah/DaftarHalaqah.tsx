@@ -82,7 +82,6 @@ export function DaftarHalaqah({
           <AccordionItem 
             key={h.id_halaqah} 
             value={h.id_halaqah.toString()} 
-            // Layout: Padding dikurangi dari 4 menjadi 2 pada mobile
             className="border rounded-xl bg-card px-2 md:px-4 shadow-sm"
           >
             <AccordionTrigger className="hover:no-underline py-4">
