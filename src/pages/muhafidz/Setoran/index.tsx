@@ -4,10 +4,10 @@ import { useEffect } from "react";
 import { useSetoran } from "@/hooks/useSetoran";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { SetoranForm } from "./SetoranForm";
-import { SetoranTable } from "./SetoranTable";
+import { TahfidzAi } from "@/components/shared/TahfidzAi";
 
 export default function InputSetoranPage() {
-  const { history, santriList, loading, fetchSantri, addSetoran } = useSetoran();
+  const { santriList, loading, fetchSantri, addSetoran } = useSetoran();
 
   useEffect(() => {
     fetchSantri();
@@ -35,15 +35,7 @@ export default function InputSetoranPage() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Riwayat Hari Ini</CardTitle>
-            <CardDescription>Daftar setoran yang masuk pada sesi ini.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <SetoranTable history={history} loading={loading} />
-          </CardContent>
-        </Card>
+        <TahfidzAi/>
       </div>
     </div>
   );
