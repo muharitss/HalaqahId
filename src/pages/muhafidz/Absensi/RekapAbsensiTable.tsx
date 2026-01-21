@@ -124,7 +124,7 @@ export const RekapAbsensiTable = () => {
           value={format(viewDate, "yyyy-MM")} 
           onValueChange={(val) => setViewDate(new Date(val))}
         >
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-45">
             <SelectValue placeholder="Pilih Bulan" />
           </SelectTrigger>
           <SelectContent>
@@ -145,11 +145,11 @@ export const RekapAbsensiTable = () => {
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/50 hover:bg-muted/50">
-              <TableHead className="min-w-[160px] sticky left-0 z-30 bg-muted font-bold border-r">
+              <TableHead className="min-w-40 sticky left-0 z-30 bg-muted font-bold border-r">
                 Nama Santri
               </TableHead>
               {daysInMonth.map((date) => (
-                <TableHead key={date.toString()} className="text-center min-w-[35px] p-0 text-[10px] font-bold border-r">
+                <TableHead key={date.toString()} className="text-center min-w-8.75 p-0 text-[10px] font-bold border-r">
                   {getDate(date)}
                 </TableHead>
               ))}

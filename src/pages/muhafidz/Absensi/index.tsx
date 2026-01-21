@@ -1,13 +1,11 @@
 import { useState, useEffect, useCallback } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
-import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 // Hooks & Services
@@ -18,7 +16,7 @@ import { absensiService, type AbsensiStatus } from "@/services/absensiService";
 // Modular Components
 import { InputAbsensi } from "./InputAbsensi";
 import { RekapAbsensiTable } from "./RekapAbsensiTable";
-import { CalendarIcon, InfoIcon } from "lucide-react";
+import { CalendarIcon } from "lucide-react";
 
 export default function AbsensiPage() {
   // --- States ---
@@ -30,15 +28,10 @@ export default function AbsensiPage() {
   const [alreadySubmittedIds, setAlreadySubmittedIds] = useState<number[]>([]);
   const [isLoadingSync, setIsLoadingSync] = useState(false);
 
-  /**
-   * Fungsi untuk mengambil data absensi yang sudah ada di DB
-   * berdasarkan tanggal yang dipilih.
-   */
   const syncAttendanceData = useCallback(async () => {
     if (santriList.length === 0) return;
     
     setIsLoadingSync(true);
-    // PENTING: Reset state lokal agar data antar tanggal tidak bercampur
     setAlreadySubmittedIds([]);
     setAttendanceMap({});
 
@@ -62,23 +55,19 @@ export default function AbsensiPage() {
       setAttendanceMap(currentMap);
     } catch (error: any) {
       console.error("Gagal sinkronisasi data absensi:", error);
-      // Jika error 404 (data belum ada), kita biarkan state kosong
     } finally {
       setIsLoadingSync(false);
     }
   }, [santriList, selectedDate]);
 
-  // --- Effects ---
   useEffect(() => {
     loadSantri();
   }, [loadSantri]);
 
-  // Sync ulang tiap kali tanggal atau data santri berubah
   useEffect(() => {
     syncAttendanceData();
   }, [syncAttendanceData]);
 
-  // --- Handlers ---
   const handleStatusChange = (id: number, status: AbsensiStatus) => {
     setAttendanceMap((prev) => ({ ...prev, [id]: status }));
   };
@@ -86,7 +75,6 @@ export default function AbsensiPage() {
   const handleSave = async () => {
     const tanggalStr = format(selectedDate, "yyyy-MM-dd");
 
-    // FILTER: Hanya kirim data yang belum ada di Database (alreadySubmittedIds)
     const newEntries = Object.entries(attendanceMap).filter(([id]) => 
       !alreadySubmittedIds.includes(Number(id))
     );
@@ -96,20 +84,17 @@ export default function AbsensiPage() {
       return;
     }
 
-    // Persiapkan payload sesuai dokumentasi POST /api/absensi
     const payloads = newEntries.map(([id, status]) => ({
       santri_id: Number(id),
       status: status,
-      tanggal: tanggalStr, // Tanggal dinamis sesuai kalender
+      tanggal: tanggalStr, 
       keterangan: "-"
     }));
 
     try {
       await submitAbsensiBulk(payloads);
-      // Refresh data setelah sukses untuk mengunci baris yang baru disimpan
       await syncAttendanceData();
     } catch (error) {
-      // Error notification dihandle oleh hook useAbsensi
     }
   };
 
@@ -152,7 +137,7 @@ export default function AbsensiPage() {
             </Popover>
           </div>
 
-          <div className="min-h-[300px]">
+          <div className="min-h-75">
             {isLoadingSync || loadingSantri ? (
               <div className="space-y-4">
                 <Skeleton className="h-12 w-full" />

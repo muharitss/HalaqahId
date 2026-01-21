@@ -42,7 +42,7 @@ export const InputAbsensi = ({ santriList, attendanceMap, alreadySubmittedIds, o
                         {!isLocked && <span className="ml-2 text-[10px]">▼</span>}
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-[180px]">
+                    <DropdownMenuContent align="end" className="w-45">
                         {(["HADIR", "IZIN", "SAKIT", "TERLAMBAT", "ALFA"] as AbsensiStatus[]).map((st) => (
                         <DropdownMenuItem key={st} onClick={() => onStatusChange(s.id_santri, st)}>
                             {st}
