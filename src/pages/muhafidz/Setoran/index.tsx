@@ -34,8 +34,6 @@ export default function InputSetoranPage() {
             />
           </CardContent>
         </Card>
-
-        <TahfidzAi/>
       </div>
     </div>
   );

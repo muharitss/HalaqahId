@@ -15,6 +15,7 @@ import TrashSection from "@/pages/settings/TrashSection";
 import { DisplayProvider } from "@/context/DisplayContext";
 import PublicDisplay from "@/pages/display/PublicDisplay";
 import SantriDetail from "@/pages/display/SantriDetail";
+import { TahfidzAi } from "@/components/shared/TahfidzAi";
 
 const ProtectedRoute = ({ allowedRoles }: { allowedRoles?: ("superadmin" | "muhafiz")[] }) => {
   const { user, isLoading } = useAuth();
@@ -105,6 +106,8 @@ export const AppRouter = () => {
 
             {/* Tambahkan route superadmin lainnya di sini */}
             <Route path="/kepala-muhafidz/laporan" element={<LaporanSetoranPage />} />
+            <Route path="/kepala-muhafidz/tahfidzai" element={<TahfidzAi />} />
+
           </Route>
 
           {/* Rute Khusus Muhafidz */}

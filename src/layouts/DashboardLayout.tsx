@@ -97,6 +97,11 @@ export default function DashboardLayout() {
                   Pengaturan
                 </DropdownMenuItem>
 
+                <DropdownMenuItem onClick={() => navigate("/kepala-muhafidz/tahfidzai")} className="cursor-pointer">
+                  <FontAwesomeIcon icon={faBookOpen} className="mr-2 h-4 w-4" />
+                  Tahfidz Ai
+                </DropdownMenuItem>
+
                 <DropdownMenuSeparator />
                 
                 <DropdownMenuItem 
