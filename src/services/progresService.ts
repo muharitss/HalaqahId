@@ -13,16 +13,18 @@ export interface ProgresSantri {
 
 export const progresService = {
   getAllProgres: async (): Promise<ApiResponse<ProgresSantri[]>> => {
-    const response = await axiosClient.get<ApiResponse<any[]>>("/progres-santri");
+    const response = await axiosClient.get<ApiResponse<any[]>>("/santri");
     
-    const mappedData = response.data.data.map((item: any) => ({
+    const rawData = response.data.data || [];
+
+    const mappedData = rawData.map((item: any) => ({
       id: item.id_santri || item.id,
-      nama: item.nama_santri || item.name || item.nama,
-      target: item.target_tipe || item.target,
-      capaian: item.persentase || item.capaian || 0,
-      status: item.status_label || item.status,
-      terakhirSetor: item.terakhir_setoran || item.terakhirSetor || "-",
-      totalAyat: item.total_ayat || item.totalAyat || 0
+      nama: item.nama_santri || item.nama || item.name,
+      target: item.target_tipe || "REGULER", 
+      capaian: 0, 
+      status: "Aktif",
+      terakhirSetor: "-",
+      totalAyat: 0
     }));
 
     return {

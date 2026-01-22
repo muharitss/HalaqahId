@@ -1,10 +1,10 @@
 import { useState, useCallback } from "react";
-import { setoranService, type SetoranPayload } from "@/services/setoranService";
+import { setoranService, type SetoranPayload, type SetoranResponse } from "@/services/setoranService";
 import { toast } from "sonner";
 
 export const useSetoran = () => {
   const [loading, setLoading] = useState(false);
-  const [history, _setHistory] = useState<any[]>([]);
+  const [history, setHistory] = useState<SetoranResponse[]>([]); // UPDATE: Gunakan setHistory
   const [santriList, setSantriList] = useState<any[]>([]);
   const [allSetoran, setAllSetoran] = useState<any[]>([]);
 
@@ -12,11 +12,24 @@ export const useSetoran = () => {
   const fetchSantri = useCallback(async () => {
     try {
       const res = await setoranService.getSantriList();
-      // Pastikan backend mengembalikan array di dalam res.data
       setSantriList(res.data || []);
     } catch (err: any) {
       console.error("Gagal mengambil daftar santri:", err);
       toast.error("Gagal memuat daftar santri");
+    }
+  }, []);
+
+  // FUNGSI BARU: Mengambil riwayat per santri
+  const fetchSetoranBySantri = useCallback(async (santriId: number) => {
+    setLoading(true);
+    try {
+      const res = await setoranService.getSetoranBySantri(santriId);
+      setHistory(res.data || []);
+    } catch (err: any) {
+      console.error("Gagal mengambil riwayat santri:", err);
+      toast.error("Gagal memuat riwayat setoran santri");
+    } finally {
+      setLoading(false);
     }
   }, []);
 
@@ -61,6 +74,7 @@ export const useSetoran = () => {
     fetchSantri, 
     loading,
     allSetoran,
-    fetchAllSetoran
+    fetchAllSetoran,
+    fetchSetoranBySantri 
   };
 };

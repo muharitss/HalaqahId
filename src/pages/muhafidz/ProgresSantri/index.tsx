@@ -1,255 +1,136 @@
 import { useState, useEffect } from "react";
+import { useProgres } from "@/hooks/useProgres";
+import { useSetoran } from "@/hooks/useSetoran"; // IMPORT HOOK BARU
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { 
-  faChartLine, 
-  faCalendarAlt,
-  faUserGraduate,
-  faCheckCircle,
-  faClock,
-  faBookOpen,
-  faSpinner
+  faCalendarAlt, faSpinner, faHistory 
 } from "@fortawesome/free-solid-svg-icons";
-import { useProgres } from "@/hooks/useProgres";
+
+// Import komponen tabel yang sudah Anda buat atau kita inline-kan
+import { HistoryTable } from "./HistoryTable"; 
 
 export default function ProgresSantriPage() {
-  const { progresData, loading, fetchProgres } = useProgres();
-  const [filterStatus, setFilterStatus] = useState("semua");
-  const [filterTarget, setFilterTarget] = useState("semua");
+  const { progresData, loading: loadingProgres, fetchProgres } = useProgres();
+  const { fetchSetoranBySantri, history, loading: loadingHistory } = useSetoran();
+  
+  const [filterStatus, _setFilterStatus] = useState("semua");
+  const [filterTarget, _setFilterTarget] = useState("semua");
 
-  // Mengambil data dari API saat halaman pertama kali dimuat
   useEffect(() => {
     fetchProgres();
   }, [fetchProgres]);
 
-  // Filter progres berdasarkan status dan target (Menggunakan data dari hook)
   const filteredProgres = progresData.filter(progres => {
     const statusMatch = filterStatus === "semua" || progres.status === filterStatus;
     const targetMatch = filterTarget === "semua" || progres.target === filterTarget;
     return statusMatch && targetMatch;
   });
 
-  // Perhitungan statistik dinamis berdasarkan data API
-  const totalAyatAll = progresData.reduce((acc, curr) => acc + curr.totalAyat, 0);
-  const avgCapaian = progresData.length > 0 
-    ? (progresData.reduce((acc, curr) => acc + (curr.capaian || 0), 0) / progresData.length).toFixed(1) 
-    : "0";
+  // Statistik tetap sama
 
-  // Warna berdasarkan status
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "Excellent": return "text-green-600 bg-green-100 dark:bg-green-900/30 dark:text-green-300";
-      case "On Track": return "text-blue-600 bg-blue-100 dark:bg-blue-900/30 dark:text-blue-300";
-      case "Perlu Bimbingan": return "text-orange-600 bg-orange-100 dark:bg-orange-900/30 dark:text-orange-300";
-      default: return "text-gray-600 bg-gray-100 dark:bg-gray-900/30 dark:text-gray-300";
+      case "Excellent": return "text-green-600 bg-green-100 dark:bg-green-900/30";
+      case "On Track": return "text-blue-600 bg-blue-100 dark:bg-blue-900/30";
+      default: return "text-orange-600 bg-orange-100 dark:bg-orange-900/30";
     }
-  };
-
-  // Warna bar progres
-  const getProgresColor = (capaian: number) => {
-    if (capaian >= 80) return "bg-green-500";
-    if (capaian >= 60) return "bg-blue-500";
-    return "bg-orange-500";
   };
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      {/* Header */}
+      {/* Header & Stats */}
       <div className="flex flex-col text-left">
-        <h2 className="text-2xl font-bold dark:text-white">Progres Santri</h2>
-        <p className="text-text-secondary dark:text-text-secondary-dark text-sm">
-          Pantau perkembangan hafalan santri
-        </p>
+        <h2 className="text-2xl font-bold">Progres Santri</h2>
+        <p className="text-muted-foreground text-sm">Klik nama santri untuk melihat riwayat setoran</p>
       </div>
 
-      {/* Filter Options */}
-      <div className="flex flex-col md:flex-row gap-4">
-        <div className="flex-1">
-          <label className="block text-sm font-medium mb-2 dark:text-white">Filter Status</label>
-          <Select value={filterStatus} onValueChange={setFilterStatus}>
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Pilih status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="semua">Semua Status</SelectItem>
-              <SelectItem value="Excellent">Excellent</SelectItem>
-              <SelectItem value="On Track">On Track</SelectItem>
-              <SelectItem value="Perlu Bimbingan">Perlu Bimbingan</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="flex-1">
-          <label className="block text-sm font-medium mb-2 dark:text-white">Filter Target</label>
-          <Select value={filterTarget} onValueChange={setFilterTarget}>
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Pilih target" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="semua">Semua Target</SelectItem>
-              <SelectItem value="RINGAN">Ringan</SelectItem>
-              <SelectItem value="SEDANG">Sedang</SelectItem>
-              <SelectItem value="INTENS">Intens</SelectItem>
-              <SelectItem value="CUSTOM_KHUSUS">Khusus</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="flex items-end">
-          <Button variant="outline" className="w-full md:w-auto" onClick={() => fetchProgres()}>
-            <FontAwesomeIcon icon={faCalendarAlt} className="mr-2" />
-            Refresh Data
-          </Button>
-        </div>
+      {/* Bagian Filter */}
+      <div className="flex flex-col md:flex-row gap-4 bg-card p-4 rounded-xl border">
+         <Button variant="outline" onClick={() => fetchProgres()}>
+            <FontAwesomeIcon icon={faCalendarAlt} className="mr-2" /> Refresh
+         </Button>
       </div>
 
-      {/* Stats Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="rounded-xl border border-border bg-surface p-6 dark:bg-surface-dark shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
-              <FontAwesomeIcon icon={faCheckCircle} className="text-green-600 dark:text-green-400" />
-            </div>
-            <div>
-              <p className="text-sm text-text-secondary dark:text-text-secondary-dark">Rata-rata Capaian</p>
-              <p className="text-2xl font-bold dark:text-white">{loading ? "..." : `${avgCapaian}%`}</p>
-            </div>
-          </div>
-        </div>
+      {/* Accordion Daftar Santri */}
+      <div className="space-y-4">
+        <h3 className="font-semibold text-lg flex items-center gap-2">
+            <FontAwesomeIcon icon={faHistory} className="text-primary" />
+            Detail Capaian & Riwayat
+        </h3>
 
-        <div className="rounded-xl border border-border bg-surface p-6 dark:bg-surface-dark shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center">
-              <FontAwesomeIcon icon={faBookOpen} className="text-blue-600 dark:text-blue-400" />
-            </div>
-            <div>
-              <p className="text-sm text-text-secondary dark:text-text-secondary-dark">Total Ayat</p>
-              <p className="text-2xl font-bold dark:text-white">{loading ? "..." : totalAyatAll}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="rounded-xl border border-border bg-surface p-6 dark:bg-surface-dark shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-purple-100 dark:bg-purple-900/20 flex items-center justify-center">
-              <FontAwesomeIcon icon={faUserGraduate} className="text-purple-600 dark:text-purple-400" />
-            </div>
-            <div>
-              <p className="text-sm text-text-secondary dark:text-text-secondary-dark">Santri Aktif</p>
-              <p className="text-2xl font-bold dark:text-white">{loading ? "..." : progresData.length}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Tabel Progres */}
-      <div className="rounded-xl border border-border bg-card dark:bg-surface-dark shadow-sm overflow-hidden">
-        <div className="p-6 border-b border-border dark:border-border-dark">
-          <div className="flex justify-between items-center">
-            <div>
-              <h3 className="font-semibold text-lg dark:text-white">Detail Progres Santri</h3>
-              <p className="text-sm text-text-secondary dark:text-text-secondary-dark">
-                Menampilkan {filteredProgres.length} dari {progresData.length} santri
-              </p>
-            </div>
-            {loading && <FontAwesomeIcon icon={faSpinner} spin className="text-primary" />}
-          </div>
-        </div>
-
-        {filteredProgres.length === 0 && !loading ? (
-          <div className="p-12 text-center">
-            <FontAwesomeIcon icon={faChartLine} className="text-5xl text-text-secondary-light dark:text-text-secondary-dark mb-4" />
-            <h4 className="font-medium dark:text-white mb-2">Tidak ada data</h4>
-            <p className="text-text-secondary dark:text-text-secondary-dark">
-              Tidak ada progres yang sesuai dengan filter
-            </p>
+        {loadingProgres ? (
+          <div className="p-10 text-center"><FontAwesomeIcon icon={faSpinner} spin className="mr-2"/> Memuat data santri...</div>
+        ) : filteredProgres.length === 0 ? (
+          <div className="p-10 border-2 border-dashed rounded-xl text-center text-muted-foreground">
+            Data santri tidak ditemukan.
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-accent/30 dark:bg-background-dark/50 text-muted-foreground font-medium">
-                <tr>
-                  <th className="px-6 py-4 text-left">Nama Santri</th>
-                  <th className="px-6 py-4 text-left">Target</th>
-                  <th className="px-6 py-4 text-left">Progres</th>
-                  <th className="px-6 py-4 text-left">Status</th>
-                  <th className="px-6 py-4 text-left">Terakhir Setor</th>
-                  <th className="px-6 py-4 text-left">Total Ayat</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border dark:divide-border-dark">
-                {filteredProgres.map((progres) => (
-                  <tr 
-                    key={progres.id} 
-                    className="hover:bg-accent/5 dark:hover:bg-background-dark/30 transition-colors"
-                  >
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                          <FontAwesomeIcon icon={faUserGraduate} className="text-primary text-sm" />
-                        </div>
-                        <span className="font-medium dark:text-white">{progres.nama}</span>
+          <Accordion type="single" collapsible className="w-full space-y-3">
+            {filteredProgres.map((santri) => (
+              <AccordionItem 
+                key={santri.id} 
+                value={santri.id.toString()}
+                className="border rounded-xl bg-card overflow-hidden shadow-sm transition-all duration-200 hover:bg-muted/50" // Efek Hover Terang di sini
+              >
+                <AccordionTrigger 
+                  className="hover:no-underline px-6 py-4"
+                  onClick={() => fetchSetoranBySantri(santri.id)} 
+                >
+                  {/* Grid System: Membuat kolom sejajar sempurna */}
+                  <div className="grid grid-cols-12 w-full items-center gap-4 pr-4">
+                    
+                    {/* Kolom 1: Nama & Avatar (Span 5) */}
+                    <div className="col-span-12 md:col-span-5 flex items-center gap-4 text-left">
+                      <div className="h-12 w-12 shrink-0 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xl">
+                        {santri.nama.charAt(0)}
                       </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="inline-flex items-center rounded-full bg-gray-100 dark:bg-gray-900/30 px-3 py-1 text-xs font-medium text-gray-700 dark:text-gray-300">
-                        {progres.target}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="space-y-1">
-                        <div className="flex justify-between text-sm">
-                          <span>{progres.capaian}%</span>
-                          <span>{progres.totalAyat} ayat</span>
-                        </div>
-                        <div className="h-2 w-full bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                          <div 
-                            className={`h-full rounded-full ${getProgresColor(progres.capaian)}`}
-                            style={{ width: `${progres.capaian}%` }}
-                          />
-                        </div>
+                      <div className="min-w-0"> {/* min-w-0 penting agar text-truncate bekerja */}
+                        <p className="font-bold text-base md:text-lg truncate">{santri.nama}</p>
+                        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-medium ${getStatusColor(santri.status)}`}>
+                          {santri.status}
+                        </span>
                       </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${getStatusColor(progres.status)}`}>
-                        {progres.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2 text-sm text-text-secondary dark:text-text-secondary-dark">
-                        <FontAwesomeIcon icon={faClock} className="text-sm" />
-                        {progres.terakhirSetor}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="font-medium dark:text-white">{progres.totalAyat}</span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+                    </div>
 
-      {/* Legend Keterangan */}
-      <div className="rounded-xl border border-border bg-surface p-6 dark:bg-surface-dark shadow-sm">
-        <h4 className="font-semibold dark:text-white mb-3">Keterangan Status</h4>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <div className="flex items-center gap-2">
-            <div className="h-3 w-3 rounded-full bg-green-500" />
-            <span className="text-sm dark:text-white">Excellent (≥80%)</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="h-3 w-3 rounded-full bg-blue-500" />
-            <span className="text-sm dark:text-white">On Track (60-79%)</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="h-3 w-3 rounded-full bg-orange-500" />
-            <span className="text-sm dark:text-white">Perlu Bimbingan ({"<"}60%)</span>
-          </div>
-        </div>
+                    {/* Kolom 2: Progress Bar (Span 4) - Sekarang lurus karena lebar kolom diatur Grid */}
+                    <div className="col-span-8 md:col-span-4 space-y-1">
+                      <div className="flex justify-between text-[11px] mb-1">
+                        <span className="text-muted-foreground">Progres Hafalan</span>
+                        <span className="font-bold">{santri.capaian}%</span>
+                      </div>
+                      <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-primary transition-all duration-500" 
+                          style={{ width: `${santri.capaian}%` }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Kolom 3: Terakhir Setor (Span 3) */}
+                    <div className="col-span-4 md:col-span-3 text-right">
+                      <p className="text-[10px] text-muted-foreground italic leading-none">Terakhir Setor</p>
+                      <p className="text-sm font-medium mt-1">{santri.terakhirSetor}</p>
+                    </div>
+
+                  </div>
+                </AccordionTrigger>
+
+                <AccordionContent className="border-t bg-muted/20">
+                  {loadingHistory ? (
+                    <div className="p-8 text-center text-muted-foreground">
+                      <FontAwesomeIcon icon={faSpinner} spin className="mr-2" />
+                      Mengambil riwayat setoran...
+                    </div>
+                  ) : (
+                    <HistoryTable data={history} />
+                  )}
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        )}
       </div>
     </div>
   );

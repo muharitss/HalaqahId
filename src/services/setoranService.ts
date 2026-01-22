@@ -36,7 +36,7 @@ export const setoranService = {
     return response.data;
   },
 
-  // GET /santri (Untuk dropdown)
+  // GET /santri 
   getSantriList: async (): Promise<ApiResponse<any[]>> => {
     const response = await axiosClient.get<ApiResponse<any[]>>("/santri");
     return response.data;
@@ -45,6 +45,12 @@ export const setoranService = {
   // GET /setoran
   getAllSetoran: async (): Promise<ApiResponse<any[]>> => {
     const response = await axiosClient.get<ApiResponse<any[]>>("/setoran/all");
+    return response.data;
+  },
+
+  // 4. GET /setoran/santri/:id (
+  getSetoranBySantri: async (santriId: number): Promise<ApiResponse<SetoranResponse[]>> => {
+    const response = await axiosClient.get<ApiResponse<SetoranResponse[]>>(`/setoran/santri/${santriId}`);
     return response.data;
   },
 };
