@@ -1,3 +1,5 @@
+"use client"
+
 import { PieChart, Pie, Cell, Label } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent, type ChartConfig } from "@/components/ui/chart";
@@ -6,6 +8,10 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheckDouble, faCalendarAlt } from "@fortawesome/free-solid-svg-icons";
 
+/**
+ * Konfigurasi warna yang konsisten dengan standar tabel:
+ * HADIR (Green), IZIN (Blue), SAKIT (Yellow), TERLAMBAT (Orange), ALFA (Red)
+ */
 const chartConfig = {
   HADIR: { label: "Hadir", color: "#22c55e" },      
   IZIN: { label: "Izin", color: "#3b82f6" },       
@@ -14,7 +20,21 @@ const chartConfig = {
   ALFA: { label: "Alfa", color: "#ef4444" },       
 } satisfies ChartConfig;
 
-export const AttendanceDonutChart = ({ data, loading, totalCount, view, onViewChange }: any) => {
+interface AttendanceDonutChartProps {
+  data: any[];
+  loading: boolean;
+  totalCount: number;
+  view: string;
+  onViewChange: (value: string) => void;
+}
+
+export const AttendanceDonutChart = ({ 
+  data, 
+  loading, 
+  totalCount, 
+  view, 
+  onViewChange 
+}: AttendanceDonutChartProps) => {
   return (
     <Card className="lg:col-span-2 border-none shadow-sm bg-muted/20 flex flex-col">
       <CardHeader className="pb-2">
@@ -29,6 +49,7 @@ export const AttendanceDonutChart = ({ data, loading, totalCount, view, onViewCh
               {view === "pekan" ? "Pekan Ini" : "Bulan Ini"}
             </CardDescription>
           </div>
+          
           <Tabs value={view} onValueChange={onViewChange}>
             <TabsList className="bg-background/50 h-7 px-1">
               <TabsTrigger value="pekan" className="text-[10px] h-5 px-2">Pekan</TabsTrigger>
@@ -46,7 +67,10 @@ export const AttendanceDonutChart = ({ data, loading, totalCount, view, onViewCh
         ) : (
           <ChartContainer config={chartConfig} className="mx-auto aspect-square max-h-[300px]">
             <PieChart>
-              <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
+              <ChartTooltip 
+                cursor={false} 
+                content={<ChartTooltipContent hideLabel />} 
+              />
               <Pie
                 data={data}
                 dataKey="count"
@@ -57,19 +81,34 @@ export const AttendanceDonutChart = ({ data, loading, totalCount, view, onViewCh
                 paddingAngle={2}
               >
                 {data.map((entry: any, index: number) => (
-                  <Cell key={`cell-${index}`} fill={entry.fill} stroke="transparent" />
+                  <Cell 
+                    key={`cell-${index}`} 
+                    fill={entry.fill} 
+                    stroke="transparent"
+                    className="hover:opacity-80 transition-opacity"
+                  />
                 ))}
                 <Label
                   content={({ viewBox }) => {
                     if (viewBox && "cx" in viewBox && "cy" in viewBox) {
+                      // Mencari data menggunakan uppercase key agar sinkron
                       const hadir = data.find((d: any) => d.status === "HADIR")?.count || 0;
                       const terlambat = data.find((d: any) => d.status === "TERLAMBAT")?.count || 0;
+                      
                       return (
                         <text x={viewBox.cx} y={viewBox.cy} textAnchor="middle" dominantBaseline="middle">
-                          <tspan x={viewBox.cx} y={viewBox.cy} className="fill-foreground text-3xl font-bold">
+                          <tspan 
+                            x={viewBox.cx} 
+                            y={viewBox.cy} 
+                            className="fill-foreground text-3xl font-bold"
+                          >
                             {hadir + terlambat}
                           </tspan>
-                          <tspan x={viewBox.cx} y={(viewBox.cy || 0) + 20} className="fill-muted-foreground text-[10px]">
+                          <tspan 
+                            x={viewBox.cx} 
+                            y={(viewBox.cy || 0) + 20} 
+                            className="fill-muted-foreground text-[10px]"
+                          >
                             Total Presensi
                           </tspan>
                         </text>
@@ -78,13 +117,17 @@ export const AttendanceDonutChart = ({ data, loading, totalCount, view, onViewCh
                   }}
                 />
               </Pie>
-              <ChartLegend content={<ChartLegendContent />} className="text-[10px] flex-wrap gap-x-2 gap-y-1 mt-4" />
+              <ChartLegend 
+                content={<ChartLegendContent />} 
+                className="text-[10px] flex-wrap gap-x-2 gap-y-1 mt-4" 
+              />
             </PieChart>
           </ChartContainer>
         )}
+        
         <div className="text-center py-4 border-t border-primary/5 mt-2">
-          <p className="text-[10px] text-muted-foreground">
-            Akumulasi catatan: <span className="font-bold text-foreground">{totalCount} entri</span>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">
+            Akumulasi: <span className="font-bold text-foreground">{totalCount} catatan santri</span>
           </p>
         </div>
       </CardContent>

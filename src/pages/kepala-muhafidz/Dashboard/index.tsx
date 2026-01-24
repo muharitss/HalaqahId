@@ -6,6 +6,7 @@ import { halaqahService } from "@/services/halaqahService";
 import { absensiService } from "@/services/absensiService";
 import { akunService, type Muhafiz } from "@/services/akunService";
 import { useSetoran } from "@/hooks/useSetoran";
+import { sanitizeDashboardData } from "@/lib/dataTransformer";
 
 // Components
 import { Dashboard } from "@/components/ui/TypedText";
@@ -25,7 +26,7 @@ export default function KepalaMuhafidzDashboard() {
   const [totalSantriTerabsen, setTotalSantriTerabsen] = React.useState(0);
   const [loadingAbsensi, setLoadingAbsensi] = React.useState(true);
 
-  // 1. Fetch Akun & Setoran
+  // 1. Fetch Akun & Setoran Awal
   React.useEffect(() => {
     const loadInitialData = async () => {
       try {
@@ -33,6 +34,8 @@ export default function KepalaMuhafidzDashboard() {
         const res = await akunService.getAllMuhafiz();
         if (res.success) setMuhafizData(res.data);
         await fetchAllSetoran();
+      } catch (err) {
+        console.error("Error loading initial data:", err);
       } finally {
         setLoadingAkun(false);
       }
@@ -40,7 +43,7 @@ export default function KepalaMuhafidzDashboard() {
     loadInitialData();
   }, [fetchAllSetoran]);
 
-  // 2. Agregasi Absensi Global (Rentang Waktu)
+  // 2. Agregasi Absensi Global (Rentang Waktu + Sanitasi Data)
   const fetchGlobalAttendance = React.useCallback(async () => {
     setLoadingAbsensi(true);
     try {
@@ -53,7 +56,7 @@ export default function KepalaMuhafidzDashboard() {
       const resHalaqah = await halaqahService.getAllHalaqah();
       const allHalaqah = resHalaqah.data || [];
 
-      // Ambil data paralel (Tanggal x Halaqah)
+      // Fetch data paralel per tanggal dan per halaqah
       const promises = dates.flatMap(date => 
         allHalaqah.map(h => 
           absensiService.getRekapHalaqah(h.id_halaqah, date)
@@ -63,16 +66,20 @@ export default function KepalaMuhafidzDashboard() {
       );
 
       const results = await Promise.all(promises);
-      const allData = results.flat();
+      const rawData = results.flat();
+
+      // BERSIHKAN DATA: Hanya hitung santri yang belum dihapus
+      const cleanData = sanitizeDashboardData(rawData);
 
       const counts = { HADIR: 0, IZIN: 0, SAKIT: 0, ALFA: 0, TERLAMBAT: 0 };
-      allData.forEach((item: any) => {
-        if (counts.hasOwnProperty(item.status)) {
-          counts[item.status as keyof typeof counts]++;
+      cleanData.forEach((item: any) => {
+        const status = item.status as keyof typeof counts;
+        if (counts.hasOwnProperty(status)) {
+          counts[status]++;
         }
       });
 
-      setTotalSantriTerabsen(allData.length);
+      setTotalSantriTerabsen(cleanData.length);
       setAbsensiStats([
         { status: "HADIR", count: counts.HADIR, fill: "#22c55e" },      
         { status: "IZIN", count: counts.IZIN, fill: "#3b82f6" },       
@@ -91,13 +98,16 @@ export default function KepalaMuhafidzDashboard() {
     fetchGlobalAttendance();
   }, [fetchGlobalAttendance]);
 
-  // 3. Logic Grafik Setoran
+  // 3. Logic Filter Grafik Setoran (Juga disanitasi)
+  const cleanSetoran = React.useMemo(() => sanitizeDashboardData(allSetoran), [allSetoran]);
+
   const dataPekanIni = React.useMemo(() => {
     const start = startOfWeek(new Date(), { weekStartsOn: 1 });
     const days = ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"];
     const counts: Record<string, number> = {};
     days.forEach(d => counts[d] = 0);
-    allSetoran.forEach(s => {
+    
+    cleanSetoran.forEach(s => {
       const d = new Date(s.tanggal_setoran);
       if (d >= start) {
         const idx = d.getDay() === 0 ? 6 : d.getDay() - 1;
@@ -105,19 +115,20 @@ export default function KepalaMuhafidzDashboard() {
       }
     });
     return days.map(day => ({ day, setoran: counts[day] }));
-  }, [allSetoran]);
+  }, [cleanSetoran]);
 
   const dataBulanIni = React.useMemo(() => {
     const start = startOfMonth(new Date());
     const lastDay = endOfMonth(new Date()).getDate();
     const dayCounts: Record<number, number> = {};
     for (let i = 1; i <= lastDay; i++) dayCounts[i] = 0;
-    allSetoran.forEach(s => {
+    
+    cleanSetoran.forEach(s => {
       const d = new Date(s.tanggal_setoran);
       if (d >= start) dayCounts[d.getDate()]++;
     });
     return Object.keys(dayCounts).map(date => ({ date: `Tgl ${date}`, setoran: dayCounts[parseInt(date)] }));
-  }, [allSetoran]);
+  }, [cleanSetoran]);
 
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
