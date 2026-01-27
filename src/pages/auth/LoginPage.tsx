@@ -1,10 +1,14 @@
 import { LoginForm } from "@/components/forms/LoginForm";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBookOpen } from "@fortawesome/free-solid-svg-icons";
+import { faBookOpen, faUsersViewfinder } from "@fortawesome/free-solid-svg-icons"; // Tambah icon baru
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { LoginCarousel } from "@/components/ui/LoginCarousel";
+import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { Button } from "@/components/ui/button"; // Import Button Shadcn
 
 export default function LoginPage() {
+  const navigate = useNavigate(); // Inisialisasi navigasi
+
   return (
     <div className="flex h-screen w-full overflow-hidden bg-background-light dark:bg-background-dark">
       
@@ -33,7 +37,7 @@ export default function LoginPage() {
           <span className="text-xl font-bold dark:text-white">HalaqahId</span>
         </div>
 
-        <div className="mx-auto w-full max-w-md space-y-8 py-30 ">
+        <div className="mx-auto w-full max-w-md space-y-8 py-10"> {/* Ubah py-30 ke py-10 agar tidak terlalu jauh ke bawah */}
           <div className="space-y-2 text-center lg:text-left">
             <h2 className="text-3xl font-bold tracking-tight text-text-primary-light dark:text-text-primary-dark">
               Assalamu'alaikum
@@ -45,14 +49,27 @@ export default function LoginPage() {
 
           <LoginForm />
 
-          <div className="text-center">
-            <p className="text-sm text-text-secondary-light dark:text-gray-400">
-              Belum memiliki akun?{" "}
-              <a href="#" className="font-semibold text-primary hover:underline">
-                Daftar Sekarang
-              </a>
-            </p>
+          {/* --- BAGIAN TAMBAHAN: AKSES PUBLIK --- */}
+          <div className="space-y-4">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-muted" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">Atau akses publik</span>
+              </div>
+            </div>
+
+            <Button 
+              variant="outline" 
+              className="w-full h-11 gap-2 border-primary/20 hover:bg-primary/5 hover:text-primary transition-all shadow-sm"
+              onClick={() => navigate("/display")}
+            >
+              <FontAwesomeIcon icon={faUsersViewfinder} className="text-primary" />
+              Portal Informasi Santri 
+            </Button>
           </div>
+
         </div>
 
         <div className="mt-auto py-4">

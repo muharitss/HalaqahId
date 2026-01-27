@@ -129,9 +129,6 @@ export function LoginForm() {
                 <FormItem>
                   <div className="flex items-center justify-between">
                     <FormLabel>Password</FormLabel>
-                    <Button type="button" variant="link" size="sm" className="px-0 font-normal h-auto text-xs text-primary">
-                      Forgot password?
-                    </Button>
                   </div>
                   <FormControl>
                     <div className="relative">
