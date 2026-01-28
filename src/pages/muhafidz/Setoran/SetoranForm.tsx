@@ -21,6 +21,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { SetoranPayload } from "@/services/setoranService";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { daftarSurah } from "@/utils/daftarSurah";
+import { Check, ChevronsUpDown } from "lucide-react";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { useState } from "react";
 
 interface SetoranFormProps {
   santriList: any[];
@@ -29,6 +35,8 @@ interface SetoranFormProps {
 }
 
 export function SetoranForm({ santriList, onSubmit, loading }: SetoranFormProps) {
+  const [open, setOpen] = useState(false);
+  
   const form = useForm<SetoranFormValues>({
     resolver: zodResolver(setoranSchema) as any,
     defaultValues: {
@@ -147,11 +155,55 @@ export function SetoranForm({ santriList, onSubmit, loading }: SetoranFormProps)
               control={form.control}
               name="surat"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Surah</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Contoh: Al-Baqarah" {...field} />
-                  </FormControl>
+                <FormItem className="flex flex-col">
+                  <FormLabel className="mb-2">Surah</FormLabel>
+                  <Popover open={open} onOpenChange={setOpen}>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          className={cn(
+                            "w-full justify-between font-normal",
+                            !field.value && "text-muted-foreground"
+                          )}
+                        >
+                          {field.value
+                            ? daftarSurah.find((s) => s === field.value)
+                            : "Ketik nama surah..."}
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                      <Command>
+                        <CommandInput placeholder="Cari surah (misal: Al-Fath)..." />
+                        <CommandList>
+                          <CommandEmpty>Surah tidak ditemukan.</CommandEmpty>
+                          <CommandGroup className="max-h-60 overflow-y-auto">
+                            {daftarSurah.map((surah) => (
+                              <CommandItem
+                                key={surah}
+                                value={surah}
+                                onSelect={() => {
+                                  form.setValue("surat", surah);
+                                  setOpen(false);
+                                }}
+                              >
+                                <Check
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    surah === field.value ? "opacity-100" : "opacity-0"
+                                  )}
+                                />
+                                {surah}
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
                   <FormMessage />
                 </FormItem>
               )}
