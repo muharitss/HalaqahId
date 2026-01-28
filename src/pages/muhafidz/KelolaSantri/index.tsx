@@ -11,10 +11,10 @@ import { SantriInfoCard } from "./SantriInfoCard";
 import { SantriSkeleton } from "./SantriSkeleton";
 
 import { useSantri } from "@/hooks/useSantri";
-import { useAuth } from "@/hooks/useAuth";
 import { halaqahService } from "@/services/halaqahService";
 import { santriSchema } from "@/utils/zodSchema";
 import z from "zod";
+import { useAuth } from "@/context/AuthContext";
 
 export default function KelolaSantriPage() {
   const { isAdmin } = useAuth();

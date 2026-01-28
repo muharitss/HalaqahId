@@ -32,6 +32,7 @@ interface AuthContextType {
   impersonate: (userData: User, originalUser: User) => Promise<void>;
   stopImpersonating: () => Promise<void>;
   isImpersonating: boolean;
+  isAdmin: () => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -246,6 +247,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     refreshUser();
   }, []); 
 
+  const isAdmin = useCallback(() => {
+    return user?.role === "superadmin";
+  }, [user])
+
   return (
     <AuthContext.Provider value={{ 
       user, 
@@ -257,7 +262,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       refreshUser,
       impersonate,
       stopImpersonating,
-      isImpersonating: user?.isImpersonating || false
+      isAdmin,
+      isImpersonating: user?.isImpersonating || false,
     }}>
       {children}
     </AuthContext.Provider>
