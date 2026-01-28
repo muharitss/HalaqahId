@@ -17,7 +17,7 @@ export default function DashboardLayout() {
   const navigate = useNavigate();
 
   const handleAvatarClick = () => {
-    const targetPath = user?.role === "superadmin" ? "/kepala-muhafidz/settings" : "/settings";
+    const targetPath = user?.role === "superadmin" ? "/kepala-muhafidz/settings" : "muhafidz/settings";
     navigate(targetPath);
   };
 
