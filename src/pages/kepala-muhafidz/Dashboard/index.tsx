@@ -4,7 +4,6 @@ import * as React from "react";
 import { format, startOfWeek, endOfMonth, startOfMonth, eachDayOfInterval } from "date-fns";
 import { halaqahService } from "@/services/halaqahService";
 import { absensiService } from "@/services/absensiService";
-import { akunService, type Muhafiz } from "@/services/akunService";
 import { useSetoran } from "@/hooks/useSetoran";
 import { sanitizeDashboardData } from "@/lib/dataTransformer";
 
@@ -12,11 +11,12 @@ import { sanitizeDashboardData } from "@/lib/dataTransformer";
 import { Dashboard } from "@/components/ui/TypedText";
 import { ActivityChart } from "./ActivityChart";
 import { AttendanceDonutChart } from "./AttendanceDonutChart";
-import { MuhafizTable } from "./MuhafizTable";
+import { Button } from "@/components/ui/button";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faUsersViewfinder } from "@fortawesome/free-solid-svg-icons";
+import { useNavigate } from "react-router-dom";
 
 export default function KepalaMuhafidzDashboard() {
-  const [muhafizData, setMuhafizData] = React.useState<Muhafiz[]>([]);
-  const [loadingAkun, setLoadingAkun] = React.useState(true);
   const { allSetoran, fetchAllSetoran, loading: loadingSetoran } = useSetoran();
   const [chartView, setChartView] = React.useState("pekan");
 
@@ -25,20 +25,17 @@ export default function KepalaMuhafidzDashboard() {
   const [absensiView, setAbsensiView] = React.useState("pekan");
   const [totalSantriTerabsen, setTotalSantriTerabsen] = React.useState(0);
   const [loadingAbsensi, setLoadingAbsensi] = React.useState(true);
+  const navigate = useNavigate();
 
   // 1. Fetch Akun & Setoran Awal
   React.useEffect(() => {
     const loadInitialData = async () => {
       try {
-        setLoadingAkun(true);
-        const res = await akunService.getAllMuhafiz();
-        if (res.success) setMuhafizData(res.data);
         await fetchAllSetoran();
       } catch (err) {
         console.error("Error loading initial data:", err);
       } finally {
-        setLoadingAkun(false);
-      }
+        setLoadingAbsensi(false);}
     };
     loadInitialData();
   }, [fetchAllSetoran]);
@@ -153,8 +150,15 @@ export default function KepalaMuhafidzDashboard() {
           onViewChange={setAbsensiView}
         />
       </div>
-
-      <MuhafizTable data={muhafizData} loading={loadingAkun} />
+      
+      <Button 
+        variant="outline" 
+        className="w-full h-11 gap-2 border-primary/20 hover:bg-primary/5 hover:text-primary transition-all shadow-sm"
+        onClick={() => navigate("/display")}
+      >
+        <FontAwesomeIcon icon={faUsersViewfinder} className="text-primary" />
+        Portal Informasi Santri 
+      </Button>
     </div>
   );
 }
