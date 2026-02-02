@@ -1,8 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { setoranSchema, type SetoranFormValues } from "@/utils/zodSchema";
+import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -20,59 +21,78 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { SetoranPayload } from "@/services/setoranService";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
-import { daftarSurah } from "@/utils/daftarSurah";
-import { Check, ChevronsUpDown } from "lucide-react";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
-import { useState } from "react";
+import { cn } from "@/lib/utils";
+import { Check, ChevronsUpDown } from "lucide-react";
+import { pemetaanJuz } from "@/utils/daftarSurah";
+
+// 1. Definisikan Schema sesuai kebutuhan UI (pecah ayat)
+const setoranSchema = z.object({
+  santri_id: z.coerce.number().min(1, "Pilih santri"),
+  juz: z.coerce.number().min(1).max(30),
+  surat: z.string().min(1, "Pilih surah"),
+  ayat_mulai: z.coerce.number().min(1),
+  ayat_selesai: z.coerce.number().min(1),
+  kategori: z.enum(["HAFALAN", "MURAJAAH"]),
+  taqwim: z.string().min(1, "Wajib diisi"),
+  keterangan: z.string().optional(),
+}).refine((data) => data.ayat_selesai >= data.ayat_mulai, {
+  message: "Ayat selesai tidak boleh kurang dari mulai",
+  path: ["ayat_selesai"],
+});
+
+type SetoranFormValues = z.infer<typeof setoranSchema>;
 
 interface SetoranFormProps {
   santriList: any[];
-  onSubmit: (data: SetoranPayload) => Promise<{ success: boolean }>;
+  onSubmit: (data: any) => Promise<{ success: boolean }>;
   loading: boolean;
 }
 
 export function SetoranForm({ santriList, onSubmit, loading }: SetoranFormProps) {
   const [open, setOpen] = useState(false);
-  
+
   const form = useForm<SetoranFormValues>({
     resolver: zodResolver(setoranSchema) as any,
     defaultValues: {
-      // 1. Tetap gunakan undefined agar placeholder "Pilih Santri" muncul otomatis
-      santri_id: undefined, 
+      santri_id: undefined,
       juz: 1,
       kategori: "HAFALAN",
       surat: "",
-      ayat: "1-10",
+      ayat_mulai: undefined,
+      ayat_selesai: undefined,
       taqwim: "Mumtaz",
+      keterangan: "",
     },
   });
 
-  const onFormSubmit = async (values: SetoranFormValues) => {
-    // 2. PROTEKSI: Cek apakah santri_id benar-benar ada sebelum kirim
-    if (!values.santri_id) {
-      alert("Silakan pilih santri terlebih dahulu!");
-      return;
-    }
+  // Watcher untuk sinkronisasi
+  const selectedJuz = form.watch("juz");
+  const selectedSurat = form.watch("surat");
+  const availableSurah = pemetaanJuz[selectedJuz] || [];
+  const currentSurahDetail = availableSurah.find((s) => s.nama === selectedSurat);
 
-    // 3. TRANSFORMASI: Pastikan payload yang dikirim ke service adalah Number murni
-    const payload: SetoranPayload = {
-      ...values,
-      santri_id: Number(values.santri_id),
-      juz: Number(values.juz),
+  const onFormSubmit = async (values: SetoranFormValues) => {
+    // 2. Transformasi ke format yang diminta backend (POST JSON)
+    const payload = {
+      santri_id: values.santri_id,
+      juz: values.juz,
+      surat: values.surat,
+      ayat: `${values.ayat_mulai}-${values.ayat_selesai}`, // "1-10"
+      kategori: values.kategori,
+      taqwim: values.taqwim,
+      keterangan: values.keterangan,
     };
 
     const result = await onSubmit(payload);
-    
     if (result.success) {
-      // Reset form, namun biarkan santri_id tetap undefined agar kembali ke placeholder
       form.reset({
         ...form.getValues(),
         santri_id: undefined,
         surat: "",
-        ayat: "1-10",
+        ayat_mulai: 1,
+        ayat_selesai: 1,
       });
     }
   };
@@ -87,21 +107,13 @@ export function SetoranForm({ santriList, onSubmit, loading }: SetoranFormProps)
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Santri</FormLabel>
-                {/* 4. LOGIKA VALUE: Jika value undefined, kirim string kosong ke Select shadcn */}
-                <Select 
-                  onValueChange={(v) => field.onChange(v === "" ? undefined : Number(v))} 
-                  value={field.value ? field.value.toString() : ""}
-                >
+                <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
                   <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Pilih Santri" />
-                    </SelectTrigger>
+                    <SelectTrigger><SelectValue placeholder="Pilih Santri" /></SelectTrigger>
                   </FormControl>
                   <SelectContent>
                     {santriList.map((s) => (
-                      <SelectItem key={s.id_santri} value={s.id_santri.toString()}>
-                        {s.nama_santri}
-                      </SelectItem>
+                      <SelectItem key={s.id_santri} value={s.id_santri.toString()}>{s.nama_santri}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -116,11 +128,9 @@ export function SetoranForm({ santriList, onSubmit, loading }: SetoranFormProps)
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Kategori</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
                   </FormControl>
                   <SelectContent>
                     <SelectItem value="HAFALAN">HAFALAN</SelectItem>
@@ -133,122 +143,167 @@ export function SetoranForm({ santriList, onSubmit, loading }: SetoranFormProps)
           />
         </div>
 
-        {/* Baris Sisanya (Juz, Surat, Ayat, Taqwim) tetap sama seperti sebelumnya */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="md:col-span-1">
-            <FormField
-              control={form.control}
-              name="juz"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Juz</FormLabel>
-                  <FormControl>
-                    <Input type="number" {...field} onChange={(e) => field.onChange(Number(e.target.value))} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-          <div className="md:col-span-3">
-            <FormField
-              control={form.control}
-              name="surat"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel className="mb-2">Surah</FormLabel>
-                  <Popover open={open} onOpenChange={setOpen}>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant="outline"
-                          role="combobox"
-                          className={cn(
-                            "w-full justify-between font-normal",
-                            !field.value && "text-muted-foreground"
-                          )}
-                        >
-                          {field.value
-                            ? daftarSurah.find((s) => s === field.value)
-                            : "Ketik nama surah..."}
-                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                      <Command>
-                        <CommandInput placeholder="Cari surah (misal: Al-Fath)..." />
-                        <CommandList>
-                          <CommandEmpty>Surah tidak ditemukan.</CommandEmpty>
-                          <CommandGroup className="max-h-60 overflow-y-auto">
-                            {daftarSurah.map((surah) => (
-                              <CommandItem
-                                key={surah}
-                                value={surah}
-                                onSelect={() => {
-                                  form.setValue("surat", surah);
-                                  setOpen(false);
-                                }}
-                              >
-                                <Check
-                                  className={cn(
-                                    "mr-2 h-4 w-4",
-                                    surah === field.value ? "opacity-100" : "opacity-0"
-                                  )}
-                                />
-                                {surah}
-                              </CommandItem>
-                            ))}
-                          </CommandGroup>
-                        </CommandList>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
           <FormField
             control={form.control}
-            name="ayat"
+            name="juz"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Ayat</FormLabel>
+                <FormLabel>Juz</FormLabel>
+                <Select 
+                  onValueChange={(v) => {
+                    field.onChange(Number(v));
+                    form.setValue("surat", ""); // Reset surah jika juz ganti
+                  }} 
+                  value={field.value.toString()}
+                >
+                  <FormControl>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {Array.from({ length: 30 }, (_, i) => (
+                      <SelectItem key={i + 1} value={(i + 1).toString()}>Juz {i + 1}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="surat"
+            render={({ field }) => (
+              <FormItem className="md:col-span-3 flex flex-col">
+                <FormLabel className="mb-2">Surah (Juz {selectedJuz})</FormLabel>
+                <Popover open={open} onOpenChange={setOpen}>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button variant="outline" className="w-full justify-between font-normal">
+                        {field.value || "Pilih Surah..."}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                    <Command>
+                      <CommandInput placeholder="Cari surah..." />
+                      <CommandList>
+                        <CommandEmpty>Surah tidak ditemukan di juz ini.</CommandEmpty>
+                        <CommandGroup>
+                          {availableSurah.map((surah) => (
+                            <CommandItem
+                              key={surah.nama}
+                              value={surah.nama}
+                              onSelect={() => {
+                                form.setValue("surat", surah.nama);
+                                form.setValue("ayat_mulai", surah.ayatMulai);
+                                form.setValue("ayat_selesai", surah.ayatSelesai);
+                                setOpen(false);
+                                form.trigger(["ayat_mulai", "ayat_selesai"]);
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  surah.nama === field.value ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                              {surah.nama} ({surah.ayatMulai}-{surah.ayatSelesai})
+                            </CommandItem>  
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <FormField
+            control={form.control}
+            name="ayat_mulai"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Ayat Mulai</FormLabel>
                 <FormControl>
-                  <Input {...field} />
+                  <Input 
+                    type="number" 
+                    placeholder="Mulai"
+                    {...field}
+                    value={field.value || ""} 
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      field.onChange(val === "" ? undefined : Number(val));
+                    }}
+                    onFocus={(e) => e.target.value === "0" && (e.target.value = "")}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
+
+          <FormField
+            control={form.control}
+            name="ayat_selesai"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Ayat Selesai</FormLabel>
+                <FormControl>
+                  <Input 
+                    type="number" 
+                    placeholder="Selesai"
+                    {...field}
+                    value={field.value || ""} 
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      const numVal = val === "" ? undefined : Number(val);
+                      
+                      if (numVal && currentSurahDetail && numVal > currentSurahDetail.totalAyat) return;
+                      
+                      field.onChange(numVal);
+                    }}
+                    onFocus={(e) => e.target.value === "0" && (e.target.value = "")}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
           <FormField
             control={form.control}
             name="taqwim"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="md:col-span-2">
                 <FormLabel>Taqwim</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
+                <FormControl><Input {...field} /></FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
         </div>
 
-        <div className="pt-4">
-          <Button 
-            type="submit" 
-            disabled={loading} 
-            className="w-full bg-[#65a30d] hover:bg-[#4d7c0f] text-white font-bold py-6"
-          >
-            {loading ? "Menyimpan..." : "Simpan Setoran"}
-          </Button>
-        </div>
+        <FormField
+          control={form.control}
+          name="keterangan"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Keterangan</FormLabel>
+              <FormControl><Input placeholder="Catatan tambahan (opsional)" {...field} /></FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <Button type="submit" disabled={loading} className="w-full bg-[#65a30d] hover:bg-[#4d7c0f] text-white font-bold py-6">
+          {loading ? "Menyimpan..." : "Simpan Setoran"}
+        </Button>
       </form>
     </Form>
   );

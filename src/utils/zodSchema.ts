@@ -7,12 +7,17 @@ export const loginSchema = z.object({
 
 export const setoranSchema = z.object({
   santri_id: z.coerce.number().min(1, "Pilih santri"),
-  juz: z.coerce.number().min(1, "Juz 1-30").max(30, "Juz 1-30"),
-  surat: z.string().min(1, "Nama surah wajib diisi"), 
-  ayat: z.string().min(1, "Ayat wajib diisi"),
+  juz: z.coerce.number().min(1).max(30),
+  surat: z.string().min(1, "Surah wajib dipilih"),
+  // Kita gunakan field helper untuk UI
+  ayat_mulai: z.coerce.number().min(1),
+  ayat_selesai: z.coerce.number().min(1),
   kategori: z.enum(["HAFALAN", "MURAJAAH"]),
-  taqwim: z.string().optional(), 
-  keterangan: z.string().optional(), 
+  taqwim: z.string().min(1, "Taqwim wajib diisi"),
+  keterangan: z.string().optional(),
+}).refine((data) => data.ayat_selesai >= data.ayat_mulai, {
+  message: "Ayat selesai tidak boleh lebih kecil dari mulai",
+  path: ["ayat_selesai"],
 });
 
 export const registerSchema = z.object({
