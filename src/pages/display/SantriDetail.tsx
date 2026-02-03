@@ -28,6 +28,15 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recha
 import { ArrowLeft, BookOpen, PieChart as ChartIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+// CONFIGURATION: Centralized status for consistency between Chart and Table
+const STATUS_CONFIG = {
+  HADIR: { label: "Hadir", color: "#10b981", bg: "bg-emerald-500" },
+  IZIN: { label: "Izin", color: "#3b82f6", bg: "bg-blue-500" },
+  SAKIT: { label: "Sakit", color: "#f59e0b", bg: "bg-amber-500" },
+  TERLAMBAT: { label: "Terlambat", color: "#f97316", bg: "bg-orange-500" },
+  ALFA: { label: "Alfa", color: "#ef4444", bg: "bg-red-500" },
+};
+
 const SantriDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -49,13 +58,11 @@ const SantriDetail = () => {
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
-      // Sesuai dengan displayService.ts yang kamu berikan
       const [resSantri, resSetoran] = await Promise.all([
         displayService.getSantriList(),
         displayService.getSetoranAll(),
       ]);
 
-      // 1. Cari santri (Konversi id ke String/Number agar aman)
       const currentSantri = resSantri.find((s: any) => String(s.id_santri) === String(id));
       
       if (!currentSantri) {
@@ -64,13 +71,10 @@ const SantriDetail = () => {
       }
 
       setSantri(currentSantri);
-
-      // 2. Filter Setoran berdasarkan nama_santri (karena di API setoran tidak ada santri_id)
       const filteredSetoran = resSetoran.filter(
         (set: any) => set.nama_santri === currentSantri.nama_santri
       );
       setAllSetoran(filteredSetoran);
-
     } catch (err) {
       console.error("Error fetching data:", err);
     } finally {
@@ -79,15 +83,10 @@ const SantriDetail = () => {
   }, [id]);
 
   const fetchMonthlyAbsensi = useCallback(async () => {
-    // Di API santri, tidak ada halaqah_id eksplisit, hanya nama_halaqah. 
-    // Jika backend butuh ID, pastikan halaqah_id ada di response /santri.
-    // Untuk sementara kita asumsikan halaqah_id tersedia atau menggunakan dummy/manual logic.
     if (!santri) return;
 
     setIsLoadingAbsensi(true);
     try {
-      // Kita butuh halaqahId. Jika di /santri tidak ada id_halaqah, 
-      // kita harus mencarinya dulu dari getHalaqahList()
       const halaqahList = await displayService.getHalaqahList();
       const currentHalaqah = halaqahList.find((h: any) => h.nama_halaqah === santri.nama_halaqah);
 
@@ -113,16 +112,20 @@ const SantriDetail = () => {
   useEffect(() => { fetchMonthlyAbsensi(); }, [fetchMonthlyAbsensi]);
 
   const chartData = useMemo(() => {
-    const stats = { HADIR: 0, IZIN: 0, SAKIT: 0, ALFA: 0 };
+    const stats = { HADIR: 0, IZIN: 0, SAKIT: 0, TERLAMBAT: 0, ALFA: 0 };
     monthlyAbsensi.forEach(day => {
-      // Filter absensi berdasarkan nama_santri sesuai struktur API absensi kamu
       const record = day.data?.find((item: any) => item.nama_santri === santri?.nama_santri);
-      if (record?.status) stats[record.status as keyof typeof stats]++;
+      if (record?.status && stats.hasOwnProperty(record.status)) {
+        stats[record.status as keyof typeof stats]++;
+      }
     });
+
     return [
-      { name: "Hadir", value: stats.HADIR, fill: "#10b981" }, // Green
-      { name: "Izin/Sakit", value: stats.IZIN + stats.SAKIT, fill: "#f59e0b" }, // Amber
-      { name: "Alfa", value: stats.ALFA, fill: "#ef4444" }, // Red
+      { name: "Hadir", value: stats.HADIR, fill: STATUS_CONFIG.HADIR.color },
+      { name: "Izin", value: stats.IZIN, fill: STATUS_CONFIG.IZIN.color },
+      { name: "Sakit", value: stats.SAKIT, fill: STATUS_CONFIG.SAKIT.color },
+      { name: "Terlambat", value: stats.TERLAMBAT, fill: STATUS_CONFIG.TERLAMBAT.color },
+      { name: "Alfa", value: stats.ALFA, fill: STATUS_CONFIG.ALFA.color },
     ].filter(d => d.value > 0);
   }, [monthlyAbsensi, santri]);
 
@@ -133,7 +136,6 @@ const SantriDetail = () => {
     <div className="min-h-screen bg-background text-foreground p-4 md:p-8 transition-colors duration-300">
       <div className="mx-auto max-w-5xl space-y-6">
         
-        {/* Top Action Bar */}
         <div className="flex items-center justify-between">
           <Button variant="ghost" onClick={() => navigate("/display")} className="gap-2 hover:bg-card">
             <ArrowLeft className="h-4 w-4" /> Kembali
@@ -141,7 +143,6 @@ const SantriDetail = () => {
           <ThemeToggle />
         </div>
 
-        {/* Profil Section */}
         <Card className="border-none shadow-sm bg-linear-to-br from-card to-muted/20">
           <CardContent className="p-6">
             <div className="flex flex-col items-start justify-between gap-6 md:flex-row md:items-center">
@@ -168,7 +169,6 @@ const SantriDetail = () => {
         </Card>
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          {/* Chart Card */}
           <Card className="border-none shadow-sm">
             <CardHeader className="pb-2">
               <CardTitle className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
@@ -186,9 +186,10 @@ const SantriDetail = () => {
                         ))}
                       </Pie>
                       <Tooltip 
-                        contentStyle={{ backgroundColor: 'white', borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} 
+                        contentStyle={{ backgroundColor: 'white', borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', fontSize: '12px' }}
+                        itemStyle={{ fontWeight: 'bold' }}
                       />
-                      <Legend verticalAlign="bottom" height={36}/>
+                      <Legend verticalAlign="bottom" height={36} wrapperStyle={{ fontSize: '10px' }}/>
                     </PieChart>
                   </ResponsiveContainer>
                 ) : (
@@ -201,7 +202,6 @@ const SantriDetail = () => {
             </CardContent>
           </Card>
 
-          {/* Rekap Absensi */}
           <Card className="border-none shadow-sm lg:col-span-2">
             <CardHeader className="flex flex-row items-center justify-between pb-4">
               <CardTitle className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
@@ -220,10 +220,10 @@ const SantriDetail = () => {
               </Select>
             </CardHeader>
             <CardContent>
-               <div className="relative overflow-x-auto rounded-lg border border-muted/50">
-                  <Table>
+               <div className="relative overflow-x-auto rounded-lg border border-muted/50 scrollbar-thin">
+                  <Table className="border-separate border-spacing-0">
                     <TableHeader>
-                      <TableRow className="bg-muted/30 hover:bg-muted/30 border-b">
+                      <TableRow className="bg-muted/30 hover:bg-muted/30">
                         {daysInMonth.map((date) => (
                           <TableHead key={date.toString()} className="h-10 border-r p-0 text-center text-[10px] font-bold min-w-8">
                             {getDate(date)}
@@ -239,16 +239,12 @@ const SantriDetail = () => {
                           daysInMonth.map((date) => {
                             const dateStr = format(date, "yyyy-MM-dd");
                             const record = monthlyAbsensi.find(m => m.tanggal === dateStr)?.data?.find((s: any) => s.nama_santri === santri.nama_santri);
-                            const status = record?.status;
+                            const status = record?.status as keyof typeof STATUS_CONFIG;
                             
                             return (
                               <TableCell key={date.toString()} className={cn(
                                 "h-12 border-r p-0 text-center text-[11px] font-extrabold transition-colors border-b",
-                                status === "HADIR" && "bg-emerald-500 text-white",
-                                status === "IZIN" && "bg-amber-400 text-white",
-                                status === "SAKIT" && "bg-orange-400 text-white",
-                                status === "ALFA" && "bg-red-500 text-white",
-                                !status && "text-muted-foreground/20 bg-muted/5"
+                                status ? `${STATUS_CONFIG[status].bg} text-white` : "text-muted-foreground/20 bg-muted/5"
                               )}>
                                 {status ? status.charAt(0) : "-"}
                               </TableCell>
@@ -259,16 +255,17 @@ const SantriDetail = () => {
                     </TableBody>
                   </Table>
                </div>
-               <div className="mt-4 flex gap-4 text-[10px] font-medium text-muted-foreground">
-                  <div className="flex items-center gap-1"><div className="h-2 w-2 rounded-full bg-emerald-500" /> Hadir</div>
-                  <div className="flex items-center gap-1"><div className="h-2 w-2 rounded-full bg-amber-400" /> Izin/Sakit</div>
-                  <div className="flex items-center gap-1"><div className="h-2 w-2 rounded-full bg-red-500" /> Alfa</div>
+               <div className="mt-4 flex flex-wrap gap-3 text-[10px] font-medium text-muted-foreground">
+                  {Object.entries(STATUS_CONFIG).map(([key, config]) => (
+                    <div key={key} className="flex items-center gap-1">
+                      <div className={cn("h-2 w-2 rounded-full", config.bg)} /> {config.label}
+                    </div>
+                  ))}
                </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Setoran Section */}
         <Card className="border-none shadow-sm overflow-hidden">
           <CardHeader className="bg-muted/10 border-b">
             <CardTitle className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
@@ -279,9 +276,9 @@ const SantriDetail = () => {
             <Table>
               <TableHeader className="bg-muted/20">
                 <TableRow>
-                  <TableHead className="text-[11px] font-bold">TANGGAL</TableHead>
-                  <TableHead className="text-[11px] font-bold">MATERI</TableHead>
-                  <TableHead className="text-[11px] font-bold">KATEGORI</TableHead>
+                  <TableHead className="text-[11px] font-bold uppercase">Tanggal</TableHead>
+                  <TableHead className="text-[11px] font-bold uppercase">Materi</TableHead>
+                  <TableHead className="text-[11px] font-bold uppercase">Kategori</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
