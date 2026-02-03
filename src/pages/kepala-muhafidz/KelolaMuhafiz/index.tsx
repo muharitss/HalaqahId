@@ -9,11 +9,8 @@ import { EditAkun } from "./EditAkun";
 import { DeleteAkun } from "./DeleteAkun";
 
 import { CardContent } from "@/components/ui/card";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { 
-  faInfoCircle,
   faShieldHalved
 } from "@fortawesome/free-solid-svg-icons";
 import { MuhafizManagement } from "@/components/ui/TypedText";
@@ -122,18 +119,6 @@ export default function KelolaMuhafizPage() {
             onCreateClick={handleRegisterSuccess}
           />
         </CardContent>
-      {/* Security & Guidelines */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Alert className="bg-primary/5 border-primary/20 md:col-span-2">
-          <FontAwesomeIcon icon={faInfoCircle} className="h-4 w-4 text-primary" />
-          <AlertTitle className="font-bold text-primary">Panduan Pengelolaan</AlertTitle>
-          <AlertDescription className="mt-2 text-muted-foreground text-sm space-y-1">
-            <p>• Gunakan fitur <strong>Login Sebagai</strong> untuk pengecekan data muhafidz.</p>
-            <p>• Penghapusan akun menggunakan metode <em>soft-delete</em>.</p>
-            <p>• Email muhafidz harus unik dan valid untuk pengiriman laporan.</p>
-          </AlertDescription>
-        </Alert>
-      </div>
 
       {/* Modals */}
       <EditAkun

@@ -113,24 +113,6 @@ export function SantriModal({
                 </SelectContent>
               </Select>
             </div>
-
-            {isAdmin && (
-              <div className="grid gap-2">
-                <Label htmlFor="halaqah_id">Halaqah *</Label>
-                <Select value={halaqahId} onValueChange={setHalaqahId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Pilih halaqah" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {halaqahList?.map((h: any) => (
-                      <SelectItem key={h.id_halaqah} value={h.id_halaqah.toString()}>
-                        {h.name_halaqah}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
           </div>
 
           <DialogFooter>
