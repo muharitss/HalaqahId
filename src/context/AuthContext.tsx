@@ -10,6 +10,7 @@ interface User {
   email: string;
   role: Role;
   username: string;
+  id_halaqah?: number | null;
   token?: string;
   avatarUrl?: string;
   isImpersonating?: boolean; 
