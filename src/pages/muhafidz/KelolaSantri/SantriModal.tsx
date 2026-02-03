@@ -35,8 +35,6 @@ export function SantriModal({
   onClose,
   onSave,
   selectedSantri,
-  isAdmin,
-  halaqahList,
   isSubmitting,
 }: SantriModalProps) {
   // Sekarang useState sudah terdefinisi karena sudah di-import
