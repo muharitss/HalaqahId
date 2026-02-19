@@ -20,15 +20,24 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+import { type Santri } from "@/services/santriService";
+import { type Halaqah } from "@/services/halaqahService";
+
 interface SantriModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (data: any) => void;
-  selectedSantri: any;
+  onSave: (data: {
+    nama_santri: string | FormDataEntryValue | null;
+    nomor_telepon: string | FormDataEntryValue | null;
+    target: string;
+    halaqah_id: number | undefined;
+  }) => void;
+  selectedSantri: Partial<Santri> | null;
   isAdmin: boolean;
-  halaqahList: any[];
+  halaqahList: Halaqah[];
   isSubmitting: boolean;
 }
+
 
 export function SantriModal({
   isOpen,
@@ -36,17 +45,24 @@ export function SantriModal({
   onSave,
   selectedSantri,
   isSubmitting,
+  isAdmin,
+  halaqahList,
 }: SantriModalProps) {
-  // Sekarang useState sudah terdefinisi karena sudah di-import
   const [target, setTarget] = useState<string>("SEDANG");
   const [halaqahId, setHalaqahId] = useState<string>("");
 
   useEffect(() => {
     if (isOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setTarget(selectedSantri?.target || "SEDANG");
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setHalaqahId(selectedSantri?.halaqah_id?.toString() || "");
     }
   }, [isOpen, selectedSantri]);
+
+
+
+
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -56,7 +72,6 @@ export function SantriModal({
       nama_santri: formData.get("nama_santri"),
       nomor_telepon: formData.get("nomor_telepon"),
       target: target,
-      // Jika kosong, berikan undefined agar sesuai dengan tipe data UpdateSantriData
       halaqah_id: halaqahId ? parseInt(halaqahId, 10) : undefined,
     };
 
@@ -111,7 +126,26 @@ export function SantriModal({
                 </SelectContent>
               </Select>
             </div>
+
+            {isAdmin && (
+              <div className="grid gap-2">
+                <Label htmlFor="halaqah_id">Pilih Halaqah</Label>
+                <Select value={halaqahId} onValueChange={setHalaqahId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pilih halaqah" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {halaqahList.map((h) => (
+                      <SelectItem key={h.id_halaqah} value={h.id_halaqah.toString()}>
+                        {h.name_halaqah}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
+
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>

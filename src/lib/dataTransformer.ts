@@ -5,7 +5,24 @@ interface DateFilter {
   year: number | null;
 }
 
-export const sanitizeDashboardData = (data: any[]) => {
+interface SantriBase {
+  id_santri?: number;
+  nama_santri: string;
+  deleted_at?: string | null;
+  halaqah?: {
+    name_halaqah: string;
+  };
+}
+
+interface DashboardItem {
+  santri?: SantriBase;
+  santri_id?: number;
+  tanggal_setoran?: string;
+  kategori?: string;
+  status?: string;
+}
+
+export const sanitizeDashboardData = <T extends DashboardItem>(data: T[]): T[] => {
   if (!data || !Array.isArray(data)) return [];
 
   return data.filter((item) => {
@@ -23,11 +40,13 @@ export const sanitizeDashboardData = (data: any[]) => {
   });
 };
 
-export const transformSetoranData = (data: any[], filter?: DateFilter) => {
+
+export const transformSetoranData = (data: DashboardItem[], filter?: DateFilter) => {
   const cleanData = sanitizeDashboardData(data);
 
   const filteredData = cleanData.filter((item) => {
     if (!filter || (filter.month === null && filter.year === null)) return true;
+    if (!item.tanggal_setoran) return false;
 
     const itemDate = parseISO(item.tanggal_setoran);
     const itemMonth = getMonth(itemDate);
@@ -39,9 +58,24 @@ export const transformSetoranData = (data: any[], filter?: DateFilter) => {
     return monthMatch && yearMatch;
   });
 
-  return filteredData.reduce((acc: any, item: any) => {
+  interface AccType {
+    [key: string]: {
+      name: string;
+      totalHafalan: number;
+      totalMurajaah: number;
+      santriGroup: {
+        [key: number]: {
+          nama: string;
+          setoran: DashboardItem[];
+          stats: { HAFALAN: number; MURAJAAH: number };
+        };
+      };
+    };
+  }
+
+  return filteredData.reduce((acc: AccType, item: DashboardItem) => {
     const halaqahName = item.santri?.halaqah?.name_halaqah || "Tanpa Halaqah";
-    const santriId = item.santri_id;
+    const santriId = item.santri_id || 0;
     const santriName = item.santri?.nama_santri || "Nama Tidak Diketahui";
 
     if (!acc[halaqahName]) {
@@ -67,7 +101,9 @@ export const transformSetoranData = (data: any[], filter?: DateFilter) => {
     else acc[halaqahName].totalMurajaah++;
 
     const kategori = item.kategori as "HAFALAN" | "MURAJAAH";
-    acc[halaqahName].santriGroup[santriId].stats[kategori]++;
+    if (kategori === "HAFALAN" || kategori === "MURAJAAH") {
+      acc[halaqahName].santriGroup[santriId].stats[kategori]++;
+    }
 
     return acc;
   }, {});

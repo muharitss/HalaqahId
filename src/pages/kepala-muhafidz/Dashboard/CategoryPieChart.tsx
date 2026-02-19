@@ -10,7 +10,13 @@ const chartConfig = {
   murajaah: { label: "Murajaah", color: "color-mix(in srgb, var(--primary), transparent 50%)" },
 } satisfies ChartConfig;
 
-export const CategoryPieChart = ({ data, loading }: { data: any[]; loading: boolean }) => (
+export interface CategoryStat {
+  category: string;
+  count: number;
+}
+
+export const CategoryPieChart = ({ data, loading }: { data: CategoryStat[]; loading: boolean }) => (
+
   <Card className="lg:col-span-2 border-none shadow-sm bg-muted/20">
     <CardHeader>
       <CardTitle className="flex items-center gap-2 text-base">

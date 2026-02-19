@@ -15,8 +15,20 @@ import {
   DropdownMenuGroup
 } from "@/components/ui/dropdown-menu";
 import { faWhatsapp } from "@fortawesome/free-brands-svg-icons";
+import { type Santri } from "@/services/santriService";
+import { type Halaqah } from "@/services/halaqahService";
 
-export function SantriTable({ data, searchTerm, isAdmin, halaqahList, onEdit, onDelete }: any) {
+interface SantriTableProps {
+  data: Santri[];
+  searchTerm: string;
+  isAdmin: boolean;
+  halaqahList: Halaqah[];
+  onEdit: (santri: Santri) => void;
+  onDelete: (santri: Santri) => void;
+}
+
+export function SantriTable({ data, searchTerm, isAdmin, halaqahList, onEdit, onDelete }: SantriTableProps) {
+
   
   const renderTargetBadge = (target: string) => {
     switch (target) {
@@ -66,7 +78,8 @@ export function SantriTable({ data, searchTerm, isAdmin, halaqahList, onEdit, on
               </TableCell>
             </TableRow>
           ) : (
-            data.map((santri: any) => (
+            data.map((santri) => (
+
               <TableRow key={santri.id_santri} className="hover:bg-muted/30 transition-colors">
                 <TableCell className="font-medium">
                   {santri.nama_santri}
@@ -88,9 +101,10 @@ export function SantriTable({ data, searchTerm, isAdmin, halaqahList, onEdit, on
                 {isAdmin && (
                   <TableCell>
                     <span className="text-sm text-muted-foreground">
-                      {halaqahList.find((h: any) => h.id_halaqah === santri.halaqah_id)?.name_halaqah || `Halaqah ${santri.halaqah_id}`}
+                      {halaqahList.find((h) => h.id_halaqah === santri.halaqah_id)?.name_halaqah || `Halaqah ${santri.halaqah_id}`}
                     </span>
                   </TableCell>
+
                 )}
                 <TableCell className="text-right">
                   <DropdownMenu>

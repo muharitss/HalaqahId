@@ -75,8 +75,9 @@ export function PindahSantri({
                   .filter((h) => h.id_halaqah !== santri?.halaqah_id)
                   .map((h) => (
                     <SelectItem key={h.id_halaqah} value={h.id_halaqah.toString()}>
-                      {h.name_halaqah} ({h.muhafiz?.username})
+                      {h.name_halaqah} ({h.user?.username})
                     </SelectItem>
+
                   ))}
               </SelectContent>
             </Select>

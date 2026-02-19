@@ -16,6 +16,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/utils/error";
+
 
 interface DeleteAkunProps {
   muhafiz: Muhafiz | null;
@@ -50,9 +52,10 @@ export function DeleteAkun({ muhafiz, isOpen, onClose, onSuccess }: DeleteAkunPr
         onSuccess();
         handleClose();
       }
-    } catch (err: any) {
-      setError(err.response?.data?.message || "Gagal menghapus data dari server");
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, "Gagal menghapus data dari server"));
     } finally {
+
       setIsLoading(false);
     }
   };

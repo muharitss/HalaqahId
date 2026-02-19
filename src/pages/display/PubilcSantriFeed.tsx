@@ -10,9 +10,27 @@ import {
   TableRow 
 } from "@/components/ui/table";
 
-interface PublicSantriFeedProps {
-  santriData: any; // Objek santri hasil transform
+interface SetoranFeedItem {
+  tanggal_setoran: string;
+  juz: number;
+  surat: string;
+  ayat: string;
+  kategori: string;
+  taqwim: string;
 }
+
+interface PublicSantriData {
+  setoran: SetoranFeedItem[];
+  stats: {
+    HAFALAN: number;
+    MURAJAAH: number;
+  };
+}
+
+interface PublicSantriFeedProps {
+  santriData: PublicSantriData; // Objek santri hasil transform
+}
+
 
 export function PublicSantriFeed({ santriData }: PublicSantriFeedProps) {
   if (!santriData || !santriData.setoran) return null;
@@ -48,7 +66,8 @@ export function PublicSantriFeed({ santriData }: PublicSantriFeedProps) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {santriData.setoran.map((s: any, idx: number) => (
+              {santriData.setoran.map((s: SetoranFeedItem, idx: number) => (
+
                 <TableRow key={idx}>
                   <TableCell className="text-xs">
                     <div className="font-bold">{format(new Date(s.tanggal_setoran), "dd/MM/yy")}</div>

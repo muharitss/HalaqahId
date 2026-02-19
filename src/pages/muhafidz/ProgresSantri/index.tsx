@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useProgres } from "@/hooks/useProgres";
 import { useSetoran } from "@/hooks/useSetoran"; // IMPORT HOOK BARU
 import { Button } from "@/components/ui/button";
@@ -16,8 +16,11 @@ export default function ProgresSantriPage() {
   const { progresData, loading: loadingProgres, fetchProgres } = useProgres();
   const { fetchSetoranBySantri, history, loading: loadingHistory } = useSetoran();
   
-  const [filterStatus, _setFilterStatus] = useState("semua");
-  const [filterTarget, _setFilterTarget] = useState("semua");
+  // const [filterStatus, _setFilterStatus] = useState("semua");
+  // const [filterTarget, _setFilterTarget] = useState("semua");
+  const filterStatus = "semua";
+  const filterTarget = "semua";
+
 
   useEffect(() => {
     fetchProgres();

@@ -24,7 +24,9 @@ export default function TrashSection() {
       ]);
       setDeletedHalaqah(resHalaqah.data);
       setDeletedMuhafiz(resMuhafiz.data);
-    } catch (error) {
+    } catch {
+
+
       toast.error("Gagal mengambil data sampah");
     } finally {
       setLoading(false);
@@ -41,7 +43,9 @@ export default function TrashSection() {
       await halaqahService.restoreHalaqah(id);
       toast.success("Halaqah berhasil dipulihkan");
       await fetchData();
-    } catch (error) {
+    } catch {
+
+
       toast.error("Gagal memulihkan halaqah");
     } finally {
       setProcessingId(null);
@@ -54,7 +58,9 @@ export default function TrashSection() {
       await akunService.restoreMuhafiz(id);
       toast.success("Akun muhafiz berhasil dipulihkan");
       await fetchData();
-    } catch (error) {
+    } catch {
+
+
       toast.error("Gagal memulihkan muhafiz");
     } finally {
       setProcessingId(null);

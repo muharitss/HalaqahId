@@ -20,13 +20,20 @@ const chartConfig = {
   ALFA: { label: "Alfa", color: "#ef4444" },       
 } satisfies ChartConfig;
 
+export interface AbsensiStat {
+  status: string;
+  count: number;
+  fill: string;
+}
+
 interface AttendanceDonutChartProps {
-  data: any[];
+  data: AbsensiStat[];
   loading: boolean;
   totalCount: number;
   view: string;
   onViewChange: (value: string) => void;
 }
+
 
 export const AttendanceDonutChart = ({ 
   data, 
@@ -80,7 +87,7 @@ export const AttendanceDonutChart = ({
                 strokeWidth={8}
                 paddingAngle={2}
               >
-                {data.map((entry: any, index: number) => (
+                {data.map((entry, index: number) => (
                   <Cell 
                     key={`cell-${index}`} 
                     fill={entry.fill} 
@@ -92,8 +99,9 @@ export const AttendanceDonutChart = ({
                   content={({ viewBox }) => {
                     if (viewBox && "cx" in viewBox && "cy" in viewBox) {
                       // Mencari data menggunakan uppercase key agar sinkron
-                      const hadir = data.find((d: any) => d.status === "HADIR")?.count || 0;
-                      const terlambat = data.find((d: any) => d.status === "TERLAMBAT")?.count || 0;
+                      const hadir = data.find((d) => d.status === "HADIR")?.count || 0;
+                      const terlambat = data.find((d) => d.status === "TERLAMBAT")?.count || 0;
+
                       
                       return (
                         <text x={viewBox.cx} y={viewBox.cy} textAnchor="middle" dominantBaseline="middle">

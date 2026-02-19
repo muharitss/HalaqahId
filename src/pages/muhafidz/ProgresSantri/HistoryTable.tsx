@@ -2,8 +2,11 @@ import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
-export function HistoryTable({ data }: { data: any[] }) {
+import { type SetoranRecord } from "@/services/setoranService";
+
+export function HistoryTable({ data }: { data: SetoranRecord[] }) {
   if (data.length === 0) {
+
     return <div className="p-8 text-center text-sm text-muted-foreground">Belum ada riwayat setoran.</div>;
   }
 

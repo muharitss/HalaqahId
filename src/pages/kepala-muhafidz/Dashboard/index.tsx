@@ -16,12 +16,15 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUsersViewfinder } from "@fortawesome/free-solid-svg-icons";
 import { useNavigate } from "react-router-dom";
 
+import { type AbsensiStat } from "./AttendanceDonutChart";
+
 export default function KepalaMuhafidzDashboard() {
   const { allSetoran, fetchAllSetoran, loading: loadingSetoran } = useSetoran();
   const [chartView, setChartView] = React.useState("pekan");
 
   // State untuk Absensi
-  const [absensiStats, setAbsensiStats] = React.useState<any[]>([]);
+  const [absensiStats, setAbsensiStats] = React.useState<AbsensiStat[]>([]);
+
   const [absensiView, setAbsensiView] = React.useState("pekan");
   const [totalSantriTerabsen, setTotalSantriTerabsen] = React.useState(0);
   const [loadingAbsensi, setLoadingAbsensi] = React.useState(true);
@@ -69,12 +72,14 @@ export default function KepalaMuhafidzDashboard() {
       const cleanData = sanitizeDashboardData(rawData);
 
       const counts = { HADIR: 0, IZIN: 0, SAKIT: 0, ALFA: 0, TERLAMBAT: 0 };
-      cleanData.forEach((item: any) => {
-        const status = item.status as keyof typeof counts;
-        if (counts.hasOwnProperty(status)) {
+      cleanData.forEach((item) => {
+        const entry = item as { status: string };
+        const status = entry.status as keyof typeof counts;
+        if (status in counts) {
           counts[status]++;
         }
       });
+
 
       setTotalSantriTerabsen(cleanData.length);
       setAbsensiStats([
@@ -105,7 +110,7 @@ export default function KepalaMuhafidzDashboard() {
     days.forEach(d => counts[d] = 0);
     
     cleanSetoran.forEach(s => {
-      const d = new Date(s.tanggal_setoran);
+      const d = new Date(s.tanggal_setoran!);
       if (d >= start) {
         const idx = d.getDay() === 0 ? 6 : d.getDay() - 1;
         counts[days[idx]]++;
@@ -121,7 +126,7 @@ export default function KepalaMuhafidzDashboard() {
     for (let i = 1; i <= lastDay; i++) dayCounts[i] = 0;
     
     cleanSetoran.forEach(s => {
-      const d = new Date(s.tanggal_setoran);
+      const d = new Date(s.tanggal_setoran!);
       if (d >= start) dayCounts[d.getDate()]++;
     });
     return Object.keys(dayCounts).map(date => ({ date: `Tgl ${date}`, setoran: dayCounts[parseInt(date)] }));

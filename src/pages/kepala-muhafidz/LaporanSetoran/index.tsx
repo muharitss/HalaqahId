@@ -62,9 +62,11 @@ export default function LaporanSetoranPage() {
 
   useEffect(() => {
     if (halaqahNames.length > 0 && (!activeHalaqah || !halaqahNames.includes(activeHalaqah))) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setActiveHalaqah(halaqahNames[0]);
     }
   }, [halaqahNames, activeHalaqah]);
+
 
   // JEMBATAN: Cari ID Halaqah numerik berdasarkan nama yang dipilih
   const activeHalaqahId = useMemo(() => {

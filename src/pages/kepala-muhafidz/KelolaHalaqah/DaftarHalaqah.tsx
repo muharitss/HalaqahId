@@ -95,7 +95,7 @@ export function DaftarHalaqah({
                     <div className="flex items-center gap-2 mt-1 text-xs md:text-sm text-muted-foreground">
                       <span className="flex items-center gap-1">
                         <FontAwesomeIcon icon={faUserTie} className="text-[10px]" />
-                        {h.muhafiz?.username || "Tanpa Muhafiz"}
+                        {h.user?.username || "Tanpa Muhafiz"}
                       </span>
                       <span className="flex items-center gap-1">
                         <FontAwesomeIcon icon={faUsers} className="text-[10px]" />

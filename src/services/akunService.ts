@@ -1,4 +1,5 @@
 import axiosClient from "@/api/axiosClient";
+import { getErrorMessage } from "@/utils/error";
 
 export interface Muhafiz {
   id_user: number;
@@ -22,7 +23,7 @@ export interface UpdateMuhafizData {
   email?: string;
 }
 
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T> {
   success: boolean;
   message: string;
   data: T;
@@ -30,33 +31,33 @@ export interface ApiResponse<T = any> {
 
 export const akunService = {
   getAllMuhafiz: async (): Promise<ApiResponse<Muhafiz[]>> => {
-    const response = await axiosClient.get<ApiResponse<Muhafiz[]>>("/halaqah/auth/muhafiz");
-    return response.data;
+    try {
+      const response = await axiosClient.get<ApiResponse<Muhafiz[]>>("/halaqah/auth/muhafiz");
+      return response.data;
+    } catch (error: unknown) {
+      throw new Error(getErrorMessage(error, "Gagal mengambil data muhafiz"));
+    }
   },
 
   getMuhafizById: async (userId: number): Promise<ApiResponse<Muhafiz>> => {
     try {
       const response = await axiosClient.get<ApiResponse<Muhafiz>>(`/halaqah/auth/muhafiz/${userId}`);
       return response.data;
-    } catch (error: any) {
-      // Jika endpoint tidak tersedia, bisa fallback ke getAll dan filter
-      if (error.response?.status === 404) {
-        throw new Error("Endpoint detail muhafiz tidak tersedia");
-      }
-      throw error;
+    } catch (error: unknown) {
+      throw new Error(getErrorMessage(error, "Gagal mengambil detail muhafiz"));
     }
   },
 
   searchMuhafiz: async (keyword: string): Promise<ApiResponse<Muhafiz[]>> => {
     try {
-      // Jika backend punya endpoint search
       const response = await axiosClient.get<ApiResponse<Muhafiz[]>>(
         `/halaqah/auth/muhafiz/search?q=${encodeURIComponent(keyword)}`
       );
       return response.data;
-    } catch (error: any) {
-      // Fallback: ambil semua data dan filter di client-side
-      if (error.response?.status === 404) {
+    } catch (error: unknown) {
+      // Fallback: ambil semua data dan filter di client-side if 404
+      const err = error as { response?: { status: number } };
+      if (err.response?.status === 404) {
         const allResponse = await akunService.getAllMuhafiz();
         const filteredData = allResponse.data.filter(muhafiz =>
           muhafiz.username.toLowerCase().includes(keyword.toLowerCase()) ||
@@ -69,31 +70,47 @@ export const akunService = {
           data: filteredData
         };
       }
-      throw error;
+      throw new Error(getErrorMessage(error, "Gagal mencari muhafiz"));
     }
   },
 
   registerMuhafiz: async (data: RegisterData): Promise<ApiResponse<{ user: Muhafiz }>> => {
-    const response = await axiosClient.post<ApiResponse<{ user: Muhafiz }>>("/halaqah/auth/register", data);
-    return response.data;
+    try {
+      const response = await axiosClient.post<ApiResponse<{ user: Muhafiz }>>("/halaqah/auth/register", data);
+      return response.data;
+    } catch (error: unknown) {
+      throw new Error(getErrorMessage(error, "Gagal mendaftar muhafiz"));
+    }
   },
 
   updateMuhafiz: async (userId: number, data: UpdateMuhafizData): Promise<ApiResponse<Muhafiz>> => {
-    const response = await axiosClient.patch<ApiResponse<Muhafiz>>(`/halaqah/auth/muhafiz/${userId}`, data);
-    return response.data;
+    try {
+      const response = await axiosClient.patch<ApiResponse<Muhafiz>>(`/halaqah/auth/muhafiz/${userId}`, data);
+      return response.data;
+    } catch (error: unknown) {
+      throw new Error(getErrorMessage(error, "Gagal memperbarui muhafiz"));
+    }
   },
 
-    impersonateMuhafiz: async (userId: number): Promise<ApiResponse<{ user: Muhafiz; token: string }>> => {
+  impersonateMuhafiz: async (userId: number): Promise<ApiResponse<{ user: Muhafiz; token: string }>> => {
+    try {
       const response = await axiosClient.post<ApiResponse<{ user: Muhafiz; token: string }>>(
         `/halaqah/auth/impersonate/${userId}`
       );
       return response.data;
-    },
+    } catch (error: unknown) {
+      throw new Error(getErrorMessage(error, "Gagal melakukan impersonasi"));
+    }
+  },
 
   // Hapus akun muhafiz (soft delete)
   deleteMuhafiz: async (userId: number): Promise<ApiResponse<null>> => {
-    const response = await axiosClient.delete<ApiResponse<null>>(`/halaqah/auth/muhafiz/${userId}`);
-    return response.data;
+    try {
+      const response = await axiosClient.delete<ApiResponse<null>>(`/halaqah/auth/muhafiz/${userId}`);
+      return response.data;
+    } catch (error: unknown) {
+      throw new Error(getErrorMessage(error, "Gagal menghapus muhafiz"));
+    }
   },
 
   bulkDeleteMuhafiz: async (userIds: number[]): Promise<ApiResponse<null>> => {
@@ -102,10 +119,10 @@ export const akunService = {
         user_ids: userIds
       });
       return response.data;
-    } catch (error: any) {
-      // Jika endpoint tidak tersedia, hapus satu per satu
-      if (error.response?.status === 404) {
-        console.warn("Endpoint bulk delete tidak tersedia, melakukan delete satu per satu");
+    } catch (error: unknown) {
+      const err = error as { response?: { status: number } };
+      if (err.response?.status === 404) {
+        // console.warn("Endpoint bulk delete tidak tersedia, melakukan delete satu per satu"); // Removed as per instruction
         
         const results = await Promise.allSettled(
           userIds.map(id => akunService.deleteMuhafiz(id))
@@ -124,18 +141,26 @@ export const akunService = {
           throw new Error(`Gagal menghapus ${failures} dari ${userIds.length} akun`);
         }
       }
-      throw error;
+      throw new Error(getErrorMessage(error, "Gagal menghapus muhafiz secara massal"));
     }
   },
 
   getDeletedMuhafiz: async (): Promise<ApiResponse<Muhafiz[]>> => {
-    const response = await axiosClient.get<ApiResponse<Muhafiz[]>>("/halaqah/auth/muhafiz/deleted");
-    return response.data;
+    try {
+      const response = await axiosClient.get<ApiResponse<Muhafiz[]>>("/halaqah/auth/muhafiz/deleted");
+      return response.data;
+    } catch (error: unknown) {
+      throw new Error(getErrorMessage(error, "Gagal mengambil data tempat sampah"));
+    }
   },
 
   restoreMuhafiz: async (userId: number): Promise<ApiResponse<Muhafiz>> => {
-    const response = await axiosClient.patch<ApiResponse<Muhafiz>>(`/halaqah/auth/muhafiz/restore/${userId}`, {});
-    return response.data;
+    try {
+      const response = await axiosClient.patch<ApiResponse<Muhafiz>>(`/halaqah/auth/muhafiz/restore/${userId}`, {});
+      return response.data;
+    } catch (error: unknown) {
+      throw new Error(getErrorMessage(error, "Gagal memulihkan muhafiz"));
+    }
   },
 };
 

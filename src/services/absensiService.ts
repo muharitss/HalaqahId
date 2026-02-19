@@ -1,5 +1,6 @@
 import axiosClient from "@/api/axiosClient";
 import { type ApiResponse } from "./halaqahService";
+import { getErrorMessage } from "@/utils/error";
 
 export type AbsensiStatus = "HADIR" | "IZIN" | "SAKIT" | "ALFA" | "TERLAMBAT";
 
@@ -10,10 +11,24 @@ export interface AbsensiPayload {
   tanggal?: string; // YYYY-MM-DD
 }
 
+export interface AbsensiRecord {
+  id_absensi: number;
+  santri_id: number;
+  status: AbsensiStatus;
+  keterangan: string | null;
+  tanggal: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export const absensiService = {
   catatAbsensi: async (payload: AbsensiPayload) => {
-    const res = await axiosClient.post<ApiResponse<any>>("/absensi", payload);
-    return res.data;
+    try {
+      const res = await axiosClient.post<ApiResponse<AbsensiRecord>>("/absensi", payload);
+      return res.data;
+    } catch (error: unknown) {
+      throw new Error(getErrorMessage(error, "Gagal mencatat absensi"));
+    }
   },
 
   getRekapHalaqah: async (halaqahId: number, date?: string, month?: string, year?: string) => {
@@ -22,17 +37,25 @@ export const absensiService = {
     if (month) params.append("month", month);
     if (year) params.append("year", year);
 
-    const res = await axiosClient.get<ApiResponse<any[]>>(
-      `/absensi/halaqah/${halaqahId}?${params.toString()}`
-    );
-    return res.data;
+    try {
+      const res = await axiosClient.get<ApiResponse<AbsensiRecord[]>>(
+        `/absensi/halaqah/${halaqahId}?${params.toString()}`
+      );
+      return res.data;
+    } catch (error: unknown) {
+      throw new Error(getErrorMessage(error, "Gagal mengambil rekap absensi"));
+    }
   },
 
   getDailyHalaqah: async (halaqahId: number, date: string) => {
-    const res = await axiosClient.get<ApiResponse<any[]>>(
-      `/absensi/halaqah/${halaqahId}?date=${date}`
-    );
-    return res.data;
+    try {
+      const res = await axiosClient.get<ApiResponse<AbsensiRecord[]>>(
+        `/absensi/halaqah/${halaqahId}?date=${date}`
+      );
+      return res.data;
+    } catch (error: unknown) {
+      throw new Error(getErrorMessage(error, "Gagal mengambil absensi harian"));
+    }
   },
 
   getMonthlyRekap: async (halaqahId: number, dates: string[]) => {

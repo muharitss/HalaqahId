@@ -1,12 +1,13 @@
 import { useState, useCallback } from "react";
-import { santriService, type Santri, type CreateSantriData, type UpdateSantriData, type SantriStats } from "@/services/santriService";
+import { santriService, type Santri, type CreateSantriData, type UpdateSantriData } from "@/services/santriService";
+
+import { getErrorMessage } from "@/utils/error";
+
 
 export const useSantri = () => {
   const [santriList, setSantriList] = useState<Santri[]>([]);
-  const [selectedSantri, _setSelectedSantri] = useState<Santri | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [stats, _setStats] = useState<SantriStats | null>(null);
 
   // Load semua santri
   const loadSantri = useCallback(async () => {
@@ -16,11 +17,11 @@ export const useSantri = () => {
       const data = await santriService.getAll();
       setSantriList(data);
       return data;
-    } catch (err: any) {
-      if (err.message.includes("belum memiliki halaqah")) {
+    } catch (err: unknown) {
+      if (err instanceof Error && err.message.includes("belum memiliki halaqah")) {
         setSantriList([]); 
       }
-      setError(err.message);
+      setError(getErrorMessage(err, "Gagal memuat data santri"));
       return []; 
     } finally {
       setIsLoading(false);
@@ -35,8 +36,8 @@ export const useSantri = () => {
       const newSantri = await santriService.create(data);
       setSantriList(prev => [...prev, newSantri]);
       return newSantri;
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, "Gagal menambah santri"));
       throw err;
     } finally {
       setIsLoading(false);
@@ -53,8 +54,8 @@ export const useSantri = () => {
         s.id_santri === id ? updatedSantri : s
       ));
       return updatedSantri;
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, "Gagal memperbarui data santri"));
       throw err;
     } finally {
       setIsLoading(false);
@@ -66,8 +67,8 @@ export const useSantri = () => {
     try {
       await santriService.delete(id);
       setSantriList(prev => prev.filter(s => s.id_santri !== id));
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, "Gagal menghapus santri"));
       throw err;
     } finally {
       setIsLoading(false);
@@ -81,10 +82,8 @@ export const useSantri = () => {
   return {
     // State
     santriList,
-    selectedSantri,
     isLoading,
     error,
-    stats,
     
     // Actions
     loadSantri,

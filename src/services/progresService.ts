@@ -1,5 +1,8 @@
 // services/progresService.ts
 import axiosClient from "@/api/axiosClient";
+import { type ApiResponse } from "./halaqahService";
+import { type Santri } from "./santriService";
+import { getErrorMessage } from "@/utils/error";
 
 export interface ProgresSantri {
   id: number;
@@ -13,29 +16,28 @@ export interface ProgresSantri {
 
 export const progresService = {
   getAllProgres: async (): Promise<ApiResponse<ProgresSantri[]>> => {
-    const response = await axiosClient.get<ApiResponse<any[]>>("/santri");
-    
-    const rawData = response.data.data || [];
+    try {
+      const response = await axiosClient.get<ApiResponse<Santri[]>>("/santri");
+      
+      const rawData = response.data.data || [];
 
-    const mappedData = rawData.map((item: any) => ({
-      id: item.id_santri || item.id,
-      nama: item.nama_santri || item.nama || item.name,
-      target: item.target_tipe || "REGULER", 
-      capaian: 0, 
-      status: "Aktif",
-      terakhirSetor: "-",
-      totalAyat: 0
-    }));
+      const mappedData: ProgresSantri[] = rawData.map((item) => ({
+        id: item.id_santri,
+        nama: item.nama_santri,
+        target: item.target || "REGULER", 
+        capaian: 0, 
+        status: item.is_active ? "Aktif" : "Nonaktif",
+        terakhirSetor: "-",
+        totalAyat: 0
+      }));
 
-    return {
-      ...response.data,
-      data: mappedData
-    };
+      return {
+        ...response.data,
+        data: mappedData
+      };
+    } catch (error: unknown) {
+      throw new Error(getErrorMessage(error, "Gagal mengambil data progres"));
+    }
   },
 };
 
-export interface ApiResponse<T> {
-  success: boolean;
-  message: string;
-  data: T;
-}

@@ -8,16 +8,30 @@ import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDate } from "da
 import { id } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 
+import { type Santri } from "@/services/santriService";
+
+interface MonthlyAbsensiData {
+  tanggal: string;
+  data: {
+    santri_id?: number;
+    santri?: { id_santri: number };
+    status: AbsensiStatus;
+  }[];
+}
+
+
 interface RekapAbsensiProps {
   halaqahId?: number;
-  externalSantriList?: any[];
+  externalSantriList?: Santri[];
 }
+
 
 export const RekapAbsensiTable = ({ halaqahId, externalSantriList }: RekapAbsensiProps) => {
   const { santriList: hookSantri, isLoading: loadingSantri, loadSantri } = useSantri();
   const [viewDate, setViewDate] = useState<Date>(new Date());
-  const [monthlyData, setMonthlyData] = useState<any[]>([]);
+  const [monthlyData, setMonthlyData] = useState<MonthlyAbsensiData[]>([]);
   const [isLoadingData, setIsLoadingData] = useState(false);
+
 
   const currentSantriList = useMemo(() => externalSantriList || hookSantri, [externalSantriList, hookSantri]);
 
@@ -58,24 +72,27 @@ export const RekapAbsensiTable = ({ halaqahId, externalSantriList }: RekapAbsens
   const getStatusForCell = (santriId: number, dateStr: string) => {
     const dayData = monthlyData.find(m => m.tanggal === dateStr);
     if (!dayData) return null;
-    return dayData.data.find((item: any) => 
+    return dayData.data.find((item: { santri_id?: number; santri?: { id_santri: number } }) => 
        item.santri_id === santriId || item.santri?.id_santri === santriId
     )?.status as AbsensiStatus | undefined;
   };
+
 
   // FUNGSI BARU: Menghitung total status per santri
   const calculateTotal = (santriId: number) => {
     const totals = { HADIR: 0, IZIN: 0, SAKIT: 0, TERLAMBAT: 0, ALFA: 0 };
     monthlyData.forEach(day => {
-      const status = day.data.find((item: any) => 
+      const status = day.data.find((item: { santri_id?: number; santri?: { id_santri: number }; status?: AbsensiStatus }) => 
         item.santri_id === santriId || item.santri?.id_santri === santriId
-      )?.status;
-      if (status && totals.hasOwnProperty(status)) {
-        totals[status as keyof typeof totals]++;
+      )?.status as keyof typeof totals | undefined;
+      
+      if (status && status in totals) {
+        totals[status]++;
       }
     });
     return totals;
   };
+
 
   const getStatusStyle = (status?: AbsensiStatus) => {
     const base = "text-center p-0 border-r h-9 min-w-[35px] text-[10px] font-bold transition-all";
@@ -131,17 +148,20 @@ export const RekapAbsensiTable = ({ halaqahId, externalSantriList }: RekapAbsens
                 </TableRow>
               ))
             ) : (
-              currentSantriList.map((s: any) => {
-                const totals = calculateTotal(s.id_santri || s.id);
+              currentSantriList.map((s) => {
+                const id_santri = s.id_santri;
+                const totals = calculateTotal(id_santri);
                 return (
-                  <TableRow key={s.id_santri || s.id} className="group hover:bg-muted/30">
+                  <TableRow key={id_santri} className="group hover:bg-muted/30">
                     <TableCell className="font-medium sticky left-0 z-20 bg-background border-r border-b py-2 text-xs">
-                      <span className="truncate block w-32 md:w-40">{s.nama_santri || s.nama}</span>
+                      <span className="truncate block w-32 md:w-40">{s.nama_santri}</span>
                     </TableCell>
                     {daysInMonth.map((date) => {
-                      const status: any = getStatusForCell(s.id_santri || s.id, format(date, "yyyy-MM-dd"));
+                      const status = getStatusForCell(id_santri, format(date, "yyyy-MM-dd")) || undefined;
                       return <TableCell key={date.toString()} className={cn(getStatusStyle(status), "border-b")}>{getStatusInitial(status)}</TableCell>;
                     })}
+
+
                     {/* Kolom Data Total */}
                     <TableCell className="text-center font-bold border-b border-r bg-green-50/30 text-green-700">{totals.HADIR}</TableCell>
                     <TableCell className="text-center font-bold border-b border-r bg-blue-50/30 text-blue-700">{totals.IZIN}</TableCell>

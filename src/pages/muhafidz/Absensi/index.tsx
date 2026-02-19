@@ -46,19 +46,22 @@ export default function AbsensiPage() {
       const currentMap: Record<number, AbsensiStatus> = {};
 
       if (response.success && Array.isArray(response.data)) {
-        response.data.forEach((item: any) => {
+        response.data.forEach((item: { santri_id: number; status: string }) => {
           submittedIds.push(item.santri_id);
           currentMap[item.santri_id] = item.status as AbsensiStatus;
         });
       }
 
+
       setAlreadySubmittedIds(submittedIds);
       setAttendanceMap(currentMap);
-    } catch (error: any) {
-      console.error("Gagal sinkronisasi data absensi:", error);
+    } catch {
+      // toast error already handled implicitly or silent fail ok here
     } finally {
       setIsLoadingSync(false);
     }
+
+
   }, [santriList, selectedDate]);
 
   useEffect(() => {
@@ -95,8 +98,10 @@ export default function AbsensiPage() {
     try {
       await submitAbsensiBulk(payloads);
       await syncAttendanceData();
-    } catch (error) {
+    } catch {
+      // toast already handled in hook
     }
+
   };
 
   return (

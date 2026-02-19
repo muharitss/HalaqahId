@@ -5,7 +5,8 @@ import { faUsers } from "@fortawesome/free-solid-svg-icons";
 
 // Services & Hooks
 import { halaqahService, type Halaqah } from "@/services/halaqahService";
-import { type Santri } from "@/services/santriService";
+import { type Santri, type CreateSantriData, type UpdateSantriData } from "@/services/santriService";
+
 import { useSantri } from "@/hooks/useSantri";
 
 // Components
@@ -16,6 +17,8 @@ import { DaftarHalaqah } from "./DaftarHalaqah";
 import { SantriModal } from "../../muhafidz/KelolaSantri/SantriModal";
 import { PindahSantri } from "@/components/forms/PindahSantri";
 import { HalaqahManagement } from "@/components/ui/TypedText";
+import { getErrorMessage } from "@/utils/error";
+
 
 // UI Components
 import {
@@ -53,12 +56,15 @@ export default function KelolaHalaqah() {
       const res = await halaqahService.getAllHalaqah();
       setHalaqahs(res.data);
       loadSantri();
-    } catch (error) {
+    } catch {
       toast.error("Gagal mengambil data halaqah");
     } finally {
+
+
       setIsLoadingHalaqah(false);
     }
   }, [loadSantri]);
+
 
   useEffect(() => {
     fetchData();
@@ -90,26 +96,39 @@ export default function KelolaHalaqah() {
   };
 
   // Handler Simpan Santri (Create & Update)
-  const handleSaveSantri = async (payload: any) => {
+  const handleSaveSantri = async (payload: {
+    nama_santri: string | FormDataEntryValue | null;
+    nomor_telepon: string | FormDataEntryValue | null;
+    target: string;
+    halaqah_id: number | undefined;
+  }) => {
+    const santriPayload: UpdateSantriData = {
+      nama_santri: payload.nama_santri as string,
+      nomor_telepon: payload.nomor_telepon as string,
+      target: payload.target as "RINGAN" | "SEDANG" | "INTENSE",
+      halaqah_id: payload.halaqah_id
+    };
+
     setIsSubmitting(true);
     try {
       if (selectedSantri) {
         // Mode Edit
-        await updateSantri(selectedSantri.id_santri, payload);
+        await updateSantri(selectedSantri.id_santri, santriPayload);
         toast.success("Profil santri diperbarui");
       } else {
         // Mode Tambah
-        await createSantri(payload);
+        await createSantri(santriPayload as CreateSantriData);
         toast.success("Santri baru berhasil ditambahkan");
       }
       setIsSantriModalOpen(false);
       fetchData();
-    } catch (error: any) {
-      toast.error(error.message || "Gagal menyimpan data santri");
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err, "Gagal menyimpan data santri"));
     } finally {
       setIsSubmitting(false);
     }
   };
+
 
   // Delete Santri Confirm
   const handleDeleteSantriConfirm = async () => {
@@ -118,12 +137,13 @@ export default function KelolaHalaqah() {
       await deleteSantri(selectedSantri.id_santri);
       toast.success("Santri berhasil dihapus");
       fetchData();
-    } catch (error: any) {
-      toast.error(error.message || "Gagal menghapus santri");
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err, "Gagal menghapus santri"));
     } finally {
       setIsDeleteSantriOpen(false);
     }
   };
+
 
   // Move Santri Confirm
   const handleMoveSantriConfirm = async (santriId: number, targetHalaqahId: number) => {
@@ -131,11 +151,12 @@ export default function KelolaHalaqah() {
       await updateSantri(santriId, { halaqah_id: targetHalaqahId });
       toast.success("Santri berhasil dipindahkan");
       fetchData();
-    } catch (error: any) {
-      toast.error(error.message || "Gagal memindahkan santri");
-      throw error;
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err, "Gagal memindahkan santri"));
+      throw err;
     }
   };
+
 
   return (
     <div className="space-y-4 md:space-y-6 max-w-7xl mx-auto">

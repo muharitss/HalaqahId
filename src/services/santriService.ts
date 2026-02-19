@@ -1,4 +1,5 @@
 import axiosClient from "@/api/axiosClient";
+import { getErrorMessage } from "@/utils/error";
 
 export interface Santri {
   id_santri: number;
@@ -19,7 +20,8 @@ export interface CreateSantriData {
   halaqah_id: number; 
 }
 
-export interface UpdateSantriData extends Partial<CreateSantriData> {}
+export type UpdateSantriData = Partial<CreateSantriData>;
+
 
 export interface SantriStats {
   total: number;
@@ -36,8 +38,8 @@ export const santriService = {
     try {
       const response = await axiosClient.post("/santri", data);
       return response.data.data;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || "Gagal menambah santri");
+    } catch (error: unknown) {
+      throw new Error(getErrorMessage(error, "Gagal menambah santri"));
     }
   },
 
@@ -46,8 +48,8 @@ export const santriService = {
     try {
       const response = await axiosClient.get("/santri");
       return response.data.data;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || "Gagal mengambil data santri");
+    } catch (error: unknown) {
+      throw new Error(getErrorMessage(error, "Gagal mengambil data santri"));
     }
   },
 
@@ -56,8 +58,8 @@ export const santriService = {
     try {
       const response = await axiosClient.get(`/santri/${id}`);
       return response.data.data;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || "Gagal mengambil data santri");
+    } catch (error: unknown) {
+      throw new Error(getErrorMessage(error, "Gagal mengambil data santri"));
     }
   },
 
@@ -66,8 +68,8 @@ export const santriService = {
     try {
       const response = await axiosClient.patch(`/santri/${id}`, data);
       return response.data.data;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || "Gagal memperbarui santri");
+    } catch (error: unknown) {
+      throw new Error(getErrorMessage(error, "Gagal memperbarui santri"));
     }
   },
 
@@ -75,8 +77,8 @@ export const santriService = {
   async delete(id: number): Promise<void> {
     try {
       await axiosClient.delete(`/santri/${id}`);
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || "Gagal menghapus santri");
+    } catch (error: unknown) {
+      throw new Error(getErrorMessage(error, "Gagal menghapus santri"));
     }
   },
 
@@ -88,8 +90,8 @@ export const santriService = {
         s.nama_santri.toLowerCase().includes(query.toLowerCase()) ||
         s.nomor_telepon.includes(query)
       );
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || "Gagal mencari santri");
+    } catch (error: unknown) {
+      throw new Error(getErrorMessage(error, "Gagal mencari santri"));
     }
   }
 };

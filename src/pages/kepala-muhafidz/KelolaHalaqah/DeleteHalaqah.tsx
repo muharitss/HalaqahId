@@ -16,6 +16,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
+import { getErrorMessage } from "@/utils/error";
+
 
 interface DeleteHalaqahProps {
   halaqah: Halaqah | null;
@@ -50,8 +52,9 @@ export function DeleteHalaqah({ halaqah, isOpen, onClose, onSuccess }: DeleteHal
         onSuccess();
         handleClose();
       }
-    } catch (err: any) {
-      setError(err.response?.data?.message || "Gagal menghapus data dari server");
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, "Gagal menghapus data dari server"));
+
     } finally {
       setIsLoading(false);
     }
@@ -74,7 +77,7 @@ export function DeleteHalaqah({ halaqah, isOpen, onClose, onSuccess }: DeleteHal
               <div className="rounded-md border border-destructive/20 bg-destructive/5 p-3">
                 <p className="font-bold text-destructive">{halaqah?.name_halaqah}</p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Muhafidz: {halaqah?.muhafiz.username}
+                  Muhafidz: {halaqah?.user.username}
                 </p>
               </div>
             </div>

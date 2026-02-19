@@ -1,4 +1,7 @@
 import axiosClient from "@/api/axiosClient";
+import { type ApiResponse } from "./halaqahService";
+import { type Santri } from "./santriService";
+import { getErrorMessage } from "@/utils/error";
 
 export interface SetoranPayload {
   santri_id: number;
@@ -10,7 +13,7 @@ export interface SetoranPayload {
   keterangan?: string;
 }
 
-export interface SetoranResponse {
+export interface SetoranRecord {
   id_setoran: number;
   santri_id: number;
   tanggal_setoran: string;
@@ -20,37 +23,51 @@ export interface SetoranResponse {
   kategori: "HAFALAN" | "MURAJAAH";
   taqwim: string;
   keterangan: string;
+  nilai: number;
+  santri?: {
+    nama_santri: string;
+  };
 }
 
-export interface ApiResponse<T> {
-  success: boolean;
-  message: string;
-  data: T;
-  pagination?: number;
-}
 
 export const setoranService = {
   // POST /setoran
-  createSetoran: async (data: SetoranPayload): Promise<ApiResponse<SetoranResponse>> => {
-    const response = await axiosClient.post<ApiResponse<SetoranResponse>>("/setoran", data);
-    return response.data;
+  createSetoran: async (data: SetoranPayload): Promise<ApiResponse<SetoranRecord>> => {
+    try {
+      const response = await axiosClient.post<ApiResponse<SetoranRecord>>("/setoran", data);
+      return response.data;
+    } catch (error: unknown) {
+      throw new Error(getErrorMessage(error, "Gagal membuat setoran"));
+    }
   },
 
   // GET /santri 
-  getSantriList: async (): Promise<ApiResponse<any[]>> => {
-    const response = await axiosClient.get<ApiResponse<any[]>>("/santri");
-    return response.data;
+  getSantriList: async (): Promise<ApiResponse<Santri[]>> => {
+    try {
+      const response = await axiosClient.get<ApiResponse<Santri[]>>("/santri");
+      return response.data;
+    } catch (error: unknown) {
+      throw new Error(getErrorMessage(error, "Gagal mengambil data santri"));
+    }
   },
 
   // GET /setoran
-  getAllSetoran: async (): Promise<ApiResponse<any[]>> => {
-    const response = await axiosClient.get<ApiResponse<any[]>>("/setoran/all");
-    return response.data;
+  getAllSetoran: async (): Promise<ApiResponse<SetoranRecord[]>> => {
+    try {
+      const response = await axiosClient.get<ApiResponse<SetoranRecord[]>>("/setoran/all");
+      return response.data;
+    } catch (error: unknown) {
+      throw new Error(getErrorMessage(error, "Gagal mengambil data setoran"));
+    }
   },
 
   // 4. GET /setoran/santri/:id (
-  getSetoranBySantri: async (santriId: number): Promise<ApiResponse<SetoranResponse[]>> => {
-    const response = await axiosClient.get<ApiResponse<SetoranResponse[]>>(`/setoran/santri/${santriId}`);
-    return response.data;
+  getSetoranBySantri: async (santriId: number): Promise<ApiResponse<SetoranRecord[]>> => {
+    try {
+      const response = await axiosClient.get<ApiResponse<SetoranRecord[]>>(`/setoran/santri/${santriId}`);
+      return response.data;
+    } catch (error: unknown) {
+      throw new Error(getErrorMessage(error, "Gagal mengambil data setoran santri"));
+    }
   },
 };

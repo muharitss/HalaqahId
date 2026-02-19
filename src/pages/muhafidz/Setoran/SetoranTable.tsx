@@ -7,8 +7,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { type SetoranRecord } from "@/services/setoranService";
 
-export function SetoranTable({ history, loading }: { history: any[]; loading: boolean }) {
+export function SetoranTable({ history, loading }: { history: SetoranRecord[]; loading: boolean }) {
+
   const getNilaiVariant = (nilai: number) => {
     if (nilai >= 90) return "outline"; // Anda bisa kustomisasi sesuai kebutuhan Shadcn Badge
     return "secondary";

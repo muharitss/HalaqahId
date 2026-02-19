@@ -15,13 +15,24 @@ const chartConfig = {
   setoran: { label: "Total Setoran", color: "var(--primary)" },
 } satisfies ChartConfig;
 
+export interface PekanData {
+  day: string;
+  setoran: number;
+}
+
+export interface BulanData {
+  date: string;
+  setoran: number;
+}
+
 interface ActivityChartProps {
-  dataPekan: any[];
-  dataBulan: any[];
+  dataPekan: PekanData[];
+  dataBulan: BulanData[];
   view: string;
   onViewChange: (val: string) => void;
   loading: boolean;
 }
+
 
 export const ActivityChart = ({ dataPekan, dataBulan, view, onViewChange, loading }: ActivityChartProps) => (
   <Card className="lg:col-span-3 border-none shadow-sm bg-muted/20">

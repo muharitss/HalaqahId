@@ -42,19 +42,43 @@ const setoranSchema = z.object({
   path: ["ayat_selesai"],
 });
 
-type SetoranFormValues = z.infer<typeof setoranSchema>;
+import { type Santri } from "@/services/santriService";
+
+interface SetoranFormValues {
+
+  santri_id: number;
+  juz: number;
+  surat: string;
+  ayat_mulai: number;
+  ayat_selesai: number;
+  kategori: "HAFALAN" | "MURAJAAH";
+  taqwim: string;
+  keterangan?: string;
+}
 
 interface SetoranFormProps {
-  santriList: any[];
-  onSubmit: (data: any) => Promise<{ success: boolean }>;
+  santriList: Santri[];
+  onSubmit: (data: {
+    santri_id: number;
+    juz: number;
+    surat: string;
+    ayat: string;
+    kategori: "HAFALAN" | "MURAJAAH";
+    taqwim: string;
+    keterangan?: string;
+  }) => Promise<{ success: boolean }>;
   loading: boolean;
 }
+
+
 
 export function SetoranForm({ santriList, onSubmit, loading }: SetoranFormProps) {
   const [open, setOpen] = useState(false);
 
   const form = useForm<SetoranFormValues>({
     resolver: zodResolver(setoranSchema) as any,
+
+
     defaultValues: {
       santri_id: undefined,
       juz: 1,

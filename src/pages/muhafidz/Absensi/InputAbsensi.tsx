@@ -4,12 +4,15 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { type AbsensiStatus } from "@/services/absensiService";
 import { Badge } from "@/components/ui/badge";
 
+import { type Santri } from "@/services/santriService";
+
 interface Props {
-  santriList: any[];
+  santriList: Santri[];
   attendanceMap: Record<number, AbsensiStatus>;
   alreadySubmittedIds: number[];
   onStatusChange: (id: number, status: AbsensiStatus) => void;
 }
+
 
 export const InputAbsensi = ({ santriList, attendanceMap, alreadySubmittedIds, onStatusChange }: Props) => {
   return (

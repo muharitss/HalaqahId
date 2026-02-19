@@ -7,6 +7,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheck, faXmark, faEdit } from "@fortawesome/free-solid-svg-icons";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { getErrorMessage } from "@/utils/error";
+
 
 interface EditAkunProps {
   muhafiz: Muhafiz | null;
@@ -52,10 +54,11 @@ export function EditAkun({ muhafiz, isOpen, onClose, onSuccess }: EditAkunProps)
           onClose();
         }, 1000);
       }
-    } catch (err: any) {
-      const message = err.response?.data?.message || "Gagal memperbarui data";
+    } catch (err: unknown) {
+      const message = getErrorMessage(err, "Gagal memperbarui data");
       setError(message);
       console.error("Edit error:", err);
+
     } finally {
       setIsLoading(false);
     }

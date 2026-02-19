@@ -30,9 +30,10 @@ export default function KelolaMuhafizPage() {
     try {
       const response = await akunService.getAllMuhafiz();
       if (response.success) setMuhafizList(response.data);
-    } catch (err: any) {
+    } catch {
       toast.error("Gagal memuat data muhafiz");
     } finally {
+
       setIsLoading(false);
     }
   }, []);

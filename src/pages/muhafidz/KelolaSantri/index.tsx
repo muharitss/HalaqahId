@@ -1,164 +1,197 @@
-import { useState, useEffect, useMemo } from "react";
-import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPlus, faTimes, faExclamationTriangle, faInbox } from "@fortawesome/free-solid-svg-icons";
-
-// Import Modular Components
-import { SantriTable } from "./SantriTable";
-import { SantriModal } from "./SantriModal";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { SantriInfoCard } from "./SantriInfoCard";
 import { SantriSkeleton } from "./SantriSkeleton";
-
 import { useSantri } from "@/hooks/useSantri";
-import { halaqahService } from "@/services/halaqahService";
+import type { Santri } from '@/services/santriService';
+import { halaqahService } from '@/services/halaqahService';
+import type { Halaqah } from '@/services/halaqahService';
+import { getErrorMessage } from "@/utils/error";
+
 import { santriSchema } from "@/utils/zodSchema";
 import z from "zod";
+import { SantriTable } from "./SantriTable";
+import { SantriModal } from "./SantriModal";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faTimes, faInbox } from "@fortawesome/free-solid-svg-icons";
 import { useAuth } from "@/context/AuthContext";
-import { KelolaSantri } from "@/components/ui/TypedText";
 
 export default function KelolaSantriPage() {
   const { isAdmin } = useAuth();
-  const { santriList, isLoading, error, loadSantri, createSantri, updateSantri, deleteSantri } = useSantri();
-
-  const [_feedback, setFeedback] = useState<{ type: 'success' | 'error', msg: string } | null>(null);
+  const { 
+    santriList, 
+    loadSantri, 
+    createSantri, 
+    updateSantri, 
+    deleteSantri,
+    isLoading 
+  } = useSantri();
+  
+  const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedSantri, setSelectedSantri] = useState<any>(null);
+  const [selectedSantri, setSelectedSantri] = useState<Santri | null>(null);
+  const [halaqahs, setHalaqahs] = useState<Halaqah[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [halaqahs, setHalaqahs] = useState<any[]>([]);
-  const [searchTerm, _setSearchTerm] = useState("");
-
-  useEffect(() => {
-    loadSantri();
-    const fetchHalaqahs = async () => {
-      try {
-        const res = await halaqahService.getAllHalaqah();
-        setHalaqahs(res.data);
-      } catch (e) {
-        console.error("Gagal load halaqah");
-      }
-    };
-    if (isAdmin()) fetchHalaqahs();
-  }, [loadSantri, isAdmin]);
+  const [feedback, setFeedback] = useState<{ type: 'success' | 'error', msg: string } | null>(null);
 
   const showFeedback = (type: 'success' | 'error', msg: string) => {
     setFeedback({ type, msg });
     setTimeout(() => setFeedback(null), 3000);
   };
 
-  const filteredSantri = useMemo(() => 
-    santriList.filter(s => s.nama_santri.toLowerCase()),
-  [santriList]);
+  const fetchHalaqahs = useCallback(async () => {
+    try {
+      const res = await halaqahService.getAllHalaqah();
+      setHalaqahs(res.data);
+    } catch (err: unknown) {
+      console.error(getErrorMessage(err, "Gagal mengambil data halaqah"));
+    }
+  }, []);
 
-  const handleSaveSantri = async (data: any) => { 
+  useEffect(() => {
+    loadSantri();
+    if (isAdmin()) {
+      fetchHalaqahs();
+    }
+  }, [isAdmin, loadSantri, fetchHalaqahs]);
+
+
+  const filteredSantri = useMemo(() => {
+    return santriList.filter((s) => 
+      s.nama_santri.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      s.nomor_telepon.includes(searchTerm)
+    );
+  }, [santriList, searchTerm]);
+
+
+  const handleSaveSantri = async (data: unknown) => { 
     setIsSubmitting(true); 
     try {
-      const validatedData = santriSchema.parse(data) as any;
+      const validatedData = santriSchema.parse(data);
 
       if (selectedSantri) {
-        await updateSantri(selectedSantri.id_santri, validatedData);
+        await updateSantri(selectedSantri.id_santri, {
+          ...validatedData,
+          halaqah_id: validatedData.halaqah_id ?? selectedSantri.halaqah_id
+        });
         showFeedback('success', 'Berhasil memperbarui data');
       } else {
-        await createSantri(validatedData);
+        await createSantri({
+          nama_santri: validatedData.nama_santri,
+          nomor_telepon: validatedData.nomor_telepon,
+          target: validatedData.target,
+          halaqah_id: validatedData.halaqah_id || 0
+        });
         showFeedback('success', 'Berhasil menambah santri');
       }
       
       setIsModalOpen(false);
       loadSantri();
-    } catch (err: any) {
+    } catch (err: unknown) {
       if (err instanceof z.ZodError) {
-        // Ini akan memunculkan pesan error dari Zod (misal: "Nomor telepon minimal 10 digit")
         showFeedback('error', err.issues[0].message);
       } else {
-        showFeedback('error', err.message || "Terjadi kesalahan server");
+        showFeedback('error', getErrorMessage(err, "Gagal memproses data santri"));
       }
     } finally { 
       setIsSubmitting(false); 
     }
   };
 
-  const EmptyState = () => (
-    <div className="flex flex-col items-center justify-center py-12 px-4 border-2 border-dashed rounded-xl bg-muted/30">
-      <div className="bg-primary/10 p-4 rounded-full mb-4">
-        <FontAwesomeIcon 
-          icon={error?.includes("belum memiliki halaqah") ? faExclamationTriangle : faInbox} 
-          className="text-3xl text-primary" 
-        />
-      </div>
-      <h3 className="text-lg font-semibold">
-        {error?.includes("belum memiliki halaqah") ? "Halaqah Belum Ditugaskan" : "Belum Ada Santri"}
-      </h3>
-      <p className="text-muted-foreground text-center max-w-sm mt-2">
-        {error?.includes("belum memiliki halaqah") 
-          ? "Akun Anda saat ini belum terhubung dengan halaqah manapun. Silahkan hubungi Admin untuk proses penugasan." 
-          : "Data santri tidak ditemukan atau belum ditambahkan ke halaqah ini."}
-      </p>
-      {!error && (
-        <Button onClick={() => setIsModalOpen(true)} variant="outline" className="mt-6">
-          Tambah Santri Pertama
-        </Button>
-      )}
-    </div>
-  );
+  const handleEdit = (santri: Santri) => {
+    setSelectedSantri(santri);
+    setIsModalOpen(true);
+  };
 
-  if (isLoading) return <SantriSkeleton />;
+  const handleDelete = async (santri: Santri) => {
+    if (!confirm(`Hapus santri ${santri.nama_santri}?`)) return;
+
+    try {
+      await deleteSantri(santri.id_santri);
+      showFeedback('success', 'Berhasil menghapus santri');
+    } catch (err: unknown) {
+      showFeedback('error', getErrorMessage(err, 'Gagal menghapus santri'));
+    }
+  };
+
+  const handleAddNew = () => {
+    setSelectedSantri(null);
+    setIsModalOpen(true);
+  };
 
   return (
-    <div className="space-y-6 container mx-auto py-6 animate-in fade-in duration-500">
-      
-      {/* 1. Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="p-6 space-y-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <KelolaSantri/>
-          <p className="text-muted-foreground text-sm">Kelola data santri di sini.</p>
+          <h1 className="text-2xl font-bold">Kelola Santri</h1>
+          <p className="text-muted-foreground">Manajemen data santri dan kelompok halaqah</p>
         </div>
-        {!error && (
-            <Button onClick={() => { setSelectedSantri(null); setIsModalOpen(true); }} className="gap-2">
-                <FontAwesomeIcon icon={faPlus} /> Tambah Santri
-            </Button>
-        )}
+        <button
+          onClick={handleAddNew}
+          className="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 transition-colors"
+        >
+          Tambah Santri
+        </button>
       </div>
 
-      {/* 2. Feedback */}
-      {error && (
-        <Alert variant="destructive">
-          <FontAwesomeIcon icon={faTimes} className="mr-2" />
-          <AlertDescription>
-            {error.includes("belum memiliki halaqah") 
-              ? "Akun Anda belum ditugaskan ke halaqah manapun. Silahkan hubungi Admin." 
-              : error}
-          </AlertDescription>
-        </Alert>
+      {feedback && (
+        <div className={`p-4 rounded-md flex items-center ${feedback.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+          <FontAwesomeIcon icon={feedback.type === 'success' ? faTimes : faTimes} className="mr-2" />
+          <span>{feedback.msg}</span>
+        </div>
       )}
 
-      {santriList.length > 0 ? (
-        <>
-          <SantriTable 
-            data={filteredSantri} 
-            isAdmin={isAdmin()} 
-            halaqahList={halaqahs}
-            onEdit={(s: any) => { setSelectedSantri(s); setIsModalOpen(true); }}
-            searchTerm={searchTerm}
-            onDelete={(s: any) => deleteSantri(s.id_santri)}
-          />
-        </>
+      {isLoading && santriList.length === 0 ? (
+        <SantriSkeleton />
       ) : (
-        <EmptyState />
+        <div className="grid gap-6">
+          <SantriInfoCard />
+          
+          <div className="bg-card rounded-lg border shadow-sm">
+            <div className="p-4 border-b">
+              <input
+                type="text"
+                placeholder="Cari santri..."
+                className="w-full max-w-sm px-3 py-2 border rounded-md"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            
+            {filteredSantri.length > 0 ? (
+              <SantriTable 
+                data={filteredSantri} 
+                searchTerm={searchTerm}
+                isAdmin={isAdmin()}
+                halaqahList={halaqahs}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+              />
+
+            ) : (
+              <div className="flex flex-col items-center justify-center py-12 px-4 border-2 border-dashed rounded-xl bg-muted/30">
+                <div className="bg-primary/10 p-4 rounded-full mb-4">
+                  <FontAwesomeIcon icon={faInbox} className="text-3xl text-primary" />
+                </div>
+                <h3 className="text-lg font-semibold">Belum Ada Santri</h3>
+                <p className="text-muted-foreground text-center max-w-sm mt-2">
+                  Data santri tidak ditemukan atau belum ditambahkan ke halaqah ini.
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
       )}
 
-      {/* 5. Info Card */}
-      <SantriInfoCard />
-
-      {/* 6. Modal */}
-      <SantriModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
+      <SantriModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
         onSave={handleSaveSantri}
         selectedSantri={selectedSantri}
+        isSubmitting={isSubmitting}
         isAdmin={isAdmin()}
         halaqahList={halaqahs}
-        isSubmitting={isSubmitting}
       />
+
     </div>
   );
 }
