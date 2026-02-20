@@ -108,9 +108,15 @@ export default function KepalaMuhafidzDashboard() {
   const dataDistribusiKategori = React.useMemo(() => {
     const hafalan = allSetoran.filter(s => s.kategori === "HAFALAN").length;
     const murajaah = allSetoran.filter(s => s.kategori === "MURAJAAH").length;
+    const ziyadah = allSetoran.filter(s => s.kategori === "ZIYADAH").length;
+    const intens = allSetoran.filter(s => s.kategori === "INTENS").length;
+    const bacaan = allSetoran.filter(s => s.kategori === "BACAAN").length;
     return [
       { category: "hafalan", count: hafalan },
       { category: "murajaah", count: murajaah },
+      { category: "ziyadah", count: ziyadah },
+      { category: "intens", count: intens },
+      { category: "bacaan", count: bacaan },  
     ];
   }, [allSetoran]);
 

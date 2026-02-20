@@ -38,7 +38,7 @@ export function HistoryTable({ data }: { data: SetoranRecord[] }) {
                 </Badge>
               </TableCell>
               <TableCell>
-                <span className={`text-sm font-bold ${item.taqwim === 'Mumtaz' ? 'text-green-600' : 'text-orange-600'}`}>
+                <span className={`text-sm font-bold ${item.taqwim === 0 ? 'text-green-600' : 'text-orange-600'}`}>
                   {item.taqwim}
                 </span>
               </TableCell>

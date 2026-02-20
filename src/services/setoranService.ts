@@ -8,8 +8,8 @@ export interface SetoranPayload {
   juz: number;
   surat: string;
   ayat: string; 
-  kategori: "HAFALAN" | "MURAJAAH";
-  taqwim?: string; // Penilaian huruf (A, B, Mumtaz)
+  kategori: "HAFALAN" | "MURAJAAH" | "ZIYADAH" | "INTENS" | "BACAAN";
+  taqwim?: number;
   keterangan?: string;
 }
 
@@ -20,8 +20,8 @@ export interface SetoranRecord {
   juz: number;
   surat: string;
   ayat: string;
-  kategori: "HAFALAN" | "MURAJAAH";
-  taqwim: string;
+  kategori: "HAFALAN" | "MURAJAAH" | "ZIYADAH" | "INTENS" | "BACAAN";
+  taqwim: number;
   keterangan: string;
   nilai: number;
   santri?: {

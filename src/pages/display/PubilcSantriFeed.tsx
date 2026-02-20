@@ -16,7 +16,7 @@ interface SetoranFeedItem {
   surat: string;
   ayat: string;
   kategori: string;
-  taqwim: string;
+  taqwim: number;
 }
 
 interface PublicSantriData {
@@ -24,6 +24,9 @@ interface PublicSantriData {
   stats: {
     HAFALAN: number;
     MURAJAAH: number;
+    ZIYADAH: number;
+    INTENS: number;
+    BACAAN: number;
   };
 }
 
@@ -49,6 +52,24 @@ export function PublicSantriFeed({ santriData }: PublicSantriFeedProps) {
           <CardContent className="p-4 flex flex-col items-center justify-center">
             <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Murajaah</span>
             <span className="text-2xl font-black text-slate-700">{santriData.stats?.MURAJAAH || 0}</span>
+          </CardContent>
+        </Card>
+        <Card className="bg-sky-50 border-sky-100 shadow-none">
+          <CardContent className="p-4 flex flex-col items-center justify-center">
+            <span className="text-[10px] font-bold text-sky-600 uppercase tracking-wider">Ziyadah</span>
+            <span className="text-2xl font-black text-sky-700">{santriData.stats?.ZIYADAH || 0}</span>
+          </CardContent>
+        </Card>
+        <Card className="bg-amber-50 border-amber-100 shadow-none">
+          <CardContent className="p-4 flex flex-col items-center justify-center">
+            <span className="text-[10px] font-bold text-amber-600 uppercase tracking-wider">Intens</span>
+            <span className="text-2xl font-black text-amber-700">{santriData.stats?.INTENS || 0}</span>
+          </CardContent>
+        </Card>
+        <Card className="bg-indigo-50 border-indigo-100 shadow-none">
+          <CardContent className="p-4 flex flex-col items-center justify-center">
+            <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider">Bacaan</span>
+            <span className="text-2xl font-black text-indigo-700">{santriData.stats?.BACAAN || 0}</span>
           </CardContent>
         </Card>
       </div>
@@ -83,7 +104,7 @@ export function PublicSantriFeed({ santriData }: PublicSantriFeedProps) {
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
-                    <span className={`text-sm font-bold ${s.taqwim === 'Mumtaz' ? 'text-emerald-600' : 'text-orange-500'}`}>
+                    <span className={`text-sm font-bold ${s.taqwim === 0 ? 'text-emerald-600' : 'text-orange-500'}`}>
                       {s.taqwim}
                     </span>
                   </TableCell>

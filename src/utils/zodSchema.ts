@@ -12,8 +12,8 @@ export const setoranSchema = z.object({
   // Kita gunakan field helper untuk UI
   ayat_mulai: z.coerce.number().min(1),
   ayat_selesai: z.coerce.number().min(1),
-  kategori: z.enum(["HAFALAN", "MURAJAAH"]),
-  taqwim: z.string().min(1, "Taqwim wajib diisi"),
+  kategori: z.enum(["HAFALAN", "MURAJAAH", "ZIYADAH", "INTENS", "BACAAN"]),
+  taqwim: z.coerce.number().optional(),
   keterangan: z.string().optional(),
 }).refine((data) => data.ayat_selesai >= data.ayat_mulai, {
   message: "Ayat selesai tidak boleh lebih kecil dari mulai",

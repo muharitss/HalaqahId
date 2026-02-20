@@ -26,7 +26,7 @@ export const groupSetoranByHalaqahAndSantri = (data: any[]) => {
       acc[halaqahName].santriGroup[santriId] = {
         nama_santri: santriName,
         setoran: [],
-        stats: { HAFALAN: 0, MURAJAAH: 0 }
+        stats: { HAFALAN: 0, MURAJAAH: 0, ZIYADAH: 0, INTENS: 0, BACAAN: 0 }
       };
     }
 

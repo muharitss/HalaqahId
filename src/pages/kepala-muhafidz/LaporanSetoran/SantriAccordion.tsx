@@ -46,6 +46,15 @@ export function SantriAccordion({ santriGroup }: SantriAccordionProps) {
                 <Badge variant="outline" className="font-normal">
                   {santri.stats.MURAJAAH} Murajaah
                 </Badge>
+                <Badge variant="outline" className="font-normal">
+                  {santri.stats.ZIYADAH} Ziyadah
+                </Badge>
+                <Badge variant="outline" className="font-normal">
+                  {santri.stats.INTENS} Intens
+                </Badge>
+                <Badge variant="outline" className="font-normal">
+                  {santri.stats.BACAAN} Bacaan
+                </Badge>
               </div>
             </div>
           </AccordionTrigger>
@@ -82,7 +91,7 @@ export function SantriAccordion({ santriGroup }: SantriAccordionProps) {
                     </TableCell>
                     <TableCell>
                       <div className="flex flex-col">
-                        <span className={`text-sm font-bold ${s.taqwim === 'Mumtaz' ? 'text-primary' : 'text-orange-600'}`}>
+                        <span className={`text-sm font-bold ${s.taqwim === 0 ? 'text-primary' : 'text-orange-600'}`}>
                           {s.taqwim}
                         </span>
                         {s.keterangan && (

@@ -34,8 +34,8 @@ const setoranSchema = z.object({
   surat: z.string().min(1, "Pilih surah"),
   ayat_mulai: z.coerce.number().min(1),
   ayat_selesai: z.coerce.number().min(1),
-  kategori: z.enum(["HAFALAN", "MURAJAAH"]),
-  taqwim: z.string().min(1, "Wajib diisi"),
+  kategori: z.enum(["HAFALAN", "MURAJAAH", "ZIYADAH", "INTENS", "BACAAN"  ]),
+  taqwim: z.number().optional(),
   keterangan: z.string().optional(),
 }).refine((data) => data.ayat_selesai >= data.ayat_mulai, {
   message: "Ayat selesai tidak boleh kurang dari mulai",
@@ -51,8 +51,8 @@ interface SetoranFormValues {
   surat: string;
   ayat_mulai: number;
   ayat_selesai: number;
-  kategori: "HAFALAN" | "MURAJAAH";
-  taqwim: string;
+  kategori: "HAFALAN" | "MURAJAAH" | "ZIYADAH" | "INTENS" | "BACAAN";
+  taqwim?: number;
   keterangan?: string;
 }
 
@@ -63,8 +63,8 @@ interface SetoranFormProps {
     juz: number;
     surat: string;
     ayat: string;
-    kategori: "HAFALAN" | "MURAJAAH";
-    taqwim: string;
+    kategori: "HAFALAN" | "MURAJAAH" | "ZIYADAH" | "INTENS" | "BACAAN";
+    taqwim?: number;
     keterangan?: string;
   }) => Promise<{ success: boolean }>;
   loading: boolean;
@@ -86,7 +86,7 @@ export function SetoranForm({ santriList, onSubmit, loading }: SetoranFormProps)
       surat: "",
       ayat_mulai: undefined,
       ayat_selesai: undefined,
-      taqwim: "Mumtaz",
+      taqwim: 0,
       keterangan: "",
     },
   });
@@ -159,6 +159,9 @@ export function SetoranForm({ santriList, onSubmit, loading }: SetoranFormProps)
                   <SelectContent>
                     <SelectItem value="HAFALAN">HAFALAN</SelectItem>
                     <SelectItem value="MURAJAAH">MURAJAAH</SelectItem>
+                    <SelectItem value="ZIYADAH">ZIYADAH</SelectItem>
+                    <SelectItem value="INTENS">INTENS</SelectItem>
+                    <SelectItem value="BACAAN">BACAAN</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -306,7 +309,7 @@ export function SetoranForm({ santriList, onSubmit, loading }: SetoranFormProps)
             render={({ field }) => (
               <FormItem className="md:col-span-2">
                 <FormLabel>Taqwim</FormLabel>
-                <FormControl><Input {...field} /></FormControl>
+                <FormControl><Input type="number" {...field} /></FormControl>
                 <FormMessage />
               </FormItem>
             )}
