@@ -196,29 +196,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   const login = async (values: LoginFormValues) => {
-    try {
-      const response = await authService.login(values);
-      
-      if (!response.success) {
-        throw new Error(response.message || "Login gagal");
-      }
-      
-      const userData: User = {
-        ...response.data.user,
-        token: response.data.token,
-        username: response.data.user.username || "User",
-        isImpersonating: false
-      };
+    const response = await authService.login(values);
+    
+    if (!response.success) {
+      throw new Error(response.message || "Login gagal");
+    }
+    
+    const userData: User = {
+      ...response.data.user,
+      token: response.data.token,
+      username: response.data.user.username || "User",
+      isImpersonating: false
+    };
 
-      setUser(userData);
-      saveUserToStorage(userData);
-      
-      if (userData.role === "superadmin") {
-        saveSuperadminSession(userData);
-      }
-      
-    } catch (error: any) {
-      throw error;
+    setUser(userData);
+    saveUserToStorage(userData);
+    
+    if (userData.role === "superadmin") {
+      saveSuperadminSession(userData);
     }
   };
 
