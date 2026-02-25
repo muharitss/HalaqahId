@@ -1,0 +1,226 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faUsers, faUserTie } from "@fortawesome/free-solid-svg-icons";
+import { faWhatsapp } from "@fortawesome/free-brands-svg-icons";
+import { MoreVertical, Edit2, Trash2, ArrowRightLeft, UserPlus } from "lucide-react"; 
+import { 
+  Accordion, 
+  AccordionContent, 
+  AccordionItem, 
+  AccordionTrigger 
+} from "@/components/ui/accordion";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Skeleton } from "@/components/ui/skeleton";
+import { library } from '@fortawesome/fontawesome-svg-core'
+import { fas } from '@fortawesome/free-solid-svg-icons'
+import { far } from '@fortawesome/free-regular-svg-icons'
+import { fab } from '@fortawesome/free-brands-svg-icons'
+import type { DaftarHalaqahProps } from "../types";
+
+library.add(fas, far, fab);
+
+export function DaftarHalaqah({ 
+  halaqahs, 
+  onEdit, 
+  onDelete, 
+  onMoveSantri, 
+  onEditSantri, 
+  onDeleteSantri, 
+  isLoading, 
+  santriMap,
+  onAddSantri
+}: DaftarHalaqahProps) {
+
+  const formatWhatsApp = (phone: string | null | undefined) => {
+    if (!phone) return "#"; 
+
+    let cleaned = phone.replace(/\D/g, "");
+    if (cleaned.startsWith("0")) {
+      cleaned = "62" + cleaned.substring(1);
+    }
+    return `https://wa.me/${cleaned}`;
+  };
+  
+  if (isLoading) return <HalaqahLoadingSkeleton />;
+
+  return (
+    <Accordion type="single" collapsible className="w-full space-y-3">
+      {halaqahs.map((h) => {
+        const daftarSantri = santriMap[h.id_halaqah] || [];
+
+        return (
+          <AccordionItem 
+            key={h.id_halaqah} 
+            value={h.id_halaqah.toString()} 
+            className="border rounded-xl bg-card px-2 md:px-4 shadow-sm"
+          >
+            <AccordionTrigger className="hover:no-underline py-4">
+              <div className="flex flex-1 items-center justify-between pr-2">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 md:h-12 md:w-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary font-bold text-lg md:text-xl">
+                    {h.name_halaqah.charAt(0)}
+                  </div>
+                  <div className="text-left">
+                    <h3 className="font-bold text-base md:text-lg leading-tight">{h.name_halaqah}</h3>
+                    <div className="flex items-center gap-2 mt-1 text-xs md:text-sm text-muted-foreground">
+                      <span className="flex items-center gap-1">
+                        <FontAwesomeIcon icon={faUserTie} className="text-[10px]" />
+                        {h.user?.username || "Tanpa Muhafiz"}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <FontAwesomeIcon icon={faUsers} className="text-[10px]" />
+                        {h._count?.santri || 0} Santri
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </AccordionTrigger>
+            
+            <AccordionContent className="px-0 pt-0 pb-4">
+              <div className="flex justify-between items-center py-3 border-t border-dashed mb-2 px-1">
+                <h4 className="text-[10px] md:text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  Daftar Anggota
+                </h4>
+                
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                      <MoreVertical className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-40">
+                    <DropdownMenuLabel>Aksi Halaqah</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => onAddSantri(h)} className="cursor-pointer text-primary focus:text-primary font-medium">
+                      <UserPlus className="mr-2 h-4 w-4" /> 
+                      <span>Tambah Santri</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => onEdit(h)} className="cursor-pointer">
+                      <Edit2 className="mr-2 h-4 w-4" />
+                      <span>Edit Data</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => onDelete(h)} 
+                      className="cursor-pointer text-destructive focus:text-destructive"
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      <span>Hapus Halaqah</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="hover:bg-transparent">
+                      <TableHead className="h-9 px-2 text-xs font-bold">Nama Santri</TableHead>
+                      <TableHead>Kontak</TableHead>
+                      <TableHead>Target</TableHead>
+                      <TableHead className="text-right w-25">Aksi</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {daftarSantri.length > 0 ? (
+                      daftarSantri.map((s) => (
+                        <TableRow key={s.id_santri}>
+                          <TableCell className="font-medium">
+                            {s.nama_santri}
+                          </TableCell>
+                          <TableCell>
+                            <a 
+                              href={formatWhatsApp(s.nomor_telepon)} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-2 text-primary hover:text-primary-dark hover:underline transition-all"
+                            >
+                              <FontAwesomeIcon icon={faWhatsapp} />
+                              {s.nomor_telepon}
+                            </a>
+                          </TableCell>
+                          <TableCell className="py-2 px-2">
+                            <Badge variant={s.target === "INTENSE" ? "default" : "outline"}>
+                              {s.target}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="py-2 px-2 text-right">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" className="h-8 w-8 p-0">
+                                  <MoreVertical className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="w-40">
+                                <DropdownMenuLabel>Aksi Santri</DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem 
+                                  onClick={() => onMoveSantri(s)} 
+                                  className="cursor-pointer text-blue-600 focus:text-blue-600"
+                                >
+                                  <ArrowRightLeft className="mr-2 h-4 w-4" />
+                                  <span>Pindah Halaqah</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem 
+                                  onClick={() => onEditSantri(s)} 
+                                  className="cursor-pointer"
+                                >
+                                  <Edit2 className="mr-2 h-4 w-4" />
+                                  <span>Edit Profil</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem 
+                                  onClick={() => onDeleteSantri(s)} 
+                                  className="cursor-pointer text-destructive focus:text-destructive"
+                                >
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  <span>Hapus Santri</span>
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={4} className="text-center py-6 text-xs italic opacity-50">
+                          Tidak ada santri di kelompok ini.
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        );
+      })}
+    </Accordion>
+  );
+}
+
+function HalaqahLoadingSkeleton() {
+  return (
+    <div className="space-y-3">
+      {[1, 2, 3].map((i) => (
+        <Skeleton key={i} className="h-16 w-full rounded-xl" />
+      ))}
+    </div>
+  );
+}

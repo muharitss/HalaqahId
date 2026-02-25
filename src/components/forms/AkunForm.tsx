@@ -1,194 +1,143 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { registerSchema, type RegisterFormValues } from "@/utils/zodSchema";
-import { akunService } from "@/services/akunService";
-
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-  FormDescription,
-} from "@/components/ui/form";
+import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Spinner } from "@/components/ui/spinner";
-import { toast } from "sonner";
-
-// Icons
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { 
-  faEnvelope, faLock, faUser, faEye, faEyeSlash, faExclamationCircle 
-} from "@fortawesome/free-solid-svg-icons";
+import { faUserPlus, faSpinner, faCheckCircle, faExclamationCircle } from "@fortawesome/free-solid-svg-icons";
+import { muhafizService } from "@/features/kepala-muhafidz/kelola-muhafiz/services/muhafizService"; // Langsung import dari feature
+import { getErrorMessage } from "@/utils/error";
+
+const akunSchema = z.object({
+  username: z.string().min(3, "Username minimal 3 karakter"),
+  email: z.string().email("Email tidak valid"),
+  password: z.string().min(6, "Password minimal 6 karakter"),
+});
+
+type AkunFormValues = z.infer<typeof akunSchema>;
 
 interface AkunFormProps {
   onSuccess?: () => void;
 }
 
 export function AkunForm({ onSuccess }: AkunFormProps) {
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string>("");
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
 
-  const form = useForm<RegisterFormValues>({
-    resolver: zodResolver(registerSchema),
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm<AkunFormValues>({
+    resolver: zodResolver(akunSchema),
     defaultValues: {
-      email: "",
       username: "",
+      email: "",
       password: "",
-      confirmPassword: "",
     },
   });
 
-  async function onSubmit(values: RegisterFormValues) {
+  const onSubmit = async (data: AkunFormValues) => {
     setIsLoading(true);
-    setErrorMessage("");
-
+    setError(null);
+    
     try {
-      const response = await akunService.registerMuhafiz({
-        email: values.email,
-        username: values.username,
-        password: values.password
+      const response = await muhafizService.createMuhafiz({  // Ganti authService dengan muhafizService
+        username: data.username,
+        email: data.email,
+        password: data.password,
       });
-
+      
       if (response.success) {
-        toast.success("Akun muhafiz berhasil dibuat!");
-        form.reset();
-        if (onSuccess) onSuccess();
+        setSuccess(true);
+        reset();
+        setTimeout(() => {
+          setSuccess(false);
+          if (onSuccess) onSuccess();
+        }, 2000);
       }
-    } catch (error: any) {
-      const message = error.response?.data?.message || "Terjadi kesalahan sistem";
-      setErrorMessage(message);
-      if (error.response?.status === 400 && message.includes("Email")) {
-        form.setError("email", { type: "manual", message: "Email sudah terdaftar" });
-      }
+    } catch (err) {
+      setError(getErrorMessage(err, "Gagal membuat akun"));
     } finally {
       setIsLoading(false);
     }
-  }
+  };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-        
-        {errorMessage && (
-          <Alert variant="destructive">
-            <FontAwesomeIcon icon={faExclamationCircle} className="h-4 w-4" />
-            <AlertDescription>{errorMessage}</AlertDescription>
-          </Alert>
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      {error && (
+        <Alert variant="destructive">
+          <FontAwesomeIcon icon={faExclamationCircle} className="mr-2" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+      
+      {success && (
+        <Alert variant="default" className="bg-green-50 border-green-200 text-green-800">
+          <FontAwesomeIcon icon={faCheckCircle} className="mr-2" />
+          <AlertDescription>Akun berhasil dibuat!</AlertDescription>
+        </Alert>
+      )}
+
+      <div className="space-y-2">
+        <Label htmlFor="username">Username</Label>
+        <Input
+          id="username"
+          {...register("username")}
+          placeholder="Masukkan username"
+          disabled={isLoading}
+        />
+        {errors.username && (
+          <p className="text-sm text-destructive">{errors.username.message}</p>
         )}
+      </div>
 
-        <div className="grid gap-4 py-2">
-          {/* Email */}
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Email Address</FormLabel>
-                <FormControl>
-                  <div className="relative">
-                    <FontAwesomeIcon icon={faEnvelope} className="absolute left-3 top-3 text-muted-foreground text-sm" />
-                    <Input {...field} type="email" placeholder="muhafiz@email.com" className="pl-10" disabled={isLoading} />
-                  </div>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+      <div className="space-y-2">
+        <Label htmlFor="email">Email</Label>
+        <Input
+          id="email"
+          type="email"
+          {...register("email")}
+          placeholder="Masukkan email"
+          disabled={isLoading}
+        />
+        {errors.email && (
+          <p className="text-sm text-destructive">{errors.email.message}</p>
+        )}
+      </div>
 
-          {/* Username */}
-          <FormField
-            control={form.control}
-            name="username"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Username</FormLabel>
-                <FormControl>
-                  <div className="relative">
-                    <FontAwesomeIcon icon={faUser} className="absolute left-3 top-3 text-muted-foreground text-sm" />
-                    <Input {...field} placeholder="Username muhafiz" className="pl-10" disabled={isLoading} />
-                  </div>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+      <div className="space-y-2">
+        <Label htmlFor="password">Password</Label>
+        <Input
+          id="password"
+          type="password"
+          {...register("password")}
+          placeholder="Minimal 6 karakter"
+          disabled={isLoading}
+        />
+        {errors.password && (
+          <p className="text-sm text-destructive">{errors.password.message}</p>
+        )}
+      </div>
 
-          {/* Passwords - Responsive Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Password</FormLabel>
-                  <FormControl>
-                    <div className="relative">
-                      <FontAwesomeIcon icon={faLock} className="absolute left-3 top-3 text-muted-foreground text-sm" />
-                      <Input {...field} type={showPassword ? "text" : "password"} className="pl-10 pr-10" disabled={isLoading} />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="absolute right-0 top-0 h-full w-10 hover:bg-transparent"
-                        onClick={() => setShowPassword(!showPassword)}
-                      >
-                        <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} className="text-muted-foreground" />
-                      </Button>
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="confirmPassword"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Konfirmasi</FormLabel>
-                  <FormControl>
-                    <div className="relative">
-                      <FontAwesomeIcon icon={faLock} className="absolute left-3 top-3 text-muted-foreground text-sm" />
-                      <Input {...field} type={showConfirmPassword ? "text" : "password"} className="pl-10 pr-10" disabled={isLoading} />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="absolute right-0 top-0 h-full w-10 hover:bg-transparent"
-                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      >
-                        <FontAwesomeIcon icon={showConfirmPassword ? faEyeSlash : faEye} className="text-muted-foreground" />
-                      </Button>
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-        </div>
-
-        <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-4 border-t">
-          <FormDescription className="mr-auto text-xs text-left max-w-50">
-            Akun akan langsung aktif setelah disimpan.
-          </FormDescription>
-          <Button type="submit" className="w-full sm:w-auto" disabled={isLoading}>
-            {isLoading ? (
-              <><Spinner className="mr-2" /> Menyimpan...</>
-            ) : (
-              "Simpan Akun Muhafiz"
-            )}
-          </Button>
-        </div>
-      </form>
-    </Form>
+      <Button type="submit" className="w-full" disabled={isLoading}>
+        {isLoading ? (
+          <>
+            <FontAwesomeIcon icon={faSpinner} spin className="mr-2" />
+            Membuat Akun...
+          </>
+        ) : (
+          <>
+            <FontAwesomeIcon icon={faUserPlus} className="mr-2" />
+            Buat Akun Muhafiz
+          </>
+        )}
+      </Button>
+    </form>
   );
 }

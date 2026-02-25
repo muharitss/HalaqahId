@@ -1,149 +1,170 @@
-import { useEffect, useMemo, useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { halaqahSchema, type HalaqahFormValues } from "@/utils/zodSchema";
-import { halaqahService } from "@/services/halaqahService";
-import axiosClient from "@/api/axiosClient"; // Untuk fetch muhafidz
-import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
-
-import { Form, FormControl,FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faBook, faSpinner, faCheckCircle, faExclamationCircle } from "@fortawesome/free-solid-svg-icons";
+import { muhafizService } from "@/features/kepala-muhafidz/kelola-muhafiz/services/muhafizService";
+import { halaqahManagementService } from "@/features/kepala-muhafidz/kelola-halaqah/services/halaqahManagementService"; // Import dari feature
+import { getErrorMessage } from "@/utils/error";
 
-interface Muhafidz {
-  id_user: number;
-  username: string;
-}
+const halaqahSchema = z.object({
+  name_halaqah: z.string().min(3, "Nama halaqah minimal 3 karakter"),
+  muhafiz_id: z.number().min(1, "Pilih muhafiz"),
+});
+
+type HalaqahFormValues = {
+  name_halaqah: string;
+  muhafiz_id: number;
+};
 
 interface HalaqahFormProps {
   initialData?: {
-    id_halaqah: number;
+    id_halaqah?: number;
     name_halaqah: string;
     muhafiz_id: number;
   };
-  onSuccess: () => void;
+  onSuccess?: () => void;
 }
 
 export function HalaqahForm({ initialData, onSuccess }: HalaqahFormProps) {
-  const [muhafidzs, setMuhafidzs] = useState<Muhafidz[]>([]);
-  const [existingHalaqahs, setExistingHalaqahs] = useState<any[]>([]);
+  const [muhafizList, setMuhafizList] = useState<any[]>([]);
+  const [isLoadingMuhafiz, setIsLoadingMuhafiz] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
 
-  const form = useForm<HalaqahFormValues>({
-    resolver: zodResolver(halaqahSchema) as any,
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors },
+  } = useForm<HalaqahFormValues>({
+    resolver: zodResolver(halaqahSchema),
     defaultValues: {
       name_halaqah: initialData?.name_halaqah || "",
       muhafiz_id: initialData?.muhafiz_id || 0,
     },
   });
 
-  // Ambil daftar muhafidz untuk dropdown
+  const selectedMuhafizId = watch("muhafiz_id");
+
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchMuhafiz = async () => {
       try {
-        const muhafidzRes = await axiosClient.get("/halaqah/auth/muhafiz");
-        setMuhafidzs(muhafidzRes.data.data || muhafidzRes.data);
-        
-        const halaqahRes = await halaqahService.getAllHalaqah();
-        setExistingHalaqahs(halaqahRes.data || []);
-      } catch (error) {
-        toast.error("Gagal sinkronisasi data");
+        const data = await muhafizService.getAllMuhafiz();
+        setMuhafizList(data);
+      } catch (err) {
+        console.error("Gagal mengambil data muhafiz:", err);
+      } finally {
+        setIsLoadingMuhafiz(false);
       }
     };
-    fetchData();
+    fetchMuhafiz();
   }, []);
 
-  const onSubmit = async (values: HalaqahFormValues) => {
+  const onSubmit = async (data: HalaqahFormValues) => {
     setIsSubmitting(true);
+    setError(null);
+
     try {
-      if (initialData) {
-        await halaqahService.updateHalaqah(initialData.id_halaqah, values);
-        toast.success("Halaqah berhasil diperbarui");
+      if (initialData?.id_halaqah) {
+        await halaqahManagementService.updateHalaqah(initialData.id_halaqah, {
+          name_halaqah: data.name_halaqah,
+          muhafiz_id: data.muhafiz_id,
+        });
       } else {
-        await halaqahService.createHalaqah(values);
-        toast.success("Halaqah baru berhasil dibuat");
+        await halaqahManagementService.createHalaqah({
+          name_halaqah: data.name_halaqah,
+          muhafiz_id: data.muhafiz_id,
+        });
       }
-      onSuccess();
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || "Terjadi kesalahan sistem");
+
+      setSuccess(true);
+      setTimeout(() => {
+        setSuccess(false);
+        if (onSuccess) onSuccess();
+      }, 1500);
+    } catch (err) {
+      setError(getErrorMessage(err, "Gagal menyimpan halaqah"));
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const availableMuhafidz = useMemo(() => {
-    // Ambil semua ID muhafidz yang sudah mengajar di halaqah manapun
-    const takenIds = existingHalaqahs.map((h) => h.muhafiz_id);
-
-    return muhafidzs.filter((m) => {
-      // Jika mode EDIT, muhafidz saat ini harus tetap muncul
-      if (initialData && m.id_user === initialData.muhafiz_id) {
-        return true;
-      }
-      // Munculkan hanya jika ID nya tidak ada di daftar 'takenIds'
-      return !takenIds.includes(m.id_user);
-    });
-  }, [muhafidzs, existingHalaqahs, initialData]);
-
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        {/* Field Name Halaqah tetap sama */}
-        <FormField
-          control={form.control}
-          name="name_halaqah"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Nama Halaqah</FormLabel>
-              <FormControl>
-                <Input placeholder="Contoh: Abu Bakar Ash-Shiddiq" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      {error && (
+        <Alert variant="destructive">
+          <FontAwesomeIcon icon={faExclamationCircle} className="mr-2" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
 
-        <FormField
-          control={form.control}
-          name="muhafiz_id"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Muhafidz Pengampu</FormLabel>
-              <Select 
-                onValueChange={(val) => field.onChange(Number(val))} 
-                value={field.value?.toString()} // Gunakan value agar sinkron dengan state
-              >
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Pilih Muhafidz" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {availableMuhafidz.length > 0 ? (
-                    availableMuhafidz.map((m) => (
-                      <SelectItem key={m.id_user} value={m.id_user.toString()}>
-                        {m.username}
-                      </SelectItem>
-                    ))
-                  ) : (
-                    <div className="p-2 text-xs text-center text-muted-foreground">
-                      Semua muhafidz sudah mengampu kelompok.
-                    </div>
-                  )}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+      {success && (
+        <Alert variant="default" className="bg-green-50 border-green-200 text-green-800">
+          <FontAwesomeIcon icon={faCheckCircle} className="mr-2" />
+          <AlertDescription>
+            {initialData ? "Halaqah berhasil diperbarui!" : "Halaqah berhasil dibuat!"}
+          </AlertDescription>
+        </Alert>
+      )}
 
-        <Button type="submit" className="w-full" disabled={isSubmitting}>
-          {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {initialData ? "Simpan Perubahan" : "Buat Halaqah"}
-        </Button>
-      </form>
-    </Form>
+      <div className="space-y-2">
+        <Label htmlFor="name_halaqah">Nama Halaqah</Label>
+        <Input
+          id="name_halaqah"
+          {...register("name_halaqah")}
+          placeholder="Contoh: Halaqah Al-Furqan"
+          disabled={isSubmitting}
+        />
+        {errors.name_halaqah && (
+          <p className="text-sm text-destructive">{errors.name_halaqah.message}</p>
+        )}
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="muhafiz_id">Muhafiz Pengampu</Label>
+        <Select
+          disabled={isLoadingMuhafiz || isSubmitting}
+          value={selectedMuhafizId?.toString()}
+          onValueChange={(value) => setValue("muhafiz_id", parseInt(value))}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder={isLoadingMuhafiz ? "Memuat data..." : "Pilih muhafiz"} />
+          </SelectTrigger>
+          <SelectContent>
+            {muhafizList.map((m) => (
+              <SelectItem key={m.id_user} value={m.id_user.toString()}>
+                {m.username} - {m.email}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {errors.muhafiz_id && (
+          <p className="text-sm text-destructive">{errors.muhafiz_id.message}</p>
+        )}
+      </div>
+
+      <Button type="submit" className="w-full" disabled={isSubmitting}>
+        {isSubmitting ? (
+          <>
+            <FontAwesomeIcon icon={faSpinner} spin className="mr-2" />
+            Menyimpan...
+          </>
+        ) : (
+          <>
+            <FontAwesomeIcon icon={faBook} className="mr-2" />
+            {initialData ? "Perbarui Halaqah" : "Buat Halaqah"}
+          </>
+        )}
+      </Button>
+    </form>
   );
 }

@@ -1,20 +1,20 @@
 import { Routes, Route, Navigate, Outlet } from "react-router-dom";
-import LoginPage from "@/pages/auth/LoginPage";
-import KepalaMuhafidzDashboard from "@/pages/kepala-muhafidz/Dashboard";
-import MuhafidzPage from "@/pages/muhafidz"; 
-import { useAuth } from "@/context/AuthContext";
+import LoginPage from "@/features/auth/pages/LoginPage";
+import KepalaMuhafidzRoot from "@/features/kepala-muhafidz/pages/KepalaMuhafidzRoot";
+import MuhafidzPage from "@/features/muhafidz/pages/MuhafidzRoot"; 
+import { useAuth } from "@/features/auth/context/AuthContext";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import { Spinner } from "@/components/ui/spinner";
-import KelolaMuhafizPage from "@/pages/kepala-muhafidz/KelolaMuhafiz";
-import KelolaHalaqahPage from "@/pages/kepala-muhafidz/KelolaHalaqah";
 import SettingsPage from "@/pages/settings";
-import LaporanSetoranPage from "@/pages/kepala-muhafidz/LaporanSetoran";
+import LaporanSetoranPage from "@/features/kepala-muhafidz/laporan-setoran"; 
 import InfoSection from "@/pages/settings/InfoSection";
 import TrashSection from "@/pages/settings/TrashSection";
-import { DisplayProvider } from "@/context/DisplayContext";
-import PublicDisplay from "@/pages/display/PublicDisplay";
-import SantriDetail from "@/pages/display/SantriDetail";
-import { TahfidzAi } from "@/components/shared/TahfidzAi";
+import { DisplayProvider } from "@/features/display/context/DisplayContext";
+import PublicDisplay from "@/features/display/pages/PublicDisplay";
+import SantriDetail from "@/features/display/pages/SantriDetail";
+import { TahfidzAi } from "@/components/features/tahfidz-ai/TahfidzAi";
+import KelolaMuhafizPage from "@/features/kepala-muhafidz/kelola-muhafiz";
+import KelolaHalaqahPage from "@/features/kepala-muhafidz/kelola-halaqah";
 
 const ProtectedRoute = ({ allowedRoles }: { allowedRoles?: ("superadmin" | "muhafiz")[] }) => {
   const { user, isLoading } = useAuth();
@@ -95,7 +95,7 @@ export const AppRouter = () => {
 
           {/* Rute Khusus Superadmin (Kepala Muhafidz) */}
           <Route element={<ProtectedRoute allowedRoles={["superadmin"]} />}>
-            <Route path="/kepala-muhafidz" element={<KepalaMuhafidzDashboard />} />
+            <Route path="/kepala-muhafidz" element={<KepalaMuhafidzRoot />} />
             <Route path="/kepala-muhafidz/muhafiz" element={<KelolaMuhafizPage />} />
             <Route path="/kepala-muhafidz/halaqah" element={<KelolaHalaqahPage />} />
             <Route path="/kepala-muhafidz/settings" element={<SettingsPage/>} />

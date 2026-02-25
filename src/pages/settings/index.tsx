@@ -3,8 +3,8 @@ import { Info, Trash2, ChevronLeft, LogOut, ArrowLeft, Bot } from "lucide-react"
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { SettingItem } from "./SettingItem";
-import { useAuth } from "@/context/AuthContext";
-import { Settings } from "@/components/ui/TypedText";
+import { useAuth } from "@/features/auth/context/AuthContext";
+import { Settings } from "@/components/typed-text";
 import { Separator } from "@/components/ui/separator";
 
 export default function SettingsPage() {

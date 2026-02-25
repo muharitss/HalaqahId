@@ -69,7 +69,7 @@ axiosClient.interceptors.response.use(
 );
 
 export const displayApi = axios.create({
-  baseURL: "https://halaqah-id-be.vercel.app/api/display",
+  baseURL: "https://halaqahid-be.vercel.app/api/display",
   headers: { "Content-Type": "application/json" }
 });
 
