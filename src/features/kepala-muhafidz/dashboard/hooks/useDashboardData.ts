@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { dashboardService } from "../services/dashboardService";
-import type { PekanData, BulanData, AbsensiStat, CategoryStat, ViewType } from "../types";
+import type { PekanData, BulanData, AbsensiStat, CategoryStat, ViewType, SetoranData } from "../types";
 import type { Muhafiz } from "@/services/akunService";
 
 export const useDashboardData = () => {
@@ -10,7 +10,7 @@ export const useDashboardData = () => {
     muhafiz: true
   });
   
-  const [setoranData, setSetoranData] = useState<any[]>([]);
+  const [setoranData, setSetoranData] = useState<SetoranData[]>([]);
   const [muhafizList, setMuhafizList] = useState<Muhafiz[]>([]);
   
   const [chartView, setChartView] = useState<ViewType>("pekan");
@@ -24,38 +24,36 @@ export const useDashboardData = () => {
   const [totalAbsensi, setTotalAbsensi] = useState(0);
 
   // Fetch initial data
+// Di useDashboardData.ts
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
-        // Fetch setoran
-        setLoading(prev => ({ ...prev, setoran: true }));
-        const setoran = await dashboardService.getAllSetoran();
-        setSetoranData(setoran);
+        setLoading(prev => ({ ...prev, setoran: true, muhafiz: true }));
         
-        // Process chart data
-        setWeeklyData(dashboardService.getWeeklyChartData(setoran));
-        setMonthlyData(dashboardService.getMonthlyChartData(setoran));
-        setCategoryData(dashboardService.getCategoryDistribution(setoran));
-      } catch (error) {
-        console.error("Error loading setoran data:", error);
-      } finally {
-        setLoading(prev => ({ ...prev, setoran: false }));
-      }
+        // Panggil paralel agar lebih cepat
+        const [setoran, muhafiz] = await Promise.all([
+          dashboardService.getAllSetoran(),
+          dashboardService.getMuhafizList()
+        ]);
 
-      // Fetch muhafiz
-      try {
-        setLoading(prev => ({ ...prev, muhafiz: true }));
-        const muhafiz = await dashboardService.getMuhafizList();
+        setSetoranData(setoran);
         setMuhafizList(muhafiz);
+
+        // Langsung proses data di sini
+        if (setoran.length > 0) {
+          setWeeklyData(dashboardService.getWeeklyChartData(setoran));
+          setMonthlyData(dashboardService.getMonthlyChartData(setoran));
+          setCategoryData(dashboardService.getCategoryDistribution(setoran));
+        }
       } catch (error) {
-        console.error("Error loading muhafiz data:", error);
+        console.error("Error loading dashboard data:", error);
       } finally {
-        setLoading(prev => ({ ...prev, muhafiz: false }));
+        setLoading(prev => ({ ...prev, setoran: false, muhafiz: false }));
       }
     };
 
     fetchInitialData();
-  }, []);
+  }, []); // Cukup sekali saat mount
 
   // Fetch absensi data based on view
   useEffect(() => {

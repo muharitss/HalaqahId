@@ -105,7 +105,7 @@ export const AttendanceDonutChart = ({
                             y={(viewBox.cy || 0) + 20} 
                             className="fill-muted-foreground text-[10px]"
                           >
-                            Total Presensi
+                            Total Kehadiran
                           </tspan>
                         </text>
                       );
@@ -123,7 +123,7 @@ export const AttendanceDonutChart = ({
         
         <div className="text-center py-4 border-t border-primary/5 mt-2">
           <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">
-            Akumulasi: <span className="font-bold text-foreground">{totalCount} catatan santri</span>
+           <span className="font-bold text-foreground">{totalCount} catatan santri</span>
           </p>
         </div>
       </CardContent>

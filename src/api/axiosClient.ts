@@ -5,25 +5,51 @@ const axiosClient = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
-  timeout: 15000,
 });
 
+// Request interceptor untuk menambahkan token dari berbagai sumber
 axiosClient.interceptors.request.use(
   (config) => {
-    const savedData = localStorage.getItem("user");
+    // Coba ambil token dari localStorage dengan berbagai cara
+    let token = null;
     
-    if (savedData) {
+    // Cara 1: Dari user object
+    const userStr = localStorage.getItem("user");
+    if (userStr) {
       try {
-        const parsedData = JSON.parse(savedData);
-        const token = parsedData?.token;
-        
-        if (token) {
-          config.headers.Authorization = `Bearer ${token}`;
-        }
+        const user = JSON.parse(userStr);
+        token = user.token;
       } catch (e) {
-        console.error("Axios: Gagal parse data user", e);
+        console.error("Gagal parse user:", e);
       }
     }
+    
+    // Cara 2: Dari token langsung (jika ada)
+    if (!token) {
+      token = localStorage.getItem("token");
+    }
+    
+    // Cara 3: Dari superadmin session (untuk impersonate)
+    if (!token) {
+      const superadminStr = localStorage.getItem("superadmin_session");
+      if (superadminStr) {
+        try {
+          const superadmin = JSON.parse(superadminStr);
+          token = superadmin.token;
+        } catch (e) {
+          console.error("Gagal parse superadmin:", e);
+        }
+      }
+    }
+    
+    // Jika token ditemukan, tambahkan ke header
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+      console.log("Token added to request:", config.url);
+    } else {
+      console.warn("No token found for request:", config.url);
+    }
+    
     return config;
   },
   (error) => {
@@ -31,46 +57,44 @@ axiosClient.interceptors.request.use(
   }
 );
 
+// Response interceptor untuk handle error
 axiosClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    const { response } = error;
-    const serverMessage = response?.data?.message || "Terjadi kesalahan pada server";
-
-    // LOGIKA KHUSUS STATUS CODE
-    if (response) {
-      switch (response.status) {
-        case 401:
-          console.warn("Unauthorized: Token mungkin expired");
-          break;
+    if (error.response?.status === 401) {
+      console.error("Unauthorized access - token mungkin expired");
+      
+      // Cek apakah ini karena impersonate session
+      const superadminStr = localStorage.getItem("superadmin_session");
+      if (superadminStr) {
+        // Jika ada superadmin session, coba restore
+        try {
+          const superadmin = JSON.parse(superadminStr);
+          // Set user back to superadmin
+          localStorage.setItem("user", JSON.stringify({
+            ...superadmin,
+            isImpersonating: false
+          }));
+          // Hapus session impersonate
+          localStorage.removeItem("superadmin_session");
           
-        case 403:
-          console.error("Forbidden: Anda tidak punya akses ke fitur ini");
-          break;
-          
-        case 404:
-          console.error("Not Found: Endpoint atau data tidak ditemukan");
-          break;
-          
-        case 500:
-          console.error("Server Error: Masalah pada internal backend");
-          break;
+          // Redirect ke halaman login dengan pesan
+          window.location.href = "/login?reason=session_expired";
+        } catch (error) {
+          // Jika gagal, logout semua
+          localStorage.clear();
+          window.location.href = "/login";
+          console.error("Gagal restore session:", error);
+        }
+      } else {
+        // Tidak ada superadmin session, logout biasa
+        localStorage.removeItem("user");
+        localStorage.removeItem("token");
+        window.location.href = "/login";
       }
-    } else {
-      console.error("Network Error: Pastikan internet aktif atau server berjalan");
     }
-
-    return Promise.reject({
-      message: serverMessage,
-      status: response?.status,
-      originalError: error
-    });
+    return Promise.reject(error);
   }
 );
-
-export const displayApi = axios.create({
-  baseURL: "https://halaqahid-be.vercel.app/api/display",
-  headers: { "Content-Type": "application/json" }
-});
 
 export default axiosClient;
