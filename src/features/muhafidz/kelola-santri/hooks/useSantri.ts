@@ -2,8 +2,10 @@ import { useState, useCallback } from "react";
 import { santriService } from "../services/santriService";
 import { type Santri, type CreateSantriData, type UpdateSantriData } from "../types";
 import { getErrorMessage } from "@/utils/error";
+import { useParams } from "react-router-dom";
 
 export const useSantri = () => {
+  const { halaqahId } = useParams();
   const [santriList, setSantriList] = useState<Santri[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -13,19 +15,23 @@ export const useSantri = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const data = await santriService.getAll();
-      setSantriList(data);
-      return data;
-    } catch (err: unknown) {
-      if (err instanceof Error && err.message.includes("belum memiliki halaqah")) {
-        setSantriList([]); 
+      let data: Santri[] = []; // Inisialisasi sebagai array kosong
+      
+      if (halaqahId) {
+        data = await santriService.getByHalaqahId(Number(halaqahId));
+      } else {
+        data = await santriService.getAll();
       }
+      
+      // Pastikan data yang di-set adalah array
+      setSantriList(Array.isArray(data) ? data : []);
+    } catch (err: unknown) {
+      setSantriList([]); // Jika error, set ke array kosong
       setError(getErrorMessage(err, "Gagal memuat data santri"));
-      return []; 
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [halaqahId]);
 
   // Tambah santri baru
   const createSantri = useCallback(async (data: CreateSantriData) => {

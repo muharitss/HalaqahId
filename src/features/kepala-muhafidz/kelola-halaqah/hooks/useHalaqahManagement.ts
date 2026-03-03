@@ -1,36 +1,47 @@
-import { useState, useCallback, useEffect, useMemo } from "react";
-import { toast } from "sonner";
+import { useState, useEffect, useCallback } from "react";
 import { halaqahManagementService } from "../services/halaqahManagementService";
 import { type Halaqah } from "../types";
 import { type Santri } from "@/features/muhafidz/kelola-santri/types";
-import { getErrorMessage } from "@/utils/error";
+import { toast } from "sonner";
 
-export const useHalaqahManagement = () => {
-  // State Halaqah
+export function useHalaqahManagement() {
+  // --- STATE ---
   const [halaqahs, setHalaqahs] = useState<Halaqah[]>([]);
   const [isLoadingHalaqah, setIsLoadingHalaqah] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Selection state
   const [selectedHalaqah, setSelectedHalaqah] = useState<Halaqah | null>(null);
+  const [selectedSantri, setSelectedSantri] = useState<Santri | null>(null);
+
+  // Modal visibility state
   const [isEditHalaqahOpen, setIsEditHalaqahOpen] = useState(false);
   const [isDeleteHalaqahOpen, setIsDeleteHalaqahOpen] = useState(false);
-
-  // State Santri
-  const [santriList, setSantriList] = useState<Santri[]>([]);
-  const [selectedSantri, setSelectedSantri] = useState<Santri | null>(null);
   const [isSantriModalOpen, setIsSantriModalOpen] = useState(false);
   const [isDeleteSantriOpen, setIsDeleteSantriOpen] = useState(false);
   const [isMoveSantriOpen, setIsMoveSantriOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Load Data
+  // Derived state: Santri Map (Organized by halaqah_id)
+  const [santriMap, setSantriMap] = useState<Record<number, Santri[]>>({});
+
+  // --- DATA FETCHING ---
   const fetchData = useCallback(async () => {
     setIsLoadingHalaqah(true);
     try {
-      const halaqahData = await halaqahManagementService.getAllHalaqah();
-      setHalaqahs(halaqahData);
-      
-      const santriData = await halaqahManagementService.getAllSantri();
-      setSantriList(santriData);
-    } catch {
+      const data = await halaqahManagementService.getAllHalaqah();
+      setHalaqahs(data);
+
+      const map: Record<number, Santri[]> = {};
+      data.forEach((h) => {
+        map[h.id_halaqah] = h.santri.map((s) => ({
+          ...s,
+          halaqah_id: h.id_halaqah,
+          is_active: true, // Defaulting as SantriInHalaqah doesn't have it but Santri requires it
+        })) as Santri[];
+      });
+      setSantriMap(map);
+    } catch (error) {
+      console.error("Gagal mengambil data halaqah:", error);
       toast.error("Gagal mengambil data halaqah");
     } finally {
       setIsLoadingHalaqah(false);
@@ -41,87 +52,107 @@ export const useHalaqahManagement = () => {
     fetchData();
   }, [fetchData]);
 
-  // Optimasi: Map santri ke ID Halaqah untuk performa render
-  const santriMap = useMemo(() => {
-    return santriList.reduce((acc, s) => {
-      const key = s.halaqah_id;
-      if (!acc[key]) acc[key] = [];
-      acc[key].push(s);
-      return acc;
-    }, {} as Record<number, Santri[]>);
-  }, [santriList]);
+  // --- HANDLERS ---
 
-  // --- HANDLER ACTIONS ---
+  // 1. Halaqah Handlers
+  const handleHalaqahSuccess = useCallback(() => {
+    fetchData();
+    setIsEditHalaqahOpen(false);
+    setIsDeleteHalaqahOpen(false);
+  }, [fetchData]);
 
-  const handleOpenAddSantri = (h: Halaqah) => {
-    setSelectedHalaqah(h);
-    setSelectedSantri(null);
+  // 2. Santri Handlers
+  const handleOpenAddSantri = useCallback((halaqah: Halaqah) => {
+    setSelectedHalaqah(halaqah);
+    setSelectedSantri(null); 
     setIsSantriModalOpen(true);
-  };
+  }, []);
 
-  const handleOpenEditSantri = (s: Santri) => {
-    setSelectedSantri(s);
+  const handleOpenEditSantri = useCallback((santri: Santri) => {
+    setSelectedSantri(santri);
     setIsSantriModalOpen(true);
-  };
+  }, []);
 
-  const handleSaveSantri = async (payload: any) => {
-    const santriPayload = {
-      nama_santri: payload.nama_santri as string,
-      nomor_telepon: payload.nomor_telepon as string,
-      target: payload.target as "RINGAN" | "SEDANG" | "INTENSE",
-      halaqah_id: payload.halaqah_id
-    };
+  const handleSaveSantri = useCallback(
+    async (data: {
+      nama_santri: string | FormDataEntryValue | null;
+      nomor_telepon: string | FormDataEntryValue | null;
+      target: string;
+      halaqah_id: number | undefined;
+    }) => {
+      setIsSubmitting(true);
+      try {
+        const payload = {
+          nama_santri: String(data.nama_santri),
+          nomor_telepon: String(data.nomor_telepon),
+          target: data.target as "RINGAN" | "SEDANG" | "INTENSE",
+          halaqah_id: data.halaqah_id || selectedHalaqah?.id_halaqah || 0,
+          is_active: true
+        } as Santri;
 
-    setIsSubmitting(true);
-    try {
-      if (selectedSantri) {
-        await halaqahManagementService.updateSantri(selectedSantri.id_santri, santriPayload);
-        toast.success("Profil santri diperbarui");
-      } else {
-        await halaqahManagementService.createSantri(santriPayload);
-        toast.success("Santri baru berhasil ditambahkan");
+        if (selectedSantri?.id_santri) {
+          await halaqahManagementService.updateSantri(selectedSantri.id_santri, payload);
+          toast.success("Santri berhasil diperbarui");
+        } else {
+          await halaqahManagementService.createSantri(payload);
+          toast.success("Santri berhasil ditambahkan");
+        }
+        setIsSantriModalOpen(false);
+        fetchData();
+      } catch (error) {
+        console.error("Error saving santri:", error);
+        toast.error("Gagal menyimpan data santri");
+      } finally {
+        setIsSubmitting(false);
       }
-      setIsSantriModalOpen(false);
-      fetchData();
-    } catch (err: unknown) {
-      toast.error(getErrorMessage(err, "Gagal menyimpan data santri"));
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+    },
+    [selectedSantri, selectedHalaqah, fetchData]
+  );
 
-  const handleDeleteSantriConfirm = async () => {
-    if (!selectedSantri) return;
+  const handleDeleteSantriConfirm = useCallback(async () => {
+    if (!selectedSantri?.id_santri) return;
+    
+    setIsSubmitting(true);
     try {
       await halaqahManagementService.deleteSantri(selectedSantri.id_santri);
       toast.success("Santri berhasil dihapus");
-      fetchData();
-    } catch (err: unknown) {
-      toast.error(getErrorMessage(err, "Gagal menghapus santri"));
-    } finally {
       setIsDeleteSantriOpen(false);
-    }
-  };
-
-  const handleMoveSantriConfirm = async (santriId: number, targetHalaqahId: number) => {
-    try {
-      await halaqahManagementService.updateSantri(santriId, { halaqah_id: targetHalaqahId });
-      toast.success("Santri berhasil dipindahkan");
       fetchData();
-    } catch (err: unknown) {
-      toast.error(getErrorMessage(err, "Gagal memindahkan santri"));
-      throw err;
+    } catch (error) {
+      console.error("Error deleting santri:", error);
+      toast.error("Gagal menghapus santri");
+    } finally {
+      setIsSubmitting(false);
     }
-  };
+  }, [selectedSantri, fetchData]);
 
-  const handleHalaqahSuccess = () => {
-    fetchData();
-  };
+  const handleMoveSantriConfirm = useCallback(
+    async (santriId: number, targetHalaqahId: number) => {
+      if (!selectedSantri) return;
+
+      setIsSubmitting(true);
+      try {
+        await halaqahManagementService.updateSantri(santriId, {
+          ...selectedSantri,
+          halaqah_id: targetHalaqahId,
+        });
+        toast.success("Santri berhasil dipindahkan");
+        setIsMoveSantriOpen(false);
+        fetchData();
+      } catch (error) {
+        console.error("Error moving santri:", error);
+        toast.error("Gagal memindahkan santri");
+        throw error; // Re-throw for internal component handling
+      } finally {
+        setIsSubmitting(false);
+      }
+    },
+    [selectedSantri, fetchData]
+  );
 
   return {
     // State
     halaqahs,
-    santriList,
     santriMap,
     isLoadingHalaqah,
     selectedHalaqah,
@@ -142,7 +173,7 @@ export const useHalaqahManagement = () => {
     setIsDeleteSantriOpen,
     setIsMoveSantriOpen,
 
-    // Actions
+    // Handlers
     fetchData,
     handleOpenAddSantri,
     handleOpenEditSantri,
@@ -151,4 +182,4 @@ export const useHalaqahManagement = () => {
     handleMoveSantriConfirm,
     handleHalaqahSuccess,
   };
-};
+}

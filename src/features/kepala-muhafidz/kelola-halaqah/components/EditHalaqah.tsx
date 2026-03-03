@@ -11,18 +11,19 @@ import { faEdit } from "@fortawesome/free-solid-svg-icons";
 import type { EditHalaqahProps } from "../types";
 
 export function EditHalaqah({ halaqah, isOpen, onClose, onSuccess }: EditHalaqahProps) {
+  // Guard clause: Jangan render apapun jika data halaqah belum ada
   if (!halaqah) return null;
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+          <DialogTitle className="flex items-center gap-2 text-xl">
             <FontAwesomeIcon icon={faEdit} className="text-primary" />
             Edit Data Halaqah
           </DialogTitle>
           <DialogDescription>
-            Perbarui informasi untuk halaqah ID #{halaqah.id_halaqah}.
+            Perbarui informasi untuk halaqah: <span className="font-semibold text-foreground">{halaqah.name_halaqah}</span> (ID #{halaqah.id_halaqah})
           </DialogDescription>
         </DialogHeader>
         

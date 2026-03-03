@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { useAuth } from "@/features/auth/context/AuthContext";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTimes, faInbox } from "@fortawesome/free-solid-svg-icons";
+import { Button } from "@/components/ui/button";
 import z from "zod";
 
 // Import internal
@@ -120,18 +121,19 @@ export default function KelolaSantriPage() {
   };
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-bold">Kelola Santri</h1>
-          <p className="text-muted-foreground">Manajemen data santri dan kelompok halaqah</p>
+    <div className="space-y-6 animate-in fade-in duration-500">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b pb-8">
+        <div className="space-y-1">
+          <h1 className="text-xl md:text-2xl font-bold tracking-tight">Kelola Santri</h1>
         </div>
-        <button
-          onClick={handleAddNew}
-          className="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 transition-colors"
-        >
-          Tambah Santri
-        </button>
+        <div className="shrink-0">
+          <Button
+            onClick={handleAddNew}
+            className="px-8 font-semibold shadow-lg shadow-primary/20"
+          >
+            Tambah Santri
+          </Button>
+        </div>
       </div>
 
       {feedback && (

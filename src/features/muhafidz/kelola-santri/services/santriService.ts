@@ -63,5 +63,21 @@ export const santriService = {
     } catch (error: unknown) {
       throw new Error(getErrorMessage(error, "Gagal mencari santri"));
     }
+  },
+
+ async getByHalaqahId(idHalaqah: number): Promise<Santri[]> {
+  try {
+    const response = await axiosClient.get(`/halaqah/${idHalaqah}`);
+    const data = response.data.data;
+
+    if (data && Array.isArray(data.santri)) {
+      return data.santri;
+    }
+    
+    return []; 
+  } catch (error: unknown) {
+    console.error("Error getByHalaqahId:", error);
+    return []; 
   }
+},
 };

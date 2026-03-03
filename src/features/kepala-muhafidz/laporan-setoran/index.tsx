@@ -30,8 +30,10 @@ export default function LaporanSetoranPage() {
     <div className="space-y-6 animate-in fade-in duration-500">
       
       {/* HEADER SECTION */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-6">
-        <LaporanHeader />
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b pb-8">
+        <div className="space-y-1">
+          <LaporanHeader />
+        </div>
 
         <div className="flex flex-col sm:flex-row gap-3">
           <HalaqahSelector

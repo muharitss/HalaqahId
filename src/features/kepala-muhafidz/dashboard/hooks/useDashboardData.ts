@@ -37,7 +37,7 @@ export const useDashboardData = () => {
         ]);
 
         setSetoranData(setoran);
-        setMuhafizList(muhafiz);
+        setMuhafizList(muhafiz as Muhafiz[]);
 
         // Langsung proses data di sini
         if (setoran.length > 0) {

@@ -17,9 +17,17 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { type Halaqah } from "./types";
+import { type Santri } from "@/features/muhafidz/kelola-santri/types";
+import { faBookOpen, faCalendarCheck, faLayerGroup } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import AbsensiPage from "@/features/muhafidz/absensi";
+import SetoranPage from "@/features/muhafidz/setoran";
 
 export default function KelolaHalaqahPage() {
   const {
+    // State
     halaqahs,
     santriMap,
     isLoadingHalaqah,
@@ -31,6 +39,8 @@ export default function KelolaHalaqahPage() {
     isDeleteSantriOpen,
     isMoveSantriOpen,
     isSubmitting,
+
+    // Setters
     setSelectedHalaqah,
     setSelectedSantri,
     setIsEditHalaqahOpen,
@@ -38,6 +48,8 @@ export default function KelolaHalaqahPage() {
     setIsSantriModalOpen,
     setIsDeleteSantriOpen,
     setIsMoveSantriOpen,
+
+    // Handlers
     fetchData,
     handleOpenAddSantri,
     handleOpenEditSantri,
@@ -48,91 +60,134 @@ export default function KelolaHalaqahPage() {
   } = useHalaqahManagement();
 
   return (
-    <div className="space-y-4 md:space-y-6 max-w-7xl mx-auto">
-    
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-6 md:px-0">
-        <div>
+    <div className="space-y-6 animate-in fade-in duration-500">
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b pb-8">
+        <div className="space-y-1">
           <HalaqahManagement />
-          <p className="text-sm md:text-base text-muted-foreground">
-            Kelola kelompok bimbingan santri.
-          </p>
         </div>
-        <div className="w-full md:w-auto">
-          <BuatHalaqah onSuccess={handleHalaqahSuccess} />
+        <div className="shrink-0">
+          <BuatHalaqah onSuccess={() => handleHalaqahSuccess()} />
         </div>
       </div>
 
-      {!isLoadingHalaqah && halaqahs.length === 0 ? (
-        <EmptyState message="Belum ada halaqah yang dibuat." />
-      ) : (
-        <DaftarHalaqah
-          halaqahs={halaqahs}
-          santriMap={santriMap}
-          isLoading={isLoadingHalaqah}
-          onAddSantri={handleOpenAddSantri}
-          onEdit={(h) => { setSelectedHalaqah(h); setIsEditHalaqahOpen(true); }}
-          onDelete={(h) => { setSelectedHalaqah(h); setIsDeleteHalaqahOpen(true); }}
-          onMoveSantri={(s) => { setSelectedSantri(s); setIsMoveSantriOpen(true); }}
-          onEditSantri={handleOpenEditSantri}
-          onDeleteSantri={(s) => { setSelectedSantri(s); setIsDeleteSantriOpen(true); }}
-        />
-      )}
+      <Tabs defaultValue="daftar" className="w-full space-y-6">
+        <TabsList className="flex w-full items-center justify-start overflow-x-auto overflow-y-hidden bg-muted/50 p-1 md:grid md:grid-cols-3 md:max-w-[550px] scrollbar-hide h-auto">
+          <TabsTrigger value="daftar" className="flex items-center gap-2 shrink-0 whitespace-nowrap py-2 px-4 md:px-2">
+            <FontAwesomeIcon icon={faLayerGroup} className="h-3.5 w-3.5" />
+            <span>Daftar Halaqah</span>
+          </TabsTrigger>
+          <TabsTrigger value="absensi" className="flex items-center gap-2 shrink-0 whitespace-nowrap py-2 px-4 md:px-2">
+            <FontAwesomeIcon icon={faCalendarCheck} className="h-3.5 w-3.5" />
+            <span>Absensi Santri</span>
+          </TabsTrigger>
+          <TabsTrigger value="setoran" className="flex items-center gap-2 shrink-0 whitespace-nowrap py-2 px-4 md:px-2">
+            <FontAwesomeIcon icon={faBookOpen} className="h-3.5 w-3.5" />
+            <span>Setoran Hafalan</span>
+          </TabsTrigger>
+        </TabsList>
 
-      {/* Modals Halaqah */}
+        <TabsContent value="daftar" className="mt-0 outline-none">
+          {!isLoadingHalaqah && (halaqahs ?? []).length === 0 ? (
+            <EmptyState message="Belum ada halaqah yang dibuat." />
+          ) : (
+            <DaftarHalaqah
+              halaqahs={halaqahs ?? []}
+              santriMap={santriMap ?? {}}
+              isLoading={isLoadingHalaqah}
+              onAddSantri={(h: Halaqah) => handleOpenAddSantri(h)}
+              onEdit={(h: Halaqah) => {
+                setSelectedHalaqah(h);
+                setIsEditHalaqahOpen(true);
+              }}
+              onDelete={(h: Halaqah) => {
+                setSelectedHalaqah(h);
+                setIsDeleteHalaqahOpen(true);
+              }}
+              onMoveSantri={(s: Santri) => {
+                setSelectedSantri(s);
+                setIsMoveSantriOpen(true);
+              }}
+              onEditSantri={(s: Santri) => handleOpenEditSantri(s)}
+              onDeleteSantri={(s: Santri) => {
+                setSelectedSantri(s);
+                setIsDeleteSantriOpen(true);
+              }}
+            />
+          )}
+        </TabsContent>
+
+        <TabsContent value="absensi" className="mt-0 outline-none">
+          <AbsensiPage hideHeader />
+        </TabsContent>
+
+        <TabsContent value="setoran" className="mt-0 outline-none">
+          <SetoranPage hideHeader />
+        </TabsContent>
+      </Tabs>
+
+      {/* --- MODALS SECTION --- */}
+
+      {/* 1. Modal Edit & Delete Halaqah */}
       {selectedHalaqah && (
         <>
           <EditHalaqah
             halaqah={selectedHalaqah}
-            isOpen={isEditHalaqahOpen}
-            onClose={() => setIsEditHalaqahOpen(false)}
-            onSuccess={fetchData}
+            isOpen={isEditHalaqahOpen ?? false}
+            onClose={() => setIsEditHalaqahOpen?.(false)}
+            onSuccess={() => fetchData()}
           />
           <DeleteHalaqah
             halaqah={selectedHalaqah}
-            isOpen={isDeleteHalaqahOpen}
-            onClose={() => setIsDeleteHalaqahOpen(false)}
-            onSuccess={fetchData}
+            isOpen={isDeleteHalaqahOpen ?? false}
+            onClose={() => setIsDeleteHalaqahOpen?.(false)}
+            onSuccess={() => fetchData()}
           />
         </>
       )}
 
-      {/* Modal Santri */}
+      {/* 2. Modal Tambah/Edit Santri */}
       <SantriModal
         isOpen={isSantriModalOpen}
         onClose={() => setIsSantriModalOpen(false)}
-        selectedSantri={selectedSantri || (selectedHalaqah ? { halaqah_id: selectedHalaqah.id_halaqah } : null)}
+        selectedSantri={selectedSantri}
         onSave={handleSaveSantri}
         isAdmin={true}
         halaqahList={halaqahs}
         isSubmitting={isSubmitting}
       />
 
-      {/* Pindah Santri */}
-      <PindahSantri
-        isOpen={isMoveSantriOpen}
-        onClose={() => setIsMoveSantriOpen(false)}
-        santri={selectedSantri}
-        halaqahs={halaqahs}
-        onConfirm={handleMoveSantriConfirm}
-      />
+      {/* 3. Modal Pindah Santri */}
+      {selectedSantri && (
+        <PindahSantri
+          isOpen={isMoveSantriOpen}
+          onClose={() => setIsMoveSantriOpen(false)}
+          santri={selectedSantri} 
+          halaqahs={halaqahs}
+          onConfirm={handleMoveSantriConfirm}
+        />
+      )}
 
-      {/* Delete Santri Alert */}
-      <AlertDialog open={isDeleteSantriOpen} onOpenChange={setIsDeleteSantriOpen}>
+      {/* 4. Alert Dialog Delete Santri */}
+      <AlertDialog 
+        open={isDeleteSantriOpen ?? false} 
+        onOpenChange={(open) => setIsDeleteSantriOpen(open)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Hapus Santri?</AlertDialogTitle>
             <AlertDialogDescription>
               Apakah Anda yakin ingin menghapus <strong>{selectedSantri?.nama_santri}</strong>? 
-              Tindakan ini akan memindahkan data ke tempat sampah.
+              Data ini akan dipindahkan ke tempat sampah dan dapat dipulihkan nanti.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Batal</AlertDialogCancel>
             <AlertDialogAction 
-              onClick={handleDeleteSantriConfirm} 
-              className="bg-destructive hover:bg-destructive/90"
+              onClick={() => handleDeleteSantriConfirm()} 
+              className="bg-destructive hover:bg-destructive/90 text-white"
             >
-              Hapus Santri
+              Ya, Hapus Santri
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

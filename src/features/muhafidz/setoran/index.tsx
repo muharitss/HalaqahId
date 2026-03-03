@@ -6,7 +6,7 @@ import { useSetoran } from "./hooks/useSetoran";
 import { SetoranForm } from "./components/SetoranForm";
 import { Setoran } from "@/components/typed-text";
 
-export default function InputSetoranPage() {
+export default function InputSetoranPage({ hideHeader = false }: { hideHeader?: boolean }) {
   const { santriList, loading, fetchSantri, addSetoran } = useSetoran();
 
   useEffect(() => {
@@ -14,11 +14,14 @@ export default function InputSetoranPage() {
   }, [fetchSantri]);
 
   return (
-    <div className="container mx-auto py-6 space-y-8">
-      <div className="space-y-2">
-        <Setoran/>
-        <p className="text-muted-foreground">Kelola input harian dan pantau progress santri.</p>
-      </div>
+    <div className="space-y-6 animate-in fade-in duration-500">
+      {!hideHeader && (
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b pb-8">
+          <div className="space-y-1">
+            <Setoran/>
+          </div>
+        </div>
+      )}
 
       <div className="grid gap-6 md:grid-cols-1">
         <Card>

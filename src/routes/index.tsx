@@ -15,6 +15,10 @@ import SantriDetail from "@/features/display/pages/SantriDetail";
 import { TahfidzAi } from "@/components/features/tahfidz-ai/TahfidzAi";
 import KelolaMuhafizPage from "@/features/kepala-muhafidz/kelola-muhafiz";
 import KelolaHalaqahPage from "@/features/kepala-muhafidz/kelola-halaqah";
+import AbsensiPage from "@/features/muhafidz/absensi";
+import SetoranPage from "@/features/muhafidz/setoran";
+import ProgresSantriPage from "@/features/muhafidz/progres-santri";
+
 
 const ProtectedRoute = ({ allowedRoles }: { allowedRoles?: ("superadmin" | "muhafiz")[] }) => {
   const { user, isLoading } = useAuth();
@@ -105,8 +109,14 @@ export const AppRouter = () => {
 
             {/* Tambahkan route superadmin lainnya di sini */}
             <Route path="/kepala-muhafidz/laporan" element={<LaporanSetoranPage />} />
+            <Route path="/kepala-muhafidz/absensi" element={<AbsensiPage />} />
+            <Route path="/kepala-muhafidz/setoran" element={<SetoranPage />} />
             <Route path="/kepala-muhafidz/tahfidzai" element={<TahfidzAi />} />
-
+            <Route path="/kepala-muhafidz/kontrol-halaqah/:halaqahId">
+              <Route path="absensi" element={<AbsensiPage />} />
+              <Route path="setoran" element={<SetoranPage />} />
+              <Route path="progres" element={<ProgresSantriPage />} />
+            </Route>
           </Route>
 
           {/* Rute Khusus Muhafidz */}

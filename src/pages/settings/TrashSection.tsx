@@ -23,7 +23,7 @@ export default function TrashSection() {
         akunService.getDeletedMuhafiz()
       ]);
       setDeletedHalaqah(resHalaqah.data);
-      setDeletedMuhafiz(resMuhafiz.data);
+      setDeletedMuhafiz(resMuhafiz);
     } catch {
 
 
@@ -68,15 +68,14 @@ export default function TrashSection() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-in fade-in duration-500">
       {/* Header */}
-      <div className="flex">
-        <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="rounded-full">
+      <div className="flex items-center gap-6 border-b pb-8">
+        <Button variant="outline" size="icon" onClick={() => navigate(-1)} className="rounded-full h-10 w-10 shrink-0">
           <ChevronLeft className="h-5 w-5" />
         </Button>
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Tempat Sampah</h1>
-          <p className="text-sm text-muted-foreground">Pulihkan data yang telah dihapus sebelumnya</p>
+        <div className="space-y-1">
+          <h1 className="text-xl md:text-2xl font-bold tracking-tight">Tempat Sampah</h1>
         </div>
       </div>
 

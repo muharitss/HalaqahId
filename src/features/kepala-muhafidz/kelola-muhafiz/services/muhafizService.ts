@@ -8,6 +8,14 @@ export interface ApiResponse<T> {
   data: T;
 }
 
+export interface AbsensiAsatidzPayload {
+  user_id: number;
+  status: "HADIR" | "IZIN" | "SAKIT" | "ALFA";
+  tanggal: string;
+}
+
+export type {Muhafiz}
+
 export const muhafizService = {
   // Get all muhafiz
   getAllMuhafiz: async (): Promise<Muhafiz[]> => {
@@ -77,6 +85,15 @@ export const muhafizService = {
     }
   },
 
+  updateAbsensiAsatidz: async (id: number, payload: { status: string; keterangan?: string }) => {
+    try {
+      const res = await axiosClient.patch(`/absensi/asatidz/${id}`, payload);
+      return res.data;
+    } catch (error: unknown) {
+      throw new Error(getErrorMessage(error, "Gagal memperbarui absensi muhafiz"));
+    }
+  },
+
   // Update muhafiz
   updateMuhafiz: async (userId: number, data: { username?: string; email?: string }) => {
     try {
@@ -139,5 +156,44 @@ export const muhafizService = {
       console.error("Gagal mengecek status aktif muhafiz", error);
       return new Set();
     }
-  }
+  },
+
+  catatAbsensiAsatidz: async (payload: { user_id: number; status: string; tanggal: string }) => {
+    try {
+      const res = await axiosClient.post("/absensi/asatidz", payload);
+      return res.data;
+    } catch (error: unknown) {
+      throw new Error(getErrorMessage(error, "Gagal mencatat absensi muhafiz"));
+    }
+  },
+
+  getDailyAsatidz: async (dateString: string) => {
+    try {
+      const date = new Date(dateString);
+      const month = date.getMonth() + 1;
+      const year = date.getFullYear();
+
+      const res = await axiosClient.get(`/absensi/asatidz/rekap?month=${month}&year=${year}`);
+      
+      if (res.data.success) {
+      const dayData = res.data.data.find((item: any) => item.tanggal === dateString);
+      return {
+        ...res.data,
+        data: dayData ? dayData.data : [] // Return data asatidz di tanggal itu saja
+      };
+    }
+    return res.data;
+    } catch (error) {
+      throw new Error(getErrorMessage(error, "Gagal mengambil data absensi harian muhafiz"));
+    }
+  },
+
+  getMonthlyAsatidz: async (month: number, year: number) => {
+    try {
+      const res = await axiosClient.get(`/absensi/asatidz/rekap?month=${month}&year=${year}`);
+      return res.data;
+    } catch (error) {
+      throw new Error(getErrorMessage(error, "Gagal mengambil rekap bulanan"));
+    }
+  },
 };

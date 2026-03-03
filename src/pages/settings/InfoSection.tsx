@@ -13,15 +13,14 @@ export default function InfoSection() {
   const navigate = useNavigate();
 
   return (
-    <div className="px-2">
-      {/* Header Minimalis */}
-      <div className="flex items-center gap-4 py-6">
-        <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="rounded-full">
+    <div className="space-y-6 animate-in fade-in duration-500">
+      {/* Header */}
+      <div className="flex items-center gap-6 border-b pb-8">
+        <Button variant="outline" size="icon" onClick={() => navigate(-1)} className="rounded-full h-10 w-10 shrink-0">
           <ChevronLeft className="h-5 w-5" />
         </Button>
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Informasi & SOP</h1>
-          <p className="text-sm text-muted-foreground">Detail tugas, alur kerja, dan reward program</p>
+        <div className="space-y-1">
+          <h1 className="text-xl md:text-2xl font-bold tracking-tight">Informasi & SOP</h1>
         </div>
       </div>
 

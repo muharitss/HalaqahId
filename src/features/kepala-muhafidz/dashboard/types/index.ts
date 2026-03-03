@@ -34,6 +34,8 @@ export interface DashboardStats {
 export type ViewType = "pekan" | "bulan";
 
 export type Muhafiz = {
+  id_user: number;
+  username: string;
   id_muhafiz: string;
   nama_lengkap: string;
   email: string;

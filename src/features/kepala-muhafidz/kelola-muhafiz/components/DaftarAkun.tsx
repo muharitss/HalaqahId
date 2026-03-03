@@ -30,6 +30,9 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import type { MuhafizTableProps } from "../types";
 
+// Tambahkan tipe status absensi sesuai API kamu
+type AbsensiStatus = "HADIR" | "IZIN" | "SAKIT" | "ALFA";
+
 export function DaftarAkun({ 
   muhafizList, 
   isLoading, 
@@ -37,8 +40,10 @@ export function DaftarAkun({
   onDeleteClick, 
   onImpersonateClick,
   onCreateClick,
-  activeMuhafizIds = new Set()
-}: MuhafizTableProps & { activeMuhafizIds?: Set<number> }) {
+}: MuhafizTableProps & { 
+  activeMuhafizIds?: Set<number>;
+  onAbsenMuhafiz: (userId: number, status: AbsensiStatus) => void;
+}) {
   
   if (isLoading) {
     return (
@@ -67,13 +72,13 @@ export function DaftarAkun({
 
   if (muhafizList.length === 0) {
     return (
-      <div className="flex min-h-400px flex-col items-center justify-center rounded-xl border border-dashed p-8 text-center animate-in fade-in duration-500">
+      <div className="flex min-h-[400px] flex-col items-center justify-center rounded-xl border border-dashed p-8 text-center animate-in fade-in duration-500">
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-muted">
           <FontAwesomeIcon icon={faUserTie} className="h-8 w-8 text-muted-foreground" />
         </div>
-        <h3 className="mt-4 text-lg font-semibold tracking-tight">Belum ada muhafidz</h3>
-        <p className="mb-6 mt-2 text-sm text-muted-foreground max-w-xs mx-auto">
-          Daftar pengampu halaqah akan muncul di sini setelah Anda menambahkannya.
+        <h2 className="mt-4 text-xl font-bold tracking-tight">Belum ada muhafidz</h2>
+        <p className="mb-6 mt-2 text-sm md:text-base text-muted-foreground max-w-sm mx-auto">
+          Daftar pengampu halaqah akan muncul di sini setelah Anda menambahkannya melalui tombol di atas atau tombol di bawah ini.
         </p>
         <Button onClick={onCreateClick}>
           <FontAwesomeIcon icon={faPlus} className="mr-2 h-4 w-4" />
@@ -88,38 +93,40 @@ export function DaftarAkun({
       <Table>
         <TableHeader>
           <TableRow className="bg-muted/30 hover:bg-muted/30">
-            <TableHead className="font-bold text-sm md:text-base py-4">Informasi Muhafidz</TableHead>
-            <TableHead className="text-right font-bold py-4 pr-10">Halaqah</TableHead>
-            <TableHead className="text-right font-bold py-4 pr-4">Aksi</TableHead>
+            <TableHead className="font-bold text-xs md:text-sm py-4">Informasi Muhafidz</TableHead>
+            <TableHead className="text-right font-bold text-xs md:text-sm py-4 pr-10">Halaqah</TableHead>
+            <TableHead className="text-right font-bold text-xs md:text-sm py-4 pr-4">Aksi</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {muhafizList.map((muhafiz) => {
-            const isAktif = activeMuhafizIds.has(muhafiz.id_user);
-            
+          {muhafizList.map((muhafiz) => {            
             return (
               <TableRow key={muhafiz.id_user} className="hover:bg-muted/10 transition-colors group">
-                <TableCell className="py-4">
-                  <div className="flex flex-col gap-0.5">
-                    <span className="font-bold text-base md:text-lg tracking-tight leading-tight">
+                <TableCell className="py-5">
+                  <div className="flex flex-col gap-1">
+                    <span className="font-bold text-sm md:text-base tracking-tight leading-none">
                       {muhafiz.username}
                     </span>
-                    <div className="flex items-center gap-1.5 text-xs md:text-sm text-muted-foreground mt-1">
-                      <FontAwesomeIcon icon={faEnvelope} className="text-[10px]" />
+                    <div className="flex items-center gap-1.5 text-xs md:text-sm text-muted-foreground">
+                      <FontAwesomeIcon icon={faEnvelope} className="text-[10px] opacity-70" />
                       <span>{muhafiz.email}</span>
                     </div>
                   </div>
                 </TableCell>
-                <TableCell className="text-right flex justify-end items-center py-7">
-                  {isAktif ? (
-                    <div className="text-right pr-12 text-primary text-sm">
-                      ● Aktif
-                    </div>
-                  ) : (
-                    <div className="text-right pr-6 font-medium text-red-500 text-sm">
-                      ● Nonaktif
-                    </div>
-                  )}
+                <TableCell className="text-right py-5">
+                  <div className="flex flex-col items-end pr-4">
+                    {muhafiz.halaqah ? (
+                      <div className="text-primary text-xs md:text-sm font-bold flex items-center gap-1.5">
+                        <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                        {muhafiz.halaqah.name_halaqah}
+                      </div>
+                    ) : (
+                      <div className="text-destructive text-xs md:text-sm font-semibold flex items-center gap-1.5">
+                        <span className="h-1.5 w-1.5 rounded-full bg-destructive" />
+                        Belum Ada
+                      </div>
+                    )}
+                  </div>
                 </TableCell>
                 <TableCell className="text-right pr-4">
                   <DropdownMenu>
@@ -128,7 +135,9 @@ export function DaftarAkun({
                         <FontAwesomeIcon icon={faEllipsisH} className="h-3.5 w-3.5" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-52 p-2">
+                    <DropdownMenuContent align="end" className="w-56 p-2">
+
+                      {/* --- SECTION KELOLA AKUN --- */}
                       <DropdownMenuLabel className="text-[10px] uppercase text-muted-foreground font-bold tracking-wider px-2 py-1.5">
                         Kelola Akun
                       </DropdownMenuLabel>

@@ -18,6 +18,11 @@ export const InputAbsensi = ({
   alreadySubmittedIds, 
   onStatusChange 
 }: Props) => {
+  
+  if (!Array.isArray(santriList)) {
+    return <div className="p-4 text-center text-sm text-muted-foreground">Data santri tidak valid.</div>;
+  }
+
   return (
     <Table>
       <TableHeader className="bg-muted/50">

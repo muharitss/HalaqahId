@@ -1,5 +1,6 @@
+
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faUsers, faUserTie } from "@fortawesome/free-solid-svg-icons";
+import { faUsers, faUserTie } from "@fortawesome/free-solid-svg-icons"; // Import icon tambahan
 import { faWhatsapp } from "@fortawesome/free-brands-svg-icons";
 import { MoreVertical, Edit2, Trash2, ArrowRightLeft, UserPlus } from "lucide-react"; 
 import { 
@@ -27,13 +28,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
-import { library } from '@fortawesome/fontawesome-svg-core'
-import { fas } from '@fortawesome/free-solid-svg-icons'
-import { far } from '@fortawesome/free-regular-svg-icons'
-import { fab } from '@fortawesome/free-brands-svg-icons'
 import type { DaftarHalaqahProps } from "../types";
-
-library.add(fas, far, fab);
 
 export function DaftarHalaqah({ 
   halaqahs, 
@@ -46,10 +41,11 @@ export function DaftarHalaqah({
   santriMap,
   onAddSantri
 }: DaftarHalaqahProps) {
+  
+
 
   const formatWhatsApp = (phone: string | null | undefined) => {
     if (!phone) return "#"; 
-
     let cleaned = phone.replace(/\D/g, "");
     if (cleaned.startsWith("0")) {
       cleaned = "62" + cleaned.substring(1);
@@ -105,10 +101,10 @@ export function DaftarHalaqah({
                       <MoreVertical className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-40">
+                  <DropdownMenuContent align="end" className="w-48">
                     <DropdownMenuLabel>Aksi Halaqah</DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => onAddSantri(h)} className="cursor-pointer text-primary focus:text-primary font-medium">
+                    <DropdownMenuItem onClick={() => onAddSantri(h)} className="cursor-pointer">
                       <UserPlus className="mr-2 h-4 w-4" /> 
                       <span>Tambah Santri</span>
                     </DropdownMenuItem>
@@ -123,6 +119,10 @@ export function DaftarHalaqah({
                       <Trash2 className="mr-2 h-4 w-4" />
                       <span>Hapus Halaqah</span>
                     </DropdownMenuItem>
+
+
+
+
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>

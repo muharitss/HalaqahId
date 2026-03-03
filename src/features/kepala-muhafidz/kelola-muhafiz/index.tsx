@@ -1,12 +1,25 @@
 import { useAuth } from "@/features/auth/context/AuthContext";
 import { CardContent } from "@/components/ui/card";
 import { MuhafizManagement } from "@/components/typed-text";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faUsers, faCalendarCheck, faClipboardList } from "@fortawesome/free-solid-svg-icons";
+import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { Skeleton } from "@/components/ui/skeleton";
+import { format } from "date-fns";
+import { id } from "date-fns/locale";
+import { CalendarIcon } from "lucide-react";
 
+// Hooks & Components
 import { useMuhafiz } from "./hooks/useMuhafiz";
 import { BuatAkun } from "./components/BuatAkun";
 import { DaftarAkun } from "./components/DaftarAkun";
 import { EditAkun } from "./components/EditAkun";
 import { DeleteAkun } from "./components/DeleteAkun";
+import { RekapAbsensiAsatidz } from "./components/RekapAbsensiAsatidz";
+import { InputAbsensiAsatidz } from "./components/InputAbsensiAsatidz";
 import { AccessDenied } from "./components/AccessDenied";
 
 export default function KelolaMuhafizPage() {
@@ -19,60 +32,142 @@ export default function KelolaMuhafizPage() {
     deletingMuhafiz,
     isEditOpen,
     isDeleteOpen,
-    handleCreateSuccess,
-    handleEditSuccess,
-    handleDeleteSuccess,
-    handleImpersonate,
     openEditModal,
     openDeleteModal,
     closeEditModal,
     closeDeleteModal,
+    handleCreateSuccess,
+    handleEditSuccess,
+    handleDeleteSuccess,
+    handleImpersonate,
+
+    // Absensi States & Actions
+    selectedDate,
+    setSelectedDate,
+    attendanceMap,
+    submittedAttendance,
+    handleStatusChange,
+    handleSaveAllAbsensi,
+    isSubmitting,
+    handleAbsenMuhafiz,
   } = useMuhafiz();
 
-  if (user?.role !== "superadmin") {
-    return <AccessDenied />;
-  }
+  if (user?.role !== "superadmin") return <AccessDenied />;
 
   return (
-    <div className="space-y-4 md:space-y-6 max-w-7xl mx-auto">
+    <div className="space-y-6 animate-in fade-in duration-500">
       
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-6 md:px-0">
-        <div>
-          <MuhafizManagement/>
-          <p className="text-sm md:text-base text-muted-foreground">
-            Manajemen hak akses dan profil pengampu halaqah
-          </p>
+      {/* HEADER */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b pb-8">
+        <div className="space-y-1">
+          <MuhafizManagement />
         </div>
-        <div className="w-full md:w-auto">
+        <div className="shrink-0">
           <BuatAkun onSuccess={handleCreateSuccess} />
         </div>
       </div>
 
-      <CardContent className="p-0">
-        <DaftarAkun
-          muhafizList={muhafizList}
-          activeMuhafizIds={activeMuhafizIds}
-          isLoading={isLoading}
-          onEditClick={openEditModal}
-          onDeleteClick={openDeleteModal}
-          onImpersonateClick={handleImpersonate}
-          onCreateClick={handleCreateSuccess}
-        />
-      </CardContent>
+      <Tabs defaultValue="daftar" className="w-full space-y-6">
+        <TabsList className="flex w-full items-center justify-start overflow-x-auto overflow-y-hidden bg-muted/50 p-1 md:grid md:grid-cols-3 md:max-w-[550px] scrollbar-hide h-auto">
+          <TabsTrigger value="daftar" className="flex items-center gap-2 shrink-0 whitespace-nowrap py-2 px-4 md:px-2">
+            <FontAwesomeIcon icon={faUsers} className="h-3.5 w-3.5" />
+            <span>Daftar Akun</span>
+          </TabsTrigger>
+          <TabsTrigger value="input" className="flex items-center gap-2 shrink-0 whitespace-nowrap py-2 px-4 md:px-2">
+            <FontAwesomeIcon icon={faClipboardList} className="h-3.5 w-3.5" />
+            <span>Input Absensi</span>
+          </TabsTrigger>
+          <TabsTrigger value="monitoring" className="flex items-center gap-2 shrink-0 whitespace-nowrap py-2 px-4 md:px-2">
+            <FontAwesomeIcon icon={faCalendarCheck} className="h-3.5 w-3.5" />
+            <span>Monitoring</span>
+          </TabsTrigger>
+        </TabsList>
 
-      <EditAkun
-        muhafiz={editingMuhafiz}
-        isOpen={isEditOpen}
-        onClose={closeEditModal}
-        onSuccess={handleEditSuccess}
-      />
+        {/* TAB 1: DAFTAR AKUN */}
+        <TabsContent value="daftar" className="mt-0 outline-none">
+          <CardContent className="p-0 border rounded-xl overflow-hidden bg-white shadow-sm">
+            <DaftarAkun
+              muhafizList={muhafizList}
+              activeMuhafizIds={activeMuhafizIds}
+              isLoading={isLoading}
+              onEditClick={openEditModal}
+              onDeleteClick={openDeleteModal}
+              onImpersonateClick={handleImpersonate}
+              onAbsenMuhafiz={handleAbsenMuhafiz} 
+              onCreateClick={handleCreateSuccess}
+            />
+          </CardContent>
+        </TabsContent>
 
-      <DeleteAkun
-        muhafiz={deletingMuhafiz}
-        isOpen={isDeleteOpen}
-        onClose={closeDeleteModal}
-        onSuccess={handleDeleteSuccess}
-      />
+        {/* TAB 2: INPUT ABSENSI (100% IDENTIK LAYOUTNYA) */}
+        <TabsContent value="input" className="space-y-6 mt-0">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="w-full md:w-60 justify-start text-left font-normal border-primary/20 hover:border-primary">
+                  <CalendarIcon className="mr-2 h-4 w-4 text-primary" />
+                  {format(new Date(selectedDate), "dd MMMM yyyy", { locale: id })}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="end">
+                <Calendar
+                  mode="single"
+                  selected={new Date(selectedDate)}
+                  onSelect={(date) => {
+                    if (date) {
+                      const year = date.getFullYear();
+                      const month = String(date.getMonth() + 1).padStart(2, '0');
+                      const day = String(date.getDate()).padStart(2, '0');
+                      setSelectedDate(`${year}-${month}-${day}`);
+                    }
+                  }}
+                  disabled={(date) => date > new Date()}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          <div className="min-h-75">
+            {isLoading ? (
+              <div className="space-y-4">
+                <Skeleton className="h-12 w-full" />
+                <Skeleton className="h-12 w-full" />
+                <Skeleton className="h-12 w-full" />
+              </div>
+            ) : (
+              <InputAbsensiAsatidz
+                muhafizList={muhafizList}
+                attendanceMap={attendanceMap}
+                submittedAttendance={submittedAttendance} 
+                onStatusChange={handleStatusChange}
+              />
+            )}
+          </div>
+
+          <div className="flex items-center justify-between border-t pt-6">
+            <p className="text-sm text-muted-foreground italic">
+              * Pastikan semua data benar. Klik status kembali untuk mengubah absensi yang sudah tercatat.
+            </p>
+            <Button 
+              onClick={handleSaveAllAbsensi} 
+              disabled={isSubmitting || isLoading || muhafizList.length === 0}
+              className="px-10 h-11"
+            >
+              {isSubmitting ? "Menyimpan..." : "Simpan / Update Absensi"}
+            </Button>
+          </div>
+        </TabsContent>
+
+        {/* TAB 3: REKAP */}
+        <TabsContent value="monitoring" className="space-y-6 mt-0">
+          <RekapAbsensiAsatidz muhafizList={muhafizList} />
+        </TabsContent>
+      </Tabs>
+
+      {/* MODALS */}
+      <EditAkun muhafiz={editingMuhafiz} isOpen={isEditOpen} onClose={closeEditModal} onSuccess={handleEditSuccess} />
+      <DeleteAkun muhafiz={deletingMuhafiz} isOpen={isDeleteOpen} onClose={closeDeleteModal} onSuccess={handleDeleteSuccess} />
     </div>
   );
 }

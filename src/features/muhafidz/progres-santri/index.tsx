@@ -39,9 +39,10 @@ export default function ProgresSantriPage() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      <div className="flex flex-col text-left">
-        <Progres/>
-        <p className="text-muted-foreground text-sm">Klik nama santri untuk melihat riwayat setoran</p>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b pb-8">
+        <div className="space-y-1">
+          <Progres/>
+        </div>
       </div>
 
       <div className="flex flex-col md:flex-row gap-4 bg-card p-4 rounded-xl border">

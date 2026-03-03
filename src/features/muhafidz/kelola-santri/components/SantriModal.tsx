@@ -70,6 +70,8 @@ export function SantriModal({
     onSave(payload);
   };
 
+  const isAutoHalaqah = !selectedSantri?.id_santri && selectedSantri?.halaqah_id;
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-106.25">
@@ -119,22 +121,23 @@ export function SantriModal({
               </Select>
             </div>
 
-            {isAdmin && (
+            {isAdmin && !isAutoHalaqah && (
               <div className="grid gap-2">
                 <Label htmlFor="halaqah_id">Pilih Halaqah</Label>
                 <Select value={halaqahId} onValueChange={setHalaqahId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Pilih halaqah" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {halaqahList.map((h) => (
-                      <SelectItem key={h.id_halaqah} value={h.id_halaqah.toString()}>
-                        {h.name_halaqah}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
+                  {/* ... Select Content ... */}
                 </Select>
               </div>
+            )}
+
+            {/* Jika auto-halaqah, tampilkan info saja (Opsional) */}
+            {isAutoHalaqah && (
+               <div className="bg-muted/50 p-3 rounded-md border border-dashed">
+                 <p className="text-[10px] uppercase text-muted-foreground font-bold">Halaqah Tujuan</p>
+                 <p className="text-sm font-semibold">
+                   {halaqahList.find(h => h.id_halaqah.toString() === halaqahId)?.name_halaqah}
+                 </p>
+               </div>
             )}
           </div>
 

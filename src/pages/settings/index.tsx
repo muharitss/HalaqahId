@@ -22,14 +22,13 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-2xl mx-auto">
-      <div className="flex items-center gap-4 mb-8">
-        <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="rounded-full">
+    <div className="space-y-6 max-w-3xl mx-auto animate-in fade-in duration-500">
+      <div className="flex items-center gap-6 border-b pb-8">
+        <Button variant="outline" size="icon" onClick={() => navigate(-1)} className="rounded-full h-10 w-10 shrink-0">
           <ChevronLeft className="h-5 w-5" />
         </Button>
-        <div>
+        <div className="space-y-1">
           <Settings/>
-          <p className="text-sm text-muted-foreground">Detail akun dan konfigurasi sistem</p>
         </div>
       </div>
 
