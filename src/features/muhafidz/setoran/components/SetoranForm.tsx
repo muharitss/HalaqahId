@@ -47,10 +47,9 @@ const setoranSchema = z.object({
 interface SetoranFormProps {
   santriList: Santri[];
   onSubmit: (data: SetoranPayload) => Promise<{ success: boolean }>;
-  loading: boolean;
 }
 
-export function SetoranForm({ santriList, onSubmit, loading }: SetoranFormProps) {
+export function SetoranForm({ santriList, onSubmit }: SetoranFormProps) {
   const [open, setOpen] = useState(false);
 
   const form = useForm<SetoranFormValues>({
@@ -99,7 +98,7 @@ export function SetoranForm({ santriList, onSubmit, loading }: SetoranFormProps)
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onFormSubmit)} className="space-y-4">
+      <form id="setoran-form" onSubmit={form.handleSubmit(onFormSubmit)} className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
             control={form.control}
@@ -303,10 +302,6 @@ export function SetoranForm({ santriList, onSubmit, loading }: SetoranFormProps)
             </FormItem>
           )}
         />
-
-        <Button type="submit" disabled={loading} className="w-full bg-[#65a30d] hover:bg-[#4d7c0f] text-white font-bold py-6">
-          {loading ? "Menyimpan..." : "Simpan Setoran"}
-        </Button>
       </form>
     </Form>
   );

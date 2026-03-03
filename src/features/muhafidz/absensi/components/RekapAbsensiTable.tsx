@@ -31,19 +31,48 @@ export const RekapAbsensiTable = ({ halaqahId, externalSantriList }: RekapAbsens
   }), [viewDate]);
 
   const fetchMonthlyRekap = useCallback(async () => {
-    const targetHalaqahId = halaqahId || (currentSantriList.length > 0 ? currentSantriList[0].halaqah_id : null);
+    const targetHalaqahIds = halaqahId 
+      ? [halaqahId] 
+      : Array.from(new Set(currentSantriList.map(s => s.halaqah_id).filter(id => !!id)));
     
-    if (!targetHalaqahId) return;
+    if (targetHalaqahIds.length === 0) {
+      setMonthlyData([]);
+      return;
+    }
     
     setIsLoadingData(true);
     try {
       const m = (viewDate.getMonth() + 1).toString();
       const y = viewDate.getFullYear().toString();
 
-      const response = await absensiService.getRekapHalaqah(targetHalaqahId, undefined, m, y);
+      const promises = targetHalaqahIds.map(hid => 
+        absensiService.getRekapHalaqah(hid, undefined, m, y)
+      );
       
-      // Type casting aman karena kita tahu jika mengirim m & y, backend kirim MonthlyAbsensiData[]
-      setMonthlyData(response.data as MonthlyAbsensiData[] || []);
+      const results = await Promise.all(promises);
+      const dateMap = new Map<string, MonthlyAbsensiData>();
+
+      results.forEach(response => {
+        const data = response.data as MonthlyAbsensiData[] || [];
+        data.forEach(day => {
+          if (!dateMap.has(day.tanggal)) {
+            dateMap.set(day.tanggal, { 
+              tanggal: day.tanggal, 
+              data: [...day.data] 
+            });
+          } else {
+            const existing = dateMap.get(day.tanggal)!;
+            // Tambahkan data santri yang belum ada ke tanggal tersebut
+            day.data.forEach(newItem => {
+              if (!existing.data.some(e => Number(e.santri_id) === Number(newItem.santri_id))) {
+                existing.data.push(newItem);
+              }
+            });
+          }
+        });
+      });
+
+      setMonthlyData(Array.from(dateMap.values()));
     } catch (error) {
       console.error("Gagal memuat rekap bulanan:", error);
       setMonthlyData([]);
@@ -61,13 +90,10 @@ export const RekapAbsensiTable = ({ halaqahId, externalSantriList }: RekapAbsens
   }, [fetchMonthlyRekap, halaqahId]);
 
   const getStatusForCell = (santriId: number, dateStr: string) => {
-    const dayData = monthlyData.find((m) => {
-      return m.tanggal === dateStr;
-    });
-    
+    const dayData = monthlyData.find((m) => m.tanggal === dateStr);
     if (!dayData) return null;
     
-    const found = dayData.data.find((item) => item.santri_id === santriId);
+    const found = dayData.data.find((item) => Number(item.santri_id) === Number(santriId));
     return found?.status;
   };
 
@@ -75,7 +101,7 @@ export const RekapAbsensiTable = ({ halaqahId, externalSantriList }: RekapAbsens
     const totals = { HADIR: 0, IZIN: 0, SAKIT: 0, TERLAMBAT: 0, ALFA: 0 };
     
     monthlyData.forEach(day => {
-      const found = day.data.find(item => item.santri_id === santriId);
+      const found = day.data.find(item => Number(item.santri_id) === Number(santriId));
       const status = found?.status as keyof typeof totals | undefined;
       
       if (status && status in totals) {

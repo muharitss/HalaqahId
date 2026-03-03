@@ -31,7 +31,7 @@ export default function AbsensiPage({ hideHeader = false }: { hideHeader?: boole
   
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [attendanceMap, setAttendanceMap] = useState<Record<number, AbsensiStatus>>({});
-  const [alreadySubmittedIds, setAlreadySubmittedIds] = useState<number[]>([]);
+  const [submittedAttendance, setSubmittedAttendance] = useState<Record<number, AbsensiStatus>>({});
   const [isLoadingSync, setIsLoadingSync] = useState(false);
   
 
@@ -40,32 +40,40 @@ export default function AbsensiPage({ hideHeader = false }: { hideHeader?: boole
    * untuk tanggal yang dipilih
    */
   const syncAttendanceData = useCallback(async () => {
-    // Logic penentuan ID: Ambil dari URL (Kepala Muhafidz) atau fallback ke santri pertama (Muhafidz)
+    // Logic penentuan ID: Ambil dari URL (Kepala Muhafidz)
     const idFromUrl = paramHalaqahId ? Number(paramHalaqahId) : NaN;
-    const idFromList = (santriList && santriList.length > 0) ? santriList[0].halaqah_id : NaN;
     
-    const activeHalaqahId = !isNaN(idFromUrl) ? idFromUrl : idFromList;
+    // Jika tidak ada ID di URL, kumpulkan semua halaqah_id unik dari santriList
+    const uniqueHalaqahIds = !isNaN(idFromUrl) 
+      ? [idFromUrl] 
+      : Array.from(new Set(santriList.map(s => s.halaqah_id).filter(id => !!id)));
 
     // Guard Clause: Jangan tembak API jika ID belum tersedia
-    if (!activeHalaqahId || isNaN(activeHalaqahId)) return; 
+    if (uniqueHalaqahIds.length === 0) return; 
 
     setIsLoadingSync(true);
     try {
       const tglStr = format(selectedDate, "yyyy-MM-dd");
-      const response = await absensiService.getRekapHalaqah(activeHalaqahId, tglStr);
       
-      const records = response.data as AbsensiRecord[] || [];
+      // Ambil data untuk setiap halaqah ID yang ditemukan
+      const fetchPromises = uniqueHalaqahIds.map(hid => 
+        absensiService.getRekapHalaqah(hid, tglStr)
+      );
+      
+      const results = await Promise.all(fetchPromises);
+      
       const newMap: Record<number, AbsensiStatus> = {};
-      const submittedIds: number[] = [];
 
-      // Mapping data dari backend ke state UI
-      records.forEach((rec) => {
-        newMap[rec.santri_id] = rec.status;
-        submittedIds.push(rec.santri_id);
+      // Gabungkan hasil dari semua halaqah
+      results.forEach(response => {
+        const records = response.data as AbsensiRecord[] || [];
+        records.forEach((rec) => {
+          newMap[rec.santri_id] = rec.status;
+        });
       });
 
-      setAttendanceMap(newMap);
-      setAlreadySubmittedIds(submittedIds);
+      setSubmittedAttendance(newMap);
+      setAttendanceMap({}); 
     } catch (error) {
       console.error("Gagal sinkronisasi absensi:", error);
       toast.error("Gagal mengambil data absensi yang sudah tersimpan.");
@@ -87,23 +95,29 @@ export default function AbsensiPage({ hideHeader = false }: { hideHeader?: boole
   }, [syncAttendanceData, santriList.length, paramHalaqahId]);
 
   const handleStatusChange = (id: number, status: AbsensiStatus) => {
-    setAttendanceMap((prev) => ({ ...prev, [id]: status }));
+    setAttendanceMap((prev) => {
+      // Jika status yang dipilih sama dengan status yang sudah ada di DRAFT, hapus dari draft (toggle)
+      if (prev[id] === status) {
+        const newMap = { ...prev };
+        delete newMap[id];
+        return newMap;
+      }
+      return { ...prev, [id]: status };
+    });
   };
 
   const handleSave = async () => {
     const tanggalStr = format(selectedDate, "yyyy-MM-dd");
 
-    // Hanya kirim data yang belum pernah di-submit sebelumnya (ID tidak ada di database)
-    const newEntries = Object.entries(attendanceMap).filter(([id]) => 
-      !alreadySubmittedIds.includes(Number(id))
-    );
+    // Ambil semua entri di attendanceMap (draft perubahan)
+    const draftEntries = Object.entries(attendanceMap);
 
-    if (newEntries.length === 0) {
-      toast.info("Tidak ada perubahan baru untuk disimpan.");
+    if (draftEntries.length === 0) {
+      toast.info("Tidak ada perubahan untuk disimpan.");
       return;
     }
 
-    const payloads = newEntries.map(([id, status]) => ({
+    const payloads = draftEntries.map(([id, status]) => ({
       santri_id: Number(id),
       status: status,
       tanggal: tanggalStr, 
@@ -112,12 +126,12 @@ export default function AbsensiPage({ hideHeader = false }: { hideHeader?: boole
 
     try {
       await submitAbsensiBulk(payloads);
-      toast.success("Absensi berhasil disimpan!");
-      await syncAttendanceData(); // Refresh data untuk mengunci (lock) row
+      toast.success("Absensi berhasil diperbarui!");
+      setAttendanceMap({}); // Kosongkan draft setelah simpan
+      await syncAttendanceData(); // Refresh data dari server
     } catch (error) {
       console.error("Gagal menyimpan absensi:", error);
       toast.error("Gagal menyimpan data absensi. Silakan coba lagi.");
-
     }
   };
 
@@ -175,7 +189,7 @@ export default function AbsensiPage({ hideHeader = false }: { hideHeader?: boole
               <InputAbsensi
                 santriList={santriList}
                 attendanceMap={attendanceMap}
-                alreadySubmittedIds={alreadySubmittedIds}
+                submittedAttendance={submittedAttendance}
                 onStatusChange={handleStatusChange}
               />
             )}
@@ -184,7 +198,7 @@ export default function AbsensiPage({ hideHeader = false }: { hideHeader?: boole
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 border-t pt-6">
             <div className="flex items-start gap-3 text-muted-foreground italic text-xs max-w-md">
               <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
-              <p>Data yang sudah disimpan (tanda "Tercatat") tidak dapat diubah kembali melalui halaman ini.</p>
+              <p>Pilih status untuk mencatat atau mengubah kehadiran. Klik "Simpan" jika terdapat label "Draft" berwarna jingga.</p>
             </div>
             <Button 
               onClick={handleSave} 
@@ -199,7 +213,7 @@ export default function AbsensiPage({ hideHeader = false }: { hideHeader?: boole
         <TabsContent value="rekap" className="mt-0 focus-visible:outline-none">
           <div className="pt-2">
             <RekapAbsensiTable 
-              halaqahId={paramHalaqahId ? Number(paramHalaqahId) : (santriList[0]?.halaqah_id)} 
+              halaqahId={paramHalaqahId ? Number(paramHalaqahId) : undefined} 
               externalSantriList={santriList}
             />
           </div>
