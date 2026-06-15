@@ -1,15 +1,8 @@
 import axiosClient from "@/api/axiosClient";
 import { santriService } from "@/features/muhafidz/kelola-santri/services/santriService";
 import { type Halaqah, type HalaqahResponse } from "../types";
-import { type Santri } from "@/features/muhafidz/kelola-santri/types";
-
-export type { Halaqah };
-
-export interface ApiResponse<T> {
-  success: boolean;
-  message: string;
-  data: T;
-}
+import { type Santri } from "../types";
+import type { GlobalResponse } from "@/types/api/global-response";
 
 export const halaqahManagementService = {
   // Get all halaqah
@@ -21,35 +14,34 @@ export const halaqahManagementService = {
   // Get all santri
   getAllSantri: async (): Promise<Santri[]> => {
     try {
-      return await santriService.getAll();
+      return (await santriService.getAll()) as unknown as Santri[];
     } catch (error) {
       console.error("Gagal mengambil data santri:", error);
       return [];
     }
   },
 
-  // Create halaqah
-  createHalaqah: async (data: { name_halaqah: string; muhafiz_id: number }): Promise<ApiResponse<Halaqah>> => {
-    const res = await axiosClient.post<ApiResponse<Halaqah>>("/halaqah", data);
+  createHalaqah: async (data: { name_halaqah: string; id_muhafiz: number }): Promise<GlobalResponse<Halaqah>> => {
+    const res = await axiosClient.post<GlobalResponse<Halaqah>>("/halaqah", data);
     return res.data;
   },
 
   // Update halaqah
-  updateHalaqah: async (id: number, data: { name_halaqah?: string; muhafiz_id?: number }): Promise<ApiResponse<Halaqah>> => {
-    const res = await axiosClient.patch<ApiResponse<Halaqah>>(`/halaqah/${id}`, data);
+  updateHalaqah: async (id: number, data: { name_halaqah?: string; id_muhafiz?: number }): Promise<GlobalResponse<Halaqah>> => {
+    const res = await axiosClient.patch<GlobalResponse<Halaqah>>(`/halaqah/${id}`, data);
     return res.data;
   },
 
   // Delete halaqah
-  deleteHalaqah: async (id: number): Promise<ApiResponse<void>> => {
-    const res = await axiosClient.delete<ApiResponse<void>>(`/halaqah/${id}`);
+  deleteHalaqah: async (id: number): Promise<GlobalResponse<void>> => {
+    const res = await axiosClient.delete<GlobalResponse<void>>(`/halaqah/${id}`);
     return res.data;
   },
 
   // Get deleted halaqah (trash)
-  getDeletedHalaqah: async (): Promise<ApiResponse<Halaqah[]>> => {
+  getDeletedHalaqah: async (): Promise<GlobalResponse<Halaqah[]>> => {
     try {
-      const response = await axiosClient.get<ApiResponse<Halaqah[]>>("/halaqah/trash");
+      const response = await axiosClient.get<GlobalResponse<Halaqah[]>>("/halaqah/trash");
       return response.data;
     } catch (error) {
       console.error("Gagal mengambil halaqah terhapus:", error);
@@ -58,19 +50,19 @@ export const halaqahManagementService = {
   },
 
   // Restore halaqah
-  restoreHalaqah: async (id: number): Promise<ApiResponse<null>> => {
-    const res = await axiosClient.post<ApiResponse<null>>(`/halaqah/${id}/restore`);
+  restoreHalaqah: async (id: number): Promise<GlobalResponse<null>> => {
+    const res = await axiosClient.patch<GlobalResponse<null>>(`/halaqah/restore/${id}`);
     return res.data;
   },
 
   // Create santri
   createSantri: async (data: Santri) => {
-    return await santriService.create(data);
+    return await santriService.create(data as any);
   },
 
   // Update santri
   updateSantri: async (id: number, data: Santri) => {
-    return await santriService.update(id, data);
+    return await santriService.update(id, data as any);
   },
 
   // Delete santri

@@ -1,11 +1,8 @@
 import { useState, useCallback, useEffect } from "react";
 import { useAuth } from "@/features/auth/context/AuthContext";
 import { muhafizService } from "../services/muhafizService";
-import { type Muhafiz } from "../types";
+import { type Muhafiz, type AbsensiStatus } from "../types";
 import { toast } from "sonner";
-
-// Samakan tipe status dengan yang ada di komponen UI
-type AbsensiStatus = "HADIR" | "IZIN" | "SAKIT" | "TERLAMBAT" | "ALFA";
 
 export const useMuhafiz = () => {
   const { user, impersonate } = useAuth();
@@ -54,8 +51,8 @@ export const useMuhafiz = () => {
 
       if (res.data && Array.isArray(res.data)) {
         const mappedData = res.data.reduce((acc: Record<number, AbsensiStatus>, item: any) => {
-          // Cek apakah backend kirim id_user atau user_id
-          const userId = item.id_user || item.user_id; 
+          // Cek apakah backend kirim id_user atau id_user
+          const userId = item.id_user || item.id_user; 
           const status = item.status;
 
           if (userId && status) {
@@ -139,8 +136,8 @@ export const useMuhafiz = () => {
     };
 
     toast.promise(promise(), {
-      loading: `Menyiapkan sesi untuk ${muhafiz.username}...`,
-      success: `Berhasil login sebagai ${muhafiz.username}`,
+      loading: `Menyiapkan sesi untuk ${muhafiz.name}...`,
+      success: `Berhasil login sebagai ${muhafiz.name}`,
       error: "Gagal login sebagai muhafidz",
     });
   };
@@ -170,9 +167,10 @@ export const useMuhafiz = () => {
     try {
       const promises = selectedIds.map((userId) => 
         muhafizService.catatAbsensiAsatidz({ 
-          user_id: userId, 
+          id_user: userId, 
           status: attendanceMap[userId], 
-          tanggal: selectedDate 
+          tanggal: selectedDate,
+          keterangan: ""
         })
       );
       await Promise.all(promises);
@@ -190,9 +188,10 @@ export const useMuhafiz = () => {
     try {
       const today = new Date().toISOString().split('T')[0];
       await muhafizService.catatAbsensiAsatidz({
-        user_id: userId,
+        id_user: userId,
         status: status,
-        tanggal: today
+        tanggal: today,
+        keterangan: ""
       });
       toast.success(`Berhasil mencatat absensi: ${status}`);
       // Refresh list kunci jika admin sedang melihat halaman di tanggal hari ini

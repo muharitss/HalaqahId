@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { loginSchema, type LoginFormValues } from "@/utils/zodSchema";
 import { useAuth } from "@/features/auth/context/AuthContext";
 
@@ -180,7 +180,13 @@ export function LoginForm() {
         </Form>
       </CardContent>
 
-      <CardFooter className="flex flex-col space-y-2">
+      <CardFooter className="flex flex-col space-y-4">
+        <div className="text-sm text-center text-muted-foreground w-full">
+          Belum mendaftarkan institusi Anda?{" "}
+          <Link to="/register" className="font-semibold text-primary hover:underline">
+            Daftar Sekarang
+          </Link>
+        </div>
         <p className="text-xs text-center text-muted-foreground">
           Masalah login? Hubungi administrator sistem
         </p>

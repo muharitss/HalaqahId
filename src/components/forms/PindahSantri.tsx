@@ -67,7 +67,7 @@ export function PindahSantri({
   };
 
   const filteredHalaqahs = halaqahs.filter(
-    (h) => h.id_halaqah !== santri?.halaqah_id
+    (h) => h.id_halaqah !== santri?.id_halaqah,
   );
 
   return (
@@ -76,7 +76,8 @@ export function PindahSantri({
         <DialogHeader>
           <DialogTitle>Pindah Halaqah Santri</DialogTitle>
           <DialogDescription>
-            Pilih halaqah baru untuk <span className="font-bold">{santri?.nama_santri}</span>
+            Pilih halaqah baru untuk{" "}
+            <span className="font-bold">{santri?.nama_santri}</span>
           </DialogDescription>
         </DialogHeader>
 
@@ -99,7 +100,10 @@ export function PindahSantri({
               </SelectTrigger>
               <SelectContent>
                 {filteredHalaqahs.map((h) => (
-                  <SelectItem key={h.id_halaqah} value={h.id_halaqah.toString()}>
+                  <SelectItem
+                    key={h.id_halaqah}
+                    value={h.id_halaqah.toString()}
+                  >
                     {h.name_halaqah}
                   </SelectItem>
                 ))}

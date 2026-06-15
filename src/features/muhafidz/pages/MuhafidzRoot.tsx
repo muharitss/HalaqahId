@@ -6,12 +6,13 @@ import ProgresSantriPage from "@/features/muhafidz/progres-santri"; // Tambahkan
 import SettingsPage from "@/pages/settings";
 import InfoSection from "@/pages/settings/InfoSection";
 import { NoHalaqahView } from "@/pages/muhafidz/NoHalaqah";
+import { Role } from "@/types/domain/enums";
 
 export default function MuhafidzRoot() {
   const userRaw = localStorage.getItem("user"); 
   const user = userRaw ? JSON.parse(userRaw) : null;
 
-  if (user?.role === "muhafiz" && !user?.has_halaqah) {
+  if (user?.role === Role.MUHAFIZ && !user?.has_halaqah) {
     return (
       <Routes>
         <Route path="settings" element={<SettingsPage />} />

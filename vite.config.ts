@@ -10,5 +10,14 @@ export default defineConfig({
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
+  },
+  server: {
+    proxy: {
+      '/api': {
+        target: 'https://halaqahid-be.vercel.app',
+        changeOrigin: true,
+        secure: false,
+      }
+    }
   }
 })

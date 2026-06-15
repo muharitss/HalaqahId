@@ -1,25 +1,26 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import { displayService } from "@/features/display/services/displayService";
-
-interface DisplayContextType {
-  santriList: any[];
-  isLoading: boolean;
-  refreshSantri: () => Promise<void>;
-}
+import { type DisplayContextType } from "@/types/domain/display";
 
 const DisplayContext = createContext<DisplayContextType | undefined>(undefined);
 
 export const DisplayProvider = ({ children }: { children: React.ReactNode }) => {
+  const { token } = useParams<{ token: string }>();
   const [santriList, setSantriList] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-    const refreshSantri = async () => {
+  const refreshSantri = async () => {
+    if (!token) {
+      setIsLoading(false);
+      return;
+    }
     try {
-        setIsLoading(true);
-        const result = await displayService.getSantriList();
-        
-        // Safeguard: Pastikan result benar-benar array sebelum masuk ke state
-        setSantriList(Array.isArray(result) ? result : [] as any);
+      setIsLoading(true);
+      const result = await displayService.getSantriList(token);
+      
+      // Safeguard: Pastikan result benar-benar array sebelum masuk ke state
+      setSantriList(Array.isArray(result) ? result : [] as any);
     } catch (error) {
         console.error("Gagal load santri:", error);
         setSantriList([]);

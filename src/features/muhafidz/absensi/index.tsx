@@ -1,9 +1,20 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams } from "react-router-dom"; // Penting untuk Mode Kontrol
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
@@ -11,81 +22,112 @@ import { toast } from "sonner";
 import { CalendarIcon, AlertCircle } from "lucide-react";
 
 // Import internal
-import { useSantri } from "@/features/muhafidz/kelola-santri/hooks/useSantri"; 
+import { useSantri } from "@/features/muhafidz/kelola-santri/hooks/useSantri";
 import { useAbsensi } from "./hooks/useAbsensi";
-import { absensiService, } from "./services/absensiService";
+import { absensiService } from "./services/absensiService";
+import { sesiService } from "@/services/sesiService";
+import { type SesiHalaqah } from "@/types/domain/sesi-halaqah";
 import { InputAbsensi } from "./components/InputAbsensi";
 import { RekapAbsensiTable } from "./components/RekapAbsensiTable";
 
 // Import UI/Typed Text
 import { Absensi } from "@/components/typed-text";
-import type { AbsensiRecord, AbsensiStatus } from "./types";
-
-export default function AbsensiPage({ hideHeader = false }: { hideHeader?: boolean }) {
+import type { AbsensiSantri as AbsensiRecord } from "@/types/domain/absensi";
+import type { StatusKehadiran as AbsensiStatus } from "@/types/domain/enums";
+export default function AbsensiPage({
+  hideHeader = false,
+}: {
+  hideHeader?: boolean;
+}) {
   // --- Route Params ---
   const { halaqahId: paramHalaqahId } = useParams();
 
   // --- Data States ---
   const { santriList, loadSantri, isLoading: loadingSantri } = useSantri();
   const { submitAbsensiBulk, isSubmitting } = useAbsensi();
-  
+
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [attendanceMap, setAttendanceMap] = useState<Record<number, AbsensiStatus>>({});
-  const [submittedAttendance, setSubmittedAttendance] = useState<Record<number, AbsensiStatus>>({});
+  const [attendanceMap, setAttendanceMap] = useState<
+    Record<number, AbsensiStatus>
+  >({});
+  const [submittedAttendance, setSubmittedAttendance] = useState<
+    Record<number, AbsensiStatus>
+  >({});
   const [isLoadingSync, setIsLoadingSync] = useState(false);
-  
+  const [sesiList, setSesiList] = useState<SesiHalaqah[]>([]);
+  const [selectedSesi, setSelectedSesi] = useState<number | null>(null);
 
   /**
-   * Mengambil data absensi yang sudah tersimpan di server 
+   * Mengambil data absensi yang sudah tersimpan di server
    * untuk tanggal yang dipilih
    */
   const syncAttendanceData = useCallback(async () => {
     // Logic penentuan ID: Ambil dari URL (Kepala Muhafidz)
     const idFromUrl = paramHalaqahId ? Number(paramHalaqahId) : NaN;
-    
-    // Jika tidak ada ID di URL, kumpulkan semua halaqah_id unik dari santriList
-    const uniqueHalaqahIds = !isNaN(idFromUrl) 
-      ? [idFromUrl] 
-      : Array.from(new Set(santriList.map(s => s.halaqah_id).filter(id => !!id)));
+
+    // Jika tidak ada ID di URL, kumpulkan semua id_halaqah unik dari santriList
+    const uniqueHalaqahIds = !isNaN(idFromUrl)
+      ? [idFromUrl]
+      : Array.from(
+          new Set(santriList.map((s) => s.id_halaqah).filter((id) => !!id)),
+        );
 
     // Guard Clause: Jangan tembak API jika ID belum tersedia
-    if (uniqueHalaqahIds.length === 0) return; 
+    if (uniqueHalaqahIds.length === 0 || !selectedSesi) return;
 
     setIsLoadingSync(true);
     try {
       const tglStr = format(selectedDate, "yyyy-MM-dd");
-      
+
       // Ambil data untuk setiap halaqah ID yang ditemukan
-      const fetchPromises = uniqueHalaqahIds.map(hid => 
-        absensiService.getRekapHalaqah(hid, tglStr)
+      const fetchPromises = uniqueHalaqahIds.map((hid) =>
+        absensiService.getRekapHalaqah(hid, tglStr),
       );
-      
+
       const results = await Promise.all(fetchPromises);
-      
+
       const newMap: Record<number, AbsensiStatus> = {};
 
       // Gabungkan hasil dari semua halaqah
-      results.forEach(response => {
-        const records = response.data as AbsensiRecord[] || [];
+      results.forEach((response) => {
+        const records = (response.data as AbsensiRecord[]) || [];
         records.forEach((rec) => {
-          newMap[rec.santri_id] = rec.status;
+          if (rec.id_sesi === selectedSesi) {
+            newMap[rec.id_santri] = rec.status;
+          }
         });
       });
 
       setSubmittedAttendance(newMap);
-      setAttendanceMap({}); 
+      setAttendanceMap({});
     } catch (error) {
       console.error("Gagal sinkronisasi absensi:", error);
       toast.error("Gagal mengambil data absensi yang sudah tersimpan.");
     } finally {
       setIsLoadingSync(false);
     }
-  }, [santriList, selectedDate, paramHalaqahId]);
+  }, [santriList, selectedDate, paramHalaqahId, selectedSesi]);
 
   // Load awal data santri
   useEffect(() => {
     loadSantri();
   }, [loadSantri]);
+
+  useEffect(() => {
+    const fetchSesi = async () => {
+      try {
+        const response = await sesiService.getSesiHalaqah();
+        const sesi = response.data || [];
+        setSesiList(sesi);
+        if (sesi.length > 0) {
+          setSelectedSesi(sesi[0].id_sesi);
+        }
+      } catch (error) {
+        console.error("Gagal memuat sesi halaqah:", error);
+      }
+    };
+    fetchSesi();
+  }, []);
 
   // Sinkronisasi data absensi setiap kali tanggal berubah atau daftar santri tersedia
   useEffect(() => {
@@ -118,10 +160,11 @@ export default function AbsensiPage({ hideHeader = false }: { hideHeader?: boole
     }
 
     const payloads = draftEntries.map(([id, status]) => ({
-      santri_id: Number(id),
+      id_santri: Number(id),
+      id_sesi: selectedSesi!,
       status: status,
-      tanggal: tanggalStr, 
-      keterangan: "-"
+      tanggal: tanggalStr,
+      keterangan: "-",
     }));
 
     try {
@@ -151,11 +194,37 @@ export default function AbsensiPage({ hideHeader = false }: { hideHeader?: boole
           <TabsTrigger value="rekap">Rekap Bulanan</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="input" className="space-y-6 mt-0 focus-visible:outline-none">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <TabsContent
+          value="input"
+          className="space-y-6 mt-0 focus-visible:outline-none"
+        >
+          <div className="flex flex-col md:flex-row md:items-center justify-end gap-2">
+            <Select
+              value={selectedSesi ? selectedSesi.toString() : ""}
+              onValueChange={(val) => setSelectedSesi(Number(val))}
+              disabled={isLoadingSync || sesiList.length === 0}
+            >
+              <SelectTrigger className="w-full md:w-60 border-primary/20 shadow-sm">
+                <SelectValue placeholder="Pilih Sesi" />
+              </SelectTrigger>
+              <SelectContent>
+                {sesiList.map((sesi) => (
+                  <SelectItem
+                    key={sesi.id_sesi}
+                    value={sesi.id_sesi.toString()}
+                  >
+                    {sesi.nama_sesi} ({sesi.jam_mulai} - {sesi.jam_selesai})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="outline" className="w-full md:w-60 justify-start text-left font-normal border-primary/20 hover:border-primary shadow-sm">
+                <Button
+                  variant="outline"
+                  className="w-full md:w-60 justify-start text-left font-normal border-primary/20 hover:border-primary shadow-sm"
+                >
                   <CalendarIcon className="mr-2 h-4 w-4 text-primary" />
                   {format(selectedDate, "dd MMMM yyyy", { locale: localeId })}
                 </Button>
@@ -183,7 +252,9 @@ export default function AbsensiPage({ hideHeader = false }: { hideHeader?: boole
             ) : santriList.length === 0 ? (
               <div className="p-12 text-center">
                 <AlertCircle className="mx-auto h-10 w-10 text-muted-foreground opacity-20 mb-4" />
-                <p className="text-muted-foreground font-medium">Tidak ada santri di halaqah ini.</p>
+                <p className="text-muted-foreground font-medium">
+                  Tidak ada santri di halaqah ini.
+                </p>
               </div>
             ) : (
               <InputAbsensi
@@ -196,13 +267,22 @@ export default function AbsensiPage({ hideHeader = false }: { hideHeader?: boole
           </div>
 
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 border-t pt-6">
-            <div className="flex items-start gap-3 text-muted-foreground italic text-xs max-w-md">
+            <div className="flex items-start gap-2 text-muted-foreground italic text-xs max-w-md">
               <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
-              <p>Pilih status untuk mencatat atau mengubah kehadiran. Klik "Simpan" jika terdapat label "Draft" berwarna jingga.</p>
+              <p>
+                Pilih status untuk mencatat atau mengubah kehadiran. Klik
+                "Simpan" jika terdapat label "Draft" berwarna jingga.
+              </p>
             </div>
-            <Button 
-              onClick={handleSave} 
-              disabled={isSubmitting || isLoadingSync || loadingSantri || santriList.length === 0}
+            <Button
+              onClick={handleSave}
+              disabled={
+                isSubmitting ||
+                isLoadingSync ||
+                loadingSantri ||
+                santriList.length === 0 ||
+                !selectedSesi
+              }
               className="w-full md:w-auto px-12 h-11 font-bold shadow-lg shadow-primary/20"
             >
               {isSubmitting ? "Menyimpan..." : "Simpan Absensi"}
@@ -212,14 +292,22 @@ export default function AbsensiPage({ hideHeader = false }: { hideHeader?: boole
 
         <TabsContent value="rekap" className="mt-0 focus-visible:outline-none">
           <div className="pt-2">
-            <RekapAbsensiTable 
-              halaqahId={paramHalaqahId ? Number(paramHalaqahId) : undefined} 
+            <RekapAbsensiTable
+              halaqahId={paramHalaqahId ? Number(paramHalaqahId) : undefined}
               externalSantriList={santriList}
             />
+          </div>
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 border-t pt-6">
+            <div className="flex items-start gap-3 text-muted-foreground italic text-xs max-w-md">
+              <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+              <p>
+                Tabel ini menampilkan rekapitulasi kehadiran santri per bulan.
+                Gunakan filter di atas tabel untuk melihat data bulan lainnya.
+              </p>
+            </div>
           </div>
         </TabsContent>
       </Tabs>
     </div>
   );
 }
-

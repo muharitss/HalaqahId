@@ -2,7 +2,6 @@ import { LoginForm } from "@/features/auth/components/LoginForm";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { LoginCarousel } from "@/features/auth/components/LoginCarousel";
 import { LoginHeader } from "@/features/auth/components/LoginHeader";
-import { PublicAccessButton } from "@/features/auth/components/PublicAccessButton";
 import { LoginFooter } from "@/features/auth/components/LoginFooter";
 
 export default function LoginPage() {
@@ -31,7 +30,6 @@ export default function LoginPage() {
           </div>
 
           <LoginForm />
-          <PublicAccessButton />
         </div>
 
         <LoginFooter />

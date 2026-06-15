@@ -28,10 +28,7 @@ import {
   faSignInAlt,
   faEllipsisH,
 } from "@fortawesome/free-solid-svg-icons";
-import type { MuhafizTableProps } from "../types";
-
-// Tambahkan tipe status absensi sesuai API kamu
-type AbsensiStatus = "HADIR" | "IZIN" | "SAKIT" | "ALFA";
+import type { MuhafizTableProps, AbsensiStatus } from "../types";
 
 export function DaftarAkun({ 
   muhafizList, 
@@ -105,7 +102,7 @@ export function DaftarAkun({
                 <TableCell className="py-5">
                   <div className="flex flex-col gap-1">
                     <span className="font-bold text-sm md:text-base tracking-tight leading-none">
-                      {muhafiz.username}
+                      {muhafiz.name}
                     </span>
                     <div className="flex items-center gap-1.5 text-xs md:text-sm text-muted-foreground">
                       <FontAwesomeIcon icon={faEnvelope} className="text-[10px] opacity-70" />

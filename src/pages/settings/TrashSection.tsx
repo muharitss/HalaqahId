@@ -106,7 +106,7 @@ export default function TrashSection() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-25">Username</TableHead>
+                  <TableHead className="w-25">Nama</TableHead>
                   <TableHead className="hidden sm:table-cell">Email</TableHead>
                   <TableHead className="text-right">Aksi</TableHead>
                 </TableRow>
@@ -114,7 +114,7 @@ export default function TrashSection() {
               <TableBody>
                 {deletedMuhafiz.map((item) => (
                   <TableRow key={item.id_user} className="hover:bg-muted/30">
-                    <TableCell className="font-medium">{item.username}</TableCell>
+                    <TableCell className="font-medium">{item.name}</TableCell>
                     <TableCell className="hidden sm:table-cell text-muted-foreground">{item.email}</TableCell>
                     <TableCell className="text-right py-4">
                       <Button 

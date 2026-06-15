@@ -2,49 +2,18 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { type LoginFormValues } from "@/utils/zodSchema";
 import { authService } from "@/features/auth/services/authService";
-
-export type Role = "superadmin" | "muhafiz";
-
-interface User {
-  id_user: number;
-  email: string;
-  role: Role;
-  username: string;
-  id_halaqah?: number | null;
-  token?: string;
-  avatarUrl?: string;
-  isImpersonating?: boolean; 
-  originalUser?: { 
-    id_user: number;
-    role: Role;
-    username: string;
-    token: string;
-  };
-}
-
-interface AuthContextType {
-  user: User | null;
-  login: (values: LoginFormValues) => Promise<void>;
-  logout: () => void;
-  isLoading: boolean;
-  isDarkMode: boolean;
-  toggleDarkMode: () => void;
-  refreshUser: () => Promise<void>;
-  impersonate: (userData: User, originalUser: User) => Promise<void>;
-  stopImpersonating: () => Promise<void>;
-  isImpersonating: boolean;
-  isAdmin: () => boolean;
-}
+import { Role, isKepalaRole } from "@/types/domain/enums";
+import { type AuthUser, type AuthContextType } from "@/types/domain/auth";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isDarkMode, setIsDarkMode] = useState(false);
 
   // Helper untuk simpan user ke localStorage
-  const saveUserToStorage = (userData: User | null) => {
+  const saveUserToStorage = (userData: AuthUser | null) => {
     if (userData) {
       localStorage.setItem("user", JSON.stringify(userData));
     } else {
@@ -53,26 +22,26 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   // NEW: Helper untuk simpan superadmin session
-  const saveSuperadminSession = (superadminData: User) => {
-    if (superadminData.role === "superadmin") {
+  const saveSuperadminSession = (superadminData: AuthUser) => {
+    if (isKepalaRole(superadminData.role)) {
       localStorage.setItem("superadmin_session", JSON.stringify({
         id_user: superadminData.id_user,
         token: superadminData.token,
-        username: superadminData.username,
+        name: superadminData.name,
         email: superadminData.email
       }));
     }
   };
 
   // NEW: Function untuk impersonate
-  const impersonate = async (impersonatedUser: User, originalUser: User) => {
-    const userData: User = {
+  const impersonate = async (impersonatedUser: AuthUser, originalUser: AuthUser) => {
+    const userData: AuthUser = {
       ...impersonatedUser,
       isImpersonating: true,
       originalUser: {
         id_user: originalUser.id_user,
         role: originalUser.role,
-        username: originalUser.username,
+        name: originalUser.name,
         token: originalUser.token!
       }
     };
@@ -81,11 +50,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     saveUserToStorage(userData);
     
     // Simpan session superadmin di storage terpisah
-    if (originalUser.role === "superadmin") {
+    if (isKepalaRole(originalUser.role)) {
       localStorage.setItem("superadmin_session", JSON.stringify({
         id_user: originalUser.id_user,
         token: originalUser.token,
-        username: originalUser.username,
+        name: originalUser.name,
         email: originalUser.email
       }));
     }
@@ -100,9 +69,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         const sessionData = JSON.parse(superadminSession);
         
         // Set user kembali ke superadmin
-        const superadminUser: User = {
+        const superadminUser: AuthUser = {
           ...sessionData,
-          role: "superadmin" as Role,
+          role: Role.SUPERADMIN,
           isImpersonating: false,
           originalUser: undefined
         };
@@ -154,7 +123,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
 
     try {
-      const parsedData = JSON.parse(savedData) as User;
+      const parsedData = JSON.parse(savedData) as AuthUser;
       
       // Jika sedang impersonate, langsung set user dari localStorage
       if (parsedData.isImpersonating) {
@@ -171,16 +140,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           throw new Error("No user data received from API");
         }
 
-        const fullUser: User = {
+        const fullUser: AuthUser = {
           ...userData,
           token: parsedData.token,
-          username: userData.username || "User"
+          name: userData.name || "User"
         };  
 
         setUser(fullUser);
         saveUserToStorage(fullUser);
         
-        if (userData?.role === "superadmin") {
+        if (isKepalaRole(userData?.role)) {
           saveSuperadminSession(fullUser);
         }
       } catch (error) {
@@ -202,17 +171,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       throw new Error(response.message || "Login gagal");
     }
     
-    const userData: User = {
+    const userData: AuthUser = {
       ...response.data.user,
       token: response.data.token,
-      username: response.data.user.username || "User",
+      name: response.data.user.name || "User",
       isImpersonating: false
     };
 
     setUser(userData);
     saveUserToStorage(userData);
     
-    if (userData.role === "superadmin") {
+    if (isKepalaRole(userData.role)) {
       saveSuperadminSession(userData);
     }
   };
@@ -244,7 +213,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []); 
 
   const isAdmin = useCallback(() => {
-    return user?.role === "superadmin";
+    return user?.role === Role.SUPERADMIN;
+  }, [user])
+
+  const isKepala = useCallback(() => {
+    return user ? isKepalaRole(user.role) : false;
   }, [user])
 
   return (
@@ -259,6 +232,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       impersonate,
       stopImpersonating,
       isAdmin,
+      isKepala,
       isImpersonating: user?.isImpersonating || false,
     }}>
       {children}

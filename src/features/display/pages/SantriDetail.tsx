@@ -1,38 +1,14 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { displayService } from "@/features/display/services/displayService";
-import { format, startOfMonth, endOfMonth, eachDayOfInterval } from "date-fns"; import { Skeleton } from "@/components/ui/skeleton";
+import { startOfMonth, endOfMonth, eachDayOfInterval } from "date-fns";
+import { Skeleton } from "@/components/ui/skeleton";
 import { SantriDetailHeader } from "@/features/display/components/santri-detail/SantriDetailHeader";
 import { ProfileCard } from "@/features/display/components/santri-detail/ProfileCard";
 import { StatistikKehadiran } from "@/features/display/components/santri-detail/StatistikKehadiran";
 import { RekapHarian } from "@/features/display/components/santri-detail/RekapHarian";
 import { RiwayatSetoran } from "@/features/display/components/santri-detail/RiwayatSetoran";
-
-
-export interface Santri {
-  id_santri: number | string;
-  nama_santri: string;
-  nama_halaqah: string;
-  nomor_telepon?: string;
-}
-
-export interface Halaqah {
-  id_halaqah: number;
-  nama_halaqah: string;
-  nama_muhafiz: string;
-  jumlah_santri: number;
-}
-
-export interface SetoranRecord {
-  id_setoran: number;
-  nama_santri: string;
-  nama_halaqah: string;
-  tanggal: string;         
-  surat: string;
-  juz: number;
-  ayat: string;            
-  kategori: "HAFALAN" | "MUROJAAH" | string;
-}
+import type { SantriDetailData } from "@/types/domain/display";
 
 const STATUS_CONFIG = {
   HADIR: { label: "Hadir", color: "#10b981", bg: "bg-emerald-500" },
@@ -43,13 +19,10 @@ const STATUS_CONFIG = {
 };
 
 const SantriDetail = () => {
-  const { id } = useParams();
+  const { id, token } = useParams<{ id: string; token: string }>();
   const [loading, setLoading] = useState(true);
-  const [santri, setSantri] = useState<Santri | null>(null);
-  const [allSetoran, setAllSetoran] = useState<SetoranRecord[]>([]);
+  const [data, setData] = useState<SantriDetailData | null>(null);
   const [viewDate, setViewDate] = useState<Date>(new Date());
-  const [monthlyAbsensi, setMonthlyAbsensi] = useState<any[]>([]);
-  const [isLoadingAbsensi, setIsLoadingAbsensi] = useState(false);
 
   const daysInMonth = useMemo(() => {
     return eachDayOfInterval({
@@ -59,75 +32,29 @@ const SantriDetail = () => {
   }, [viewDate]);
 
   const fetchData = useCallback(async () => {
+    if (!id || !token) return;
     try {
       setLoading(true);
-      const [resSantri, resSetoran] = await Promise.all([
-        displayService.getSantriList(),
-        displayService.getSetoranAll(),
-      ]);
-
-      const currentSantri = resSantri.find((s: Santri) => String(s.id_santri) === String(id));
-
-      if (!currentSantri) {
-        setSantri(null);
-        return;
-      }
-
-      setSantri(currentSantri);
-      const filteredSetoran = resSetoran.filter(
-        (set: SetoranRecord) => set.nama_santri === currentSantri.nama_santri
-      );
-      setAllSetoran(filteredSetoran);
+      const res = await displayService.getSantriDetail(token, id);
+      setData(res);
     } catch (err) {
-      console.error("Error fetching data:", err);
+      console.error("Error fetching santri detail:", err);
     } finally {
       setLoading(false);
     }
-  }, [id]);
-
-  const fetchMonthlyAbsensi = useCallback(async () => {
-    if (!santri) return;
-
-    setIsLoadingAbsensi(true);
-    try {
-      const halaqahList = await displayService.getHalaqahList();
-      const currentHalaqah = (halaqahList as any[]).find(
-        (h) => h.nama_halaqah === santri.nama_halaqah
-      );
-
-      if (!currentHalaqah) return;
-
-      const requests = daysInMonth.map((date) => {
-        const dateStr = format(date, "yyyy-MM-dd");
-        return displayService
-          .getAbsensiByHalaqah(currentHalaqah.id_halaqah, dateStr)
-          .then((res) => ({ tanggal: dateStr, data: res }))
-          .catch(() => ({ tanggal: dateStr, data: [] }));
-      });
-
-      const results = await Promise.all(requests);
-      setMonthlyAbsensi(results);
-    } catch (err) {
-      console.error("Error fetching absensi:", err);
-    } finally {
-      setIsLoadingAbsensi(false);
-    }
-  }, [santri, daysInMonth]);
+  }, [id, token]);
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
-  useEffect(() => {
-    fetchMonthlyAbsensi();
-  }, [fetchMonthlyAbsensi]);
-
   const chartData = useMemo(() => {
+    if (!data) return [];
     const stats = { HADIR: 0, IZIN: 0, SAKIT: 0, TERLAMBAT: 0, ALFA: 0 };
-    monthlyAbsensi.forEach((day) => {
-      const record = day.data?.find((item: any) => item.nama_santri === santri?.nama_santri);
-      if (record?.status && stats.hasOwnProperty(record.status)) {
-        stats[record.status as keyof typeof stats]++;
+    data.riwayat_absensi.forEach((item) => {
+      const status = item.status as keyof typeof stats;
+      if (status in stats) {
+        stats[status]++;
       }
     });
 
@@ -138,7 +65,7 @@ const SantriDetail = () => {
       { name: "Terlambat", value: stats.TERLAMBAT, fill: STATUS_CONFIG.TERLAMBAT.color },
       { name: "Alfa", value: stats.ALFA, fill: STATUS_CONFIG.ALFA.color },
     ].filter((d) => d.value > 0);
-  }, [monthlyAbsensi, santri]);
+  }, [data]);
 
   if (loading) {
     return (
@@ -148,7 +75,7 @@ const SantriDetail = () => {
     );
   }
 
-  if (!santri) {
+  if (!data) {
     return (
       <div className="p-20 text-center text-muted-foreground">
         Data santri dengan ID {id} tidak ditemukan.
@@ -162,24 +89,25 @@ const SantriDetail = () => {
         <SantriDetailHeader />
 
         <ProfileCard
-          nama={santri.nama_santri}
-          halaqah={santri.nama_halaqah}
-          nomorTelepon={santri.nomor_telepon}
+          nama={data.profil.nama_santri}
+          halaqah={data.profil.nama_halaqah}
+          nomorTelepon={data.profil.nomor_telepon}
+          target={data.profil.target}
+          muhafiz={data.profil.nama_muhafiz}
         />
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <StatistikKehadiran data={chartData} />
           <RekapHarian
             daysInMonth={daysInMonth}
-            monthlyAbsensi={monthlyAbsensi}
-            santriName={santri.nama_santri}
-            isLoading={isLoadingAbsensi}
+            riwayatAbsensi={data.riwayat_absensi}
+            isLoading={false}
             viewDate={viewDate}
             onViewDateChange={setViewDate}
           />
         </div>
 
-        <RiwayatSetoran data={allSetoran} />
+        <RiwayatSetoran data={data.riwayat_setoran} />
       </div>
     </div>
   );

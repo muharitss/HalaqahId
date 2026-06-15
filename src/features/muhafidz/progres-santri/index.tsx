@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -11,10 +11,14 @@ import { useProgres } from "./hooks/useProgres";
 import { useSetoran } from "../setoran/hooks/useSetoran";
 import { HistoryTable } from "./components/HistoryTable";
 import { Progres } from "@/components/typed-text";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function ProgresSantriPage() {
   const { progresData, loading: loadingProgres, fetchProgres } = useProgres();
   const { fetchSetoranBySantri, history, loading: loadingHistory } = useSetoran();
+
+  const [selectedMonth, setSelectedMonth] = useState<string>(new Date().getMonth().toString());
+  const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
   
   const filterStatus = "semua";
   const filterTarget = "semua";
@@ -29,6 +33,16 @@ export default function ProgresSantriPage() {
     return statusMatch && targetMatch;
   });
 
+  const filteredHistory = useMemo(() => {
+    return history.filter((item) => {
+      const date = new Date(item.tanggal_setoran);
+      return (
+        date.getMonth().toString() === selectedMonth &&
+        date.getFullYear().toString() === selectedYear
+      );
+    });
+  }, [history, selectedMonth, selectedYear]);
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "Excellent": return "text-green-600 bg-green-100 dark:bg-green-900/30";
@@ -36,6 +50,11 @@ export default function ProgresSantriPage() {
       default: return "text-orange-600 bg-orange-100 dark:bg-orange-900/30";
     }
   };
+
+  const months = [
+    "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+    "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+  ];
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
@@ -45,10 +64,39 @@ export default function ProgresSantriPage() {
         </div>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-4 bg-card p-4 rounded-xl border">
-         <Button variant="outline" onClick={() => fetchProgres()}>
-            <FontAwesomeIcon icon={faCalendarAlt} className="mr-2" /> Refresh
-         </Button>
+      <div className="flex flex-col md:flex-row gap-4 bg-card p-4 rounded-xl border items-end md:items-center">
+        <div className="flex flex-1 gap-2 w-full md:w-auto">
+          <div className="flex-1">
+            <label className="text-xs font-medium mb-1.5 block text-muted-foreground">Pilih Bulan</label>
+            <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Bulan" />
+              </SelectTrigger>
+              <SelectContent>
+                {months.map((month, index) => (
+                  <SelectItem key={index} value={index.toString()}>{month}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="w-[120px]">
+            <label className="text-xs font-medium mb-1.5 block text-muted-foreground">Tahun</label>
+            <Select value={selectedYear} onValueChange={setSelectedYear}>
+              <SelectTrigger>
+                <SelectValue placeholder="Tahun" />
+              </SelectTrigger>
+              <SelectContent>
+                {[2024, 2025, 2026].map((year) => (
+                  <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        
+        <Button variant="outline" onClick={() => fetchProgres()} className="w-full md:w-auto">
+           <FontAwesomeIcon icon={faCalendarAlt} className="mr-2" /> Refresh
+        </Button>
       </div>
 
       <div className="space-y-4">
@@ -97,7 +145,8 @@ export default function ProgresSantriPage() {
                       Mengambil riwayat setoran...
                     </div>
                   ) : (
-                    <HistoryTable data={history} />
+                    /* Gunakan filteredHistory di sini */
+                    <HistoryTable data={filteredHistory} monthName={months[parseInt(selectedMonth)]} />
                   )}
                 </AccordionContent>
               </AccordionItem>

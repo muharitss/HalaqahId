@@ -1,19 +1,6 @@
 import axiosClient from "@/api/axiosClient";
-import { type LoginFormValues } from "@/utils/zodSchema";
-
-export interface AuthResponse {
-  success: boolean;
-  message: string;
-  data: { 
-    user: {
-      id_user: number;
-      email: string;
-      username: string;
-      role: "superadmin" | "muhafiz";
-    };
-    token: string;
-  };
-}
+import { type LoginFormValues, type RegisterFormValues } from "@/utils/zodSchema";
+import { type AuthResponse } from "@/types/domain/auth";
 
 export const authService = {
   login: async (credentials: LoginFormValues): Promise<AuthResponse> => {
@@ -23,6 +10,11 @@ export const authService = {
 
   getCurrentUser: async (): Promise<AuthResponse> => {
     const response = await axiosClient.get<AuthResponse>("/halaqah/auth/me");
+    return response.data;
+  },
+
+  registerAdmin: async (data: Omit<RegisterFormValues, "confirmPassword">) => {
+    const response = await axiosClient.post("/halaqah/auth/register-admin", data);
     return response.data;
   },
 

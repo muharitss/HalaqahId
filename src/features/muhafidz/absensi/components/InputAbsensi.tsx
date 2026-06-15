@@ -3,7 +3,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { type AbsensiStatus } from "../types";
+import type { StatusKehadiran as AbsensiStatus } from "@/types/domain/enums";
 import { type Santri } from "@/features/muhafidz/kelola-santri/types";
 
 interface Props {

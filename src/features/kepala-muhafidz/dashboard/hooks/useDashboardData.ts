@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { dashboardService } from "../services/dashboardService";
-import type { PekanData, BulanData, AbsensiStat, CategoryStat, ViewType, SetoranData } from "../types";
-import type { Muhafiz } from "@/services/akunService";
+import type { PekanData, BulanData, AbsensiStat, CategoryStat, ViewType, SetoranData, Muhafiz } from "../types";
 
 export const useDashboardData = () => {
   const [loading, setLoading] = useState({

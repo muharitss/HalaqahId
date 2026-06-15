@@ -21,6 +21,7 @@ import { DeleteAkun } from "./components/DeleteAkun";
 import { RekapAbsensiAsatidz } from "./components/RekapAbsensiAsatidz";
 import { InputAbsensiAsatidz } from "./components/InputAbsensiAsatidz";
 import { AccessDenied } from "./components/AccessDenied";
+import { isKepalaRole } from "@/types/domain/enums";
 
 export default function KelolaMuhafizPage() {
   const { user } = useAuth();
@@ -52,7 +53,7 @@ export default function KelolaMuhafizPage() {
     handleAbsenMuhafiz,
   } = useMuhafiz();
 
-  if (user?.role !== "superadmin") return <AccessDenied />;
+  if (!user || !isKepalaRole(user.role)) return <AccessDenied />;
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">

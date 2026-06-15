@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,11 +13,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Select
 } from "@/components/ui/select";
 import { type Santri } from "../types";
 import { type Halaqah } from "@/services/halaqahService";
@@ -29,7 +25,7 @@ interface SantriModalProps {
     nama_santri: string | FormDataEntryValue | null;
     nomor_telepon: string | FormDataEntryValue | null;
     target: string;
-    halaqah_id: number | undefined;
+    id_halaqah: number | undefined;
   }) => void;
   selectedSantri: Partial<Santri> | null;
   isAdmin: boolean;
@@ -46,16 +42,17 @@ export function SantriModal({
   isAdmin,
   halaqahList,
 }: SantriModalProps) {
-  const [target, setTarget] = useState<string>("SEDANG");
   const [halaqahId, setHalaqahId] = useState<string>("");
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
+  const [prevSantri, setPrevSantri] = useState(selectedSantri);
 
-  useEffect(() => {
+  if (isOpen !== prevIsOpen || selectedSantri !== prevSantri) {
+    setPrevIsOpen(isOpen);
+    setPrevSantri(selectedSantri);
     if (isOpen) {
-      setTarget(selectedSantri?.target || "SEDANG");
-      setHalaqahId(selectedSantri?.halaqah_id?.toString() || "");
+      setHalaqahId(selectedSantri?.id_halaqah?.toString() || "");
     }
-  }, [isOpen, selectedSantri]);
-
+  }
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
@@ -63,14 +60,14 @@ export function SantriModal({
     const payload = {
       nama_santri: formData.get("nama_santri"),
       nomor_telepon: formData.get("nomor_telepon"),
-      target: target,
-      halaqah_id: halaqahId ? parseInt(halaqahId, 10) : undefined,
+      target: selectedSantri?.target || "SEDANG",
+      id_halaqah: halaqahId ? parseInt(halaqahId, 10) : undefined,
     };
-
     onSave(payload);
   };
 
-  const isAutoHalaqah = !selectedSantri?.id_santri && selectedSantri?.halaqah_id;
+  const isAutoHalaqah =
+    !selectedSantri?.id_santri && selectedSantri?.id_halaqah;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -107,23 +104,9 @@ export function SantriModal({
               />
             </div>
 
-            <div className="grid gap-2">
-              <Label htmlFor="target">Target Hafalan *</Label>
-              <Select value={target} onValueChange={setTarget}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Pilih target" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="RINGAN">Ringan</SelectItem>
-                  <SelectItem value="SEDANG">Sedang</SelectItem>
-                  <SelectItem value="INTENSE">Intens</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
             {isAdmin && !isAutoHalaqah && (
               <div className="grid gap-2">
-                <Label htmlFor="halaqah_id">Pilih Halaqah</Label>
+                <Label htmlFor="id_halaqah">Pilih Halaqah</Label>
                 <Select value={halaqahId} onValueChange={setHalaqahId}>
                   {/* ... Select Content ... */}
                 </Select>
@@ -132,17 +115,28 @@ export function SantriModal({
 
             {/* Jika auto-halaqah, tampilkan info saja (Opsional) */}
             {isAutoHalaqah && (
-               <div className="bg-muted/50 p-3 rounded-md border border-dashed">
-                 <p className="text-[10px] uppercase text-muted-foreground font-bold">Halaqah Tujuan</p>
-                 <p className="text-sm font-semibold">
-                   {halaqahList.find(h => h.id_halaqah.toString() === halaqahId)?.name_halaqah}
-                 </p>
-               </div>
+              <div className="bg-muted/50 p-3 rounded-md border border-dashed">
+                <p className="text-[10px] uppercase text-muted-foreground font-bold">
+                  Halaqah Tujuan
+                </p>
+                <p className="text-sm font-semibold">
+                  {
+                    halaqahList.find(
+                      (h) => h.id_halaqah.toString() === halaqahId,
+                    )?.name_halaqah
+                  }
+                </p>
+              </div>
             )}
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClose}
+              disabled={isSubmitting}
+            >
               Batal
             </Button>
             <Button type="submit" disabled={isSubmitting}>

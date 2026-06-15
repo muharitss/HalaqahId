@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 
 // Import internal
 import { absensiService, type MonthlyAbsensiData } from "../services/absensiService";
-import { type AbsensiStatus } from "../types";
+import type { StatusKehadiran as AbsensiStatus } from "@/types/domain/enums";
 import { useSantri } from "@/features/muhafidz/kelola-santri/hooks/useSantri";
 import { type Santri } from "@/features/muhafidz/kelola-santri/types";
 
@@ -31,55 +31,30 @@ export const RekapAbsensiTable = ({ halaqahId, externalSantriList }: RekapAbsens
   }), [viewDate]);
 
   const fetchMonthlyRekap = useCallback(async () => {
-    const targetHalaqahIds = halaqahId 
-      ? [halaqahId] 
-      : Array.from(new Set(currentSantriList.map(s => s.halaqah_id).filter(id => !!id)));
-    
-    if (targetHalaqahIds.length === 0) {
-      setMonthlyData([]);
-      return;
-    }
-    
     setIsLoadingData(true);
     try {
       const m = (viewDate.getMonth() + 1).toString();
       const y = viewDate.getFullYear().toString();
 
-      const promises = targetHalaqahIds.map(hid => 
-        absensiService.getRekapHalaqah(hid, undefined, m, y)
-      );
-      
-      const results = await Promise.all(promises);
-      const dateMap = new Map<string, MonthlyAbsensiData>();
+      let data: MonthlyAbsensiData[] = [];
 
-      results.forEach(response => {
-        const data = response.data as MonthlyAbsensiData[] || [];
-        data.forEach(day => {
-          if (!dateMap.has(day.tanggal)) {
-            dateMap.set(day.tanggal, { 
-              tanggal: day.tanggal, 
-              data: [...day.data] 
-            });
-          } else {
-            const existing = dateMap.get(day.tanggal)!;
-            // Tambahkan data santri yang belum ada ke tanggal tersebut
-            day.data.forEach(newItem => {
-              if (!existing.data.some(e => Number(e.santri_id) === Number(newItem.santri_id))) {
-                existing.data.push(newItem);
-              }
-            });
-          }
-        });
-      });
+      if (halaqahId) {
+        // Tambahkan 'as MonthlyAbsensiData[]' di sini
+        const response = await absensiService.getRekapHalaqah(halaqahId, undefined, m, y);
+        data = (response.data as MonthlyAbsensiData[]) || []; 
+      } else {
+        const response = await absensiService.getAllRekapSantri(m, y);
+        data = response.data || [];
+      }
 
-      setMonthlyData(Array.from(dateMap.values()));
+      setMonthlyData(data);
     } catch (error) {
-      console.error("Gagal memuat rekap bulanan:", error);
+      console.error("Gagal memuat rekap:", error);
       setMonthlyData([]);
     } finally {
       setIsLoadingData(false);
     }
-  }, [currentSantriList, viewDate, halaqahId]);
+  }, [viewDate, halaqahId]);
 
   useEffect(() => {
     if (!externalSantriList && hookSantri.length === 0) loadSantri();
@@ -93,7 +68,7 @@ export const RekapAbsensiTable = ({ halaqahId, externalSantriList }: RekapAbsens
     const dayData = monthlyData.find((m) => m.tanggal === dateStr);
     if (!dayData) return null;
     
-    const found = dayData.data.find((item) => Number(item.santri_id) === Number(santriId));
+    const found = dayData.data.find((item) => Number(item.id_santri) === Number(santriId));
     return found?.status;
   };
 
@@ -101,7 +76,7 @@ export const RekapAbsensiTable = ({ halaqahId, externalSantriList }: RekapAbsens
     const totals = { HADIR: 0, IZIN: 0, SAKIT: 0, TERLAMBAT: 0, ALFA: 0 };
     
     monthlyData.forEach(day => {
-      const found = day.data.find(item => Number(item.santri_id) === Number(santriId));
+      const found = day.data.find(item => Number(item.id_santri) === Number(santriId));
       const status = found?.status as keyof typeof totals | undefined;
       
       if (status && status in totals) {

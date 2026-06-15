@@ -6,13 +6,22 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faUserPlus, faSpinner, faCheckCircle, faExclamationCircle } from "@fortawesome/free-solid-svg-icons";
+import { faUserPlus, faSpinner, faExclamationCircle } from "@fortawesome/free-solid-svg-icons";
 import { muhafizService } from "@/features/kepala-muhafidz/kelola-muhafiz/services/muhafizService"; // Langsung import dari feature
 import { getErrorMessage } from "@/utils/error";
 
 const akunSchema = z.object({
-  username: z.string().min(3, "Username minimal 3 karakter"),
+  name: z.string().min(3, "Nama minimal 3 karakter"),
   email: z.string().email("Email tidak valid"),
   password: z.string().min(6, "Password minimal 6 karakter"),
 });
@@ -26,7 +35,7 @@ interface AkunFormProps {
 export function AkunForm({ onSuccess }: AkunFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
 
   const {
     register,
@@ -36,7 +45,7 @@ export function AkunForm({ onSuccess }: AkunFormProps) {
   } = useForm<AkunFormValues>({
     resolver: zodResolver(akunSchema),
     defaultValues: {
-      username: "",
+      name: "",
       email: "",
       password: "",
     },
@@ -48,18 +57,14 @@ export function AkunForm({ onSuccess }: AkunFormProps) {
     
     try {
       const response = await muhafizService.createMuhafiz({  // Ganti authService dengan muhafizService
-        username: data.username,
+        name: data.name,
         email: data.email,
         password: data.password,
       });
       
       if (response.success) {
-        setSuccess(true);
         reset();
-        setTimeout(() => {
-          setSuccess(false);
-          if (onSuccess) onSuccess();
-        }, 2000);
+        setShowSuccessDialog(true);
       }
     } catch (err) {
       setError(getErrorMessage(err, "Gagal membuat akun"));
@@ -76,24 +81,17 @@ export function AkunForm({ onSuccess }: AkunFormProps) {
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
-      
-      {success && (
-        <Alert variant="default" className="bg-green-50 border-green-200 text-green-800">
-          <FontAwesomeIcon icon={faCheckCircle} className="mr-2" />
-          <AlertDescription>Akun berhasil dibuat!</AlertDescription>
-        </Alert>
-      )}
 
       <div className="space-y-2">
-        <Label htmlFor="username">Username</Label>
+        <Label htmlFor="name">Nama</Label>
         <Input
-          id="username"
-          {...register("username")}
-          placeholder="Masukkan username"
+          id="name"
+          {...register("name")}
+          placeholder="Masukkan nama"
           disabled={isLoading}
         />
-        {errors.username && (
-          <p className="text-sm text-destructive">{errors.username.message}</p>
+        {errors.name && (
+          <p className="text-sm text-destructive">{errors.name.message}</p>
         )}
       </div>
 
@@ -138,6 +136,26 @@ export function AkunForm({ onSuccess }: AkunFormProps) {
           </>
         )}
       </Button>
+
+      <AlertDialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
+        <AlertDialogContent className="max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-center text-2xl font-bold text-primary">Akun Berhasil Dibuat!</AlertDialogTitle>
+            <AlertDialogDescription className="text-center text-base mt-2">
+              Akun muhafiz telah berhasil didaftarkan. <br/><br/>
+              Harap informasikan kepada muhafiz untuk memeriksa kotak masuk (inbox) atau folder spam email mereka guna <strong>memverifikasi akun</strong> sebelum dapat melakukan login.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="sm:justify-center mt-6">
+            <AlertDialogAction onClick={() => {
+              setShowSuccessDialog(false);
+              if (onSuccess) onSuccess();
+            }} className="w-full sm:w-auto">
+              Tutup
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </form>
   );
 }

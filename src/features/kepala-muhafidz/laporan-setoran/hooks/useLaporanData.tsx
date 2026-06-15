@@ -47,12 +47,15 @@ export const useLaporanData = () => {
   }, [groupedData]);
 
   useEffect(() => {
-    if (halaqahNames.length > 0 && (!activeHalaqah || !halaqahNames.includes(activeHalaqah))) {
-      setActiveHalaqah(halaqahNames[0]);
+    if (halaqahNames.length > 0) {
+      if (!activeHalaqah || (activeHalaqah !== "all" && !halaqahNames.includes(activeHalaqah))) {
+        setActiveHalaqah(halaqahNames[0]);
+      }
     }
   }, [halaqahNames, activeHalaqah]);
 
   const activeHalaqahId = useMemo(() => {
+    if (activeHalaqah === "all") return null;
     return laporanService.getHalaqahIdByName(listHalaqah, activeHalaqah);
   }, [listHalaqah, activeHalaqah]);
 

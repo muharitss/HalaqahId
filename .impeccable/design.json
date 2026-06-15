@@ -1,0 +1,206 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-06-15T20:00:00.000Z",
+  "title": "Design System: HalaqahId",
+  "extensions": {
+    "colorMeta": {
+      "tahfidz-green": {
+        "role": "primary",
+        "displayName": "Tahfidz Green",
+        "canonical": "oklch(0.648 0.2 131.684)",
+        "tonalRamp": [
+          "oklch(0.15 0.05 131.684)",
+          "oklch(0.25 0.08 131.684)",
+          "oklch(0.35 0.12 131.684)",
+          "oklch(0.45 0.15 131.684)",
+          "oklch(0.55 0.18 131.684)",
+          "oklch(0.648 0.2 131.684)",
+          "oklch(0.75 0.18 131.684)",
+          "oklch(0.88 0.1 131.684)"
+        ]
+      },
+      "ink-navy": {
+        "role": "neutral",
+        "displayName": "Ink Navy",
+        "canonical": "oklch(0.141 0.005 285.823)",
+        "tonalRamp": [
+          "oklch(0.1 0.005 285.823)",
+          "oklch(0.141 0.005 285.823)",
+          "oklch(0.21 0.006 285.885)",
+          "oklch(0.274 0.006 286.033)",
+          "oklch(0.4 0.01 286)",
+          "oklch(0.552 0.016 285.938)",
+          "oklch(0.705 0.015 286.067)",
+          "oklch(0.92 0.004 286.32)"
+        ]
+      },
+      "cloud": {
+        "role": "neutral",
+        "displayName": "Cloud",
+        "canonical": "oklch(0.967 0.001 286.375)",
+        "tonalRamp": [
+          "oklch(0.274 0.006 286.033)",
+          "oklch(0.4 0.005 286.2)",
+          "oklch(0.552 0.004 286.3)",
+          "oklch(0.705 0.003 286.3)",
+          "oklch(0.82 0.002 286.3)",
+          "oklch(0.92 0.004 286.32)",
+          "oklch(0.967 0.001 286.375)",
+          "oklch(0.985 0 0)"
+        ]
+      },
+      "alert-red": {
+        "role": "semantic",
+        "displayName": "Alert Red",
+        "canonical": "oklch(0.577 0.245 27.325)",
+        "tonalRamp": [
+          "oklch(0.15 0.06 27.325)",
+          "oklch(0.25 0.1 27.325)",
+          "oklch(0.4 0.18 27.325)",
+          "oklch(0.577 0.245 27.325)",
+          "oklch(0.704 0.191 22.216)",
+          "oklch(0.8 0.12 25)",
+          "oklch(0.9 0.06 25)",
+          "oklch(0.96 0.02 25)"
+        ]
+      },
+      "spring-meadow": {
+        "role": "accent-tint",
+        "displayName": "Spring Meadow",
+        "canonical": "oklch(0.95 0.05 131.684)",
+        "tonalRamp": [
+          "oklch(0.25 0.08 131.684)",
+          "oklch(0.35 0.12 131.684)",
+          "oklch(0.45 0.15 131.684)",
+          "oklch(0.55 0.15 131.684)",
+          "oklch(0.65 0.12 131.684)",
+          "oklch(0.78 0.1 131.684)",
+          "oklch(0.88 0.07 131.684)",
+          "oklch(0.95 0.05 131.684)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "body": { "displayName": "Body", "purpose": "Default text across all views. Font-feature-settings enable ligatures and contextual alternates." },
+      "headline": { "displayName": "Page Title", "purpose": "H1 — used once per page to anchor the view." },
+      "title": { "displayName": "Section Title", "purpose": "H2/H3 — section headers within dashboards and forms." },
+      "label": { "displayName": "Label", "purpose": "Metadata, timestamps, badges, mobile dock labels, small helper text." }
+    },
+    "shadows": [
+      { "name": "whisper", "value": "0 1px 2px 0 rgba(0,0,0,0.05)", "purpose": "Cards at rest. Barely visible — just enough to separate from background." },
+      { "name": "micro", "value": "0 1px 1px 0 rgba(0,0,0,0.03)", "purpose": "Inputs and form controls. Near-invisible; border does the work." }
+    ],
+    "motion": [
+      { "name": "theme-transition", "value": "color 0.3s ease, background-color 0.3s ease", "purpose": "Smooth theme toggle between light and dark mode. Applied to html element." },
+      { "name": "element-transition", "value": "transition-all (Tailwind default)", "purpose": "Buttons and interactive elements. Covers color, box-shadow, border changes." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1280px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Main call-to-action. Tahfidz Green with white text. Used for submit, save, and confirm actions.",
+      "html": "<button class=\"ds-btn-primary\">Simpan</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; background: var(--color-primary, #5ea500); color: #fff; height: 36px; padding: 0 1rem; font-size: 0.875rem; font-weight: 500; border: none; border-radius: calc(0.65rem - 2px); transition: all 0.15s ease; cursor: pointer; } .ds-btn-primary:hover { opacity: 0.9; } .ds-btn-primary:focus-visible { outline: none; border-color: var(--color-primary, #5ea500); box-shadow: 0 0 0 3px oklch(0.648 0.2 131.684 / 0.5); } .ds-btn-primary:disabled { opacity: 0.5; pointer-events: none; }"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Transparent button for secondary and tertiary actions. Reveals background on hover.",
+      "html": "<button class=\"ds-btn-ghost\">Batal</button>",
+      "css": ".ds-btn-ghost { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; background: transparent; color: var(--color-foreground, #09090b); height: 36px; padding: 0 1rem; font-size: 0.875rem; font-weight: 500; border: none; border-radius: calc(0.65rem - 2px); transition: all 0.15s ease; cursor: pointer; } .ds-btn-ghost:hover { background: var(--color-accent, #f4f4f5); color: var(--color-accent-foreground, #18181b); } .ds-btn-ghost:focus-visible { outline: none; box-shadow: 0 0 0 3px oklch(0.648 0.2 131.684 / 0.5); }"
+    },
+    {
+      "name": "Outline Button",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "Bordered button for visible but non-dominant actions. White background with subtle border.",
+      "html": "<button class=\"ds-btn-outline\">Edit</button>",
+      "css": ".ds-btn-outline { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; background: #fff; color: var(--color-foreground, #09090b); height: 36px; padding: 0 1rem; font-size: 0.875rem; font-weight: 500; border: 1px solid var(--color-border, #e4e4e7); border-radius: calc(0.65rem - 2px); box-shadow: 0 1px 1px rgba(0,0,0,0.03); transition: all 0.15s ease; cursor: pointer; } .ds-btn-outline:hover { background: var(--color-accent, #f4f4f5); } .ds-btn-outline:focus-visible { outline: none; border-color: var(--color-primary, #5ea500); box-shadow: 0 0 0 3px oklch(0.648 0.2 131.684 / 0.5); }"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input-field",
+      "description": "Standard text input with border, focus ring, and error state.",
+      "html": "<input class=\"ds-input\" type=\"text\" placeholder=\"Masukkan nama santri...\" />",
+      "css": ".ds-input { width: 100%; height: 36px; padding: 0.25rem 0.75rem; font-size: 0.875rem; background: transparent; color: var(--color-foreground, #09090b); border: 1px solid var(--color-border, #e4e4e7); border-radius: calc(0.65rem - 2px); box-shadow: 0 1px 1px rgba(0,0,0,0.03); transition: color 0.15s ease, box-shadow 0.15s ease; outline: none; } .ds-input::placeholder { color: var(--color-muted-foreground, #71717b); } .ds-input:focus-visible { border-color: var(--color-primary, #5ea500); box-shadow: 0 0 0 3px oklch(0.648 0.2 131.684 / 0.5); } .ds-input:disabled { opacity: 0.5; cursor: not-allowed; }"
+    },
+    {
+      "name": "Badge",
+      "kind": "chip",
+      "refersTo": "badge-default",
+      "description": "Pill-shaped status indicator. Green default for active states, secondary for informational labels.",
+      "html": "<span class=\"ds-badge\">Aktif</span>",
+      "css": ".ds-badge { display: inline-flex; align-items: center; justify-content: center; padding: 0.125rem 0.5rem; font-size: 0.75rem; font-weight: 500; background: var(--color-primary, #5ea500); color: #fff; border: 1px solid transparent; border-radius: 9999px; white-space: nowrap; } .ds-badge-secondary { background: var(--color-secondary, #f4f4f5); color: var(--color-secondary-foreground, #18181b); } .ds-badge-outline { background: transparent; color: var(--color-foreground, #09090b); border-color: var(--color-border, #e4e4e7); }"
+    },
+    {
+      "name": "Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Container for grouped content. Rounded corners, whispered shadow, subtle border.",
+      "html": "<div class=\"ds-card\"><div class=\"ds-card-header\"><span class=\"ds-card-title\">Ringkasan Hari Ini</span></div><div class=\"ds-card-body\">Konten kartu ditampilkan di sini.</div></div>",
+      "css": ".ds-card { background: #fff; color: var(--color-foreground, #09090b); border: 1px solid var(--color-border, #e4e4e7); border-radius: 0.65rem; box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05); padding: 1.5rem 0; display: flex; flex-direction: column; gap: 1.5rem; } .ds-card-header { padding: 0 1.5rem; display: grid; grid-template-rows: auto auto; gap: 0.5rem; } .ds-card-title { font-weight: 600; line-height: 1; } .ds-card-body { padding: 0 1.5rem; font-size: 0.875rem; line-height: 1.625; }"
+    },
+    {
+      "name": "Sidebar Nav Item",
+      "kind": "nav",
+      "refersTo": null,
+      "description": "Navigation item within the collapsible sidebar. Active state uses Spring Meadow tint.",
+      "html": "<a class=\"ds-nav-item ds-nav-active\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><rect x=\"3\" y=\"3\" width=\"7\" height=\"7\"/><rect x=\"14\" y=\"3\" width=\"7\" height=\"7\"/><rect x=\"3\" y=\"14\" width=\"7\" height=\"7\"/><rect x=\"14\" y=\"14\" width=\"7\" height=\"7\"/></svg><span>Dashboard</span></a>",
+      "css": ".ds-nav-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 0.75rem; font-size: 0.875rem; font-weight: 400; color: var(--color-sidebar-foreground, #09090b); border-radius: calc(0.65rem - 2px); text-decoration: none; transition: all 0.15s ease; cursor: pointer; } .ds-nav-item:hover { background: var(--color-sidebar-accent, #e2f6d4); } .ds-nav-active { background: var(--color-sidebar-accent, #e2f6d4); color: var(--color-sidebar-accent-foreground, #336400); font-weight: 600; } .ds-nav-active svg { stroke: var(--color-sidebar-accent-foreground, #336400); }"
+    },
+    {
+      "name": "Mobile Dock Item",
+      "kind": "nav",
+      "refersTo": null,
+      "description": "Bottom navigation item for mobile. Icon above label, active state in green.",
+      "html": "<a class=\"ds-dock-item ds-dock-active\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><rect x=\"3\" y=\"3\" width=\"7\" height=\"7\"/><rect x=\"14\" y=\"3\" width=\"7\" height=\"7\"/><rect x=\"3\" y=\"14\" width=\"7\" height=\"7\"/><rect x=\"14\" y=\"14\" width=\"7\" height=\"7\"/></svg><span>Dash</span></a>",
+      "css": ".ds-dock-item { display: flex; flex-direction: column; align-items: center; gap: 0.25rem; flex: 1; font-size: 10px; color: var(--color-muted-foreground, #71717b); text-decoration: none; transition: color 0.15s ease; cursor: pointer; } .ds-dock-active { color: var(--color-primary, #5ea500); font-weight: 600; } .ds-dock-item:hover { color: var(--color-foreground, #09090b); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Quiet Classroom",
+    "overview": "HalaqahId's design system embodies a well-organized classroom where everything has its place — warm but disciplined, focused on the task at hand. The interface serves pesantren teachers who need to move quickly through attendance, memorization deposits, and student progress tracking during class hours. There is no visual noise, no decorative flourish competing for attention; the system earns trust through consistency, clarity, and restraint.",
+    "keyCharacteristics": [
+      "Restrained color strategy: green accent on ≤10% of any given screen",
+      "System font stack for zero-load-time familiarity",
+      "Flat surfaces with whispered shadows — depth through borders and tonal contrast",
+      "Compact component density optimized for data-heavy workflows",
+      "Dual-theme (light/dark) with full token coverage"
+    ],
+    "rules": [
+      { "name": "The Green Restraint Rule", "body": "Tahfidz Green appears on ≤10% of any given screen. It marks interactive affordances only — primary buttons, active nav items, focus rings, and the brand mark. If green is used decoratively, the screen has failed.", "section": "colors" },
+      { "name": "The Cool Whisper Rule", "body": "All neutrals carry the faintest blue tint (hue ~286°). Never warm-tint neutrals toward yellow, orange, or beige.", "section": "colors" },
+      { "name": "The Single Family Rule", "body": "One font family, four weights. Never introduce a second typeface for visual interest.", "section": "typography" },
+      { "name": "The Line Length Rule", "body": "Prose and paragraph text capped at 65–75ch. Data tables and compact UI can run denser.", "section": "typography" },
+      { "name": "The Flat-By-Default Rule", "body": "Surfaces are flat at rest. The whisper shadow on cards is the maximum resting elevation. Shadows increase only as a response to interaction or functional necessity.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do use Tahfidz Green only for primary actions, active states, focus rings, and the brand mark.",
+      "Do keep shadows at whisper level or below. shadow-sm is the maximum resting elevation.",
+      "Do use the single system font family in varying weights (400/500/600/700) for hierarchy.",
+      "Do maintain the cool-blue tint (hue ~286°) across all neutrals.",
+      "Do use skeleton loaders for content loading states, not centered spinners.",
+      "Do ensure all interactive elements have complete state coverage: default, hover, focus-visible, active, disabled, loading, error."
+    ],
+    "donts": [
+      "Don't use Tahfidz Green decoratively or on more than ~10% of any screen.",
+      "Don't use warm-tinted neutrals (cream, sand, parchment, beige backgrounds).",
+      "Don't use glassmorphism, decorative blurs, or frosted cards outside the top header.",
+      "Don't use border-left or border-right greater than 1px as a colored accent stripe.",
+      "Don't use gradient text (background-clip: text with gradient backgrounds).",
+      "Don't create identical card grids repeated endlessly.",
+      "Don't introduce display fonts, serif headings, or decorative typeface into any UI surface.",
+      "Don't default to modal dialogs for workflows that could be inline or progressive."
+    ]
+  }
+}

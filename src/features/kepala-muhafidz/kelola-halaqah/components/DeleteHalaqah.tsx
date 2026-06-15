@@ -68,7 +68,7 @@ export function DeleteHalaqah({ halaqah, isOpen, onClose, onSuccess }: DeleteHal
               <div className="rounded-md border border-destructive/20 bg-destructive/5 p-3">
                 <p className="font-bold text-destructive">{halaqah?.name_halaqah}</p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Muhafidz: {halaqah?.user.username}
+                  Muhafidz: {halaqah?.muhafiz?.name || halaqah?.user?.name || 'Tanpa Muhafiz'}
                 </p>
               </div>
             </div>

@@ -3,14 +3,22 @@ import { Link, useLocation } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { 
   faChartPie, faUsers, faBook, faClipboardCheck, 
-  faUserTie, faBookOpen 
+  faUserTie, faBookOpen, faBuilding 
 } from "@fortawesome/free-solid-svg-icons";
+import { isKepalaRole, Role } from "@/types/domain/enums";
 
 export function MobileDock() {
   const { user } = useAuth();
   const location = useLocation();
 
-  const menuItems = user?.role === "superadmin" 
+  const isSuperAdmin = user?.role === Role.SUPERADMIN;
+
+  const menuItems = isSuperAdmin
+    ? [
+        { name: "Dash", path: "/superadmin", icon: faChartPie },
+        { name: "Sekolah", path: "/superadmin/sekolah", icon: faBuilding },
+      ]
+    : user && isKepalaRole(user.role)
     ? [
         { name: "Dash", path: "/kepala-muhafidz", icon: faChartPie },
         { name: "Muhafiz", path: "/kepala-muhafidz/muhafiz", icon: faUserTie },

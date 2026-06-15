@@ -1,12 +1,14 @@
 import axiosClient from "@/api/axiosClient";
 import { getErrorMessage } from "@/utils/error";
 import { type ApiResponse } from "@/services/halaqahService";
-import { type AbsensiStatus, type AbsensiPayload, type AbsensiRecord } from "../types";
+import { type StatusKehadiran as AbsensiStatus } from "@/types/domain/enums";
+import { type CreateAbsensiSantriRequest as AbsensiPayload, type AbsensiSantri as AbsensiRecord } from "@/types/domain/absensi";
 
 export interface MonthlyAbsensiData {
   tanggal: string;
   data: {
-    santri_id: number;
+    id_santri: number;
+    id_sesi: number;
     status: AbsensiStatus;
   }[];
 }
@@ -50,6 +52,20 @@ export const absensiService = {
       return res.data;
     } catch (error: unknown) {
       throw new Error(getErrorMessage(error, "Gagal mengambil absensi harian"));
+    }
+  },
+
+  getAllRekapSantri: async (
+    month: string,
+    year: string
+  ): Promise<ApiResponse<MonthlyAbsensiData[]>> => {
+    try {
+      const res = await axiosClient.get<ApiResponse<MonthlyAbsensiData[]>>(
+        `/absensi/rekap-santri?month=${month}&year=${year}`
+      );
+      return res.data;
+    } catch (error: unknown) {
+      throw new Error(getErrorMessage(error, "Gagal mengambil rekap semua santri"));
     }
   },
 };

@@ -16,7 +16,7 @@ import { type Muhafiz } from "@/features/kepala-muhafidz/kelola-muhafiz/types";
 
 const halaqahSchema = z.object({
   name_halaqah: z.string().min(3, "Nama halaqah minimal 3 karakter"),
-  muhafiz_id: z.number().min(1, "Pilih muhafiz"),
+  id_muhafiz: z.number().min(1, "Pilih muhafiz"),
 });
 
 type HalaqahFormValues = z.infer<typeof halaqahSchema>;
@@ -25,7 +25,7 @@ interface HalaqahFormProps {
   initialData?: {
     id_halaqah?: number;
     name_halaqah: string;
-    muhafiz_id: number;
+    id_muhafiz: number;
   };
   onSuccess?: () => void;
 }
@@ -48,11 +48,11 @@ export function HalaqahForm({ initialData, onSuccess }: HalaqahFormProps) {
     resolver: zodResolver(halaqahSchema),
     defaultValues: {
       name_halaqah: initialData?.name_halaqah || "",
-      muhafiz_id: initialData?.muhafiz_id || 0,
+      id_muhafiz: initialData?.id_muhafiz || 0,
     },
   });
 
-  const selectedMuhafizId = watch("muhafiz_id");
+  const selectedMuhafizId = watch("id_muhafiz");
 
   // Load muhafiz dan halaqah yang sudah ada untuk pengecekan "availability"
   useEffect(() => {
@@ -77,10 +77,10 @@ export function HalaqahForm({ initialData, onSuccess }: HalaqahFormProps) {
   // KECUALI muhafidz yang memang sedang dipilih saat ini (untuk mode Edit)
   const availableMuhafiz = useMemo(() => {
     // Cari ID Muhafidz yang sudah terpakai
-    const takenMuhafizIds = existingHalaqahs.map((h) => h.muhafiz_id);
+    const takenMuhafizIds = existingHalaqahs.map((h) => h.id_muhafiz);
 
     return muhafizList.filter((m) => {
-      const isCurrentMuhafiz = m.id_user === initialData?.muhafiz_id;
+      const isCurrentMuhafiz = m.id_user === initialData?.id_muhafiz;
       const isTaken = takenMuhafizIds.includes(m.id_user);
 
       // Munculkan jika: Belum diambil orang lain ATAU dia adalah muhafidz halaqah ini sendiri
@@ -94,9 +94,15 @@ export function HalaqahForm({ initialData, onSuccess }: HalaqahFormProps) {
 
     try {
       if (initialData?.id_halaqah) {
-        await halaqahManagementService.updateHalaqah(initialData.id_halaqah, data);
+        await halaqahManagementService.updateHalaqah(initialData.id_halaqah, {
+          name_halaqah: data.name_halaqah,
+          id_muhafiz: data.id_muhafiz,
+        });
       } else {
-        await halaqahManagementService.createHalaqah(data);
+        await halaqahManagementService.createHalaqah({
+          name_halaqah: data.name_halaqah,
+          id_muhafiz: data.id_muhafiz,
+        });
       }
 
       setSuccess(true);
@@ -143,11 +149,11 @@ export function HalaqahForm({ initialData, onSuccess }: HalaqahFormProps) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="muhafiz_id">Muhafiz Pengampu</Label>
+        <Label htmlFor="id_muhafiz">Muhafiz Pengampu</Label>
         <Select
           disabled={isLoadingData || isSubmitting}
           value={selectedMuhafizId !== 0 ? selectedMuhafizId.toString() : undefined}
-          onValueChange={(value) => setValue("muhafiz_id", parseInt(value), { shouldValidate: true })}
+          onValueChange={(value) => setValue("id_muhafiz", parseInt(value), { shouldValidate: true })}
         >
           <SelectTrigger>
             <SelectValue placeholder={isLoadingData ? "Memuat data..." : "Pilih muhafiz yang tersedia"} />
@@ -160,14 +166,14 @@ export function HalaqahForm({ initialData, onSuccess }: HalaqahFormProps) {
             ) : (
               availableMuhafiz.map((m) => (
                 <SelectItem key={m.id_user} value={m.id_user.toString()}>
-                  {m.username} ({m.email})
+                  {m.name} ({m.email})
                 </SelectItem>
               ))
             )}
           </SelectContent>
         </Select>
-        {errors.muhafiz_id && (
-          <p className="text-sm text-destructive">{errors.muhafiz_id.message}</p>
+        {errors.id_muhafiz && (
+          <p className="text-sm text-destructive">{errors.id_muhafiz.message}</p>
         )}
       </div>
 

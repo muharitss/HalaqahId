@@ -10,7 +10,6 @@ import { useSantri } from "./hooks/useSantri";
 import { type Santri } from "./types";
 import { halaqahService } from "@/services/halaqahService";
 import { type Halaqah } from "@/services/halaqahService";
-import { SantriInfoCard } from "./components/SantriInfoCard";
 import { SantriSkeleton } from "./components/SantriSkeleton";
 import { SantriTable } from "./components/SantriTable";
 import { SantriModal } from "./components/SantriModal";
@@ -21,23 +20,26 @@ import { santriSchema } from "@/utils/zodSchema";
 
 export default function KelolaSantriPage() {
   const { isAdmin } = useAuth();
-  const { 
-    santriList, 
-    loadSantri, 
-    createSantri, 
-    updateSantri, 
+  const {
+    santriList,
+    loadSantri,
+    createSantri,
+    updateSantri,
     deleteSantri,
-    isLoading 
+    isLoading,
   } = useSantri();
-  
+
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedSantri, setSelectedSantri] = useState<Santri | null>(null);
   const [halaqahs, setHalaqahs] = useState<Halaqah[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [feedback, setFeedback] = useState<{ type: 'success' | 'error', msg: string } | null>(null);
+  const [feedback, setFeedback] = useState<{
+    type: "success" | "error";
+    msg: string;
+  } | null>(null);
 
-  const showFeedback = (type: 'success' | 'error', msg: string) => {
+  const showFeedback = (type: "success" | "error", msg: string) => {
     setFeedback({ type, msg });
     setTimeout(() => setFeedback(null), 3000);
   };
@@ -59,43 +61,47 @@ export default function KelolaSantriPage() {
   }, [isAdmin, loadSantri, fetchHalaqahs]);
 
   const filteredSantri = useMemo(() => {
-    return santriList.filter((s) => 
-      s.nama_santri.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      s.nomor_telepon.includes(searchTerm)
+    return santriList.filter(
+      (s) =>
+        s.nama_santri.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        s.nomor_telepon.includes(searchTerm),
     );
   }, [santriList, searchTerm]);
 
-  const handleSaveSantri = async (data: unknown) => { 
-    setIsSubmitting(true); 
+  const handleSaveSantri = async (data: unknown) => {
+    setIsSubmitting(true);
     try {
       const validatedData = santriSchema.parse(data);
 
       if (selectedSantri) {
         await updateSantri(selectedSantri.id_santri, {
           ...validatedData,
-          halaqah_id: validatedData.halaqah_id ?? selectedSantri.halaqah_id
+          id_halaqah: validatedData.id_halaqah ?? selectedSantri.id_halaqah,
         });
-        showFeedback('success', 'Berhasil memperbarui data');
+        showFeedback("success", "Berhasil memperbarui data");
       } else {
         await createSantri({
           nama_santri: validatedData.nama_santri,
           nomor_telepon: validatedData.nomor_telepon,
           target: validatedData.target,
-          halaqah_id: validatedData.halaqah_id || 0
+          id_halaqah: validatedData.id_halaqah || 0,
         });
-        showFeedback('success', 'Berhasil menambah santri');
+        showFeedback("success", "Berhasil menambah santri");
       }
-      
+
       setIsModalOpen(false);
       loadSantri();
     } catch (err: unknown) {
       if (err instanceof z.ZodError) {
-        showFeedback('error', err.issues[0].message);
+        showFeedback("error", err.issues[0].message);
       } else {
-        showFeedback('error', getErrorMessage(err, "Gagal memproses data santri"));
+        showFeedback(
+          "error",
+          getErrorMessage(err, "Gagal memproses data santri"),
+        );
       }
-    } finally { 
-      setIsSubmitting(false); 
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -109,9 +115,9 @@ export default function KelolaSantriPage() {
 
     try {
       await deleteSantri(santri.id_santri);
-      showFeedback('success', 'Berhasil menghapus santri');
+      showFeedback("success", "Berhasil menghapus santri");
     } catch (err: unknown) {
-      showFeedback('error', getErrorMessage(err, 'Gagal menghapus santri'));
+      showFeedback("error", getErrorMessage(err, "Gagal menghapus santri"));
     }
   };
 
@@ -124,21 +130,30 @@ export default function KelolaSantriPage() {
     <div className="space-y-6 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b pb-8">
         <div className="space-y-1">
-          <h1 className="text-xl md:text-2xl font-bold tracking-tight">Kelola Santri</h1>
+          <h1 className="text-xl md:text-2xl font-bold tracking-tight">
+            Kelola Santri
+          </h1>
         </div>
         <div className="shrink-0">
-          <Button
-            onClick={handleAddNew}
-            className="px-8 font-semibold shadow-lg shadow-primary/20"
-          >
-            Tambah Santri
-          </Button>
+          {isAdmin() && (
+            <Button
+              onClick={handleAddNew}
+              className="px-8 font-semibold shadow-lg shadow-primary/20"
+            >
+              Tambah Santri
+            </Button>
+          )}
         </div>
       </div>
 
       {feedback && (
-        <div className={`p-4 rounded-md flex items-center ${feedback.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-          <FontAwesomeIcon icon={feedback.type === 'success' ? faTimes : faTimes} className="mr-2" />
+        <div
+          className={`p-4 rounded-md flex items-center ${feedback.type === "success" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}
+        >
+          <FontAwesomeIcon
+            icon={feedback.type === "success" ? faTimes : faTimes}
+            className="mr-2"
+          />
           <span>{feedback.msg}</span>
         </div>
       )}
@@ -147,8 +162,6 @@ export default function KelolaSantriPage() {
         <SantriSkeleton />
       ) : (
         <div className="grid gap-6">
-          <SantriInfoCard />
-          
           <div className="bg-card rounded-lg border shadow-sm">
             <div className="p-4 border-b">
               <input
@@ -159,10 +172,10 @@ export default function KelolaSantriPage() {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            
+
             {filteredSantri.length > 0 ? (
-              <SantriTable 
-                data={filteredSantri} 
+              <SantriTable
+                data={filteredSantri}
                 searchTerm={searchTerm}
                 isAdmin={isAdmin()}
                 halaqahList={halaqahs}
@@ -172,11 +185,15 @@ export default function KelolaSantriPage() {
             ) : (
               <div className="flex flex-col items-center justify-center py-12 px-4 border-2 border-dashed rounded-xl bg-muted/30">
                 <div className="bg-primary/10 p-4 rounded-full mb-4">
-                  <FontAwesomeIcon icon={faInbox} className="text-3xl text-primary" />
+                  <FontAwesomeIcon
+                    icon={faInbox}
+                    className="text-3xl text-primary"
+                  />
                 </div>
                 <h3 className="text-lg font-semibold">Belum Ada Santri</h3>
                 <p className="text-muted-foreground text-center max-w-sm mt-2">
-                  Data santri tidak ditemukan atau belum ditambahkan ke halaqah ini.
+                  Data santri tidak ditemukan atau belum ditambahkan ke halaqah
+                  ini.
                 </p>
               </div>
             )}

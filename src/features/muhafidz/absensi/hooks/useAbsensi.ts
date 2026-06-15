@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { absensiService } from "../services/absensiService";
-import { type AbsensiPayload } from "../types";
+import { type CreateAbsensiSantriRequest as AbsensiPayload } from "@/types/domain/absensi";
 import { getErrorMessage } from "@/utils/error";
 export const useAbsensi = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);

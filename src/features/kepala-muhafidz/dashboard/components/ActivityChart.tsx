@@ -32,7 +32,7 @@ export const ActivityChart = ({
   loading 
 }: ActivityChartProps) => (
   <Card className="lg:col-span-3 border-none shadow-sm bg-muted/20">
-    <CardHeader className="flex flex-row items-center justify-between">
+    <CardHeader className="flex flex-row items-center justify-between pb-2">
       <div className="space-y-1">
         <CardTitle className="flex items-center gap-2 text-base">
           <FontAwesomeIcon icon={faChartLine} className="text-primary" />
@@ -50,20 +50,37 @@ export const ActivityChart = ({
         </TabsList>
       </Tabs>
     </CardHeader>
-    <CardContent>
+    <CardContent className="pb-0">
       {loading ? (
-        <Skeleton className="h-62.5 w-full" />
+        <Skeleton className="h-[250px] w-full" />
       ) : (
-        <ChartContainer config={chartConfig} className="h-62.5 w-full">
+        <ChartContainer config={chartConfig} className="h-[250px] w-full">
           {view === "pekan" ? (
-            <BarChart data={dataPekan}>
+            <BarChart 
+              data={dataPekan} 
+              margin={{ top: 10, right: 10, left: 10, bottom: 0 }}
+            >
               <CartesianGrid vertical={false} strokeOpacity={0.1} />
-              <XAxis dataKey="day" tickLine={false} axisLine={false} fontSize={12} />
+              <XAxis 
+                dataKey="day" 
+                tickLine={false} 
+                axisLine={false} 
+                fontSize={12}
+                dy={10} // Mengatur jarak label sumbu X agar tidak terlalu mepet bar
+              />
               <ChartTooltip content={<ChartTooltipContent />} />
-              <Bar dataKey="setoran" fill="var(--primary)" radius={[4, 4, 0, 0]} barSize={40} />
+              <Bar 
+                dataKey="setoran" 
+                fill="var(--primary)" 
+                radius={[4, 4, 0, 0]} 
+                barSize={32} 
+              />
             </BarChart>
           ) : (
-            <AreaChart data={dataBulan}>
+            <AreaChart 
+              data={dataBulan}
+              margin={{ top: 10, right: 0, left: 0, bottom: 0 }}
+            >
               <defs>
                 <linearGradient id="colorSetoran" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.3}/>
@@ -73,7 +90,13 @@ export const ActivityChart = ({
               <CartesianGrid vertical={false} strokeOpacity={0.1} />
               <XAxis dataKey="date" hide />
               <ChartTooltip content={<ChartTooltipContent />} />
-              <Area type="monotone" dataKey="setoran" stroke="var(--primary)" fillOpacity={1} fill="url(#colorSetoran)" />
+              <Area 
+                type="monotone" 
+                dataKey="setoran" 
+                stroke="var(--primary)" 
+                fillOpacity={1} 
+                fill="url(#colorSetoran)" 
+              />
             </AreaChart>
           )}
         </ChartContainer>

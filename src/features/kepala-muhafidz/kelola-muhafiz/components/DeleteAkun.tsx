@@ -66,7 +66,7 @@ export function DeleteAkun({ muhafiz, isOpen, onClose, onSuccess }: DeleteAkunPr
               </p>
               
               <div className="rounded-md border border-destructive/20 bg-destructive/5 p-3">
-                <p className="font-bold text-destructive">{muhafiz?.username}</p>
+                <p className="font-bold text-destructive">{muhafiz?.name}</p>
                 <p className="text-xs text-muted-foreground mt-1 font-medium">
                   Email: {muhafiz?.email}
                 </p>

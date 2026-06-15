@@ -1,7 +1,9 @@
 import { Routes, Route, Navigate, Outlet } from "react-router-dom";
 import LoginPage from "@/features/auth/pages/LoginPage";
+import RegisterPage from "@/features/auth/pages/RegisterPage";
 import KepalaMuhafidzRoot from "@/features/kepala-muhafidz/pages/KepalaMuhafidzRoot";
 import MuhafidzPage from "@/features/muhafidz/pages/MuhafidzRoot"; 
+import SuperadminRoot from "@/features/superadmin/pages/SuperadminRoot";
 import { useAuth } from "@/features/auth/context/AuthContext";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import { Spinner } from "@/components/ui/spinner";
@@ -18,9 +20,10 @@ import KelolaHalaqahPage from "@/features/kepala-muhafidz/kelola-halaqah";
 import AbsensiPage from "@/features/muhafidz/absensi";
 import SetoranPage from "@/features/muhafidz/setoran";
 import ProgresSantriPage from "@/features/muhafidz/progres-santri";
+import { Role, isKepalaRole } from "@/types/domain/enums";
 
 
-const ProtectedRoute = ({ allowedRoles }: { allowedRoles?: ("superadmin" | "muhafiz")[] }) => {
+const ProtectedRoute = ({ allowedRoles }: { allowedRoles?: Role[] }) => {
   const { user, isLoading } = useAuth();
 
   if (isLoading) {
@@ -38,7 +41,8 @@ const ProtectedRoute = ({ allowedRoles }: { allowedRoles?: ("superadmin" | "muha
 
   // Jika role tidak diizinkan, kembalikan ke dashboard sesuai role
   if (allowedRoles && !allowedRoles.includes(user.role)) {
-    return user.role === "superadmin" 
+    if (user.role === Role.SUPERADMIN) return <Navigate to="/superadmin" replace />;
+    return isKepalaRole(user.role)
       ? <Navigate to="/kepala-muhafidz" replace />
       : <Navigate to="/muhafidz" replace />;
   }
@@ -61,7 +65,7 @@ export const AppRouter = () => {
     <Routes>
       {/* 🔓 Public Route: Login */}
       <Route 
-        path="/display" 
+        path="/display/:token" 
         element={
           <DisplayProvider>
             <PublicDisplay />
@@ -69,7 +73,7 @@ export const AppRouter = () => {
         } 
       />
       <Route 
-        path="/display/santri/:id" 
+        path="/display/:token/santri/:id" 
         element={
           <DisplayProvider>
             <SantriDetail /> 
@@ -80,6 +84,10 @@ export const AppRouter = () => {
         path="/login" 
         element={user ? <Navigate to="/" replace /> : <LoginPage />} 
       />
+      <Route 
+        path="/register" 
+        element={user ? <Navigate to="/" replace /> : <RegisterPage />} 
+      />
 
       {/* 🔒 Protected Routes: Membutuhkan Login */}
       <Route element={<ProtectedRoute />}>
@@ -89,7 +97,9 @@ export const AppRouter = () => {
           <Route
             index
             element={
-              user?.role === "superadmin" ? (
+              user?.role === Role.SUPERADMIN ? (
+                <Navigate to="/superadmin" replace />
+              ) : user && isKepalaRole(user.role) ? (
                 <Navigate to="/kepala-muhafidz" replace />
               ) : (
                 <Navigate to="/muhafidz" replace />
@@ -97,8 +107,13 @@ export const AppRouter = () => {
             }
           />
 
-          {/* Rute Khusus Superadmin (Kepala Muhafidz) */}
-          <Route element={<ProtectedRoute allowedRoles={["superadmin"]} />}>
+          {/* Rute Khusus Superadmin */}
+          <Route element={<ProtectedRoute allowedRoles={[Role.SUPERADMIN]} />}>
+            <Route path="/superadmin/*" element={<SuperadminRoot />} />
+          </Route>
+
+          {/* Rute Khusus Kepala (Superadmin, Admin, Koordinator Tahfiz) */}
+          <Route element={<ProtectedRoute allowedRoles={[Role.SUPERADMIN, Role.ADMIN, Role.KOORDINATOR_TAHFIZ]} />}>
             <Route path="/kepala-muhafidz" element={<KepalaMuhafidzRoot />} />
             <Route path="/kepala-muhafidz/muhafiz" element={<KelolaMuhafizPage />} />
             <Route path="/kepala-muhafidz/halaqah" element={<KelolaHalaqahPage />} />
@@ -120,7 +135,7 @@ export const AppRouter = () => {
           </Route>
 
           {/* Rute Khusus Muhafidz */}
-          <Route element={<ProtectedRoute allowedRoles={["muhafiz"]} />}>
+          <Route element={<ProtectedRoute allowedRoles={[Role.MUHAFIZ]} />}>
             <Route path="/muhafidz/tahfidzai" element={<TahfidzAi />} />
             <Route path="/muhafidz/*" element={<MuhafidzPage />} />
           </Route>

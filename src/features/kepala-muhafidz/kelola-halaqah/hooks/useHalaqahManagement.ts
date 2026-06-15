@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { halaqahManagementService } from "../services/halaqahManagementService";
 import { type Halaqah } from "../types";
-import { type Santri } from "@/features/muhafidz/kelola-santri/types";
+import { type Santri } from "../types";
+import type { KategoriTarget } from "@/types/domain/enums";
 import { toast } from "sonner";
 
 export function useHalaqahManagement() {
@@ -21,7 +22,7 @@ export function useHalaqahManagement() {
   const [isDeleteSantriOpen, setIsDeleteSantriOpen] = useState(false);
   const [isMoveSantriOpen, setIsMoveSantriOpen] = useState(false);
 
-  // Derived state: Santri Map (Organized by halaqah_id)
+  // Derived state: Santri Map (Organized by id_halaqah)
   const [santriMap, setSantriMap] = useState<Record<number, Santri[]>>({});
 
   // --- DATA FETCHING ---
@@ -33,10 +34,9 @@ export function useHalaqahManagement() {
 
       const map: Record<number, Santri[]> = {};
       data.forEach((h) => {
-        map[h.id_halaqah] = h.santri.map((s) => ({
+        map[h.id_halaqah] = (h.santri || []).map((s) => ({
           ...s,
-          halaqah_id: h.id_halaqah,
-          is_active: true, // Defaulting as SantriInHalaqah doesn't have it but Santri requires it
+          id_halaqah: h.id_halaqah,
         })) as Santri[];
       });
       setSantriMap(map);
@@ -64,7 +64,7 @@ export function useHalaqahManagement() {
   // 2. Santri Handlers
   const handleOpenAddSantri = useCallback((halaqah: Halaqah) => {
     setSelectedHalaqah(halaqah);
-    setSelectedSantri(null); 
+    setSelectedSantri(null);
     setIsSantriModalOpen(true);
   }, []);
 
@@ -78,20 +78,22 @@ export function useHalaqahManagement() {
       nama_santri: string | FormDataEntryValue | null;
       nomor_telepon: string | FormDataEntryValue | null;
       target: string;
-      halaqah_id: number | undefined;
+      id_halaqah: number | undefined;
     }) => {
       setIsSubmitting(true);
       try {
         const payload = {
           nama_santri: String(data.nama_santri),
           nomor_telepon: String(data.nomor_telepon),
-          target: data.target as "RINGAN" | "SEDANG" | "INTENSE",
-          halaqah_id: data.halaqah_id || selectedHalaqah?.id_halaqah || 0,
-          is_active: true
+          target: data.target as KategoriTarget,
+          id_halaqah: data.id_halaqah || selectedHalaqah?.id_halaqah || 0,
         } as Santri;
 
         if (selectedSantri?.id_santri) {
-          await halaqahManagementService.updateSantri(selectedSantri.id_santri, payload);
+          await halaqahManagementService.updateSantri(
+            selectedSantri.id_santri,
+            payload,
+          );
           toast.success("Santri berhasil diperbarui");
         } else {
           await halaqahManagementService.createSantri(payload);
@@ -106,12 +108,12 @@ export function useHalaqahManagement() {
         setIsSubmitting(false);
       }
     },
-    [selectedSantri, selectedHalaqah, fetchData]
+    [selectedSantri, selectedHalaqah, fetchData],
   );
 
   const handleDeleteSantriConfirm = useCallback(async () => {
     if (!selectedSantri?.id_santri) return;
-    
+
     setIsSubmitting(true);
     try {
       await halaqahManagementService.deleteSantri(selectedSantri.id_santri);
@@ -134,7 +136,7 @@ export function useHalaqahManagement() {
       try {
         await halaqahManagementService.updateSantri(santriId, {
           ...selectedSantri,
-          halaqah_id: targetHalaqahId,
+          id_halaqah: targetHalaqahId,
         });
         toast.success("Santri berhasil dipindahkan");
         setIsMoveSantriOpen(false);
@@ -147,7 +149,7 @@ export function useHalaqahManagement() {
         setIsSubmitting(false);
       }
     },
-    [selectedSantri, fetchData]
+    [selectedSantri, fetchData],
   );
 
   return {

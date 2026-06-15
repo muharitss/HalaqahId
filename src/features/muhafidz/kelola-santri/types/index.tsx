@@ -4,8 +4,7 @@ export interface Santri {
   nama_santri: string;
   nomor_telepon: string;
   target: "RINGAN" | "SEDANG" | "INTENSE";
-  halaqah_id: number;
-  is_active: boolean;
+  id_halaqah: number;
   created_at?: string;
   updated_at?: string;
   deleted_at?: string;
@@ -16,7 +15,7 @@ export interface CreateSantriData {
   nama_santri: string;
   nomor_telepon: string;
   target: "RINGAN" | "SEDANG" | "INTENSE";
-  halaqah_id: number;
+  id_halaqah: number;
 }
 
 export type UpdateSantriData = Partial<CreateSantriData>;

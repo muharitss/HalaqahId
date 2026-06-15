@@ -1,12 +1,9 @@
-
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import type { Muhafiz } from "../types";
-
-type AbsensiStatus = "HADIR" | "IZIN" | "SAKIT" | "TERLAMBAT" | "ALFA";
+import type { Muhafiz, AbsensiStatus } from "../types";
 
 interface Props {
   muhafizList: Muhafiz[];
@@ -62,7 +59,7 @@ export const InputAbsensiAsatidz = ({
                   <TableCell className="py-4">
                     <div className="flex items-center gap-3">
                       <div className="flex flex-col gap-0.5">
-                        <span className="font-bold text-sm md:text-base tracking-tight">{m.username}</span>
+                        <span className="font-bold text-sm md:text-base tracking-tight">{m.name}</span>
                         <span className="text-xs text-muted-foreground">{m.email}</span>
                       </div>
                       

@@ -37,7 +37,7 @@ const setoranSchema = z.object({
   ayat_mulai: z.coerce.number().min(1),
   ayat_selesai: z.coerce.number().min(1),
   kategori: z.enum(["HAFALAN", "MURAJAAH", "ZIYADAH", "INTENS", "BACAAN"]),
-  taqwim: z.number().optional(),
+  taqwim: z.coerce.number().optional(),
   keterangan: z.string().optional(),
 }).refine((data) => data.ayat_selesai >= data.ayat_mulai, {
   message: "Ayat selesai tidak boleh kurang dari mulai",

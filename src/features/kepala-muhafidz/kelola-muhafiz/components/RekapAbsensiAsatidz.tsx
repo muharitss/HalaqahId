@@ -118,7 +118,7 @@ export const RekapAbsensiAsatidz = ({ muhafizList }: Props) => {
                   return (
                     <TableRow key={m.id_user} className="group hover:bg-slate-50 transition-colors">
                       <TableCell className="sticky left-0 z-10 bg-white group-hover:bg-slate-50 border-r border-b py-3 text-xs font-semibold shadow-[1px_0_0_0_#e2e8f0] truncate">
-                        {m.username}
+                        {m.name}
                       </TableCell>
                       {daysInMonth.map((date) => {
                         const status = getStatus(m.id_user, format(date, "yyyy-MM-dd"));

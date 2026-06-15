@@ -3,6 +3,7 @@ import { halaqahService } from "@/services/halaqahService";
 import { transformSetoranData } from "@/lib/dataTransformer";
 import type { DateFilter, GroupedData, SetoranItem } from "../types";
 import { santriService } from "@/features/muhafidz/kelola-santri/services/santriService";
+import { absensiService } from "@/services";
 
 export const laporanService = {
   // Get all setoran data
@@ -38,7 +39,10 @@ export const laporanService = {
   },
 
   // Transform data with filter
-  transformSetoranData: (data: SetoranItem[], filter?: DateFilter): GroupedData => {
+  transformSetoranData: (
+    data: SetoranItem[],
+    filter?: DateFilter,
+  ): GroupedData => {
     return transformSetoranData(data, filter);
   },
 
@@ -48,12 +52,26 @@ export const laporanService = {
   },
 
   // Get halaqah ID by name
-  getHalaqahIdByName: (halaqahList: any[], halaqahName: string): number | undefined => {
-    return halaqahList.find(h => h.name_halaqah === halaqahName)?.id_halaqah;
+  getHalaqahIdByName: (
+    halaqahList: any[],
+    halaqahName: string,
+  ): number | undefined => {
+    return halaqahList.find((h) => h.name_halaqah === halaqahName)?.id_halaqah;
   },
 
   // Filter santri by halaqah ID
   getSantriByHalaqahId: (santriList: any[], halaqahId: number) => {
-    return santriList.filter(s => s.halaqah_id === halaqahId);
-  }
+    return santriList.filter((s) => s.id_halaqah === halaqahId);
+  },
+
+  getAllSantriAbsensiMonthly: async (month: string, year: string) => {
+    try {
+      // Sesuaikan path ini dengan route yang kamu daftarkan di backend
+      const res = await absensiService.getAllRekapSantri(month, year);
+      return res.data || [];
+    } catch (error) {
+      console.error("Gagal mengambil semua rekap absensi:", error);
+      return [];
+    }
+  },
 };

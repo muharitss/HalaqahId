@@ -12,7 +12,7 @@ import type { EditAkunProps } from "../types";
 
 export function EditAkun({ muhafiz, isOpen, onClose, onSuccess }: EditAkunProps) {
   const [formData, setFormData] = useState({
-    username: "",
+    name: "",
     email: ""
   });
   const [isLoading, setIsLoading] = useState(false);
@@ -22,7 +22,7 @@ export function EditAkun({ muhafiz, isOpen, onClose, onSuccess }: EditAkunProps)
   useEffect(() => {
     if (muhafiz) {
       setFormData({
-        username: muhafiz.username || "",
+        name: muhafiz.name || "",
         email: muhafiz.email
       });
     }
@@ -56,7 +56,7 @@ export function EditAkun({ muhafiz, isOpen, onClose, onSuccess }: EditAkunProps)
   };
 
   const handleClose = () => {
-    setFormData({ username: "", email: "" });
+    setFormData({ name: "", email: "" });
     setError("");
     setSuccess("");
     onClose();
@@ -91,12 +91,12 @@ export function EditAkun({ muhafiz, isOpen, onClose, onSuccess }: EditAkunProps)
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="username">Username</Label>
+            <Label htmlFor="name">Nama</Label>
             <Input
-              id="username"
-              value={formData.username}
-              onChange={(e) => setFormData({...formData, username: e.target.value})}
-              placeholder="Masukkan username"
+              id="name"
+              value={formData.name}
+              onChange={(e) => setFormData({...formData, name: e.target.value})}
+              placeholder="Masukkan nama"
               required
               disabled={isLoading}
             />
@@ -132,7 +132,7 @@ export function EditAkun({ muhafiz, isOpen, onClose, onSuccess }: EditAkunProps)
             </Button>
             <Button
               type="submit"
-              disabled={isLoading || !formData.username.trim() || !formData.email.trim()}
+              disabled={isLoading || !formData.name.trim() || !formData.email.trim()}
             >
               {isLoading ? "Menyimpan..." : "Simpan Perubahan"}
             </Button>

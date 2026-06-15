@@ -7,6 +7,7 @@ import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/s
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { isKepalaRole, Role } from "@/types/domain/enums";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {  faBookOpen } from "@fortawesome/free-solid-svg-icons";
@@ -15,10 +16,10 @@ import { cn } from "@/lib/utils";
 export default function DashboardLayout() {
   const { user, isImpersonating } = useAuth();
   const isMobile = useIsMobile();
-  const navigate = useNavigate();
+  const navigate = useNavigate(); 
 
   const handleAvatarClick = () => {
-    const targetPath = user?.role === "superadmin" ? "/kepala-muhafidz/settings" : "muhafidz/settings";
+    const targetPath = user?.role === Role.SUPERADMIN ? "/superadmin/settings" : user && isKepalaRole(user.role) ? "/kepala-muhafidz/settings" : "muhafidz/settings";
     navigate(targetPath);
   };
 
@@ -43,7 +44,7 @@ export default function DashboardLayout() {
             <Separator orientation="vertical" className="h-6 hidden sm:block" />
             
             <h1 className="text-sm md:text-base lg:text-lg font-bold tracking-tight">
-              {isMobile ? user?.username : `Halo, ${user?.username}`}
+              {isMobile ? user?.name : `Halo, ${user?.name}`}
             </h1>
           </div>
 
@@ -57,7 +58,7 @@ export default function DashboardLayout() {
               <Avatar className="h-9 w-9 border-2 border-background ring-1 ring-border group-hover:ring-primary/50 transition-all">
                 <AvatarImage src={user?.avatarUrl} />
                 <AvatarFallback className={isImpersonating ? "bg-amber-500/10 text-amber-600" : "bg-primary/10 text-primary"}>
-                  {user?.username?.[0]?.toUpperCase()}
+                  {user?.name?.[0]?.toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               {isImpersonating && (

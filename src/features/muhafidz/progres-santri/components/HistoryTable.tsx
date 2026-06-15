@@ -5,11 +5,16 @@ import { type SetoranRecord } from "../../setoran/types";
 
 interface HistoryTableProps {
   data: SetoranRecord[];
+  monthName?: string;
 }
 
-export function HistoryTable({ data }: HistoryTableProps) {
+export function HistoryTable({ data, monthName }: HistoryTableProps) {
   if (data.length === 0) {
-    return <div className="p-8 text-center text-sm text-muted-foreground">Belum ada riwayat setoran.</div>;
+    return (
+      <div className="p-8 text-center text-sm text-muted-foreground">
+        Belum ada riwayat setoran di bulan {monthName || 'ini'}.
+      </div>
+    );
   }
 
   return (

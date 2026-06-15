@@ -1,23 +1,44 @@
 import { useNavigate } from "react-router-dom";
-import { Info, Trash2, ChevronLeft, LogOut, ArrowLeft, Bot } from "lucide-react"; // Tambahkan icon
+import { Info, Trash2, ChevronLeft, LogOut, ArrowLeft, Bot, Link as LinkIcon } from "lucide-react"; // Tambahkan icon
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { SettingItem } from "./SettingItem";
 import { useAuth } from "@/features/auth/context/AuthContext";
 import { Settings } from "@/components/typed-text";
 import { Separator } from "@/components/ui/separator";
+import { isKepalaRole } from "@/types/domain/enums";
+import { sekolahService } from "@/features/superadmin/sekolah/services/sekolahService";
+import { toast } from "sonner";
 
 export default function SettingsPage() {
   const navigate = useNavigate();
   const { user, logout, isImpersonating, stopImpersonating } = useAuth();
-  const isSuper = user?.role === "superadmin";
+  const isKepala = user ? isKepalaRole(user.role) : false;
 
-  const basePath = isSuper ? "/kepala-muhafidz/settings" : "/muhafidz/settings";
+  const basePath = isKepala ? "/kepala-muhafidz/settings" : "/muhafidz/settings";
 
   const handleBackToSuperadmin = async () => {
     if (stopImpersonating) {
       await stopImpersonating();
       navigate("/kepala-muhafidz");
+    }
+  };
+
+  const handleCopyDisplayLink = async () => {
+    try {
+      const profile = await sekolahService.getProfile();
+      const displayToken = profile.data?.display_token;
+      
+      if (!displayToken) {
+        toast.error("Gagal mendapatkan display token.");
+        return;
+      }
+
+      const publicLink = `${window.location.origin}/display/${displayToken}`;
+      await navigator.clipboard.writeText(publicLink);
+      toast.success("Link portal publik berhasil disalin ke clipboard!");
+    } catch (error: any) {
+      toast.error("Terjadi kesalahan saat menyalin link.", error.message);
     }
   };
 
@@ -41,7 +62,7 @@ export default function SettingsPage() {
               icon={<Bot size={18} className="text-blue-500" />}
               title="Tahfidz AI"
               description="Asisten virtual hafalan santri"
-              onClick={() => navigate(isSuper ? "/kepala-muhafidz/tahfidzai" : "/muhafidz/tahfidzai")}
+              onClick={() => navigate(isKepala ? "/kepala-muhafidz/tahfidzai" : "/muhafidz/tahfidzai")}
             />
           </Card>
         </section>
@@ -56,8 +77,14 @@ export default function SettingsPage() {
               description="Pedoman penggunaan dan peraturan"
               onClick={() => navigate(`${basePath}/info`)}
             />
-            {isSuper && (
+            {isKepala && (
               <>
+                <SettingItem 
+                  icon={<LinkIcon size={18} className="text-emerald-500" />}
+                  title="Salin Link Portal Publik"
+                  description="Bagikan akses ke wali santri"
+                  onClick={handleCopyDisplayLink}
+                />
                 <SettingItem 
                   icon={<Trash2 size={18} className="text-destructive" />}
                   title="Tempat Sampah"

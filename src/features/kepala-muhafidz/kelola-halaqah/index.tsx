@@ -18,7 +18,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { type Halaqah } from "./types";
-import { type Santri } from "@/features/muhafidz/kelola-santri/types";
+import { type Santri } from "./types";
 import { faBookOpen, faCalendarCheck, faLayerGroup } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";

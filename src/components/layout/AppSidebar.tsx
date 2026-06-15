@@ -3,7 +3,8 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { 
   faChartPie, faUsers, faBook, faClipboardCheck, 
-  faUserTie, faSignOutAlt, faBookOpen, faArrowLeft, faUserShield 
+  faUserTie, faSignOutAlt, faBookOpen, faArrowLeft, faUserShield,
+  faBuilding 
 } from "@fortawesome/free-solid-svg-icons";
 import {
   Sidebar,
@@ -19,6 +20,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { useEffect } from "react";
+import { isKepalaRole, Role } from "@/types/domain/enums";
 
 export function AppSidebar() {
   const { user, logout, stopImpersonating, isImpersonating } = useAuth();
@@ -30,14 +32,21 @@ export function AppSidebar() {
     if (isMobile) {
       setOpenMobile(false)
     }
-  }, [location.pathname])
+  }, [location.pathname, isMobile, setOpenMobile])
 
   const handleBackToSuperadmin = async () => {
     await stopImpersonating();
     navigate("/kepala-muhafidz");
   };
 
-  const menuItems = user?.role === "superadmin" 
+  const isSuperAdmin = user?.role === Role.SUPERADMIN;
+
+  const menuItems = isSuperAdmin
+    ? [
+        { name: "Dashboard", path: "/superadmin", icon: faChartPie },
+        { name: "Kelola Sekolah", path: "/superadmin/sekolah", icon: faBuilding },
+      ]
+    : user && isKepalaRole(user.role)
     ? [
         { name: "Dashboard", path: "/kepala-muhafidz", icon: faChartPie },
         { name: "Kelola Muhafiz", path: "/kepala-muhafidz/muhafiz", icon: faUserTie },
@@ -106,11 +115,11 @@ export function AppSidebar() {
           <SidebarMenuItem>
             <div className="flex items-center gap-3 px-2 py-2 group-data-[collapsible=icon]:hidden">
               <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                <FontAwesomeIcon icon={user?.role === "superadmin" ? faUserShield : faUserTie} className="text-primary" />
+                <FontAwesomeIcon icon={user?.role === Role.SUPERADMIN ? faUserShield : faUserTie} className="text-primary" />
               </div>
               <div className="flex flex-1 flex-col overflow-hidden text-left">
-                <span className="text-sm font-medium truncate">{user?.username}</span>
-                <span className="text-xs text-muted-foreground capitalize">{user?.role}</span>
+                <span className="text-sm font-medium truncate">{user?.name}</span>
+                <span className="text-xs text-muted-foreground capitalize">{user?.role?.toLowerCase()}</span>
               </div>
             </div>
             <SidebarMenuButton 

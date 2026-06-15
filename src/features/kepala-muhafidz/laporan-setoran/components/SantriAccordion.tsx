@@ -18,22 +18,21 @@ import type { SantriAccordionProps } from "../types";
 
 export function SantriAccordion({ santriGroup }: SantriAccordionProps) {
   return (
-    <Accordion type="single" collapsible className="w-full space-y-3">
+    <Accordion type="single" collapsible className="w-full space-y-2">
       {Object.values(santriGroup).map((santri: any) => (
         <AccordionItem 
           key={santri.nama} 
           value={santri.nama}
-          className="border rounded-md bg-card overflow-hidden"
+          className="border rounded-md bg-card overflow-hidden last:border-b"
         >
-          <AccordionTrigger className="hover:no-underline px-4 py-4 group">
-            <div className="flex items-center justify-between w-full pr-4">
-              <div className="flex items-center gap-4">
-                <div className="h-10 w-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold">
+          <AccordionTrigger className="hover:no-underline px-4 py-2 group">
+            <div className="flex items-center justify-between w-full pr-4 text-xs sm:text-sm">
+              <div className="flex items-center gap-3">
+                <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs uppercase">
                   {santri.nama.charAt(0)}
                 </div>
-                <div className="text-left">
-                  <p className="font-bold">{santri.nama}</p>
-                  <p className="text-xs text-muted-foreground">{santri.setoran.length} aktivitas</p>
+                <div className="flex flex-col p-3">
+                  <p className="font-bold text-sm">{santri.nama}</p>
                 </div>
               </div>
               <div className="flex gap-2">
@@ -62,7 +61,7 @@ export function SantriAccordion({ santriGroup }: SantriAccordionProps) {
                   <TableHead className="font-bold">Tanggal</TableHead>
                   <TableHead className="font-bold">Materi</TableHead>
                   <TableHead className="font-bold">Kategori</TableHead>
-                  <TableHead className="font-bold">Penilaian</TableHead>
+                  <TableHead className="font-bold">Kesalahan</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

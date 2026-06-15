@@ -9,31 +9,7 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/table";
-
-interface SetoranFeedItem {
-  tanggal_setoran: string;
-  juz: number;
-  surat: string;
-  ayat: string;
-  kategori: string;
-  taqwim: number;
-}
-
-interface PublicSantriData {
-  setoran: SetoranFeedItem[];
-  stats: {
-    HAFALAN: number;
-    MURAJAAH: number;
-    ZIYADAH: number;
-    INTENS: number;
-    BACAAN: number;
-  };
-}
-
-interface PublicSantriFeedProps {
-  santriData: PublicSantriData; // Objek santri hasil transform
-}
-
+import { type SetoranFeedItem, type PublicSantriData, type PublicSantriFeedProps } from "@/types/domain/display";
 
 export function PublicSantriFeed({ santriData }: PublicSantriFeedProps) {
   if (!santriData || !santriData.setoran) return null;

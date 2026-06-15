@@ -32,7 +32,7 @@ export function EditHalaqah({ halaqah, isOpen, onClose, onSuccess }: EditHalaqah
             initialData={{
               id_halaqah: halaqah.id_halaqah,
               name_halaqah: halaqah.name_halaqah,
-              muhafiz_id: halaqah.muhafiz_id
+              id_muhafiz: halaqah.id_muhafiz
             }}
             onSuccess={() => {
               onSuccess();
