@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import type { SesiHalaqah, CreateSesiHalaqahRequest, UpdateSesiHalaqahRequest } from "@/types/domain/sesi-halaqah";
 import type { Halaqah } from "../../kelola-halaqah/types";
 
@@ -20,7 +20,18 @@ export function SesiModal({ isOpen, onClose, sesi, halaqahList, onSave, isSubmit
   const [namaSesi, setNamaSesi] = useState("");
   const [jamMulai, setJamMulai] = useState("");
   const [jamSelesai, setJamSelesai] = useState("");
-  const [idHalaqah, setIdHalaqah] = useState<string>("");
+  const [idHalaqahs, setIdHalaqahs] = useState<string[]>([]);
+  const [hari, setHari] = useState<number[]>([]);
+
+  const HARI_OPTIONS = [
+    { value: 1, label: "Senin" },
+    { value: 2, label: "Selasa" },
+    { value: 3, label: "Rabu" },
+    { value: 4, label: "Kamis" },
+    { value: 5, label: "Jumat" },
+    { value: 6, label: "Sabtu" },
+    { value: 7, label: "Ahad" },
+  ];
 
   useEffect(() => {
     if (isOpen) {
@@ -28,12 +39,14 @@ export function SesiModal({ isOpen, onClose, sesi, halaqahList, onSave, isSubmit
         setNamaSesi(sesi.nama_sesi || "");
         setJamMulai(sesi.jam_mulai || "");
         setJamSelesai(sesi.jam_selesai || "");
-        setIdHalaqah(sesi.id_halaqah ? sesi.id_halaqah.toString() : "");
+        setIdHalaqahs(sesi.id_halaqah ? [sesi.id_halaqah.toString()] : []);
+        setHari(sesi.hari || []);
       } else {
         setNamaSesi("");
         setJamMulai("");
         setJamSelesai("");
-        setIdHalaqah("");
+        setIdHalaqahs([]);
+        setHari([]);
       }
     }
   }, [isOpen, sesi]);
@@ -48,14 +61,32 @@ export function SesiModal({ isOpen, onClose, sesi, halaqahList, onSave, isSubmit
         nama_sesi: namaSesi,
         jam_mulai: jamMulai,
         jam_selesai: jamSelesai,
+        hari: hari.length > 0 ? hari : undefined,
       } as UpdateSesiHalaqahRequest;
     } else {
-      payload = {
-        nama_sesi: namaSesi,
-        jam_mulai: jamMulai,
-        jam_selesai: jamSelesai,
-        id_halaqah: idHalaqah ? parseInt(idHalaqah) : undefined,
-      } as CreateSesiHalaqahRequest;
+      if (idHalaqahs.length === 0) {
+        alert("Pilih minimal satu halaqah");
+        return;
+      }
+      
+      // Jika lebih dari 1 halaqah yang dipilih, kirim array payload
+      if (idHalaqahs.length > 1) {
+        payload = idHalaqahs.map(id => ({
+          nama_sesi: namaSesi,
+          jam_mulai: jamMulai,
+          jam_selesai: jamSelesai,
+          hari: hari.length > 0 ? hari : undefined,
+          id_halaqah: parseInt(id),
+        })) as CreateSesiHalaqahRequest[];
+      } else {
+        payload = {
+          nama_sesi: namaSesi,
+          jam_mulai: jamMulai,
+          jam_selesai: jamSelesai,
+          hari: hari.length > 0 ? hari : undefined,
+          id_halaqah: parseInt(idHalaqahs[0]),
+        } as CreateSesiHalaqahRequest;
+      }
     }
 
     const success = await onSave(payload);
@@ -107,21 +138,74 @@ export function SesiModal({ isOpen, onClose, sesi, halaqahList, onSave, isSubmit
             </div>
           </div>
 
+          <div className="space-y-2">
+            <Label>Hari (Opsional)</Label>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 border rounded-md p-3">
+              {HARI_OPTIONS.map((h) => (
+                <div key={h.value} className="flex items-center space-x-2">
+                  <Checkbox 
+                    id={`hari-${h.value}`} 
+                    checked={hari.includes(h.value)}
+                    onCheckedChange={(checked) => {
+                      if (checked) {
+                        setHari([...hari, h.value]);
+                      } else {
+                        setHari(hari.filter(id => id !== h.value));
+                      }
+                    }}
+                  />
+                  <Label htmlFor={`hari-${h.value}`} className="font-normal cursor-pointer text-sm">
+                    {h.label}
+                  </Label>
+                </div>
+              ))}
+            </div>
+          </div>
+
           {!isEdit && (
             <div className="space-y-2">
-              <Label htmlFor="id_halaqah">Halaqah <span className="text-red-500">*</span></Label>
-              <Select value={idHalaqah} onValueChange={setIdHalaqah} required>
-                <SelectTrigger>
-                  <SelectValue placeholder="Pilih Halaqah" />
-                </SelectTrigger>
-                <SelectContent>
-                  {halaqahList.map((h) => (
-                    <SelectItem key={h.id_halaqah} value={h.id_halaqah.toString()}>
+              <div className="flex items-center justify-between">
+                <Label>Halaqah <span className="text-red-500">*</span></Label>
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="all-halaqah" 
+                    checked={idHalaqahs.length === halaqahList.length && halaqahList.length > 0}
+                    onCheckedChange={(checked) => {
+                      if (checked) {
+                        setIdHalaqahs(halaqahList.map(h => h.id_halaqah.toString()));
+                      } else {
+                        setIdHalaqahs([]);
+                      }
+                    }}
+                  />
+                  <Label htmlFor="all-halaqah" className="text-sm font-normal cursor-pointer text-muted-foreground">Pilih Semua</Label>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 border rounded-md p-3 max-h-40 overflow-y-auto">
+                {halaqahList.map((h) => (
+                  <div key={h.id_halaqah} className="flex items-center space-x-2">
+                    <Checkbox 
+                      id={`halaqah-${h.id_halaqah}`} 
+                      checked={idHalaqahs.includes(h.id_halaqah.toString())}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setIdHalaqahs([...idHalaqahs, h.id_halaqah.toString()]);
+                        } else {
+                          setIdHalaqahs(idHalaqahs.filter(id => id !== h.id_halaqah.toString()));
+                        }
+                      }}
+                    />
+                    <Label htmlFor={`halaqah-${h.id_halaqah}`} className="font-normal cursor-pointer text-sm truncate">
                       {h.name_halaqah}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                    </Label>
+                  </div>
+                ))}
+                {halaqahList.length === 0 && (
+                  <div className="col-span-full text-sm text-muted-foreground italic">
+                    Tidak ada data halaqah tersedia.
+                  </div>
+                )}
+              </div>
             </div>
           )}
 

@@ -73,6 +73,17 @@ export default function AbsensiPage({
     );
   }, [sesiList, uniqueHalaqahIds]);
 
+  const currentSesiObj = useMemo(() => {
+    return filteredSesiList.find((s) => s.id_sesi === selectedSesi);
+  }, [filteredSesiList, selectedSesi]);
+
+  const isDateValidForSesi = useMemo(() => {
+    if (!currentSesiObj || !currentSesiObj.hari || currentSesiObj.hari.length === 0) return true;
+    const jsDay = selectedDate.getDay();
+    const mappedDay = jsDay === 0 ? 7 : jsDay;
+    return currentSesiObj.hari.includes(mappedDay);
+  }, [currentSesiObj, selectedDate]);
+
   /**
    * Mengambil data absensi yang sudah tersimpan di server
    * untuk sesi dan tanggal yang dipilih
@@ -263,6 +274,14 @@ export default function AbsensiPage({
                   Tidak ada santri di halaqah ini.
                 </p>
               </div>
+            ) : !isDateValidForSesi ? (
+              <div className="p-12 text-center">
+                <AlertCircle className="mx-auto h-10 w-10 text-amber-500 mb-4" />
+                <p className="text-amber-600 font-medium text-lg">
+                  Sesi {currentSesiObj?.nama_sesi} tidak dijadwalkan pada hari ini.
+                </p>
+                <p className="text-sm text-amber-500 mt-2">Silakan pilih sesi yang sesuai atau ubah tanggal.</p>
+              </div>
             ) : (
               <InputAbsensi
                 santriList={santriList}
@@ -288,7 +307,8 @@ export default function AbsensiPage({
                 isLoadingSync ||
                 loadingSantri ||
                 santriList.length === 0 ||
-                !selectedSesi
+                !selectedSesi ||
+                !isDateValidForSesi
               }
               className="w-full md:w-auto px-12 h-11 font-bold shadow-lg shadow-primary/20"
             >

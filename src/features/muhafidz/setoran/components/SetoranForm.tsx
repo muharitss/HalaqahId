@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -24,7 +24,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronsUpDown, AlertCircle } from "lucide-react";
 import { pemetaanJuz } from "@/utils/daftarSurah";
 import { type Santri } from "../../kelola-santri/types";
 import { type SetoranFormValues, type SetoranPayload } from "../types";
@@ -51,9 +51,10 @@ interface SetoranFormProps {
   santriList: Santri[];
   sesiList: SesiHalaqah[];
   onSubmit: (data: SetoranPayload) => Promise<{ success: boolean }>;
+  onValidationChange?: (isValid: boolean) => void;
 }
 
-export function SetoranForm({ santriList, sesiList, onSubmit }: SetoranFormProps) {
+export function SetoranForm({ santriList, sesiList, onSubmit, onValidationChange }: SetoranFormProps) {
   const [open, setOpen] = useState(false);
 
   const form = useForm<SetoranFormValues>({
@@ -77,7 +78,25 @@ export function SetoranForm({ santriList, sesiList, onSubmit }: SetoranFormProps
   const availableSurah = pemetaanJuz[selectedJuz] || [];
   const currentSurahDetail = availableSurah.find((s) => s.nama === selectedSurat);
 
+  const selectedSesiId = form.watch("id_sesi");
+  const selectedSesiObj = sesiList.find(s => s.id_sesi === selectedSesiId);
+
+  const isTodayValidForSesi = useMemo(() => {
+    if (!selectedSesiObj || !selectedSesiObj.hari || selectedSesiObj.hari.length === 0) return true;
+    const jsDay = new Date().getDay();
+    const mappedDay = jsDay === 0 ? 7 : jsDay;
+    return selectedSesiObj.hari.includes(mappedDay);
+  }, [selectedSesiObj]);
+
+  useEffect(() => {
+    if (onValidationChange) {
+      onValidationChange(isTodayValidForSesi);
+    }
+  }, [isTodayValidForSesi, onValidationChange]);
+
   const onFormSubmit = async (values: SetoranFormValues) => {
+    if (!isTodayValidForSesi) return;
+
     const payload = {
       santri_id: values.santri_id,
       id_sesi: values.id_sesi,
@@ -170,6 +189,16 @@ export function SetoranForm({ santriList, sesiList, onSubmit }: SetoranFormProps
             )}
           />
         </div>
+
+        {!isTodayValidForSesi && (
+          <div className="bg-amber-50 border border-amber-200 text-amber-700 p-4 rounded-lg flex items-start gap-3">
+            <AlertCircle className="h-5 w-5 mt-0.5 shrink-0" />
+            <div>
+              <p className="font-semibold text-sm">Sesi {selectedSesiObj?.nama_sesi} tidak dijadwalkan hari ini.</p>
+              <p className="text-xs mt-1">Setoran hanya dapat dicatat sesuai dengan jadwal hari sesi. Silakan pilih sesi lain.</p>
+            </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <FormField

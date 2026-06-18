@@ -38,6 +38,29 @@ export function useSesi() {
     }
   };
 
+  const createMultipleSesi = async (payloads: CreateSesiHalaqahRequest[]) => {
+    setIsLoading(true);
+    let successCount = 0;
+    try {
+      const results = await Promise.allSettled(payloads.map(p => sesiService.createSesi(p)));
+      successCount = results.filter(r => r.status === "fulfilled").length;
+      
+      if (successCount === payloads.length) {
+        toast.success(`Berhasil menambahkan ${successCount} sesi halaqah`);
+        return true;
+      } else {
+        toast.error(`Berhasil menambahkan ${successCount} sesi, gagal ${payloads.length - successCount} sesi`);
+        return successCount > 0;
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Gagal membuat beberapa sesi halaqah");
+      return false;
+    } finally {
+      if (successCount > 0) await fetchSesi();
+      else setIsLoading(false);
+    }
+  };
+
   const updateSesi = async (id: number, payload: UpdateSesiHalaqahRequest) => {
     setIsLoading(true);
     try {
@@ -74,6 +97,7 @@ export function useSesi() {
     isLoading,
     fetchSesi,
     createSesi,
+    createMultipleSesi,
     updateSesi,
     deleteSesi,
   };

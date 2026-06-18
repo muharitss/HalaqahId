@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useSetoran } from "./hooks/useSetoran";
 import { SetoranForm } from "./components/SetoranForm";
@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 
 export default function InputSetoranPage({ hideHeader = false }: { hideHeader?: boolean }) {
   const { santriList, sesiList, loading, fetchSantri, addSetoran } = useSetoran();
+  const [isFormValid, setIsFormValid] = useState(true);
 
   useEffect(() => {
     fetchSantri();
@@ -36,6 +37,7 @@ export default function InputSetoranPage({ hideHeader = false }: { hideHeader?: 
               santriList={santriList} 
               sesiList={sesiList}
               onSubmit={addSetoran} 
+              onValidationChange={setIsFormValid}
             />
           </CardContent>
         </Card>
@@ -49,7 +51,7 @@ export default function InputSetoranPage({ hideHeader = false }: { hideHeader?: 
         <Button 
           type="submit"
           form="setoran-form"
-          disabled={loading || santriList.length === 0}
+          disabled={loading || santriList.length === 0 || !isFormValid}
           className="w-full md:w-auto px-12 h-11 font-bold shadow-lg shadow-primary/20"
         >
           {loading ? "Menyimpan..." : "Simpan Setoran"}

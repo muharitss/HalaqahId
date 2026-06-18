@@ -3,6 +3,7 @@ export interface SesiHalaqah {
   nama_sesi: string;
   jam_mulai: string;
   jam_selesai: string;
+  hari?: number[];
   id_sekolah: number;
   id_halaqah?: number | null;
   halaqah?: {
@@ -17,6 +18,7 @@ export interface CreateSesiHalaqahRequest {
   nama_sesi: string;
   jam_mulai: string;
   jam_selesai: string;
+  hari?: number[];
   id_sekolah?: number;
   id_halaqah?: number;
 }
@@ -25,4 +27,5 @@ export interface UpdateSesiHalaqahRequest {
   nama_sesi?: string;
   jam_mulai?: string;
   jam_selesai?: string;
+  hari?: number[];
 }
