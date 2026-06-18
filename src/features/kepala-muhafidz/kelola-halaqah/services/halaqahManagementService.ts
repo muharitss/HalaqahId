@@ -41,7 +41,7 @@ export const halaqahManagementService = {
   // Get deleted halaqah (trash)
   getDeletedHalaqah: async (): Promise<GlobalResponse<Halaqah[]>> => {
     try {
-      const response = await axiosClient.get<GlobalResponse<Halaqah[]>>("/halaqah/trash");
+      const response = await axiosClient.get<GlobalResponse<Halaqah[]>>("/halaqah/deleted");
       return response.data;
     } catch (error) {
       console.error("Gagal mengambil halaqah terhapus:", error);

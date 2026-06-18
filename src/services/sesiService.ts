@@ -12,6 +12,15 @@ export const sesiService = {
     }
   },
 
+  getSesiById: async (id: number): Promise<ApiResponse<SesiHalaqah>> => {
+    try {
+      const res = await axiosClient.get<ApiResponse<SesiHalaqah>>(`/sesi-halaqah/${id}`);
+      return res.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || "Gagal mengambil detail sesi halaqah");
+    }
+  },
+
   createSesi: async (payload: CreateSesiHalaqahRequest): Promise<ApiResponse<SesiHalaqah>> => {
     try {
       const res = await axiosClient.post<ApiResponse<SesiHalaqah>>("/sesi-halaqah", payload);

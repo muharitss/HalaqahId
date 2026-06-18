@@ -75,7 +75,7 @@ export const muhafizService = {
 
   updateAbsensiAsatidz: async (id: number, payload: { status: string; keterangan?: string }) => {
     try {
-      const res = await axiosClient.patch(`/absensi/${id}`, payload);
+      const res = await axiosClient.patch(`/absensi/muhafiz/${id}`, payload);
       return res.data;
     } catch (error: unknown) {
       throw new Error(getErrorMessage(error, "Gagal memperbarui absensi muhafiz"));
@@ -148,7 +148,7 @@ export const muhafizService = {
 
   catatAbsensiAsatidz: async (payload: { id_user: number; status: string; tanggal: string; keterangan: string }) => {
     try {
-      const res = await axiosClient.post("/absensi", payload);
+      const res = await axiosClient.post("/absensi/muhafiz", payload);
       return res.data;
     } catch (error: unknown) {
       throw new Error(getErrorMessage(error, "Gagal mencatat absensi muhafiz"));

@@ -20,5 +20,15 @@ export const authService = {
 
   logout: () => {
     localStorage.removeItem("user");
+  },
+
+  verifyEmail: async (token: string) => {
+    const response = await axiosClient.get(`/halaqah/auth/verify-email?token=${token}`);
+    return response.data;
+  },
+
+  resendVerification: async (email: string) => {
+    const response = await axiosClient.post("/halaqah/auth/resend-verification", { email });
+    return response.data;
   }
 };

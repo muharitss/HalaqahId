@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate, Outlet } from "react-router-dom";
 import LoginPage from "@/features/auth/pages/LoginPage";
 import RegisterPage from "@/features/auth/pages/RegisterPage";
+import VerifyEmailPage from "@/features/auth/pages/VerifyEmailPage";
 import KepalaMuhafidzRoot from "@/features/kepala-muhafidz/pages/KepalaMuhafidzRoot";
 import MuhafidzPage from "@/features/muhafidz/pages/MuhafidzRoot"; 
 import SuperadminRoot from "@/features/superadmin/pages/SuperadminRoot";
@@ -88,6 +89,10 @@ export const AppRouter = () => {
       <Route 
         path="/register" 
         element={user ? <Navigate to="/" replace /> : <RegisterPage />} 
+      />
+      <Route 
+        path="/verify-email" 
+        element={<VerifyEmailPage />} 
       />
 
       {/* 🔒 Protected Routes: Membutuhkan Login */}

@@ -52,6 +52,15 @@ export const santriService = {
     }
   },
 
+  // 5.5 Restore Santri
+  async restore(id: number): Promise<void> {
+    try {
+      await axiosClient.patch(`/santri/${id}/restore`);
+    } catch (error: unknown) {
+      throw new Error(getErrorMessage(error, "Gagal mengembalikan santri"));
+    }
+  },
+
   // 6. Search Santri
   async search(query: string): Promise<Santri[]> {
     try {

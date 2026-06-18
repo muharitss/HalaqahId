@@ -44,4 +44,34 @@ export const setoranService = {
       throw new Error(getErrorMessage(error, "Gagal mengambil data setoran santri"));
     }
   },
+
+  // PATCH /setoran/:id
+  updateSetoran: async (id: number, data: Partial<SetoranPayload>): Promise<ApiResponse<SetoranRecord>> => {
+    try {
+      const response = await axiosClient.patch<ApiResponse<SetoranRecord>>(`/setoran/${id}`, data);
+      return response.data;
+    } catch (error: unknown) {
+      throw new Error(getErrorMessage(error, "Gagal memperbarui setoran"));
+    }
+  },
+
+  // DELETE /setoran/:id
+  deleteSetoran: async (id: number): Promise<ApiResponse<{ id_setoran: number }>> => {
+    try {
+      const response = await axiosClient.delete<ApiResponse<{ id_setoran: number }>>(`/setoran/${id}`);
+      return response.data;
+    } catch (error: unknown) {
+      throw new Error(getErrorMessage(error, "Gagal menghapus setoran"));
+    }
+  },
+
+  // PATCH /setoran/:id/restore
+  restoreSetoran: async (id: number): Promise<ApiResponse<{ id_setoran: number }>> => {
+    try {
+      const response = await axiosClient.patch<ApiResponse<{ id_setoran: number }>>(`/setoran/${id}/restore`);
+      return response.data;
+    } catch (error: unknown) {
+      throw new Error(getErrorMessage(error, "Gagal mengembalikan setoran"));
+    }
+  },
 };
