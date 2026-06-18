@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate, Link } from "react-router-dom";
 import { loginSchema, type LoginFormValues } from "@/utils/zodSchema";
 import { useAuth } from "@/features/auth/context/AuthContext";
+import { getErrorMessage } from "@/utils/error";
 
 // Shadcn UI Components
 import { Button } from "@/components/ui/button";
@@ -60,12 +61,7 @@ export function LoginForm() {
       await login(values);
       navigate("/", { replace: true });
     } catch (error: any) {
-      let errorMessage = "Terjadi kesalahan saat login";
-      if (error.response?.status === 401 || error.response?.status === 404) {
-        errorMessage = "Email atau password salah";
-      } else if (error.response?.status === 429) {
-        errorMessage = "Terlalu banyak percobaan. Tunggu sebentar.";
-      }
+      const errorMessage = getErrorMessage(error, "Terjadi kesalahan saat login");
       setBackendError(errorMessage);
       form.setValue("password", "");
     } finally {
