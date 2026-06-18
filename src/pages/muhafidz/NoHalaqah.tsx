@@ -1,30 +1,23 @@
-import { ShieldAlert, LogOut } from "lucide-react";
-import { Button } from "@/components/ui/button"; // Sesuaikan dengan UI kit kamu
+import { Home, Settings } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 export function NoHalaqahView() {
-  const handleLogout = () => {
-    localStorage.clear();
-    window.location.href = "/login";
-  };
+  const navigate = useNavigate();
 
   return (
-    <div className="flex h-[80vh] flex-col items-center justify-center p-4 text-center">
-      <div className="mb-6 rounded-full bg-yellow-100 p-6 text-yellow-600">
-        <ShieldAlert size={48} />
+    <div className="flex flex-col items-center justify-center min-h-[80vh] px-4 text-center">
+      <div className="bg-primary/10 p-6 rounded-full mb-6">
+        <Home className="h-12 w-12 text-primary" />
       </div>
-      <h1 className="mb-2 text-2xl font-bold text-slate-800">
-        Akses Terbatas
-      </h1>
-      <p className="mb-8 max-w-md text-slate-600">
-        Mohon maaf, akun Anda saat ini <strong>tidak terdaftar</strong> dalam halaqah manapun. 
-        Silakan hubungi <strong>Kepala Muhafiz</strong> untuk penempatan tugas atau aktivasi halaqah Anda.
+      <h1 className="text-3xl font-bold tracking-tight mb-2">Belum Memiliki Halaqah</h1>
+      <p className="text-muted-foreground max-w-md mb-8">
+        Maaf, akun Anda belum terdaftar dalam halaqah manapun. Silakan hubungi Kepala Muhafidz untuk pendaftaran halaqah.
       </p>
       <div className="flex gap-4">
-        <Button variant="outline" onClick={() => window.location.reload()}>
-          Refresh Status
-        </Button>
-        <Button variant="destructive" onClick={handleLogout} className="gap-2">
-          <LogOut size={16} /> Keluar
+        <Button onClick={() => navigate("/muhafidz/settings")} variant="outline">
+          <Settings className="mr-2 h-4 w-4" />
+          Pengaturan
         </Button>
       </div>
     </div>

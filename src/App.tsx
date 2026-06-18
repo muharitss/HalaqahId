@@ -1,6 +1,6 @@
 import { BrowserRouter } from "react-router-dom";
-import { AuthProvider } from "@/context/AuthContext";
-import { ThemeProvider } from "@/components/shared/ThemeProvider";
+import { AuthProvider } from "@/features/auth/context/AuthContext";
+import { ThemeProvider } from "@/context/ThemeContext";
 import { AppRouter } from "@/routes";
 import { Toaster } from "@/components/ui/sonner";
 import "./App.css";
