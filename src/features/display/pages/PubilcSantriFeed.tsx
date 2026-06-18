@@ -9,7 +9,7 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/table";
-import { type SetoranFeedItem, type PublicSantriData, type PublicSantriFeedProps } from "@/types/domain/display";
+import { type SetoranFeedItem, type PublicSantriFeedProps } from "@/types/domain/display";
 
 export function PublicSantriFeed({ santriData }: PublicSantriFeedProps) {
   if (!santriData || !santriData.setoran) return null;

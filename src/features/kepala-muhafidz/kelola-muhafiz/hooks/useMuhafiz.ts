@@ -123,7 +123,7 @@ export const useMuhafiz = () => {
   const handleImpersonate = async (muhafiz: Muhafiz) => {
     const promise = async () => {
       const response = await muhafizService.impersonateMuhafiz(muhafiz.id_user);
-      if (response.success && user) {
+      if (response.success && response.data && user) {
         const impersonatedUser = {
           ...response.data.user,
           token: response.data.token,

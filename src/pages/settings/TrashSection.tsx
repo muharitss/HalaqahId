@@ -22,7 +22,7 @@ export default function TrashSection() {
         halaqahService.getDeletedHalaqah(),
         akunService.getDeletedMuhafiz()
       ]);
-      setDeletedHalaqah(resHalaqah.data);
+      setDeletedHalaqah(resHalaqah.data || []);
       setDeletedMuhafiz(resMuhafiz);
     } catch {
 

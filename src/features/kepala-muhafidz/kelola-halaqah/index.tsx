@@ -150,7 +150,7 @@ export default function KelolaHalaqahPage() {
       <SantriModal
         isOpen={isSantriModalOpen}
         onClose={() => setIsSantriModalOpen(false)}
-        selectedSantri={selectedSantri}
+        selectedSantri={selectedSantri as any}
         onSave={handleSaveSantri}
         isAdmin={true}
         halaqahList={halaqahs}
@@ -162,7 +162,7 @@ export default function KelolaHalaqahPage() {
         <PindahSantri
           isOpen={isMoveSantriOpen}
           onClose={() => setIsMoveSantriOpen(false)}
-          santri={selectedSantri} 
+          santri={selectedSantri as any} 
           halaqahs={halaqahs}
           onConfirm={handleMoveSantriConfirm}
         />

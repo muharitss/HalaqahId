@@ -10,7 +10,7 @@ export const laporanService = {
   getAllSetoran: async (): Promise<SetoranItem[]> => {
     try {
       const res = await setoranService.getAllSetoran();
-      return res.data || [];
+      return (res.data as unknown as SetoranItem[]) || [];
     } catch (error) {
       console.error("Gagal mengambil data setoran:", error);
       return [];
@@ -43,7 +43,7 @@ export const laporanService = {
     data: SetoranItem[],
     filter?: DateFilter,
   ): GroupedData => {
-    return transformSetoranData(data, filter);
+    return transformSetoranData(data, filter) as unknown as GroupedData;
   },
 
   // Get halaqah names from grouped data

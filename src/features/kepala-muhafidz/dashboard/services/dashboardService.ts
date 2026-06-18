@@ -4,7 +4,7 @@ import { santriService } from "@/features/muhafidz/kelola-santri/services/santri
 import { sanitizeDashboardData } from "@/lib/dataTransformer";
 import { startOfWeek, startOfMonth, eachDayOfInterval, format } from "date-fns";
 import { akunService, halaqahService } from "@/services";
-import type { GlobalResponse } from "@/types/api/global-response";
+
 import type { 
   AbsensiStat, 
   PekanData, 

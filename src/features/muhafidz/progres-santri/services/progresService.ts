@@ -16,7 +16,7 @@ export const progresService = {
         nama: item.nama_santri,
         target: item.target || "REGULER", 
         capaian: 0, 
-        status: item.is_active ? "Aktif" : "Nonaktif",
+        status: (item as any).is_active !== false ? "Aktif" : "Nonaktif",
         terakhirSetor: "-",
         totalAyat: 0
       }));

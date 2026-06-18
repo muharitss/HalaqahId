@@ -10,7 +10,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBook, faSpinner, faCheckCircle, faExclamationCircle } from "@fortawesome/free-solid-svg-icons";
 import { muhafizService } from "@/features/kepala-muhafidz/kelola-muhafiz/services/muhafizService";
-import { halaqahManagementService, type Halaqah } from "@/features/kepala-muhafidz/kelola-halaqah/services/halaqahManagementService";
+import { halaqahManagementService } from "@/features/kepala-muhafidz/kelola-halaqah/services/halaqahManagementService";
+import { type Halaqah } from "@/features/kepala-muhafidz/kelola-halaqah/types";
 import { getErrorMessage } from "@/utils/error";
 import { type Muhafiz } from "@/features/kepala-muhafidz/kelola-muhafiz/types";
 

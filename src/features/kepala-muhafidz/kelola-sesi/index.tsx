@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash2, AlertTriangle } from "lucide-react";
+import { Plus, AlertTriangle } from "lucide-react";
 import { useSesi } from "./hooks/useSesi";
 import { useHalaqahManagement } from "../kelola-halaqah/hooks/useHalaqahManagement";
 import { SesiTable } from "./components/SesiTable";

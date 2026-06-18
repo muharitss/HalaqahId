@@ -12,7 +12,7 @@ export const useProgres = () => {
     setError(null);
     try {
       const response = await progresService.getAllProgres();
-      setProgresData(response.data);
+      setProgresData(response.data || []);
     } catch (err) {
       setError("Gagal mengambil data progres");
       console.error(err);
