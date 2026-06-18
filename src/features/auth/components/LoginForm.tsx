@@ -5,6 +5,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { loginSchema, type LoginFormValues } from "@/utils/zodSchema";
 import { useAuth } from "@/features/auth/context/AuthContext";
 import { getErrorMessage } from "@/utils/error";
+import { authService } from "@/features/auth/services/authService";
 
 // Shadcn UI Components
 import { Button } from "@/components/ui/button";
@@ -43,6 +44,8 @@ export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [backendError, setBackendError] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showResend, setShowResend] = useState(false);
+  const [isResending, setIsResending] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -56,6 +59,7 @@ export function LoginForm() {
 
   async function onSubmit(values: LoginFormValues) {
     setBackendError("");
+    setShowResend(false);
     setIsSubmitting(true);
     try {
       await login(values);
@@ -63,11 +67,28 @@ export function LoginForm() {
     } catch (error: any) {
       const errorMessage = getErrorMessage(error, "Terjadi kesalahan saat login");
       setBackendError(errorMessage);
+      if (errorMessage.toLowerCase().includes("verifikasi email")) {
+        setShowResend(true);
+      }
       form.setValue("password", "");
     } finally {
       setIsSubmitting(false);
     }
   }
+
+  const handleResend = async () => {
+    setIsResending(true);
+    try {
+      const email = form.getValues("email");
+      await authService.resendVerification(email);
+      setBackendError("Email verifikasi telah dikirim ulang. Silakan periksa inbox atau folder spam Anda.");
+      setShowResend(false);
+    } catch (error: any) {
+      setBackendError(getErrorMessage(error, "Gagal mengirim ulang email verifikasi."));
+    } finally {
+      setIsResending(false);
+    }
+  };
 
   return (
     <Card className="w-full border-none shadow-none bg-transparent sm:bg-card sm:border sm:shadow-sm">
@@ -82,10 +103,32 @@ export function LoginForm() {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             {backendError && (
-              <Alert variant="destructive" className="animate-in fade-in zoom-in duration-300">
-                <FontAwesomeIcon icon={faTriangleExclamation} className="h-4 w-4" />
-                <AlertDescription>{backendError}</AlertDescription>
-              </Alert>
+              <div className="space-y-2">
+                <Alert variant={backendError.includes("telah dikirim ulang") ? "default" : "destructive"} className={`animate-in fade-in zoom-in duration-300 ${backendError.includes("telah dikirim ulang") ? "bg-green-50 border-green-200 text-green-800" : ""}`}>
+                  <FontAwesomeIcon icon={faTriangleExclamation} className="h-4 w-4" />
+                  <AlertDescription>{backendError}</AlertDescription>
+                </Alert>
+                
+                {showResend && (
+                  <div className="flex flex-col items-center p-3 bg-muted/50 rounded-md border text-sm">
+                    <p className="mb-2 text-muted-foreground">Belum menerima email verifikasi?</p>
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={handleResend}
+                      disabled={isResending}
+                      className="w-full sm:w-auto"
+                    >
+                      {isResending ? (
+                        <><Spinner className="mr-2 h-3 w-3" /> Mengirim...</>
+                      ) : (
+                        "Kirim Ulang Email Verifikasi"
+                      )}
+                    </Button>
+                  </div>
+                )}
+              </div>
             )}
 
             <FormField
