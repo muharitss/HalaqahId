@@ -13,6 +13,14 @@ export interface AbsensiSantri {
   santri?: {
     id_santri: number;
     nama_santri: string;
+    id_halaqah?: number;
+  };
+  sesi?: {
+    id_sesi: number;
+    nama_sesi: string;
+    jam_mulai: string;
+    jam_selesai: string;
+    id_halaqah?: number | null;
   };
 }
 

@@ -44,6 +44,23 @@ export const absensiService = {
     }
   },
 
+  getAbsensiSesi: async (
+    sesiId: number, 
+    date?: string
+  ): Promise<ApiResponse<AbsensiRecord[]>> => {
+    const params = new URLSearchParams();
+    if (date) params.append("date", date);
+
+    try {
+      const res = await axiosClient.get<ApiResponse<AbsensiRecord[]>>(
+        `/absensi/sesi/${sesiId}?${params.toString()}`
+      );
+      return res.data;
+    } catch (error: unknown) {
+      throw new Error(getErrorMessage(error, "Gagal mengambil rekap absensi sesi"));
+    }
+  },
+
   getDailyHalaqah: async (halaqahId: number, date: string) => {
     try {
       const res = await axiosClient.get<ApiResponse<AbsensiRecord[]>>(

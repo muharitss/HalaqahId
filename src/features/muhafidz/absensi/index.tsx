@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams } from "react-router-dom"; // Penting untuk Mode Kontrol
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -57,45 +57,42 @@ export default function AbsensiPage({
   const [sesiList, setSesiList] = useState<SesiHalaqah[]>([]);
   const [selectedSesi, setSelectedSesi] = useState<number | null>(null);
 
+  // --- Derived State ---
+  const uniqueHalaqahIds = useMemo(() => {
+    const idFromUrl = paramHalaqahId ? Number(paramHalaqahId) : NaN;
+    if (!isNaN(idFromUrl)) return [idFromUrl];
+    
+    return Array.from(
+      new Set(santriList.map((s) => s.id_halaqah).filter((id) => !!id)),
+    );
+  }, [paramHalaqahId, santriList]);
+
+  const filteredSesiList = useMemo(() => {
+    return sesiList.filter(
+      (sesi) => !sesi.id_halaqah || uniqueHalaqahIds.includes(sesi.id_halaqah)
+    );
+  }, [sesiList, uniqueHalaqahIds]);
+
   /**
    * Mengambil data absensi yang sudah tersimpan di server
-   * untuk tanggal yang dipilih
+   * untuk sesi dan tanggal yang dipilih
    */
   const syncAttendanceData = useCallback(async () => {
-    // Logic penentuan ID: Ambil dari URL (Kepala Muhafidz)
-    const idFromUrl = paramHalaqahId ? Number(paramHalaqahId) : NaN;
-
-    // Jika tidak ada ID di URL, kumpulkan semua id_halaqah unik dari santriList
-    const uniqueHalaqahIds = !isNaN(idFromUrl)
-      ? [idFromUrl]
-      : Array.from(
-          new Set(santriList.map((s) => s.id_halaqah).filter((id) => !!id)),
-        );
-
-    // Guard Clause: Jangan tembak API jika ID belum tersedia
-    if (uniqueHalaqahIds.length === 0 || !selectedSesi) return;
+    // Guard Clause: Jangan tembak API jika sesi belum terpilih
+    if (!selectedSesi) return;
 
     setIsLoadingSync(true);
     try {
       const tglStr = format(selectedDate, "yyyy-MM-dd");
 
-      // Ambil data untuk setiap halaqah ID yang ditemukan
-      const fetchPromises = uniqueHalaqahIds.map((hid) =>
-        absensiService.getRekapHalaqah(hid, tglStr),
-      );
-
-      const results = await Promise.all(fetchPromises);
+      // Gunakan endpoint per sesi sesuai panduan API
+      const response = await absensiService.getAbsensiSesi(selectedSesi, tglStr);
+      const records = (response.data as AbsensiRecord[]) || [];
 
       const newMap: Record<number, AbsensiStatus> = {};
 
-      // Gabungkan hasil dari semua halaqah
-      results.forEach((response) => {
-        const records = (response.data as AbsensiRecord[]) || [];
-        records.forEach((rec) => {
-          if (rec.id_sesi === selectedSesi) {
-            newMap[rec.id_santri] = rec.status;
-          }
-        });
+      records.forEach((rec) => {
+        newMap[rec.id_santri] = rec.status;
       });
 
       setSubmittedAttendance(newMap);
@@ -106,7 +103,7 @@ export default function AbsensiPage({
     } finally {
       setIsLoadingSync(false);
     }
-  }, [santriList, selectedDate, paramHalaqahId, selectedSesi]);
+  }, [selectedDate, selectedSesi]);
 
   // Load awal data santri
   useEffect(() => {
@@ -119,9 +116,6 @@ export default function AbsensiPage({
         const response = await sesiService.getSesiHalaqah();
         const sesi = response.data || [];
         setSesiList(sesi);
-        if (sesi.length > 0) {
-          setSelectedSesi(sesi[0].id_sesi);
-        }
       } catch (error) {
         console.error("Gagal memuat sesi halaqah:", error);
       }
@@ -129,12 +123,25 @@ export default function AbsensiPage({
     fetchSesi();
   }, []);
 
-  // Sinkronisasi data absensi setiap kali tanggal berubah atau daftar santri tersedia
+  // Sinkronisasi data absensi setiap kali tanggal atau sesi berubah
   useEffect(() => {
-    if (santriList.length > 0 || paramHalaqahId) {
+    if (selectedSesi) {
       syncAttendanceData();
     }
-  }, [syncAttendanceData, santriList.length, paramHalaqahId]);
+  }, [syncAttendanceData, selectedSesi]);
+
+  // Handle otomatisasi pilihan Sesi berdasarkan filteredSesiList
+  useEffect(() => {
+    if (filteredSesiList.length > 0) {
+      const isSelectedValid = filteredSesiList.some(s => s.id_sesi === selectedSesi);
+      if (!isSelectedValid) {
+        setSelectedSesi(filteredSesiList[0].id_sesi);
+      }
+    } else if (sesiList.length > 0 && uniqueHalaqahIds.length > 0) {
+      // Jika halaqah aktif tidak punya sesi yang valid, reset pilihan sesi
+      setSelectedSesi(null);
+    }
+  }, [filteredSesiList, selectedSesi, sesiList.length, uniqueHalaqahIds.length]);
 
   const handleStatusChange = (id: number, status: AbsensiStatus) => {
     setAttendanceMap((prev) => {
@@ -202,13 +209,13 @@ export default function AbsensiPage({
             <Select
               value={selectedSesi ? selectedSesi.toString() : ""}
               onValueChange={(val) => setSelectedSesi(Number(val))}
-              disabled={isLoadingSync || sesiList.length === 0}
+              disabled={isLoadingSync || filteredSesiList.length === 0}
             >
               <SelectTrigger className="w-full md:w-60 border-primary/20 shadow-sm">
                 <SelectValue placeholder="Pilih Sesi" />
               </SelectTrigger>
               <SelectContent>
-                {sesiList.map((sesi) => (
+                {filteredSesiList.map((sesi) => (
                   <SelectItem
                     key={sesi.id_sesi}
                     value={sesi.id_sesi.toString()}

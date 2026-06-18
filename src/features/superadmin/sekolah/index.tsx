@@ -7,8 +7,6 @@ import { faPlus, faBuilding } from "@fortawesome/free-solid-svg-icons";
 import { sekolahService } from "@/services/sekolahService";
 import { type Sekolah } from "@/types/domain/sekolah";
 import { toast } from "sonner";
-import { format } from "date-fns";
-import { id } from "date-fns/locale";
 
 export default function KelolaSekolahPage() {
   const [sekolahList, setSekolahList] = useState<Sekolah[]>([]);
@@ -60,7 +58,7 @@ export default function KelolaSekolahPage() {
                 <TableRow>
                   <TableHead>Nama Sekolah</TableHead>
                   <TableHead>Alamat</TableHead>
-                  <TableHead>Dibuat Pada</TableHead>
+                  <TableHead>Email</TableHead>
                   <TableHead className="text-right">Aksi</TableHead>
                 </TableRow>
               </TableHeader>
@@ -89,9 +87,7 @@ export default function KelolaSekolahPage() {
                         </div>
                       </TableCell>
                       <TableCell>{sekolah.alamat || "-"}</TableCell>
-                      <TableCell>
-                        {format(new Date(sekolah.created_at), "dd MMM yyyy", { locale: id })}
-                      </TableCell>
+                      <TableCell>{sekolah.email || "-"}</TableCell>
                       <TableCell className="text-right">
                         <Button variant="outline" size="sm">Detail</Button>
                       </TableCell>

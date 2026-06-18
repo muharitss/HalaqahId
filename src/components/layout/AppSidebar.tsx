@@ -4,7 +4,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { 
   faChartPie, faUsers, faBook, faClipboardCheck, 
   faUserTie, faSignOutAlt, faBookOpen, faArrowLeft, faUserShield,
-  faBuilding 
+  faBuilding, faClock
 } from "@fortawesome/free-solid-svg-icons";
 import {
   Sidebar,
@@ -51,6 +51,7 @@ export function AppSidebar() {
         { name: "Dashboard", path: "/kepala-muhafidz", icon: faChartPie },
         { name: "Kelola Muhafiz", path: "/kepala-muhafidz/muhafiz", icon: faUserTie },
         { name: "Kelola Halaqah", path: "/kepala-muhafidz/halaqah", icon: faBook },
+        { name: "Kelola Sesi", path: "/kepala-muhafidz/sesi", icon: faClock },
         { name: "Lihat Laporan", path: "/kepala-muhafidz/laporan", icon: faClipboardCheck },
       ]
     : [

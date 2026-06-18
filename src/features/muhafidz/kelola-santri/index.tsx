@@ -162,41 +162,49 @@ export default function KelolaSantriPage() {
         <SantriSkeleton />
       ) : (
         <div className="grid gap-6">
-          <div className="bg-card rounded-lg border shadow-sm">
-            <div className="p-4 border-b">
-              <input
-                type="text"
-                placeholder="Cari santri..."
-                className="w-full max-w-sm px-3 py-2 border rounded-md"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-
-            {filteredSantri.length > 0 ? (
-              <SantriTable
-                data={filteredSantri}
-                searchTerm={searchTerm}
-                isAdmin={isAdmin()}
-                halaqahList={halaqahs}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-              />
-            ) : (
-              <div className="flex flex-col items-center justify-center py-12 px-4 border-2 border-dashed rounded-xl bg-muted/30">
-                <div className="bg-primary/10 p-4 rounded-full mb-4">
-                  <FontAwesomeIcon
-                    icon={faInbox}
-                    className="text-3xl text-primary"
+          <div data-impeccable-variants="f0cfe9ff" data-impeccable-variant-count="3" style={{ display: "contents" }}>
+            {/* impeccable-variants-start f0cfe9ff */}
+            {/* Original */}
+            <div data-impeccable-variant="original">
+              <div className="bg-card rounded-lg border shadow-sm">
+                <div className="p-4 border-b">
+                  <input
+                    type="text"
+                    placeholder="Cari santri..."
+                    className="w-full max-w-sm px-3 py-2 border rounded-md"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
                   />
                 </div>
-                <h3 className="text-lg font-semibold">Belum Ada Santri</h3>
-                <p className="text-muted-foreground text-center max-w-sm mt-2">
-                  Data santri tidak ditemukan atau belum ditambahkan ke halaqah
-                  ini.
-                </p>
+
+                {filteredSantri.length > 0 ? (
+                  <SantriTable
+                    data={filteredSantri}
+                    searchTerm={searchTerm}
+                    isAdmin={isAdmin()}
+                    halaqahList={halaqahs}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                  />
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-12 px-4 border-2 border-dashed rounded-xl bg-muted/30">
+                    <div className="bg-primary/10 p-4 rounded-full mb-4">
+                      <FontAwesomeIcon
+                        icon={faInbox}
+                        className="text-3xl text-primary"
+                      />
+                    </div>
+                    <h3 className="text-lg font-semibold">Belum Ada Santri</h3>
+                    <p className="text-muted-foreground text-center max-w-sm mt-2">
+                      Data santri tidak ditemukan atau belum ditambahkan ke halaqah
+                      ini.
+                    </p>
+                  </div>
+                )}
               </div>
-            )}
+            </div>
+            {/* Variants: insert below this line */}
+            {/* impeccable-variants-end f0cfe9ff */}
           </div>
         </div>
       )}

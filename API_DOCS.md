@@ -44,6 +44,11 @@ Halaqah.id adalah sistem manajemen tahfidz berbasis multi-tenant (per sekolah). 
 - **Multi-tenancy**: Setiap data selalu terikat ke `id_sekolah`. User dari sekolah A tidak bisa melihat data sekolah B.
 - **Soft Delete**: Semua entitas menggunakan `deleted_at` (nullable `DateTime`). Data yang dihapus masih bisa di-restore.
 - **Upsert pada Absensi**: Jika santri sudah diabsen di sesi + tanggal yang sama, data akan diupdate, bukan duplikat.
+- **Sesi Halaqah terikat Halaqah**: Sejak update Juni 2026, setiap sesi halaqah memiliki `id_halaqah` (FK ke Halaqah). Konsekuensinya:
+  - Setiap sesi halaqah memiliki absensinya sendiri (lihat `GET /api/absensi/sesi/:id_sesi`).
+  - Input absensi divalidasi agar `sesi.id_halaqah == student.id_halaqah` (mencegah cross-halaqah injection).
+  - Muhafiz otomatis hanya melihat sesi/absensi di halaqahnya sendiri.
+  - Sesi baru WAJIB memiliki `id_halaqah`; sesi lama (`id_halaqah = null`) tetap dapat dibaca untuk backward-compat.
 
 ---
 
@@ -319,10 +324,18 @@ Backend menggunakan CORS dengan aturan berikut:
 | `nama_sesi`  | `string`   | Nama sesi (contoh: "Bada Subuh") |
 | `jam_mulai`  | `string`   | Format "HH:mm" (contoh: "05:00") |
 | `jam_selesai`| `string`   | Format "HH:mm" (contoh: "06:15") |
+| `hari`       | `int[]`    | Array hari sesi aktif (1=Senin, 7=Ahad) |
 | `id_sekolah` | `int`      | FK ke Sekolah                 |
+| `id_halaqah` | `int?`     | FK ke Halaqah (nullable untuk backward-compat data lama; sesi baru WAJIB mengisinya) |
 | `created_at` | `datetime` | Timestamp pembuatan           |
 | `updated_at` | `datetime` | Timestamp update              |
 | `deleted_at` | `datetime?`| Soft delete timestamp         |
+
+> **Konsep "Setiap sesi punya halaqahnya sendiri"**: Sejak update Juni 2026, sebuah sesi terikat pada satu halaqah (`id_halaqah`). Konsekuensinya:
+> - **Absensi per-sesi**: Setiap sesi halaqah memiliki absensinya sendiri (lihat `GET /api/absensi/sesi/:id_sesi`).
+> - **Muhafiz scope**: Seorang muhafiz hanya bisa membuat/melihat sesi yang terikat ke halaqah yang diasuhnya.
+> - **Anti-cross-halaqah input**: Saat input absensi, sistem menolak jika `sesi.id_halaqah != student.id_halaqah`.
+> - **Legacy data**: Sesi lama yang `id_halaqah = NULL` tetap dapat dibaca (untuk backward compatibility), namun sesi baru tidak boleh dibuat tanpa `id_halaqah`.
 
 ### 7.6 Absensi (Santri)
 
@@ -1213,7 +1226,7 @@ Memulihkan santri yang telah di-soft-delete.
 
 #### `POST /api/sesi-halaqah`
 
-Membuat sesi halaqah baru.
+Membuat sesi halaqah baru. Setiap sesi **wajib** terikat pada satu halaqah (`id_halaqah`) untuk menegakkan konsep "setiap sesi halaqah punya absensinya sendiri".
 
 **Permission:** `sesi-halaqah:create`
 
@@ -1224,16 +1237,28 @@ Membuat sesi halaqah baru.
   "nama_sesi": "Bada Subuh",
   "jam_mulai": "05:00",
   "jam_selesai": "06:15",
+  "hari": [1, 2],
+  "id_halaqah": 5,
   "id_sekolah": 1
 }
 ```
 
-| Field         | Type     | Required | Keterangan                                      |
-|--------------|---------|----------|------------------------------------------------|
-| `nama_sesi`  | `string`| Yes      | Nama sesi                                       |
-| `jam_mulai`  | `string`| Yes      | Format "HH:mm"                                  |
-| `jam_selesai`| `string`| Yes      | Format "HH:mm"                                  |
-| `id_sekolah` | `number`| Conditional | Wajib jika SUPERADMIN                         |
+| Field         | Type     | Required                                              | Keterangan                                      |
+|--------------|---------|------------------------------------------------------|------------------------------------------------|
+| `nama_sesi`  | `string`| Yes                                                   | Nama sesi                                       |
+| `jam_mulai`  | `string`| Yes                                                   | Format "HH:mm"                                  |
+| `jam_selesai`| `string`| Yes                                                   | Format "HH:mm" (harus `> jam_mulai`)            |
+| `hari`       | `int[]` | No                                                    | Array of days (1=Senin, 7=Ahad)                 |
+| `id_halaqah` | `number`| **Conditional** (lihat tabel perilaku role di bawah)  | Halaqah tempat sesi ini berada                 |
+| `id_sekolah` | `number`| Conditional                                           | Wajib jika SUPERADMIN; diabaikan untuk role lain (otomatis dari session) |
+
+**Perilaku `id_halaqah` per Role:**
+
+| Role               | `id_halaqah` di body              | Validasi                                                                 |
+|-------------------|-----------------------------------|--------------------------------------------------------------------------|
+| `MUHAFIZ`          | **Diabaikan** (wajib di-override) | Otomatis diisi dengan halaqah yang diasuhnya. Error jika muhafiz belum punya halaqah. |
+| `KOORDINATOR_TAHFIZ` / `ADMIN` | **Wajib diisi**            | Halaqah tujuan harus berada di sekolah user.                            |
+| `SUPERADMIN`      | Opsional (untuk legacy/migrasi)   | Jika null, sesi dibuat tanpa binding halaqah (backward-compat data lama).|
 
 **Response (201):**
 
@@ -1247,17 +1272,23 @@ Membuat sesi halaqah baru.
     "jam_mulai": "05:00",
     "jam_selesai": "06:15",
     "id_sekolah": 1,
+    "id_halaqah": 5,
     "created_at": "2026-06-15T05:00:00.000Z",
     "updated_at": "2026-06-15T05:00:00.000Z"
   }
 }
 ```
 
+**Errors:**
+- `400` - `id_halaqah` wajib diisi (KOORDINATOR/ADMIN) / format jam tidak valid / muhafiz belum punya halaqah
+- `403` - Halaqah yang dimaksud bukan milik sekolah Anda
+- `404` - Halaqah tidak ditemukan
+
 ---
 
 #### `GET /api/sesi-halaqah`
 
-Mendapatkan daftar sesi halaqah di sekolah user.
+Mendapatkan daftar sesi halaqah. **Muhafiz otomatis hanya melihat sesi milik halaqahnya sendiri** (scope enforcement).
 
 **Permission:** `sesi-halaqah:view`
 
@@ -1266,6 +1297,7 @@ Mendapatkan daftar sesi halaqah di sekolah user.
 | Parameter    | Type   | Keterangan                                    |
 |-------------|--------|-----------------------------------------------|
 | `id_sekolah`| `int`  | Hanya bisa ditentukan oleh SUPERADMIN         |
+| `hari`      | `int`  | Filter sesi berdasarkan hari (1=Senin, 7=Ahad)|
 
 **Response (200):**
 
@@ -1279,40 +1311,62 @@ Mendapatkan daftar sesi halaqah di sekolah user.
       "nama_sesi": "Bada Subuh",
       "jam_mulai": "05:00",
       "jam_selesai": "06:15",
-      "id_sekolah": 1
+      "id_sekolah": 1,
+      "id_halaqah": 5
     },
     {
       "id_sesi": 2,
       "nama_sesi": "Halaqah Pagi",
       "jam_mulai": "08:00",
       "jam_selesai": "09:30",
-      "id_sekolah": 1
+      "id_sekolah": 1,
+      "id_halaqah": 5
     }
   ]
 }
 ```
 
-> **Catatan:** Endpoint ini **tidak** menggunakan pagination, mengembalikan semua sesi sekaligus.
+> **Catatan:** Endpoint ini **tidak** menggunakan pagination, mengembalikan semua sesi sekaligus. Field `id_halaqah` bisa `null` untuk sesi legacy yang dibuat sebelum update Juni 2026.
 
 ---
 
 #### `GET /api/sesi-halaqah/:id`
 
-Mendapatkan detail sesi halaqah.
+Mendapatkan detail sesi halaqah, termasuk relasi halaqah (jika ada).
 
 **Permission:** `sesi-halaqah:view`
 
-**Response (200):** Object sesi halaqah lengkap.
+**Response (200):**
+
+```json
+{
+  "success": true,
+  "message": "Detail sesi halaqah berhasil diambil",
+  "data": {
+    "id_sesi": 1,
+    "nama_sesi": "Bada Subuh",
+    "jam_mulai": "05:00",
+    "jam_selesai": "06:15",
+    "id_sekolah": 1,
+    "id_halaqah": 5,
+    "halaqah": {
+      "id_halaqah": 5,
+      "name_halaqah": "Halaqah Subuh A",
+      "id_sekolah": 1
+    }
+  }
+}
+```
 
 **Errors:**
-- `403` - Di luar sekolah Anda
+- `403` - Di luar sekolah Anda / sesi bukan milik halaqah Anda (untuk MUHAFIZ)
 - `404` - Sesi tidak ditemukan
 
 ---
 
 #### `PATCH /api/sesi-halaqah/:id`
 
-Memperbarui data sesi halaqah.
+Memperbarui data sesi halaqah. **Untuk menjaga integritas data absensi & setoran historis, `id_halaqah` dan `id_sekolah` tidak dapat diubah setelah sesi dibuat** (kecuali oleh SUPERADMIN untuk tujuan migrasi).
 
 **Permission:** `sesi-halaqah:edit`
 
@@ -1322,17 +1376,31 @@ Memperbarui data sesi halaqah.
 {
   "nama_sesi": "Sesi Baru",
   "jam_mulai": "07:00",
-  "jam_selesai": "08:30"
+  "jam_selesai": "08:30",
+  "hari": [3, 4]
 }
 ```
 
+| Field         | Type     | Keterangan                                                          |
+|--------------|---------|---------------------------------------------------------------------|
+| `nama_sesi`  | `string`| Nama sesi baru                                                       |
+| `jam_mulai`  | `string`| Format "HH:mm"                                                       |
+| `jam_selesai`| `string`| Format "HH:mm" (harus `> jam_mulai`)                                 |
+| `hari`       | `int[]` | Array of days (1=Senin, 7=Ahad)                                      |
+| `id_halaqah` | `number`| **Diabaikan** untuk non-SUPERADMIN. Hanya SUPERADMIN yang boleh mengubah-nya (untuk migrasi). |
+| `id_sekolah` | `number`| **Diabaikan** untuk non-SUPERADMIN.                                  |
+
 **Response (200):** Object sesi yang sudah diupdate.
+
+**Errors:**
+- `400` - Format jam tidak valid / halaqah baru bukan milik sekolah sesi (SUPERADMIN)
+- `404` - Halaqah tujuan tidak ditemukan (SUPERADMIN)
 
 ---
 
 #### `DELETE /api/sesi-halaqah/:id`
 
-Menghapus sesi halaqah.
+Menghapus sesi halaqah (soft delete). **Sesi yang masih dirujuk oleh absensi/setoran aktif TIDAK dapat dihapus** — admin harus membersihkan/mengarsipkan data terkait terlebih dahulu.
 
 **Permission:** `sesi-halaqah:delete`
 
@@ -1347,7 +1415,9 @@ Menghapus sesi halaqah.
 ```
 
 **Errors:**
-- `400` - Sesi tidak dapat dihapus karena sedang digunakan (ada relasi absensi/setoran)
+- `400` - Sesi tidak dapat dihapus karena masih digunakan oleh N data absensi dan M data setoran aktif. Hapus/arsipkan data terkait terlebih dahulu.
+- `403` - Di luar sekolah Anda / sesi bukan milik halaqah Anda (untuk MUHAFIZ)
+- `404` - Sesi tidak ditemukan
 
 ---
 
@@ -1361,6 +1431,16 @@ Menghapus sesi halaqah.
 Mencatat absensi santri. **Upsert** - jika santri sudah diabsen di sesi + tanggal yang sama, data akan diupdate.
 
 **Permission:** `absensi:santri:create-own` atau `absensi:santri:create-all`
+
+**Validasi Integritas Sesi-Santri (Konsistensi Halaqah):**
+
+Sistem akan memvalidasi bahwa sesi yang dipilih **sesuai dengan halaqah tempat siswa berada**. Aturan:
+
+- Jika sesi sudah terikat ke sebuah halaqah (`sesi.id_halaqah != null`), maka `student.id_halaqah` WAJIB sama. Jika beda, request ditolak dengan status `400` "Santri dan sesi berada di halaqah yang berbeda."
+- Untuk **MUHAFIZ**: sesi dan student keduanya harus berada di halaqah yang sama dengan halaqah muhafiz.
+- Untuk **KOORDINATOR/ADMIN**: sesi dan student harus berada di sekolah yang sama dengan user.
+
+> Tujuan: mencegah seorang muhafiz halaqah A "menyuntikkan" absensi untuk student halaqah B hanya karena ia mengetahui `id_sesi` yang valid di sekolahnya.
 
 **Request Body:**
 
@@ -1377,7 +1457,7 @@ Mencatat absensi santri. **Upsert** - jika santri sudah diabsen di sesi + tangga
 | Field       | Type     | Required | Keterangan                                      |
 |------------|---------|----------|------------------------------------------------|
 | `id_santri`| `number`| Yes      | ID santri                                       |
-| `id_sesi`  | `number`| Yes      | ID sesi halaqah                                 |
+| `id_sesi`  | `number`| Yes      | ID sesi halaqah (**harus satu halaqah dengan siswa** — lihat Validasi di atas) |
 | `status`   | `enum`  | Yes      | `HADIR`, `IZIN`, `SAKIT`, `ALFA`, `TERLAMBAT`  |
 | `keterangan`| `string`| No      | Keterangan tambahan                            |
 | `tanggal`  | `string`| Yes      | Tanggal absensi (ISO date)                      |
@@ -1398,6 +1478,92 @@ Mencatat absensi santri. **Upsert** - jika santri sudah diabsen di sesi + tangga
   }
 }
 ```
+
+**Errors:**
+- `400` - `id_santri`/`id_sesi` tidak valid / `Santri dan sesi berada di halaqah yang berbeda` / `Santri belum ditempatkan di halaqah manapun`
+- `403` - Santri berasal dari sekolah lain / sesi di luar sekolah / sesi bukan milik halaqah muhafiz / siswa bukan anggota halaqah muhafiz
+- `404` - Santri tidak ditemukan / sesi halaqah tidak ditemukan
+
+---
+
+#### `GET /api/absensi/sesi/:id_sesi`
+
+Mendapatkan **absensi sebuah sesi tertentu** pada tanggal tertentu. Endpoint ini adalah cara paling natural untuk menampilkan rekap absensi per-sesi, mendukung konsep "setiap sesi halaqah punya absensinya sendiri".
+
+**Permission:** `absensi:santri:view-own` atau `absensi:santri:view-all`
+
+**Path Parameters:**
+
+| Parameter  | Type  | Keterangan        |
+|-----------|-------|-------------------|
+| `id_sesi` | `int` | ID sesi halaqah   |
+
+**Query Parameters:**
+
+| Parameter | Type    | Default     | Keterangan              |
+|----------|--------|-------------|-------------------------|
+| `date`   | `string`| Hari ini    | Tanggal (YYYY-MM-DD)    |
+
+**Authorization scope:**
+- **MUHAFIZ**: hanya bisa melihat sesi milik halaqahnya sendiri.
+- **KOORDINATOR/ADMIN**: hanya bisa melihat sesi di sekolahnya.
+- **SUPERADMIN**: bebas.
+
+**Response (200):**
+
+```json
+{
+  "success": true,
+  "message": "Data absensi sesi berhasil diambil",
+  "data": [
+    {
+      "id_absensi": 1,
+      "id_santri": 1,
+      "id_sesi": 1,
+      "tanggal": "2026-06-15T00:00:00.000Z",
+      "status": "HADIR",
+      "keterangan": null,
+      "sesi": {
+        "id_sesi": 1,
+        "nama_sesi": "Bada Subuh",
+        "jam_mulai": "05:00",
+        "jam_selesai": "06:15",
+        "id_halaqah": 5
+      },
+      "santri": {
+        "id_santri": 1,
+        "nama_santri": "Budi",
+        "id_halaqah": 5
+      }
+    },
+    {
+      "id_absensi": 2,
+      "id_santri": 2,
+      "id_sesi": 1,
+      "tanggal": "2026-06-15T00:00:00.000Z",
+      "status": "IZIN",
+      "keterangan": "Sakit",
+      "sesi": {
+        "id_sesi": 1,
+        "nama_sesi": "Bada Subuh",
+        "jam_mulai": "05:00",
+        "jam_selesai": "06:15",
+        "id_halaqah": 5
+      },
+      "santri": {
+        "id_santri": 2,
+        "nama_santri": "Ahmad",
+        "id_halaqah": 5
+      }
+    }
+  ]
+}
+```
+
+**Errors:**
+- `400` - ID Sesi tidak valid
+- `403` - Sesi di luar sekolah Anda / sesi bukan milik halaqah Anda (MUHAFIZ)
+- `404` - Sesi halaqah tidak ditemukan
 
 ---
 
@@ -1482,14 +1648,24 @@ Mendapatkan absensi halaqah. Bisa **harian** atau **rekap bulanan**.
       "tanggal": "2026-06-15T00:00:00.000Z",
       "status": "HADIR",
       "keterangan": null,
+      "sesi": {
+        "id_sesi": 1,
+        "nama_sesi": "Bada Subuh",
+        "jam_mulai": "05:00",
+        "jam_selesai": "06:15",
+        "id_halaqah": 5
+      },
       "santri": {
         "id_santri": 1,
-        "nama_santri": "Budi"
+        "nama_santri": "Budi",
+        "id_halaqah": 5
       }
     }
   ]
 }
 ```
+
+> **Catatan**: Response sudah termasuk relasi `sesi` (lengkap dengan `id_halaqah`) dan `santri` (lengkap dengan `id_halaqah`). Hasil hanya berisi absensi untuk sesi-sesi yang terikat ke halaqah yang diminta (atau sesi legacy dengan `id_halaqah = NULL`).
 
 **Response Bulanan (200):**
 
@@ -2213,6 +2389,7 @@ Mendapatkan detail lengkap santri beserta statistik bulanan (profil, kehadiran, 
 | POST    | `/api/absensi`                                       | Yes   | Create absensi santri (upsert)        |
 | POST    | `/api/absensi/muhafiz`                               | Yes   | Create absensi muhafiz (upsert)       |
 | GET     | `/api/absensi/halaqah/:halaqahId`                    | Yes   | Absensi harian/bulanan halaqah        |
+| GET     | `/api/absensi/sesi/:id_sesi`                         | Yes   | Absensi sebuah sesi (per-sesi)         |
 | GET     | `/api/absensi/santri/:id_santri`                     | Yes   | Riwayat absensi santri                |
 | GET     | `/api/absensi/rekap-santri`                          | Yes   | Rekap bulanan semua santri            |
 | GET     | `/api/absensi/rekap-muhafiz`                         | Yes   | Rekap bulanan muhafiz                 |
@@ -2257,3 +2434,8 @@ Mendapatkan detail lengkap santri beserta statistik bulanan (profil, kehadiran, 
 16. **User `has_halaqah`**: Field `has_halaqah` dan `id_halaqah` di response login berguna untuk menentukan apakah muhafiz sudah memiliki halaqah atau belum (untuk conditional UI).
 17. **Nomor Telepon Santri**: Bisa berupa `string` kosong/null di database, tapi di response selalu berupa string (fallback `"-"` untuk display endpoint).
 18. **Setoran `juz` bisa null**: Pada response display setoran, field `juz` bisa bernilai `null`.
+19. **Sesi terikat Halaqah**: Sejak update Juni 2026, setiap sesi halaqah memiliki `id_halaqah`. Beberapa implikasi untuk UI:
+    - Saat membuat sesi (POST `/api/sesi-halaqah`), frontend **wajib** mengirim `id_halaqah` untuk role KOORDINATOR/ADMIN. Untuk MUHAFIZ, field ini diabaikan dan otomatis terikat ke halaqah yang diasuhnya.
+    - Saat input absensi (POST `/api/absensi`), pilih sesi dari daftar sesi yang **satu halaqah dengan siswa** untuk menghindari error 400 "Santri dan sesi berada di halaqah yang berbeda".
+    - Untuk menampilkan "absensi milik sesi ini" gunakan `GET /api/absensi/sesi/:id_sesi?date=YYYY-MM-DD`.
+    - Jangan tampilkan opsi `id_halaqah` di form update sesi (PATCH) untuk role non-SUPERADMIN — field ini diabaikan untuk menjaga integritas data historis.

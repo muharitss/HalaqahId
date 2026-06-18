@@ -17,6 +17,7 @@ import SantriDetail from "@/features/display/pages/SantriDetail";
 import { TahfidzAi } from "@/components/features/tahfidz-ai/TahfidzAi";
 import KelolaMuhafizPage from "@/features/kepala-muhafidz/kelola-muhafiz";
 import KelolaHalaqahPage from "@/features/kepala-muhafidz/kelola-halaqah";
+import KelolaSesiPage from "@/features/kepala-muhafidz/kelola-sesi";
 import AbsensiPage from "@/features/muhafidz/absensi";
 import SetoranPage from "@/features/muhafidz/setoran";
 import ProgresSantriPage from "@/features/muhafidz/progres-santri";
@@ -117,6 +118,7 @@ export const AppRouter = () => {
             <Route path="/kepala-muhafidz" element={<KepalaMuhafidzRoot />} />
             <Route path="/kepala-muhafidz/muhafiz" element={<KelolaMuhafizPage />} />
             <Route path="/kepala-muhafidz/halaqah" element={<KelolaHalaqahPage />} />
+            <Route path="/kepala-muhafidz/sesi" element={<KelolaSesiPage />} />
             <Route path="/kepala-muhafidz/settings" element={<SettingsPage/>} />
             <Route path="/kepala-muhafidz/settings/info" element={<InfoSection/>} />
             <Route path="/kepala-muhafidz/settings/trash" element={<TrashSection/>} />
