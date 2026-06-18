@@ -2,6 +2,8 @@ import { useState, useCallback, useEffect } from "react";
 import { useAuth } from "@/features/auth/context/AuthContext";
 import { muhafizService } from "../services/muhafizService";
 import { type Muhafiz, type AbsensiStatus } from "../types";
+import { type SesiHalaqah } from "@/types/domain/sesi-halaqah";
+import { sesiService } from "@/services/sesiService";
 import { toast } from "sonner";
 
 export const useMuhafiz = () => {
@@ -20,6 +22,8 @@ export const useMuhafiz = () => {
 
   // Absensi States
   const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [selectedSesi, setSelectedSesi] = useState<number | null>(null);
+  const [sesiList, setSesiList] = useState<SesiHalaqah[]>([]);
   // Perbaikan tipe Record agar spesifik menggunakan AbsensiStatus
   const [attendanceMap, setAttendanceMap] = useState<Record<number, AbsensiStatus>>({});
   const [submittedAttendance, setSubmittedAttendance] = useState<Record<number, AbsensiStatus>>({});
@@ -35,6 +39,14 @@ export const useMuhafiz = () => {
       
       const activeIds = await muhafizService.getActiveMuhafizIds();
       setActiveMuhafizIds(activeIds);
+
+      // Fetch sesi
+      const sesiRes = await sesiService.getSesiHalaqah();
+      const sesiData = sesiRes.data || [];
+      setSesiList(sesiData);
+      if (sesiData.length > 0 && !selectedSesi) {
+        setSelectedSesi(sesiData[0].id_sesi);
+      }
     } catch {
       toast.error("Gagal memuat data muhafiz");
     } finally {
@@ -42,7 +54,7 @@ export const useMuhafiz = () => {
     }
   }, []);
 
-  const checkExistingAbsensi = useCallback(async (date: string) => {
+  const checkExistingAbsensi = useCallback(async (date: string, sesiId: number | null) => {
     try {
       const res = await muhafizService.getDailyAsatidz(date);
       
@@ -51,6 +63,11 @@ export const useMuhafiz = () => {
 
       if (res.data && Array.isArray(res.data)) {
         const mappedData = res.data.reduce((acc: Record<number, AbsensiStatus>, item: any) => {
+          // Filter out if it doesn't match selected session (unless item.id_sesi is not available and we fallback)
+          if (sesiId && item.id_sesi && item.id_sesi !== sesiId) {
+            return acc;
+          }
+
           // Cek apakah backend kirim id_user atau id_user
           const userId = item.id_user || item.id_user; 
           const status = item.status;
@@ -74,13 +91,13 @@ export const useMuhafiz = () => {
     loadMuhafiz();
   }, [loadMuhafiz]);
 
-  // Efek saat tanggal berubah
+  // Efek saat tanggal atau sesi berubah
   useEffect(() => {
-    if (selectedDate) {
-      checkExistingAbsensi(selectedDate);
-      setAttendanceMap({}); // Reset draft pilihan setiap ganti tanggal
+    if (selectedDate && selectedSesi) {
+      checkExistingAbsensi(selectedDate, selectedSesi);
+      setAttendanceMap({}); // Reset draft pilihan setiap ganti
     }
-  }, [selectedDate, checkExistingAbsensi]);
+  }, [selectedDate, selectedSesi, checkExistingAbsensi]);
 
   // Modal Actions
   const openEditModal = (muhafiz: Muhafiz) => {
@@ -168,6 +185,7 @@ export const useMuhafiz = () => {
       const promises = selectedIds.map((userId) => 
         muhafizService.catatAbsensiAsatidz({ 
           id_user: userId, 
+          id_sesi: selectedSesi || undefined,
           status: attendanceMap[userId], 
           tanggal: selectedDate,
           keterangan: ""
@@ -176,7 +194,7 @@ export const useMuhafiz = () => {
       await Promise.all(promises);
       toast.success("Absensi berhasil disimpan/diperbarui");
       setAttendanceMap({}); // Kosongkan draft setelah simpan
-      await checkExistingAbsensi(selectedDate); // Ambil data terbaru
+      await checkExistingAbsensi(selectedDate, selectedSesi); // Ambil data terbaru
     } catch (err: any) {
       toast.error(err.message || "Gagal menyimpan absensi");
     } finally {
@@ -189,13 +207,14 @@ export const useMuhafiz = () => {
       const today = new Date().toISOString().split('T')[0];
       await muhafizService.catatAbsensiAsatidz({
         id_user: userId,
+        id_sesi: selectedSesi || undefined,
         status: status,
         tanggal: today,
         keterangan: ""
       });
       toast.success(`Berhasil mencatat absensi: ${status}`);
       // Refresh list kunci jika admin sedang melihat halaman di tanggal hari ini
-      if (selectedDate === today) checkExistingAbsensi(today);
+      if (selectedDate === today) checkExistingAbsensi(today, selectedSesi);
     } catch (error: any) {
       toast.error(error.message || "Gagal mencatat absensi");
     }
@@ -230,6 +249,9 @@ export const useMuhafiz = () => {
     
     // Absensi Actions
     setSelectedDate,
+    selectedSesi,
+    setSelectedSesi,
+    sesiList,
     handleStatusChange,
     handleSaveAllAbsensi,
     handleAbsenMuhafiz

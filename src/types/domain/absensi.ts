@@ -45,6 +45,7 @@ export interface CreateAbsensiSantriRequest {
 
 export interface CreateAbsensiMuhafizRequest {
   id_user: number;
+  id_sesi?: number;
   status: StatusKehadiran;
   keterangan?: string;
   tanggal: string;
@@ -57,6 +58,7 @@ export interface UpdateAbsensiSantriRequest {
 }
 
 export interface UpdateAbsensiMuhafizRequest {
+  id_sesi?: number;
   status?: StatusKehadiran;
   keterangan?: string;
   tanggal_absensi?: string;

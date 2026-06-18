@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Info, Trash2, ChevronLeft, LogOut, ArrowLeft, Bot, Link as LinkIcon } from "lucide-react"; // Tambahkan icon
+import { Info, Trash2, ChevronLeft, LogOut, ArrowLeft, Bot, Link as LinkIcon, Building2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { SettingItem } from "./SettingItem";
@@ -64,6 +64,14 @@ export default function SettingsPage() {
               description="Asisten virtual hafalan santri"
               onClick={() => navigate(isKepala ? "/kepala-muhafidz/tahfidzai" : "/muhafidz/tahfidzai")}
             />
+            {isKepala && (
+              <SettingItem 
+                icon={<Building2 size={18} className="text-primary" />}
+                title="Profil Sekolah"
+                description="Kelola informasi dan alamat sekolah Anda"
+                onClick={() => navigate("/kepala-muhafidz/profil-sekolah")}
+              />
+            )}
           </Card>
         </section>
 

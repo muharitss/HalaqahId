@@ -4,11 +4,14 @@ import { type SetoranPayload, type SetoranRecord } from "../types";
 import { type Santri } from "../../kelola-santri/types";
 import { getErrorMessage } from "@/utils/error";
 import { toast } from "sonner";
+import { type SesiHalaqah } from "@/types/domain/sesi-halaqah";
+import { sesiService } from "@/services/sesiService";
 
 export const useSetoran = () => {
   const [loading, setLoading] = useState(false);
   const [history, setHistory] = useState<SetoranRecord[]>([]);
   const [santriList, setSantriList] = useState<Santri[]>([]);
+  const [sesiList, setSesiList] = useState<SesiHalaqah[]>([]);
   const [allSetoran, setAllSetoran] = useState<SetoranRecord[]>([]);
 
   // Fungsi untuk mengambil daftar santri (untuk dropdown)
@@ -16,9 +19,12 @@ export const useSetoran = () => {
     try {
       const res = await setoranService.getSantriList();
       setSantriList(res.data || []);
+      
+      const sesiRes = await sesiService.getSesiHalaqah();
+      setSesiList(sesiRes.data || []);
     } catch (err: unknown) {
-      console.error("Gagal mengambil daftar santri:", err);
-      toast.error(getErrorMessage(err, "Gagal memuat daftar santri"));
+      console.error("Gagal mengambil daftar santri dan sesi:", err);
+      toast.error(getErrorMessage(err, "Gagal memuat daftar santri dan sesi"));
     }
   }, []);
 
@@ -67,6 +73,7 @@ export const useSetoran = () => {
     addSetoran, 
     history, 
     santriList, 
+    sesiList,
     fetchSantri, 
     loading,
     allSetoran,

@@ -32,6 +32,7 @@ import { type SetoranFormValues, type SetoranPayload } from "../types";
 // Schema validasi
 const setoranSchema = z.object({
   santri_id: z.coerce.number().min(1, "Pilih santri"),
+  id_sesi: z.coerce.number().min(1, "Pilih sesi halaqah"),
   juz: z.coerce.number().min(1).max(30),
   surat: z.string().min(1, "Pilih surah"),
   ayat_mulai: z.coerce.number().min(1),
@@ -44,18 +45,22 @@ const setoranSchema = z.object({
   path: ["ayat_selesai"],
 });
 
+import { type SesiHalaqah } from "@/types/domain/sesi-halaqah";
+
 interface SetoranFormProps {
   santriList: Santri[];
+  sesiList: SesiHalaqah[];
   onSubmit: (data: SetoranPayload) => Promise<{ success: boolean }>;
 }
 
-export function SetoranForm({ santriList, onSubmit }: SetoranFormProps) {
+export function SetoranForm({ santriList, sesiList, onSubmit }: SetoranFormProps) {
   const [open, setOpen] = useState(false);
 
   const form = useForm<SetoranFormValues>({
     resolver: zodResolver(setoranSchema) as any,
     defaultValues: {
       santri_id: undefined,
+      id_sesi: undefined,
       juz: 1,
       kategori: "HAFALAN",
       surat: "",
@@ -73,9 +78,9 @@ export function SetoranForm({ santriList, onSubmit }: SetoranFormProps) {
   const currentSurahDetail = availableSurah.find((s) => s.nama === selectedSurat);
 
   const onFormSubmit = async (values: SetoranFormValues) => {
-    // Transformasi ke format yang diminta backend
     const payload = {
       santri_id: values.santri_id,
+      id_sesi: values.id_sesi,
       juz: values.juz,
       surat: values.surat,
       ayat: `${values.ayat_mulai}-${values.ayat_selesai}`,
@@ -99,7 +104,7 @@ export function SetoranForm({ santriList, onSubmit }: SetoranFormProps) {
   return (
     <Form {...form}>
       <form id="setoran-form" onSubmit={form.handleSubmit(onFormSubmit)} className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <FormField
             control={form.control}
             name="santri_id"
@@ -113,6 +118,27 @@ export function SetoranForm({ santriList, onSubmit }: SetoranFormProps) {
                   <SelectContent>
                     {santriList.map((s) => (
                       <SelectItem key={s.id_santri} value={s.id_santri.toString()}>{s.nama_santri}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="id_sesi"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Sesi Halaqah</FormLabel>
+                <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
+                  <FormControl>
+                    <SelectTrigger><SelectValue placeholder="Pilih Sesi" /></SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {sesiList.map((s) => (
+                      <SelectItem key={s.id_sesi} value={s.id_sesi.toString()}>{s.nama_sesi}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>

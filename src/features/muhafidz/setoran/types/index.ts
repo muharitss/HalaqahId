@@ -3,6 +3,7 @@ export type KategoriSetoran = "HAFALAN" | "MURAJAAH" | "ZIYADAH" | "INTENS" | "B
 
 export interface SetoranPayload {
   santri_id: number;
+  id_sesi?: number;
   juz: number;
   surat: string;
   ayat: string;
@@ -14,6 +15,7 @@ export interface SetoranPayload {
 export interface SetoranRecord {
   id_setoran: number;
   santri_id: number;
+  id_sesi?: number;
   tanggal_setoran: string;
   juz: number;
   surat: string;
@@ -29,6 +31,7 @@ export interface SetoranRecord {
 
 export interface SetoranFormValues {
   santri_id: number;
+  id_sesi?: number;
   juz: number;
   surat: string;
   ayat_mulai: number;

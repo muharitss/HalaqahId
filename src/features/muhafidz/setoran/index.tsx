@@ -9,7 +9,7 @@ import { AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function InputSetoranPage({ hideHeader = false }: { hideHeader?: boolean }) {
-  const { santriList, loading, fetchSantri, addSetoran } = useSetoran();
+  const { santriList, sesiList, loading, fetchSantri, addSetoran } = useSetoran();
 
   useEffect(() => {
     fetchSantri();
@@ -34,6 +34,7 @@ export default function InputSetoranPage({ hideHeader = false }: { hideHeader?: 
           <CardContent>
             <SetoranForm 
               santriList={santriList} 
+              sesiList={sesiList}
               onSubmit={addSetoran} 
             />
           </CardContent>

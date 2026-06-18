@@ -146,7 +146,7 @@ export const muhafizService = {
     }
   },
 
-  catatAbsensiAsatidz: async (payload: { id_user: number; status: string; tanggal: string; keterangan: string }) => {
+  catatAbsensiAsatidz: async (payload: { id_user: number; id_sesi?: number; status: string; tanggal: string; keterangan: string }) => {
     try {
       const res = await axiosClient.post("/absensi/muhafiz", payload);
       return res.data;

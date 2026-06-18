@@ -1,7 +1,7 @@
 import axiosClient from "@/api/axiosClient";
 import { getErrorMessage } from "@/utils/error";
 import { type ApiResponse } from "@/services/halaqahService";
-import { type Sekolah } from "@/types/domain/sekolah";
+import { type Sekolah, type UpdateSekolahRequest } from "@/types/domain/sekolah";
 
 export const sekolahService = {
   getAll: async (): Promise<ApiResponse<Sekolah[]>> => {
@@ -22,6 +22,15 @@ export const sekolahService = {
       return res.data;
     } catch (error: unknown) {
       throw new Error(getErrorMessage(error, "Gagal mengambil profil sekolah"));
+    }
+  },
+
+  updateProfile: async (data: UpdateSekolahRequest): Promise<ApiResponse<Sekolah>> => {
+    try {
+      const res = await axiosClient.put<ApiResponse<Sekolah>>("/sekolah", data);
+      return res.data;
+    } catch (error: unknown) {
+      throw new Error(getErrorMessage(error, "Gagal memperbarui profil sekolah"));
     }
   }
 };

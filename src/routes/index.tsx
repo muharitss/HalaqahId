@@ -12,6 +12,7 @@ import SettingsPage from "@/pages/settings";
 import LaporanSetoranPage from "@/features/kepala-muhafidz/laporan-setoran"; 
 import InfoSection from "@/pages/settings/InfoSection";
 import TrashSection from "@/pages/settings/TrashSection";
+import ProfilSekolahPage from "@/features/kepala-muhafidz/profil-sekolah";
 import { DisplayProvider } from "@/features/display/context/DisplayContext";
 import PublicDisplay from "@/features/display/pages/PublicDisplay";
 import SantriDetail from "@/features/display/pages/SantriDetail";
@@ -127,6 +128,7 @@ export const AppRouter = () => {
             <Route path="/kepala-muhafidz/settings" element={<SettingsPage/>} />
             <Route path="/kepala-muhafidz/settings/info" element={<InfoSection/>} />
             <Route path="/kepala-muhafidz/settings/trash" element={<TrashSection/>} />
+            <Route path="/kepala-muhafidz/profil-sekolah" element={<ProfilSekolahPage />} />
 
 
             {/* Tambahkan route superadmin lainnya di sini */}

@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
 import { CalendarIcon } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 // Hooks & Components
 import { useMuhafiz } from "./hooks/useMuhafiz";
@@ -45,6 +46,9 @@ export default function KelolaMuhafizPage() {
     // Absensi States & Actions
     selectedDate,
     setSelectedDate,
+    selectedSesi,
+    setSelectedSesi,
+    sesiList,
     attendanceMap,
     submittedAttendance,
     handleStatusChange,
@@ -102,7 +106,24 @@ export default function KelolaMuhafizPage() {
 
         {/* TAB 2: INPUT ABSENSI (100% IDENTIK LAYOUTNYA) */}
         <TabsContent value="input" className="space-y-6 mt-0">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex flex-col md:flex-row md:items-center justify-end gap-4">
+            <Select
+              value={selectedSesi ? selectedSesi.toString() : ""}
+              onValueChange={(val) => setSelectedSesi(Number(val))}
+              disabled={isLoading || sesiList.length === 0}
+            >
+              <SelectTrigger className="w-full md:w-60 border-primary/20 hover:border-primary">
+                <SelectValue placeholder="Pilih Sesi" />
+              </SelectTrigger>
+              <SelectContent>
+                {sesiList.map((sesi) => (
+                  <SelectItem key={sesi.id_sesi} value={sesi.id_sesi.toString()}>
+                    {sesi.nama_sesi} ({sesi.jam_mulai} - {sesi.jam_selesai})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
             <Popover>
               <PopoverTrigger asChild>
                 <Button variant="outline" className="w-full md:w-60 justify-start text-left font-normal border-primary/20 hover:border-primary">
