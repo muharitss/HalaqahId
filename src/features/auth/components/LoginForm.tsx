@@ -5,7 +5,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { loginSchema, type LoginFormValues } from "@/utils/zodSchema";
 import { useAuth } from "@/features/auth/context/AuthContext";
 import { getErrorMessage } from "@/utils/error";
-import { authService } from "@/features/auth/services/authService";
+import { authService } from "@/features/auth/api/authService";
 
 // Shadcn UI Components
 import { Button } from "@/components/ui/button";

@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { useParams } from "react-router-dom";
-import { displayService } from "@/features/display/services/displayService";
+import { displayService } from "@/features/display/api/displayService";
 import { startOfMonth, endOfMonth, eachDayOfInterval } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SantriDetailHeader } from "@/features/display/components/santri-detail/SantriDetailHeader";

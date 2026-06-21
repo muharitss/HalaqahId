@@ -1,12 +1,12 @@
-import { AppSidebar } from "@/components/layout/AppSidebar";
-import { MobileDock } from "@/components/layout/MobileDock";
-import { ThemeToggle } from "@/components/theme/ThemeToggle";
+import { AppSidebar } from "@/components/custom/layout/AppSidebar";
+import { MobileDock } from "@/components/custom/layout/MobileDock";
+import { ThemeToggle } from "@/components/custom/theme/ThemeToggle";
 import { useAuth } from "@/features/auth/context/AuthContext";
 import { Outlet, useNavigate } from "react-router-dom"; 
 import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsMobile } from "@/utils/use-mobile";
 import { isKepalaRole, Role } from "@/types/domain/enums";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";

@@ -1,5 +1,5 @@
 import { LoginForm } from "@/features/auth/components/LoginForm";
-import { ThemeToggle } from "@/components/theme/ThemeToggle";
+import { ThemeToggle } from "@/components/custom/theme/ThemeToggle";
 import { LoginCarousel } from "@/features/auth/components/LoginCarousel";
 import { LoginHeader } from "@/features/auth/components/LoginHeader";
 import { LoginFooter } from "@/features/auth/components/LoginFooter";

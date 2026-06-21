@@ -18,7 +18,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { authService } from "@/features/auth/services/authService";
+import { authService } from "@/features/auth/api/authService";
 import { registerAdminSchema, type RegisterFormValues } from "@/utils/zodSchema";
 
 export function RegisterForm() {

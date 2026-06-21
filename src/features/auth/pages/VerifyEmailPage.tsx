@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { authService } from "@/features/auth/services/authService";
-import { ThemeToggle } from "@/components/theme/ThemeToggle";
+import { authService } from "@/features/auth/api/authService";
+import { ThemeToggle } from "@/components/custom/theme/ThemeToggle";
 import { CheckCircle2, XCircle, Loader2 } from "lucide-react";
 
 export default function VerifyEmailPage() {

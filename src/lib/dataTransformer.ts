@@ -17,7 +17,6 @@ interface SantriBase {
 interface DashboardItem {
   id_setoran?: number; // Tambahan dari backend
   id_santri?: number; // Primary key dari backend
-  id_santri?: number; // Alias (jika ada)
   santri?: SantriBase;
   tanggal_setoran?: string;
   kategori?: string;
@@ -45,7 +44,7 @@ export const sanitizeDashboardData = <T extends DashboardItem>(
     }
 
     // 4. FIX: Gunakan id_santri sesuai format backend
-    const currentId = item.id_santri || item.id_santri;
+    const currentId = item.id_santri;
     if (!currentId || currentId === 0) return false;
 
     return true;
@@ -90,7 +89,7 @@ export const transformSetoranData = (
 
   return filteredData.reduce((acc: AccType, item: DashboardItem) => {
     const halaqahName = item.santri?.halaqah?.name_halaqah || "Tanpa Halaqah";
-    const santriId = item.id_santri || item.id_santri || 0;
+    const santriId = item.id_santri || 0;
     const santriName = item.santri?.nama_santri || "Nama Tidak Diketahui";
     const kategori = (item.kategori || "HAFALAN").toUpperCase();
 
