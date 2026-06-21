@@ -1,8 +1,13 @@
 // Export semua type yang dibutuhkan
-export type KategoriSetoran = "HAFALAN" | "MURAJAAH" | "ZIYADAH" | "INTENS" | "BACAAN";
+export type KategoriSetoran =
+  | "HAFALAN"
+  | "MURAJAAH"
+  | "ZIYADAH"
+  | "INTENS"
+  | "BACAAN";
 
 export interface SetoranPayload {
-  santri_id: number;
+  id_santri: number;
   id_sesi?: number;
   juz: number;
   surat: string;
@@ -14,7 +19,7 @@ export interface SetoranPayload {
 
 export interface SetoranRecord {
   id_setoran: number;
-  santri_id: number;
+  id_santri: number;
   id_sesi?: number;
   tanggal_setoran: string;
   juz: number;
@@ -30,7 +35,7 @@ export interface SetoranRecord {
 }
 
 export interface SetoranFormValues {
-  santri_id: number;
+  id_santri: number;
   id_sesi?: number;
   juz: number;
   surat: string;

@@ -16,15 +16,17 @@ interface SantriBase {
 
 interface DashboardItem {
   id_setoran?: number; // Tambahan dari backend
-  id_santri?: number;  // Primary key dari backend
-  santri_id?: number;  // Alias (jika ada)
+  id_santri?: number; // Primary key dari backend
+  id_santri?: number; // Alias (jika ada)
   santri?: SantriBase;
   tanggal_setoran?: string;
   kategori?: string;
   status?: string;
 }
 
-export const sanitizeDashboardData = <T extends DashboardItem>(data: T[]): T[] => {
+export const sanitizeDashboardData = <T extends DashboardItem>(
+  data: T[],
+): T[] => {
   if (!data || !Array.isArray(data)) return [];
 
   return data.filter((item) => {
@@ -35,19 +37,25 @@ export const sanitizeDashboardData = <T extends DashboardItem>(data: T[]): T[] =
     if (!item.santri.nama_santri) return false;
 
     // 3. Cek soft delete
-    if (item.santri.deleted_at !== undefined && item.santri.deleted_at !== null) {
+    if (
+      item.santri.deleted_at !== undefined &&
+      item.santri.deleted_at !== null
+    ) {
       return false;
     }
 
     // 4. FIX: Gunakan id_santri sesuai format backend
-    const currentId = item.id_santri || item.santri_id;
+    const currentId = item.id_santri || item.id_santri;
     if (!currentId || currentId === 0) return false;
 
     return true;
   });
 };
 
-export const transformSetoranData = (data: DashboardItem[], filter?: DateFilter) => {
+export const transformSetoranData = (
+  data: DashboardItem[],
+  filter?: DateFilter,
+) => {
   const cleanData = sanitizeDashboardData(data);
 
   const filteredData = cleanData.filter((item) => {
@@ -82,7 +90,7 @@ export const transformSetoranData = (data: DashboardItem[], filter?: DateFilter)
 
   return filteredData.reduce((acc: AccType, item: DashboardItem) => {
     const halaqahName = item.santri?.halaqah?.name_halaqah || "Tanpa Halaqah";
-    const santriId = item.id_santri || item.santri_id || 0;
+    const santriId = item.id_santri || item.id_santri || 0;
     const santriName = item.santri?.nama_santri || "Nama Tidak Diketahui";
     const kategori = (item.kategori || "HAFALAN").toUpperCase();
 
@@ -92,7 +100,7 @@ export const transformSetoranData = (data: DashboardItem[], filter?: DateFilter)
         totalHafalan: 0,
         totalMurajaah: 0,
         totalZiyadah: 0,
-        santriGroup: {}
+        santriGroup: {},
       };
     }
 
@@ -100,20 +108,26 @@ export const transformSetoranData = (data: DashboardItem[], filter?: DateFilter)
       acc[halaqahName].santriGroup[santriId] = {
         nama: santriName,
         setoran: [],
-        stats: { HAFALAN: 0, MURAJAAH: 0, ZIYADAH: 0 }
+        stats: { HAFALAN: 0, MURAJAAH: 0, ZIYADAH: 0 },
       };
     }
 
     acc[halaqahName].santriGroup[santriId].setoran.push(item);
-    
+
     // Update Global Count
     if (kategori === "HAFALAN") acc[halaqahName].totalHafalan++;
     else if (kategori === "ZIYADAH") acc[halaqahName].totalZiyadah++;
     else acc[halaqahName].totalMurajaah++;
 
     // Update Santri Stats
-    if (kategori === "HAFALAN" || kategori === "MURAJAAH" || kategori === "ZIYADAH") {
-      acc[halaqahName].santriGroup[santriId].stats[kategori as "HAFALAN" | "MURAJAAH" | "ZIYADAH"]++;
+    if (
+      kategori === "HAFALAN" ||
+      kategori === "MURAJAAH" ||
+      kategori === "ZIYADAH"
+    ) {
+      acc[halaqahName].santriGroup[santriId].stats[
+        kategori as "HAFALAN" | "MURAJAAH" | "ZIYADAH"
+      ]++;
     }
 
     return acc;

@@ -7,7 +7,7 @@ export const loginSchema = z.object({
 
 export const setoranSchema = z
   .object({
-    santri_id: z.coerce.number().min(1, "Pilih santri"),
+    id_santri: z.coerce.number().min(1, "Pilih santri"),
     juz: z.coerce.number().min(1).max(30),
     surat: z.string().min(1, "Surah wajib dipilih"),
     // Kita gunakan field helper untuk UI
