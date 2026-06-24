@@ -62,12 +62,12 @@ export const InputAbsensiAsatidz = ({
                       
                       {/* Badge Indikator Status */}
                       {isEditing && (
-                        <Badge variant="outline" className="h-5 text-[10px] bg-amber-50 text-amber-600 border-amber-200 font-bold uppercase tracking-tighter">
+                        <Badge variant="outline" className="h-5 text-[10px] bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-950/20 dark:text-amber-400 dark:border-amber-900/30 font-bold uppercase tracking-tighter">
                           Draft
                         </Badge>
                       )}
                       {isSubmitted && !isEditing && (
-                        <Badge variant="outline" className="h-5 text-[10px] bg-green-50 text-green-600 border-green-200 font-bold uppercase tracking-tighter">
+                        <Badge variant="outline" className="h-5 text-[10px] bg-green-50 text-green-600 border-green-200 dark:bg-green-950/20 dark:text-green-400 dark:border-green-900/30 font-bold uppercase tracking-tighter">
                           Tercatat
                         </Badge>
                       )}

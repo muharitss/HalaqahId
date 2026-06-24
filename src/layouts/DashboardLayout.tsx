@@ -1,4 +1,4 @@
-﻿import { AppSidebar } from "@/components/custom/layout/AppSidebar";
+import { AppSidebar } from "@/components/custom/layout/AppSidebar";
 import { MobileDock } from "@/components/custom/layout/MobileDock";
 import { ThemeToggle } from "@/components/custom/theme/ThemeToggle";
 import { useAuth } from "@/features/auth/components/auth-provider";
@@ -71,7 +71,7 @@ export default function DashboardLayout() {
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto overflow-x-hidden w-full bg-slate-50/50">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden w-full bg-slate-50/50 dark:bg-transparent">
           <div className="container mx-auto p-4 md:p-6 lg:p-10 max-w-7xl w-full box-border">
             <Outlet /> 
           </div>

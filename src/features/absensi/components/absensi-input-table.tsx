@@ -1,4 +1,4 @@
-﻿import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
@@ -93,7 +93,7 @@ export function AbsensiInputTable() {
                       {isEditing && (
                         <Badge
                           variant="outline"
-                          className="h-5 text-[9px] bg-amber-50 text-amber-600 border-amber-200 font-bold uppercase"
+                          className="h-5 text-[9px] bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-950/20 dark:text-amber-400 dark:border-amber-900/30 font-bold uppercase"
                         >
                           Draft
                         </Badge>
@@ -101,7 +101,7 @@ export function AbsensiInputTable() {
                       {isSubmitted && !isEditing && (
                         <Badge
                           variant="outline"
-                          className="h-5 text-[9px] bg-green-50 text-green-600 border-green-200 font-bold uppercase"
+                          className="h-5 text-[9px] bg-green-50 text-green-600 border-green-200 dark:bg-green-950/20 dark:text-green-400 dark:border-green-900/30 font-bold uppercase"
                         >
                           Tercatat
                         </Badge>

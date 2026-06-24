@@ -232,19 +232,19 @@ export function AbsensiRekapTable() {
                         );
                       });
                     })}
-                    <TableCell className="text-center font-bold border-b border-r bg-green-50/40 text-green-700 text-xs">
+                    <TableCell className="text-center font-bold border-b border-r bg-green-50/40 text-green-700 dark:bg-green-950/20 dark:text-green-400 text-xs">
                       {grandTotals.HADIR}
                     </TableCell>
-                    <TableCell className="text-center font-bold border-b border-r bg-blue-50/40 text-blue-700 text-xs">
+                    <TableCell className="text-center font-bold border-b border-r bg-blue-50/40 text-blue-700 dark:bg-blue-950/20 dark:text-blue-400 text-xs">
                       {grandTotals.IZIN}
                     </TableCell>
-                    <TableCell className="text-center font-bold border-b border-r bg-yellow-50/40 text-yellow-700 text-xs">
+                    <TableCell className="text-center font-bold border-b border-r bg-yellow-50/40 text-yellow-700 dark:bg-yellow-950/20 dark:text-yellow-400 text-xs">
                       {grandTotals.SAKIT}
                     </TableCell>
-                    <TableCell className="text-center font-bold border-b border-r bg-orange-50/40 text-orange-700 text-xs">
+                    <TableCell className="text-center font-bold border-b border-r bg-orange-50/40 text-orange-700 dark:bg-orange-950/20 dark:text-orange-400 text-xs">
                       {grandTotals.TERLAMBAT}
                     </TableCell>
-                    <TableCell className="text-center font-bold border-b border-r bg-red-50/40 text-red-700 text-xs">
+                    <TableCell className="text-center font-bold border-b border-r bg-red-50/40 text-red-700 dark:bg-red-950/20 dark:text-red-400 text-xs">
                       {grandTotals.ALFA}
                     </TableCell>
                   </TableRow>

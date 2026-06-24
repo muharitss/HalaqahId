@@ -82,7 +82,7 @@ export const RekapAbsensiAsatidz = ({ muhafizList, sesiList }: Props) => {
   const getStatusStyle = (status?: string, hasSesi?: boolean) => {
     const base = "text-center p-0 border-r h-10 min-w-[34px] text-xs font-bold uppercase transition-colors";
     if (!hasSesi) {
-      return cn(base, "bg-slate-100/50 text-slate-300 font-normal");
+      return cn(base, "bg-slate-100/50 text-slate-300 dark:bg-muted/10 dark:text-muted-foreground/20 font-normal");
     }
     switch (status) {
       case "HADIR": return cn(base, "bg-green-500 text-white hover:bg-green-600");
@@ -116,14 +116,14 @@ export const RekapAbsensiAsatidz = ({ muhafizList, sesiList }: Props) => {
       </div>
 
       {/* TABLE WRAPPER */}
-      <div className="relative border rounded-lg overflow-hidden bg-slate-50 shadow-sm">
+      <div className="relative border rounded-lg overflow-hidden bg-slate-50/50 dark:bg-card shadow-sm">
         <div className="overflow-x-auto overflow-y-hidden scrollbar-thin scrollbar-thumb-slate-300">
           <Table className="border-separate border-spacing-0 w-full min-w-[900px]">
             <TableHeader>
-              <TableRow className="bg-slate-100">
+              <TableRow className="bg-slate-100 dark:bg-muted/50">
                 <TableHead 
                   rowSpan={2}
-                  className="min-w-[150px] md:min-w-[200px] sticky left-0 z-20 bg-slate-100 font-bold border-r border-b text-xs shadow-[1px_0_0_0_#e2e8f0] h-12 align-middle"
+                  className="min-w-[150px] md:min-w-[200px] sticky left-0 z-20 bg-slate-100 dark:bg-muted font-bold border-r border-b shadow-[1px_0_0_0_#e2e8f0] dark:shadow-[1px_0_0_0_var(--border)] h-12 align-middle"
                 >
                   Nama Muhafiz
                 </TableHead>
@@ -143,7 +143,7 @@ export const RekapAbsensiAsatidz = ({ muhafizList, sesiList }: Props) => {
                   Total
                 </TableHead>
               </TableRow>
-              <TableRow className="bg-slate-50">
+              <TableRow className="bg-slate-50/50 dark:bg-muted/30">
                 {daysInMonth.map((date) => {
                   return relevantSesi.map((sesi) => (
                     <TableHead
@@ -165,7 +165,7 @@ export const RekapAbsensiAsatidz = ({ muhafizList, sesiList }: Props) => {
                 ))}
               </TableRow>
             </TableHeader>
-            <TableBody className="bg-white">
+            <TableBody className="bg-white dark:bg-transparent">
               {isLoading ? (
                 <TableRow>
                   <TableCell 
@@ -202,8 +202,8 @@ export const RekapAbsensiAsatidz = ({ muhafizList, sesiList }: Props) => {
                   });
 
                   return (
-                    <TableRow key={m.id_user} className="group hover:bg-slate-50 transition-colors">
-                      <TableCell className="sticky left-0 z-10 bg-white group-hover:bg-slate-50 border-r border-b py-3 text-xs font-semibold shadow-[1px_0_0_0_#e2e8f0] truncate align-middle">
+                    <TableRow key={m.id_user} className="group hover:bg-slate-50/50 dark:hover:bg-muted/30 transition-colors">
+                      <TableCell className="sticky left-0 z-10 bg-white dark:bg-background group-hover:bg-slate-50/50 dark:group-hover:bg-muted/30 border-r border-b py-3 text-xs font-semibold shadow-[1px_0_0_0_#e2e8f0] dark:shadow-[1px_0_0_0_var(--border)] truncate align-middle">
                         <span className="truncate block w-32 md:w-40 font-bold" title={m.name}>
                           {m.name}
                         </span>
@@ -228,11 +228,11 @@ export const RekapAbsensiAsatidz = ({ muhafizList, sesiList }: Props) => {
                           );
                         });
                       })}
-                      <TableCell className="text-center font-bold border-b border-r text-green-600 bg-green-50/20 text-xs align-middle">{grandTotals.HADIR}</TableCell>
-                      <TableCell className="text-center font-bold border-b border-r text-blue-600 bg-blue-50/20 text-xs align-middle">{grandTotals.IZIN}</TableCell>
-                      <TableCell className="text-center font-bold border-b border-r text-yellow-600 bg-yellow-50/20 text-xs align-middle">{grandTotals.SAKIT}</TableCell>
-                      <TableCell className="text-center font-bold border-b border-r text-red-600 bg-red-50/20 text-xs align-middle">{grandTotals.ALFA}</TableCell>
-                      <TableCell className="text-center font-bold border-b border-r text-orange-600 bg-orange-50/20 text-xs align-middle">{grandTotals.TERLAMBAT}</TableCell>
+                      <TableCell className="text-center font-bold border-b border-r text-green-600 bg-green-50/20 dark:text-green-400 dark:bg-green-950/25 text-xs align-middle">{grandTotals.HADIR}</TableCell>
+                      <TableCell className="text-center font-bold border-b border-r text-blue-600 bg-blue-50/20 dark:text-blue-400 dark:bg-blue-950/25 text-xs align-middle">{grandTotals.IZIN}</TableCell>
+                      <TableCell className="text-center font-bold border-b border-r text-yellow-600 bg-yellow-50/20 dark:text-yellow-400 dark:bg-yellow-950/25 text-xs align-middle">{grandTotals.SAKIT}</TableCell>
+                      <TableCell className="text-center font-bold border-b border-r text-red-600 bg-red-50/20 dark:text-red-400 dark:bg-red-950/25 text-xs align-middle">{grandTotals.ALFA}</TableCell>
+                      <TableCell className="text-center font-bold border-b border-r text-orange-600 bg-orange-50/20 dark:text-orange-400 dark:bg-orange-950/25 text-xs align-middle">{grandTotals.TERLAMBAT}</TableCell>
                     </TableRow>
                   );
                 })

@@ -95,7 +95,7 @@ export default function KelolaMuhafizPage() {
 
         {/* TAB 1: DAFTAR AKUN */}
         <TabsContent value="daftar" className="mt-0 outline-none">
-          <CardContent className="p-0 border rounded-xl overflow-hidden bg-white shadow-sm">
+          <CardContent className="p-0 border rounded-xl overflow-hidden bg-card shadow-sm">
             <DaftarAkun
               muhafizList={muhafizList}
               activeMuhafizIds={activeMuhafizIds}
