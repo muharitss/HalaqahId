@@ -85,7 +85,6 @@ export const InputAbsensiAsatidz = ({
                           }`}
                         >
                           <span className="truncate">{displayStatus}</span>
-                          <span className="ml-2 opacity-50">â–¼</span>
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-44 p-2">
