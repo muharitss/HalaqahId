@@ -1,4 +1,4 @@
-﻿import { createContext, useContext, useState, useMemo, useEffect, type ReactNode } from "react";
+import { createContext, useContext, useState, useMemo, useEffect, type ReactNode } from "react";
 import { useParams } from "react-router-dom";
 import { format } from "date-fns";
 import { useSantri } from "@/features/santri/hooks/useSantri";
@@ -76,7 +76,7 @@ export function AbsensiProvider({ children }: { children: ReactNode }) {
 
   const filteredSesiList = useMemo(() => {
     return sesiList.filter(
-      (sesi) => !sesi.id_halaqah || uniqueHalaqahIds.includes(sesi.id_halaqah)
+      (sesi) => !sesi.halaqahs || sesi.halaqahs.length === 0 || sesi.halaqahs.some(h => uniqueHalaqahIds.includes(h.id_halaqah))
     );
   }, [sesiList, uniqueHalaqahIds]);
 

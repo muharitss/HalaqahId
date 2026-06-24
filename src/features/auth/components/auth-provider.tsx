@@ -1,4 +1,4 @@
-﻿// FILE: ./context/AuthContext.tsx
+// FILE: ./context/AuthContext.tsx
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { type LoginFormValues } from "@/features/auth/types/auth.schema";
 import { authService } from "@/features/auth/api/authService";
@@ -28,7 +28,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         id_user: superadminData.id_user,
         token: superadminData.token,
         name: superadminData.name,
-        email: superadminData.email
+        email: superadminData.email,
+        role: superadminData.role
       }));
     }
   };
@@ -55,7 +56,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         id_user: originalUser.id_user,
         token: originalUser.token,
         name: originalUser.name,
-        email: originalUser.email
+        email: originalUser.email,
+        role: originalUser.role
       }));
     }
   };
@@ -68,10 +70,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       try {
         const sessionData = JSON.parse(superadminSession);
         
-        // Set user kembali ke superadmin
+        const originalRole = sessionData.role || user?.originalUser?.role || Role.SUPERADMIN;
+        
+        // Set user kembali ke admin asal
         const superadminUser: AuthUser = {
           ...sessionData,
-          role: Role.SUPERADMIN,
+          role: originalRole,
           isImpersonating: false,
           originalUser: undefined
         };

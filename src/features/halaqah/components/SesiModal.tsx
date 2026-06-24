@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,7 +39,7 @@ export function SesiModal({ isOpen, onClose, sesi, halaqahList, onSave, isSubmit
         setNamaSesi(sesi.nama_sesi || "");
         setJamMulai(sesi.jam_mulai || "");
         setJamSelesai(sesi.jam_selesai || "");
-        setIdHalaqahs(sesi.id_halaqah ? [sesi.id_halaqah.toString()] : []);
+        setIdHalaqahs(sesi.halaqahs ? sesi.halaqahs.map(h => h.id_halaqah.toString()) : []);
         setHari(sesi.hari || []);
       } else {
         setNamaSesi("");
@@ -57,11 +57,16 @@ export function SesiModal({ isOpen, onClose, sesi, halaqahList, onSave, isSubmit
     
     let payload;
     if (isEdit) {
+      if (idHalaqahs.length === 0) {
+        alert("Pilih minimal satu halaqah");
+        return;
+      }
       payload = {
         nama_sesi: namaSesi,
         jam_mulai: jamMulai,
         jam_selesai: jamSelesai,
         hari: hari.length > 0 ? hari : undefined,
+        id_halaqahs: idHalaqahs.map(Number),
       } as UpdateSesiHalaqahRequest;
     } else {
       if (idHalaqahs.length === 0) {
@@ -69,24 +74,13 @@ export function SesiModal({ isOpen, onClose, sesi, halaqahList, onSave, isSubmit
         return;
       }
       
-      // Jika lebih dari 1 halaqah yang dipilih, kirim array payload
-      if (idHalaqahs.length > 1) {
-        payload = idHalaqahs.map(id => ({
-          nama_sesi: namaSesi,
-          jam_mulai: jamMulai,
-          jam_selesai: jamSelesai,
-          hari: hari.length > 0 ? hari : undefined,
-          id_halaqah: parseInt(id),
-        })) as CreateSesiHalaqahRequest[];
-      } else {
-        payload = {
-          nama_sesi: namaSesi,
-          jam_mulai: jamMulai,
-          jam_selesai: jamSelesai,
-          hari: hari.length > 0 ? hari : undefined,
-          id_halaqah: parseInt(idHalaqahs[0]),
-        } as CreateSesiHalaqahRequest;
-      }
+      payload = {
+        nama_sesi: namaSesi,
+        jam_mulai: jamMulai,
+        jam_selesai: jamSelesai,
+        hari: hari.length > 0 ? hari : undefined,
+        id_halaqahs: idHalaqahs.map(Number),
+      } as CreateSesiHalaqahRequest;
     }
 
     const success = await onSave(payload);
@@ -162,52 +156,50 @@ export function SesiModal({ isOpen, onClose, sesi, halaqahList, onSave, isSubmit
             </div>
           </div>
 
-          {!isEdit && (
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label>Halaqah <span className="text-red-500">*</span></Label>
-                <div className="flex items-center space-x-2">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label>Halaqah <span className="text-red-500">*</span></Label>
+              <div className="flex items-center space-x-2">
+                <Checkbox 
+                  id="all-halaqah" 
+                  checked={idHalaqahs.length === halaqahList.length && halaqahList.length > 0}
+                  onCheckedChange={(checked) => {
+                    if (checked) {
+                      setIdHalaqahs(halaqahList.map(h => h.id_halaqah.toString()));
+                    } else {
+                      setIdHalaqahs([]);
+                    }
+                  }}
+                />
+                <Label htmlFor="all-halaqah" className="text-sm font-normal cursor-pointer text-muted-foreground">Pilih Semua</Label>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 border rounded-md p-3 max-h-40 overflow-y-auto">
+              {halaqahList.map((h) => (
+                <div key={h.id_halaqah} className="flex items-center space-x-2">
                   <Checkbox 
-                    id="all-halaqah" 
-                    checked={idHalaqahs.length === halaqahList.length && halaqahList.length > 0}
+                    id={`halaqah-${h.id_halaqah}`} 
+                    checked={idHalaqahs.includes(h.id_halaqah.toString())}
                     onCheckedChange={(checked) => {
                       if (checked) {
-                        setIdHalaqahs(halaqahList.map(h => h.id_halaqah.toString()));
+                        setIdHalaqahs([...idHalaqahs, h.id_halaqah.toString()]);
                       } else {
-                        setIdHalaqahs([]);
+                        setIdHalaqahs(idHalaqahs.filter(id => id !== h.id_halaqah.toString()));
                       }
                     }}
                   />
-                  <Label htmlFor="all-halaqah" className="text-sm font-normal cursor-pointer text-muted-foreground">Pilih Semua</Label>
+                  <Label htmlFor={`halaqah-${h.id_halaqah}`} className="font-normal cursor-pointer text-sm truncate">
+                    {h.name_halaqah}
+                  </Label>
                 </div>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 border rounded-md p-3 max-h-40 overflow-y-auto">
-                {halaqahList.map((h) => (
-                  <div key={h.id_halaqah} className="flex items-center space-x-2">
-                    <Checkbox 
-                      id={`halaqah-${h.id_halaqah}`} 
-                      checked={idHalaqahs.includes(h.id_halaqah.toString())}
-                      onCheckedChange={(checked) => {
-                        if (checked) {
-                          setIdHalaqahs([...idHalaqahs, h.id_halaqah.toString()]);
-                        } else {
-                          setIdHalaqahs(idHalaqahs.filter(id => id !== h.id_halaqah.toString()));
-                        }
-                      }}
-                    />
-                    <Label htmlFor={`halaqah-${h.id_halaqah}`} className="font-normal cursor-pointer text-sm truncate">
-                      {h.name_halaqah}
-                    </Label>
-                  </div>
-                ))}
-                {halaqahList.length === 0 && (
-                  <div className="col-span-full text-sm text-muted-foreground italic">
-                    Tidak ada data halaqah tersedia.
-                  </div>
-                )}
-              </div>
+              ))}
+              {halaqahList.length === 0 && (
+                <div className="col-span-full text-sm text-muted-foreground italic">
+                  Tidak ada data halaqah tersedia.
+                </div>
+              )}
             </div>
-          )}
+          </div>
 
           <DialogFooter className="pt-4">
             <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>

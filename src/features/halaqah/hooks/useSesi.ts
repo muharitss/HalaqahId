@@ -1,4 +1,4 @@
-﻿import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { sesiService } from "@/features/halaqah/api/sesiService";
 import type { 
@@ -40,26 +40,6 @@ export function useSesi() {
     }
   });
 
-  const createMultipleMutation = useMutation({
-    mutationFn: async (payloads: CreateSesiHalaqahRequest[]) => {
-      const results = await Promise.allSettled(payloads.map(p => sesiService.createSesi(p)));
-      const successCount = results.filter(r => r.status === "fulfilled").length;
-      return { successCount, total: payloads.length };
-    },
-    onSuccess: ({ successCount, total }) => {
-      if (successCount === total) {
-        toast.success(`Berhasil menambahkan ${successCount} sesi halaqah`);
-      } else {
-        toast.error(`Berhasil menambahkan ${successCount} sesi, gagal ${total - successCount} sesi`);
-      }
-      if (successCount > 0) {
-        queryClient.invalidateQueries({ queryKey: ["sesi-halaqah"] });
-      }
-    },
-    onError: (error) => {
-      toast.error(error.message || "Gagal membuat beberapa sesi halaqah");
-    }
-  });
 
   const updateMutation = useMutation({
     mutationFn: ({ id, payload }: { id: number, payload: UpdateSesiHalaqahRequest }) => sesiService.updateSesi(id, payload),
@@ -87,14 +67,6 @@ export function useSesi() {
     try { await createMutation.mutateAsync(payload); return true; } catch { return false; }
   };
 
-  const createMultipleSesi = async (payloads: CreateSesiHalaqahRequest[]) => {
-    try { 
-      const { successCount, total } = await createMultipleMutation.mutateAsync(payloads); 
-      return successCount === total ? true : (successCount > 0);
-    } catch { 
-      return false; 
-    }
-  };
 
   const updateSesi = async (id: number, payload: UpdateSesiHalaqahRequest) => {
     try { await updateMutation.mutateAsync({ id, payload }); return true; } catch { return false; }
@@ -104,14 +76,13 @@ export function useSesi() {
     try { await deleteMutation.mutateAsync(id); return true; } catch { return false; }
   };
 
-  const isLoading = isLoadingSesi || createMutation.isPending || createMultipleMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
+  const isLoading = isLoadingSesi || createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
 
   return {
     sesiList,
     isLoading,
     fetchSesi,
     createSesi,
-    createMultipleSesi,
     updateSesi,
     deleteSesi,
   };

@@ -1,4 +1,4 @@
-﻿import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Info, Trash2, ChevronLeft, LogOut, ArrowLeft, Bot, Link as LinkIcon, Building2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,7 +6,7 @@ import { SettingItem } from "./SettingItem";
 import { useAuth } from "@/features/auth/components/auth-provider";
 import { Settings } from "@/components/custom/typed-text";
 import { Separator } from "@/components/ui/separator";
-import { isKepalaRole } from "@/types/domain/enums";
+import { isKepalaRole, Role } from "@/types/domain/enums";
 import { sekolahService } from "@/features/sekolah/api/sekolahService";
 import { toast } from "sonner";
 
@@ -19,8 +19,14 @@ export default function SettingsPage() {
 
   const handleBackToSuperadmin = async () => {
     if (stopImpersonating) {
+      const originalRole = user?.originalUser?.role;
       await stopImpersonating();
-      navigate("/kepala-muhafidz");
+      
+      if (originalRole === Role.SUPERADMIN) {
+        navigate("/superadmin");
+      } else {
+        navigate("/kepala-muhafidz");
+      }
     }
   };
 
@@ -112,7 +118,7 @@ export default function SettingsPage() {
                 <>
                   <SettingItem 
                     icon={<ArrowLeft size={18} className="text-yellow-600" />}
-                    title="Kembali ke Superadmin"
+                    title="Kembali ke Admin"
                     description="Keluar dari mode impersonasi"
                     onClick={handleBackToSuperadmin}
                   />

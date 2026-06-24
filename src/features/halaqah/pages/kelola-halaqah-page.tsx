@@ -39,7 +39,6 @@ export function KelolaHalaqahPage() {
     setIsDeleteSantriOpen,
     setIsMoveSantriOpen,
     fetchData,
-    handleOpenAddSantri,
     handleOpenEditSantri,
     handleSaveSantri,
     handleDeleteSantriConfirm,

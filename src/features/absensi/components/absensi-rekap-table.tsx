@@ -1,4 +1,4 @@
-﻿import { useMemo, useCallback } from "react";
+import { useMemo, useCallback } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -191,7 +191,7 @@ export function AbsensiRekapTable() {
               santriList.map((santri) => {
                 const id_santri = santri.id_santri;
                 const availableSesi = filteredSesiList.filter(
-                  (s) => !s.id_halaqah || s.id_halaqah === santri.id_halaqah
+                  (s) => !s.halaqahs || s.halaqahs.length === 0 || s.halaqahs.some(h => h.id_halaqah === santri.id_halaqah)
                 );
                 const renderSesi = availableSesi.length > 0 ? availableSesi : [{ id_sesi: 0, nama_sesi: "-" }];
 

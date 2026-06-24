@@ -1,4 +1,4 @@
-﻿import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Edit2, Trash2 } from "lucide-react";
 import type { SesiHalaqah } from "@/types/domain/sesi-halaqah";
@@ -48,7 +48,9 @@ export function SesiTable({ sesiList, isLoading, onEdit, onDelete }: SesiTablePr
               <TableCell>{sesi.jam_mulai}</TableCell>
               <TableCell>{sesi.jam_selesai}</TableCell>
               <TableCell>
-                {sesi.halaqah?.name_halaqah || sesi.id_halaqah || <span className="text-muted-foreground italic">Tidak ada (Sesi Umum)</span>}
+                {sesi.halaqahs && sesi.halaqahs.length > 0
+                  ? sesi.halaqahs.map(h => h.name_halaqah).join(", ")
+                  : <span className="text-muted-foreground italic">Tidak ada (Sesi Umum)</span>}
               </TableCell>
               <TableCell className="text-right space-x-2">
                 <Button variant="ghost" size="icon" onClick={() => onEdit(sesi)} className="text-blue-500 hover:text-blue-700 hover:bg-blue-50">

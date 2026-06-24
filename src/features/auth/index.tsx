@@ -96,7 +96,7 @@ export function VerifyEmailPage() {
         await authService.verifyEmail(token);
         setStatus("success");
         setMessage("Alhamdulillah! Email Anda berhasil diverifikasi. Silakan masuk untuk melanjutkan.");
-      } catch (error) {
+      } catch (error: any) {
         setStatus("error");
         setMessage(
           error.response?.data?.message || 

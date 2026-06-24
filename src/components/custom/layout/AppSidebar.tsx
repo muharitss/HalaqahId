@@ -1,4 +1,4 @@
-﻿import { useAuth } from "@/features/auth/components/auth-provider";
+import { useAuth } from "@/features/auth/components/auth-provider";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -43,8 +43,14 @@ export function AppSidebar() {
   }, [location.pathname, isMobile, setOpenMobile]);
 
   const handleBackToSuperadmin = async () => {
+    const originalRole = user?.originalUser?.role;
     await stopImpersonating();
-    navigate("/kepala-muhafidz");
+    
+    if (originalRole === Role.SUPERADMIN) {
+      navigate("/superadmin");
+    } else {
+      navigate("/kepala-muhafidz");
+    }
   };
 
   const isSuperAdmin = user?.role === Role.SUPERADMIN;

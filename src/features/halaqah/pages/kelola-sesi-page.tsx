@@ -9,7 +9,7 @@ import type { SesiHalaqah } from "@/types/domain/sesi-halaqah";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 
 export function KelolaSesiPage() {
-  const { sesiList, isLoading: loadingSesi, fetchSesi, createSesi, createMultipleSesi, updateSesi, deleteSesi } = useSesi();
+  const { sesiList, isLoading: loadingSesi, fetchSesi, createSesi, updateSesi, deleteSesi } = useSesi();
   const { halaqahs, fetchData: fetchHalaqahs } = useHalaqahManagement();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -39,9 +39,7 @@ export function KelolaSesiPage() {
     setIsSaving(true);
     let success = false;
     try {
-      if (Array.isArray(payload)) {
-        success = await createMultipleSesi(payload);
-      } else if (selectedSesi) {
+      if (selectedSesi) {
         success = await updateSesi(selectedSesi.id_sesi, payload);
       } else {
         success = await createSesi(payload);
