@@ -1,4 +1,4 @@
-﻿import { useAuth } from "@/features/auth/components/auth-provider";
+import { useAuth } from "@/features/auth/components/auth-provider";
 import { CardContent } from "@/components/ui/card";
 import { MuhafizManagement } from "@/components/custom/typed-text";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -58,6 +58,11 @@ export default function KelolaMuhafizPage() {
   } = useMuhafiz();
 
   if (!user || !isKepalaRole(user.role)) return <AccessDenied />;
+
+  const filteredMuhafizList = muhafizList.filter((m) => {
+    if (!selectedSesi) return true;
+    return m.halaqah?.sesi_halaqahs?.some((s) => s.id_sesi === selectedSesi) ?? false;
+  });
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
@@ -159,7 +164,7 @@ export default function KelolaMuhafizPage() {
               </div>
             ) : (
               <InputAbsensiAsatidz
-                muhafizList={muhafizList}
+                muhafizList={filteredMuhafizList}
                 attendanceMap={attendanceMap}
                 submittedAttendance={submittedAttendance} 
                 onStatusChange={handleStatusChange}

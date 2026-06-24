@@ -5,6 +5,9 @@ export interface Muhafiz extends DomainUser {
   halaqah?: {
     id_halaqah: number;
     name_halaqah: string;
+    sesi_halaqahs?: {
+      id_sesi: number;
+    }[];
   } | null;
 }
 
