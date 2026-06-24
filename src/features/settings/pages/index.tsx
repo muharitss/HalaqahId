@@ -43,8 +43,9 @@ export default function SettingsPage() {
       const publicLink = `${window.location.origin}/display/${displayToken}`;
       await navigator.clipboard.writeText(publicLink);
       toast.success("Link portal publik berhasil disalin ke clipboard!");
-    } catch (error: any) {
-      toast.error("Terjadi kesalahan saat menyalin link.", error.message);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Terjadi kesalahan";
+      toast.error(`Terjadi kesalahan saat menyalin link: ${message}`);
     }
   };
 

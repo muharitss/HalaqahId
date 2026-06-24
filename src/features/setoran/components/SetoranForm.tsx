@@ -1,7 +1,7 @@
-﻿"use client";
+"use client";
 
 import { useState, useMemo, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
@@ -76,7 +76,7 @@ export function SetoranForm({
   const [open, setOpen] = useState(false);
 
   const form = useForm<SetoranFormValues>({
-    resolver: zodResolver(setoranSchema) as any,
+    resolver: zodResolver(setoranSchema) as Resolver<SetoranFormValues>,
     defaultValues: {
       id_santri: undefined,
       id_sesi: undefined,

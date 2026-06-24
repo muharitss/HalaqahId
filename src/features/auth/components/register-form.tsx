@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Link, useNavigate } from "react-router-dom";
@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { authService } from "@/features/auth/api/authService";
 import { registerAdminSchema, type RegisterFormValues } from "@/features/auth/types/auth.schema";
+import { getErrorMessage } from "@/utils/error";
 
 export function RegisterForm() {
   const navigate = useNavigate();
@@ -52,8 +53,8 @@ export function RegisterForm() {
       
       // Tampilkan dialog sukses
       setShowSuccessDialog(true);
-    } catch (error: any) {
-      toast.error(error.message || "Pendaftaran gagal. Silakan coba lagi.");
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, "Pendaftaran gagal. Silakan coba lagi."));
     } finally {
       setIsLoading(false);
     }
@@ -68,7 +69,7 @@ export function RegisterForm() {
         <div className="space-y-2">
           <Label htmlFor="name">Nama Lengkap</Label>
           <div className="relative">
-            <div className="absolute left-3 top-3 text-muted-foreground">
+            <div className="absolute left-3 top-2 text-muted-foreground">
               <FontAwesomeIcon icon={faUser} />
             </div>
             <Input
@@ -85,7 +86,7 @@ export function RegisterForm() {
         <div className="space-y-2">
           <Label htmlFor="email">Email</Label>
           <div className="relative">
-            <div className="absolute left-3 top-3 text-muted-foreground">
+            <div className="absolute left-3 top-2 text-muted-foreground">
               <FontAwesomeIcon icon={faEnvelope} />
             </div>
             <Input
@@ -104,13 +105,13 @@ export function RegisterForm() {
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
             <div className="relative">
-              <div className="absolute left-3 top-3 text-muted-foreground">
+              <div className="absolute left-3 top-2 text-muted-foreground">
                 <FontAwesomeIcon icon={faLock} />
               </div>
               <Input
                 id="password"
                 type={showPassword ? "text" : "password"}
-                placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                placeholder="********"
                 className="pl-10 pr-10"
                 disabled={isLoading}
                 {...register("password")}
@@ -118,7 +119,7 @@ export function RegisterForm() {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-3 text-muted-foreground hover:text-foreground transition-colors"
+                className="absolute right-3 top-2 text-muted-foreground hover:text-foreground transition-colors"
                 tabIndex={-1}
               >
                 <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
@@ -130,13 +131,13 @@ export function RegisterForm() {
           <div className="space-y-2">
             <Label htmlFor="confirmPassword">Konfirmasi Password</Label>
             <div className="relative">
-              <div className="absolute left-3 top-3 text-muted-foreground">
+              <div className="absolute left-3 top-2 text-muted-foreground">
                 <FontAwesomeIcon icon={faLock} />
               </div>
               <Input
                 id="confirmPassword"
                 type={showConfirmPassword ? "text" : "password"}
-                placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                placeholder="password"
                 className="pl-10 pr-10"
                 disabled={isLoading}
                 {...register("confirmPassword")}
@@ -144,7 +145,7 @@ export function RegisterForm() {
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3 top-3 text-muted-foreground hover:text-foreground transition-colors"
+                className="absolute right-3 top-2 text-muted-foreground hover:text-foreground transition-colors"
                 tabIndex={-1}
               >
                 <FontAwesomeIcon icon={showConfirmPassword ? faEyeSlash : faEye} />
@@ -164,7 +165,7 @@ export function RegisterForm() {
         <div className="space-y-2">
           <Label htmlFor="nama_sekolah">Nama Lembaga</Label>
           <div className="relative">
-            <div className="absolute left-3 top-3 text-muted-foreground">
+            <div className="absolute left-3 top-2 text-muted-foreground">
               <FontAwesomeIcon icon={faBuilding} />
             </div>
             <Input
@@ -181,7 +182,7 @@ export function RegisterForm() {
         <div className="space-y-2">
           <Label htmlFor="alamat">Alamat Lembaga (Opsional)</Label>
           <div className="relative">
-            <div className="absolute left-3 top-3 text-muted-foreground">
+            <div className="absolute left-3 top-2 text-muted-foreground">
               <FontAwesomeIcon icon={faMapMarkerAlt} />
             </div>
             <Input

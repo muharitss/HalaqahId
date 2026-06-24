@@ -1,4 +1,4 @@
-﻿import { HalaqahForm } from "@/components/custom/forms/HalaqahForm";
+import { HalaqahForm } from "@/components/custom/forms/HalaqahForm";
 import {
   Dialog,
   DialogContent,
@@ -32,7 +32,8 @@ export function EditHalaqah({ halaqah, isOpen, onClose, onSuccess }: EditHalaqah
             initialData={{
               id_halaqah: halaqah.id_halaqah,
               name_halaqah: halaqah.name_halaqah,
-              id_muhafiz: halaqah.id_muhafiz
+              id_muhafiz: halaqah.id_muhafiz,
+              sesi_halaqahs: halaqah.sesi_halaqahs,
             }}
             onSuccess={() => {
               onSuccess();

@@ -1,4 +1,4 @@
-﻿// src/features/kepala-muhafidz/kelola-muhafiz/components/RekapAbsensiAsatidz.tsx
+// src/features/kepala-muhafidz/kelola-muhafiz/components/RekapAbsensiAsatidz.tsx
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -8,7 +8,7 @@ import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDate, getMonth,
 import { id } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { muhafizService } from "../api/muhafizService";
-import { type Muhafiz } from "../types";
+import { type Muhafiz, type MonthlyAbsensiAsatidzRecord, type MonthlyAbsensiAsatidzItem } from "../types";
 
 interface Props {
   muhafizList: Muhafiz[];
@@ -16,7 +16,7 @@ interface Props {
 
 export const RekapAbsensiAsatidz = ({ muhafizList }: Props) => {
   const [viewDate, setViewDate] = useState<Date>(new Date());
-  const [monthlyData, setMonthlyData] = useState<any[]>([]);
+  const [monthlyData, setMonthlyData] = useState<MonthlyAbsensiAsatidzRecord[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   const daysInMonth = useMemo(() => eachDayOfInterval({
@@ -42,13 +42,13 @@ export const RekapAbsensiAsatidz = ({ muhafizList }: Props) => {
 
   const getStatus = (userId: number, dateStr: string) => {
     const dayRecord = monthlyData.find(m => m.tanggal === dateStr);
-    return dayRecord?.data?.find((item: any) => item.id_user === userId)?.status;
+    return dayRecord?.data?.find((item: MonthlyAbsensiAsatidzItem) => item.id_user === userId)?.status;
   };
 
   const calculateTotal = (userId: number) => {
     const totals = { HADIR: 0, IZIN: 0, SAKIT: 0, ALFA: 0, TERLAMBAT: 0 };
     monthlyData.forEach(day => {
-      const status = day.data?.find((item: any) => item.id_user === userId)?.status;
+      const status = day.data?.find((item: MonthlyAbsensiAsatidzItem) => item.id_user === userId)?.status;
       if (status && status in totals) totals[status as keyof typeof totals]++;
     });
     return totals;

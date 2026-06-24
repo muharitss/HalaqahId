@@ -1,15 +1,31 @@
-﻿import { clsx, type ClassValue } from "clsx";
+import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { type SetoranItem } from "@/features/setoran/types";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export const groupSetoranByHalaqahAndSantri = (data: any[]) => {
-  return data.reduce((acc: any, item: any) => {
-    const halaqahName = item.santri.halaqah.name_halaqah;
+interface SantriGroupItem {
+  nama_santri: string;
+  setoran: SetoranItem[];
+  stats: Record<string, number>;
+}
+
+interface HalaqahGroupItem {
+  name: string;
+  totalHafalan: number;
+  totalMurajaah: number;
+  santriGroup: Record<number, SantriGroupItem>;
+}
+
+type GroupedSetoran = Record<string, HalaqahGroupItem>;
+
+export const groupSetoranByHalaqahAndSantri = (data: SetoranItem[]): GroupedSetoran => {
+  return data.reduce((acc: GroupedSetoran, item: SetoranItem) => {
+    const halaqahName = item.santri?.halaqah?.name_halaqah || "Tanpa Halaqah";
     const santriId = item.id_santri;
-    const santriName = item.santri.nama_santri;
+    const santriName = item.santri?.nama_santri || "Nama Tidak Diketahui";
 
     // 1. Inisialisasi Halaqah jika belum ada
     if (!acc[halaqahName]) {
@@ -37,7 +53,8 @@ export const groupSetoranByHalaqahAndSantri = (data: any[]) => {
     acc[halaqahName][
       item.kategori === "HAFALAN" ? "totalHafalan" : "totalMurajaah"
     ]++;
-    acc[halaqahName].santriGroup[santriId].stats[item.kategori]++;
+    acc[halaqahName].santriGroup[santriId].stats[item.kategori] = 
+      (acc[halaqahName].santriGroup[santriId].stats[item.kategori] || 0) + 1;
 
     return acc;
   }, {});

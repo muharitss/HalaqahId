@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,16 +12,16 @@ interface SesiModalProps {
   onClose: () => void;
   sesi: SesiHalaqah | null;
   halaqahList: Halaqah[];
-  onSave: (payload: any) => Promise<boolean>;
+  onSave: (payload: CreateSesiHalaqahRequest | UpdateSesiHalaqahRequest) => Promise<boolean>;
   isSubmitting: boolean;
 }
 
 export function SesiModal({ isOpen, onClose, sesi, halaqahList, onSave, isSubmitting }: SesiModalProps) {
-  const [namaSesi, setNamaSesi] = useState("");
-  const [jamMulai, setJamMulai] = useState("");
-  const [jamSelesai, setJamSelesai] = useState("");
-  const [idHalaqahs, setIdHalaqahs] = useState<string[]>([]);
-  const [hari, setHari] = useState<number[]>([]);
+  const [namaSesi, setNamaSesi] = useState(sesi?.nama_sesi || "");
+  const [jamMulai, setJamMulai] = useState(sesi?.jam_mulai || "");
+  const [jamSelesai, setJamSelesai] = useState(sesi?.jam_selesai || "");
+  const [idHalaqahs, setIdHalaqahs] = useState<string[]>(sesi?.halaqahs ? sesi.halaqahs.map(h => h.id_halaqah.toString()) : []);
+  const [hari, setHari] = useState<number[]>(sesi?.hari || []);
 
   const HARI_OPTIONS = [
     { value: 1, label: "Senin" },
@@ -32,24 +32,6 @@ export function SesiModal({ isOpen, onClose, sesi, halaqahList, onSave, isSubmit
     { value: 6, label: "Sabtu" },
     { value: 7, label: "Ahad" },
   ];
-
-  useEffect(() => {
-    if (isOpen) {
-      if (sesi) {
-        setNamaSesi(sesi.nama_sesi || "");
-        setJamMulai(sesi.jam_mulai || "");
-        setJamSelesai(sesi.jam_selesai || "");
-        setIdHalaqahs(sesi.halaqahs ? sesi.halaqahs.map(h => h.id_halaqah.toString()) : []);
-        setHari(sesi.hari || []);
-      } else {
-        setNamaSesi("");
-        setJamMulai("");
-        setJamSelesai("");
-        setIdHalaqahs([]);
-        setHari([]);
-      }
-    }
-  }, [isOpen, sesi]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

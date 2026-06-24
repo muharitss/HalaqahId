@@ -1,4 +1,4 @@
-﻿import axios from "axios";
+import axios from "axios";
 
 const axiosClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL || "/api",
@@ -63,6 +63,11 @@ axiosClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
+      // Biarkan halaman login menangani 401-nya sendiri tanpa me-reload halaman
+      if (error.config?.url?.includes("/login")) {
+        return Promise.reject(error);
+      }
+
       console.error("Unauthorized access - token mungkin expired");
       
       // Cek apakah ini karena impersonate session

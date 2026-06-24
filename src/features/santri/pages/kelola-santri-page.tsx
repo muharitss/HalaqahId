@@ -41,11 +41,22 @@ export function KelolaSantriPage() {
     }
   };
 
-  const handleSave = async (data: any) => {
+  const handleSave = async (data: {
+    nama_santri: string | FormDataEntryValue | null;
+    nomor_telepon: string | FormDataEntryValue | null;
+    target: string;
+    id_halaqah: number | undefined;
+  }) => {
+    const payload = {
+      nama_santri: typeof data.nama_santri === "string" ? data.nama_santri : (data.nama_santri?.toString() || ""),
+      nomor_telepon: typeof data.nomor_telepon === "string" ? data.nomor_telepon : (data.nomor_telepon?.toString() || ""),
+      target: data.target as "RINGAN" | "SEDANG" | "INTENSE",
+      id_halaqah: data.id_halaqah || 0,
+    };
     if (selectedSantri) {
-      await updateSantri(selectedSantri.id_santri, data as UpdateSantriData);
+      await updateSantri(selectedSantri.id_santri, payload as UpdateSantriData);
     } else {
-      await createSantri(data as CreateSantriData);
+      await createSantri(payload as CreateSantriData);
     }
     setIsModalOpen(false);
     setSelectedSantri(null);

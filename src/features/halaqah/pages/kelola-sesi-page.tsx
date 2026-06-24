@@ -5,7 +5,7 @@ import { useSesi } from "../hooks/useSesi";
 import { useHalaqahManagement } from "@/features/halaqah/hooks/useHalaqahManagement";
 import { SesiTable } from "../components/SesiTable";
 import { SesiModal } from "../components/SesiModal";
-import type { SesiHalaqah } from "@/types/domain/sesi-halaqah";
+import type { SesiHalaqah, CreateSesiHalaqahRequest, UpdateSesiHalaqahRequest } from "@/types/domain/sesi-halaqah";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 
 export function KelolaSesiPage() {
@@ -35,14 +35,14 @@ export function KelolaSesiPage() {
     setIsModalOpen(true);
   };
 
-  const handleSave = async (payload: any | any[]) => {
+  const handleSave = async (payload: CreateSesiHalaqahRequest | UpdateSesiHalaqahRequest) => {
     setIsSaving(true);
     let success = false;
     try {
       if (selectedSesi) {
-        success = await updateSesi(selectedSesi.id_sesi, payload);
+        success = await updateSesi(selectedSesi.id_sesi, payload as UpdateSesiHalaqahRequest);
       } else {
-        success = await createSesi(payload);
+        success = await createSesi(payload as CreateSesiHalaqahRequest);
       }
     } finally {
       setIsSaving(false);
@@ -89,6 +89,7 @@ export function KelolaSesiPage() {
       />
 
       <SesiModal 
+        key={isModalOpen ? (selectedSesi ? `edit-${selectedSesi.id_sesi}` : "add") : "closed"}
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
         sesi={selectedSesi} 

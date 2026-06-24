@@ -1,4 +1,4 @@
-﻿import axiosClient from "@/lib/axiosClient";
+import axiosClient from "@/lib/axiosClient";
 import { getErrorMessage } from "@/utils/error";
 import { type ApiResponse } from "@/features/halaqah/api/halaqahService";
 import { type ProgresSantri } from "../types";
@@ -16,7 +16,7 @@ export const progresService = {
         nama: item.nama_santri,
         target: item.target || "REGULER", 
         capaian: 0, 
-        status: (item as any).is_active !== false ? "Aktif" : "Nonaktif",
+        status: (item as Santri & { is_active?: boolean }).is_active !== false ? "Aktif" : "Nonaktif",
         terakhirSetor: "-",
         totalAyat: 0
       }));

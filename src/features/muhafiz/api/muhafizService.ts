@@ -1,7 +1,16 @@
-﻿import axiosClient from "@/lib/axiosClient";
+import axiosClient from "@/lib/axiosClient";
 import { getErrorMessage } from "@/utils/error";
 import { type Muhafiz } from "../types";
 import type { GlobalResponse } from "@/types/api/global-response";
+
+/** Struktur satu item absensi harian muhafiz dari endpoint GET /absensi/muhafiz/harian */
+export interface DailyAbsensiMuhafizItem {
+  id_absensi: number;
+  id_user: number;
+  id_sesi: number | null;
+  status: string;
+  keterangan: string | null;
+}
 
 export const muhafizService = {
   // Get all muhafiz
@@ -155,23 +164,23 @@ export const muhafizService = {
     }
   },
 
-  getDailyAsatidz: async (dateString: string) => {
+  /**
+   * Mengambil absensi harian muhafiz untuk tanggal dan sesi tertentu.
+   * Filter dilakukan di server untuk efisiensi dan akurasi.
+   */
+  getDailyAsatidz: async (
+    dateString: string,
+    id_sesi?: number,
+  ): Promise<GlobalResponse<DailyAbsensiMuhafizItem[]>> => {
     try {
-      const date = new Date(dateString);
-      const month = date.getMonth() + 1;
-      const year = date.getFullYear();
+      const params = new URLSearchParams({ date: dateString });
+      if (id_sesi !== undefined) params.set("id_sesi", String(id_sesi));
 
-      const res = await axiosClient.get(`/absensi/rekap-muhafiz?month=${month}&year=${year}`);
-      
-      if (res.data.success) {
-      const dayData = res.data.data.find((item: any) => item.tanggal === dateString);
-      return {
-        ...res.data,
-        data: dayData ? dayData.data : [] // Return data asatidz di tanggal itu saja
-      };
-    }
-    return res.data;
-    } catch (error) {
+      const res = await axiosClient.get<GlobalResponse<DailyAbsensiMuhafizItem[]>>(
+        `/absensi/muhafiz/harian?${params}`,
+      );
+      return res.data;
+    } catch (error: unknown) {
       throw new Error(getErrorMessage(error, "Gagal mengambil data absensi harian muhafiz"));
     }
   },

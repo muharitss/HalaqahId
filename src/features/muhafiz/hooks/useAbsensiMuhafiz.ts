@@ -1,4 +1,4 @@
-﻿// src/features/kepala-muhafidz/kelola-muhafiz/hooks/useAbsensiMuhafiz.ts
+// src/features/kepala-muhafidz/kelola-muhafiz/hooks/useAbsensiMuhafiz.ts
 import { useMutation } from "@tanstack/react-query";
 import { muhafizService } from "../api/muhafizService";
 import { toast } from "sonner";
@@ -11,8 +11,8 @@ export const useAbsensiMuhafiz = () => {
     onSuccess: () => {
       toast.success("Absensi muhafiz berhasil dicatat");
     },
-    onError: (error: any) => {
-      toast.error(error.message);
+    onError: (error: unknown) => {
+      toast.error(error instanceof Error ? error.message : "Gagal mencatat absensi");
     }
   });
 

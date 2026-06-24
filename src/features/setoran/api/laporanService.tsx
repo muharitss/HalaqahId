@@ -1,9 +1,11 @@
 import { setoranService } from "@/features/setoran/api/setoranService";
 import { halaqahService } from "@/features/halaqah/api/halaqahService";
 import { transformSetoranData } from "@/lib/dataTransformer";
-import type { DateFilter, GroupedData, SetoranItem } from "../types";
+import type { DateFilter, GroupedData, SetoranItem, GroupedHalaqahItem, GroupedSantriItem } from "../types";
 import { santriService } from "@/features/santri/api/santriService";
 import { absensiService } from "@/features/shared/api";
+import type { Halaqah } from "@/features/halaqah/types";
+import type { Santri } from "@/features/santri/types";
 
 export const laporanService = {
   // Get all setoran data
@@ -53,14 +55,14 @@ export const laporanService = {
 
   // Get halaqah ID by name
   getHalaqahIdByName: (
-    halaqahList: any[],
+    halaqahList: Halaqah[],
     halaqahName: string,
   ): number | undefined => {
     return halaqahList.find((h) => h.name_halaqah === halaqahName)?.id_halaqah;
   },
 
   // Filter santri by halaqah ID
-  getSantriByHalaqahId: (santriList: any[], halaqahId: number) => {
+  getSantriByHalaqahId: (santriList: Santri[], halaqahId: number) => {
     return santriList.filter((s) => s.id_halaqah === halaqahId);
   },
 
@@ -87,12 +89,12 @@ export const laporanService = {
     const distribusiHalaqah: Record<string, number> = {};
     let totalTaqwim = 0;
 
-    Object.entries(groupedData).forEach(([halaqahName, group]: [string, any]) => {
+    Object.entries(groupedData).forEach(([halaqahName, group]: [string, GroupedHalaqahItem]) => {
       if (activeHalaqah !== "all" && activeHalaqah !== "" && halaqahName !== activeHalaqah) return;
 
       let halaqahCount = 0;
-      Object.values(group.santriGroup).forEach((santri: any) => {
-        santri.setoran.forEach((s: any) => {
+      Object.values(group.santriGroup).forEach((santri: GroupedSantriItem) => {
+        santri.setoran.forEach((s: SetoranItem) => {
           totalSetoran++;
           halaqahCount++;
           santriSet.add(santri.nama);

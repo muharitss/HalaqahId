@@ -1,4 +1,4 @@
-﻿import { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { dashboardService } from "../api/dashboardService";
 import type { ViewType } from "../types";
@@ -36,7 +36,7 @@ export const useDashboardData = () => {
     }
   });
 
-  const setoranData = initialData?.setoran || [];
+  const setoranData = useMemo(() => initialData?.setoran || [], [initialData?.setoran]);
   
   const weeklyData = useMemo(() => dashboardService.getWeeklyChartData(setoranData), [setoranData]);
   const monthlyData = useMemo(() => dashboardService.getMonthlyChartData(setoranData), [setoranData]);

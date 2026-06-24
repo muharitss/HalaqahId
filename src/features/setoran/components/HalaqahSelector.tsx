@@ -1,4 +1,4 @@
-﻿import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUsers } from "@fortawesome/free-solid-svg-icons";
 import type { HalaqahSelectorProps } from "../types";
@@ -26,7 +26,7 @@ export function HalaqahSelector({ halaqahNames, activeHalaqah, onHalaqahChange }
           Semua Halaqah
         </SelectItem>
 
-        {halaqahNames.map((name: any) => (
+        {halaqahNames.map((name: string) => (
           <SelectItem key={name} value={name} className="capitalize">
             <span className="truncate block">{name}</span>
           </SelectItem>

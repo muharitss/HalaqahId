@@ -4,6 +4,7 @@ import { format } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
 import { LaporanPdfTemplate } from "../components/LaporanPdfTemplate";
 import type { LaporanStats } from "../components/LaporanStatsCard";
+import type { GroupedData, GroupedSantriItem, SetoranItem } from "../types";
 
 interface PdfRow {
   no: number;
@@ -19,7 +20,7 @@ interface PdfRow {
 }
 
 interface UseLaporanPdfOptions {
-  groupedData: Record<string, { santriGroup: Record<string, { nama: string; setoran: any[] }> }>;
+  groupedData: GroupedData;
   stats: LaporanStats;
   activeHalaqah: string;
   periodLabel: string;
@@ -44,13 +45,13 @@ export function useLaporanPdf() {
 
       Object.entries(groupedData).forEach(([halaqahName, group]) => {
         if (activeHalaqah !== "all" && activeHalaqah !== "" && halaqahName !== activeHalaqah) return;
-        Object.values(group.santriGroup).forEach((santri: any) => {
+        Object.values(group.santriGroup).forEach((santri: GroupedSantriItem) => {
           // Sort by date desc
           const sorted = [...santri.setoran].sort(
-            (a: any, b: any) =>
+            (a: SetoranItem, b: SetoranItem) =>
               new Date(b.tanggal_setoran).getTime() - new Date(a.tanggal_setoran).getTime()
           );
-          sorted.forEach((s: any) => {
+          sorted.forEach((s: SetoranItem) => {
             rows.push({
               no: counter++,
               tanggal: s.tanggal_setoran,
@@ -61,7 +62,7 @@ export function useLaporanPdf() {
               ayat: s.ayat,
               kategori: s.kategori,
               taqwim: s.taqwim ?? 0,
-              keterangan: s.keterangan,
+              keterangan: s.keterangan ?? undefined,
             });
           });
         });

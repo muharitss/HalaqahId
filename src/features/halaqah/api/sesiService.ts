@@ -1,14 +1,15 @@
-﻿import axiosClient from "@/lib/axiosClient";
+import axiosClient from "@/lib/axiosClient";
 import { type ApiResponse } from "@/features/halaqah/api/halaqahService";
 import { type SesiHalaqah, type CreateSesiHalaqahRequest, type UpdateSesiHalaqahRequest } from "@/types/domain/sesi-halaqah";
+import { getErrorMessage } from "@/utils/error";
 
 export const sesiService = {
   getSesiHalaqah: async (): Promise<ApiResponse<SesiHalaqah[]>> => {
     try {
       const res = await axiosClient.get<ApiResponse<SesiHalaqah[]>>("/sesi-halaqah");
       return res.data;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || "Gagal mengambil sesi halaqah");
+    } catch (error: unknown) {
+      throw new Error(getErrorMessage(error, "Gagal mengambil sesi halaqah"));
     }
   },
 
@@ -16,8 +17,8 @@ export const sesiService = {
     try {
       const res = await axiosClient.get<ApiResponse<SesiHalaqah>>(`/sesi-halaqah/${id}`);
       return res.data;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || "Gagal mengambil detail sesi halaqah");
+    } catch (error: unknown) {
+      throw new Error(getErrorMessage(error, "Gagal mengambil detail sesi halaqah"));
     }
   },
 
@@ -25,8 +26,8 @@ export const sesiService = {
     try {
       const res = await axiosClient.post<ApiResponse<SesiHalaqah>>("/sesi-halaqah", payload);
       return res.data;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || "Gagal membuat sesi halaqah");
+    } catch (error: unknown) {
+      throw new Error(getErrorMessage(error, "Gagal membuat sesi halaqah"));
     }
   },
 
@@ -34,8 +35,8 @@ export const sesiService = {
     try {
       const res = await axiosClient.patch<ApiResponse<SesiHalaqah>>(`/sesi-halaqah/${id}`, payload);
       return res.data;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || "Gagal memperbarui sesi halaqah");
+    } catch (error: unknown) {
+      throw new Error(getErrorMessage(error, "Gagal memperbarui sesi halaqah"));
     }
   },
 
@@ -43,8 +44,8 @@ export const sesiService = {
     try {
       const res = await axiosClient.delete<ApiResponse<null>>(`/sesi-halaqah/${id}`);
       return res.data;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || "Gagal menghapus sesi halaqah");
+    } catch (error: unknown) {
+      throw new Error(getErrorMessage(error, "Gagal menghapus sesi halaqah"));
     }
   },
 };

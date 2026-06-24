@@ -1,9 +1,8 @@
-﻿import { useState, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { halaqahManagementService } from "../api/halaqahManagementService";
 import { type Halaqah } from "../types";
 import { type Santri } from "../types";
-import type { KategoriTarget } from "@/types/domain/enums";
 import { toast } from "sonner";
 
 export function useHalaqahManagement() {
@@ -70,9 +69,9 @@ export function useHalaqahManagement() {
       const payload = {
         nama_santri: String(data.nama_santri),
         nomor_telepon: String(data.nomor_telepon),
-        target: data.target as KategoriTarget,
+        target: data.target as "RINGAN" | "SEDANG" | "INTENSE",
         id_halaqah: data.id_halaqah || selectedHalaqah?.id_halaqah || 0,
-      } as Santri;
+      };
 
       if (selectedSantri?.id_santri) {
         await halaqahManagementService.updateSantri(selectedSantri.id_santri, payload);
@@ -110,7 +109,9 @@ export function useHalaqahManagement() {
     mutationFn: async ({ santriId, targetHalaqahId }: { santriId: number, targetHalaqahId: number }) => {
       if (!selectedSantri) throw new Error("No selected santri");
       await halaqahManagementService.updateSantri(santriId, {
-        ...selectedSantri,
+        nama_santri: selectedSantri.nama_santri,
+        nomor_telepon: selectedSantri.nomor_telepon || "",
+        target: selectedSantri.target as "RINGAN" | "SEDANG" | "INTENSE",
         id_halaqah: targetHalaqahId,
       });
     },

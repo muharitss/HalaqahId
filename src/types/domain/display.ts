@@ -1,4 +1,4 @@
-﻿import { KategoriTarget, StatusKehadiran, KategoriSetoran } from './enums';
+import { KategoriTarget, StatusKehadiran, KategoriSetoran } from './enums';
 
 export interface DisplayHalaqah {
   id_halaqah: number;
@@ -104,7 +104,7 @@ export interface PublicSantriFeedProps {
 }
 
 export interface DisplayContextType {
-  santriList: any[];
+  santriList: DisplaySantri[];
   isLoading: boolean;
   refreshSantri: () => Promise<void>;
 }

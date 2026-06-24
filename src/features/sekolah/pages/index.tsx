@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -25,8 +25,8 @@ export default function KelolaSekolahPage() {
       } else {
         toast.error(res.message || "Gagal memuat data sekolah");
       }
-    } catch (error: any) {
-      toast.error(error.message || "Terjadi kesalahan saat memuat data sekolah");
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Terjadi kesalahan saat memuat data sekolah");
     } finally {
       setIsLoading(false);
     }

@@ -1,4 +1,4 @@
-﻿import axiosClient from "@/lib/axiosClient";
+import axiosClient from "@/lib/axiosClient";
 import { santriService } from "@/features/santri/api/santriService";
 import { type Halaqah, type HalaqahResponse } from "../types";
 import { type Santri } from "../types";
@@ -21,13 +21,13 @@ export const halaqahManagementService = {
     }
   },
 
-  createHalaqah: async (data: { name_halaqah: string; id_muhafiz: number }): Promise<GlobalResponse<Halaqah>> => {
+  createHalaqah: async (data: { name_halaqah: string; id_muhafiz: number; id_sesis?: number[] }): Promise<GlobalResponse<Halaqah>> => {
     const res = await axiosClient.post<GlobalResponse<Halaqah>>("/halaqah", data);
     return res.data;
   },
 
   // Update halaqah
-  updateHalaqah: async (id: number, data: { name_halaqah?: string; id_muhafiz?: number }): Promise<GlobalResponse<Halaqah>> => {
+  updateHalaqah: async (id: number, data: { name_halaqah?: string; id_muhafiz?: number; id_sesis?: number[] }): Promise<GlobalResponse<Halaqah>> => {
     const res = await axiosClient.patch<GlobalResponse<Halaqah>>(`/halaqah/${id}`, data);
     return res.data;
   },
@@ -56,13 +56,13 @@ export const halaqahManagementService = {
   },
 
   // Create santri
-  createSantri: async (data: Santri) => {
-    return await santriService.create(data as any);
+  createSantri: async (data: Parameters<typeof santriService.create>[0]) => {
+    return await santriService.create(data);
   },
 
   // Update santri
-  updateSantri: async (id: number, data: Santri) => {
-    return await santriService.update(id, data as any);
+  updateSantri: async (id: number, data: Parameters<typeof santriService.update>[1]) => {
+    return await santriService.update(id, data);
   },
 
   // Delete santri

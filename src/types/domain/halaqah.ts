@@ -1,4 +1,4 @@
-﻿import { JenisHalaqah } from './enums';
+import { JenisHalaqah } from './enums';
 
 export interface Halaqah {
   id_halaqah: number;
@@ -26,16 +26,22 @@ export interface Halaqah {
     nomor_telepon?: string;
     target: string;
   }>;
+  sesi_halaqahs?: Array<{
+    id_sesi: number;
+    nama_sesi: string;
+  }>;
 }
 
 export interface CreateHalaqahRequest {
   name_halaqah: string;
   id_muhafiz: number;
   id_sekolah?: number;
+  id_sesis?: number[];
 }
 
 export interface UpdateHalaqahRequest {
   name_halaqah?: string;
   id_muhafiz?: number;
   id_sekolah?: number;
+  id_sesis?: number[];
 }

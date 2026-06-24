@@ -1,4 +1,4 @@
-﻿import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useReactMediaRecorder } from "react-media-recorder";
 import Fuse from 'fuse.js';
 import { 
@@ -37,6 +37,35 @@ interface GroqResponse {
   }[];
 }
 
+interface AlQuranCloudAyah {
+  text: string;
+  numberInSurah: number;
+}
+
+interface AlQuranCloudSurah {
+  englishName: string;
+  ayahs: AlQuranCloudAyah[];
+}
+
+interface AlQuranCloudResponse {
+  data: {
+    surahs: AlQuranCloudSurah[];
+  };
+}
+
+interface ISpeechRecognitionEvent {
+  results: ArrayLike<{ 0: { transcript: string } }>;
+}
+
+interface ISpeechRecognition {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  onresult: ((event: ISpeechRecognitionEvent) => void) | null;
+  start: () => void;
+  stop: () => void;
+}
+
 const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY;
 
 export const TahfidzAi = () => {
@@ -47,7 +76,7 @@ export const TahfidzAi = () => {
   const [isDataLoaded, setIsDataLoaded] = useState<boolean>(false);
   
   // Refs
-  const recognitionRef = useRef<any>(null);
+  const recognitionRef = useRef<ISpeechRecognition | null>(null);
   const fuseRef = useRef<Fuse<Ayah> | null>(null);
 
   // Normalisasi teks Arab (Memoized)
@@ -74,9 +103,9 @@ export const TahfidzAi = () => {
       } else {
         try {
           const res = await fetch("https://api.alquran.cloud/v1/quran/quran-uthmani");
-          const data = await res.json();
-          allAyahs = data.data.surahs.flatMap((s: any) => 
-            s.ayahs.map((a: any) => ({ 
+          const data = (await res.json()) as AlQuranCloudResponse;
+          allAyahs = data.data.surahs.flatMap((s: AlQuranCloudSurah) => 
+            s.ayahs.map((a: AlQuranCloudAyah) => ({ 
               text: a.text,
               surahName: s.englishName,
               numberInSurah: a.numberInSurah,
@@ -102,16 +131,21 @@ export const TahfidzAi = () => {
     initQuranData();
 
     // Browser Speech API Setup
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (SpeechRecognition) {
-      recognitionRef.current = new SpeechRecognition();
+    const SpeechRecognitionClass = (window as unknown as {
+      SpeechRecognition?: new () => ISpeechRecognition;
+      webkitSpeechRecognition?: new () => ISpeechRecognition;
+    }).SpeechRecognition || (window as unknown as {
+      webkitSpeechRecognition?: new () => ISpeechRecognition;
+    }).webkitSpeechRecognition;
+    if (SpeechRecognitionClass) {
+      recognitionRef.current = new SpeechRecognitionClass();
       recognitionRef.current.continuous = true;
       recognitionRef.current.interimResults = true;
       recognitionRef.current.lang = "ar-SA";
       
-      recognitionRef.current.onresult = (event: any) => {
+      recognitionRef.current.onresult = (event: ISpeechRecognitionEvent) => {
         const transcript = Array.from(event.results)
-          .map((result: any) => result[0].transcript)
+          .map((result) => result[0].transcript)
           .join("");
         setLiveTranscript(transcript);
       };

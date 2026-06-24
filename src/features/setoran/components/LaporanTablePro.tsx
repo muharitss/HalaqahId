@@ -21,6 +21,7 @@ import {
   Filter,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import type { GroupedData, GroupedSantriItem, SetoranItem } from "@/features/setoran/types";
 
 interface SetoranRow {
   id_setoran: number;
@@ -36,7 +37,7 @@ interface SetoranRow {
 }
 
 interface LaporanTableProProps {
-  groupedData: Record<string, { santriGroup: Record<string, { nama: string; setoran: SetoranRow[] }> }>;
+  groupedData: GroupedData;
   activeHalaqah: string;
   filterComponent?: React.ReactNode;
   isFilterActive?: boolean;
@@ -69,8 +70,8 @@ export function LaporanTablePro({ groupedData, activeHalaqah, filterComponent, i
     const rows: SetoranRow[] = [];
     Object.entries(groupedData).forEach(([halaqahName, group]) => {
       if (activeHalaqah !== "all" && activeHalaqah !== "" && halaqahName !== activeHalaqah) return;
-      Object.values(group.santriGroup).forEach((santri: any) => {
-        santri.setoran.forEach((s: any) => {
+      Object.values(group.santriGroup).forEach((santri: GroupedSantriItem) => {
+        santri.setoran.forEach((s: SetoranItem) => {
           rows.push({
             id_setoran: s.id_setoran,
             tanggal_setoran: s.tanggal_setoran,
@@ -81,7 +82,7 @@ export function LaporanTablePro({ groupedData, activeHalaqah, filterComponent, i
             ayat: s.ayat,
             kategori: s.kategori,
             taqwim: s.taqwim ?? 0,
-            keterangan: s.keterangan,
+            keterangan: s.keterangan || undefined,
           });
         });
       });

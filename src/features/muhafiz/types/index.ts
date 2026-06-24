@@ -1,4 +1,4 @@
-﻿import type { User as DomainUser } from '@/types';
+import type { User as DomainUser } from '@/types';
 import type { StatusKehadiran } from '@/types/domain/enums';
 
 export interface Muhafiz extends DomainUser {
@@ -35,4 +35,18 @@ export interface DeleteAkunProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
+}
+
+export interface MonthlyAbsensiAsatidzItem {
+  id_absensi: number;
+  id_user: number;
+  id_sesi: number | null;
+  nama_asatidz: string;
+  status: string;
+  keterangan: string | null;
+}
+
+export interface MonthlyAbsensiAsatidzRecord {
+  tanggal: string;
+  data: MonthlyAbsensiAsatidzItem[];
 }

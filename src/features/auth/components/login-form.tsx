@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate, Link } from "react-router-dom";
@@ -64,7 +64,7 @@ export function LoginForm() {
     try {
       await login(values);
       navigate("/", { replace: true });
-    } catch (error: any) {
+    } catch (error: unknown) {
       const errorMessage = getErrorMessage(error, "Terjadi kesalahan saat login");
       setBackendError(errorMessage);
       if (errorMessage.toLowerCase().includes("verifikasi email")) {
@@ -83,7 +83,7 @@ export function LoginForm() {
       await authService.resendVerification(email);
       setBackendError("Email verifikasi telah dikirim ulang. Silakan periksa inbox atau folder spam Anda.");
       setShowResend(false);
-    } catch (error: any) {
+    } catch (error: unknown) {
       setBackendError(getErrorMessage(error, "Gagal mengirim ulang email verifikasi."));
     } finally {
       setIsResending(false);

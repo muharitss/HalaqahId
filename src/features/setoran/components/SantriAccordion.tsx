@@ -1,4 +1,4 @@
-﻿import { format } from "date-fns";
+import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -14,12 +14,12 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import type { SantriAccordionProps } from "../types";
+import type { SantriAccordionProps, GroupedSantriItem, SetoranItem } from "../types";
 
 export function SantriAccordion({ santriGroup }: SantriAccordionProps) {
   return (
     <Accordion type="single" collapsible className="w-full space-y-2">
-      {Object.values(santriGroup).map((santri: any) => (
+      {Object.values(santriGroup).map((santri: GroupedSantriItem) => (
         <AccordionItem 
           key={santri.nama} 
           value={santri.nama}
@@ -65,7 +65,7 @@ export function SantriAccordion({ santriGroup }: SantriAccordionProps) {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {santri.setoran.map((s: any) => (
+                {santri.setoran.map((s: SetoranItem) => (
                   <TableRow key={s.id_setoran}>
                     <TableCell className="text-xs">
                       {format(new Date(s.tanggal_setoran), "dd/MM/yyyy")}

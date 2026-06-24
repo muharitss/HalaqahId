@@ -1,4 +1,4 @@
-﻿import { parseISO, getMonth, getYear } from "date-fns";
+import { parseISO, getMonth, getYear } from "date-fns";
 
 interface DateFilter {
   month: number | null;
@@ -11,13 +11,13 @@ interface SantriBase {
   deleted_at?: string | null;
   halaqah?: {
     name_halaqah: string;
-  };
+  } | null;
 }
 
 interface DashboardItem {
   id_setoran?: number; // Tambahan dari backend
   id_santri?: number; // Primary key dari backend
-  santri?: SantriBase;
+  santri?: SantriBase | null;
   tanggal_setoran?: string;
   kategori?: string;
   status?: string;

@@ -1,4 +1,4 @@
-﻿import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { sekolahService } from "@/features/sekolah/api/sekolahService";
 import { type UpdateSekolahRequest } from "@/types/domain/sekolah";
 import { toast } from "sonner";
@@ -13,8 +13,8 @@ export const useProfilSekolah = () => {
       try {
         const res = await sekolahService.getProfile();
         return res.data ?? null;
-      } catch (error: any) {
-        toast.error(error.message || "Gagal memuat profil sekolah");
+      } catch (error: unknown) {
+        toast.error(error instanceof Error ? error.message : "Gagal memuat profil sekolah");
         throw error;
       }
     }
@@ -26,8 +26,8 @@ export const useProfilSekolah = () => {
       toast.success("Profil sekolah berhasil diperbarui");
       queryClient.setQueryData(queryKey, res.data ?? null);
     },
-    onError: (error: any) => {
-      toast.error(error.message || "Gagal memperbarui profil sekolah");
+    onError: (error: unknown) => {
+      toast.error(error instanceof Error ? error.message : "Gagal memperbarui profil sekolah");
     }
   });
 

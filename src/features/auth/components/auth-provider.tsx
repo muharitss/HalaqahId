@@ -107,7 +107,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const initializeTheme = () => {
+  const initializeTheme = useCallback(() => {
     const savedTheme = localStorage.getItem("theme");
     const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
     const shouldBeDark = savedTheme === "dark" || (!savedTheme && prefersDark);
@@ -116,7 +116,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     if (shouldBeDark) {
       document.documentElement.classList.add("dark");
     }
-  };
+  }, []);
 
   const refreshUser = useCallback(async () => {
     const savedData = localStorage.getItem("user");
@@ -214,7 +214,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     initializeTheme();
     refreshUser();
-  }, []); 
+  }, [initializeTheme, refreshUser]); 
 
   const isAdmin = useCallback(() => {
     return user?.role === Role.SUPERADMIN;
@@ -244,6 +244,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) throw new Error("useAuth must be used within AuthProvider");

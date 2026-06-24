@@ -1,7 +1,8 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { laporanService } from "../api/laporanService";
 import { startOfDay, endOfDay, isWithinInterval } from "date-fns";
+import type { GroupedData, GroupedHalaqahItem, GroupedSantriItem, SetoranItem } from "../types";
 
 export interface LaporanFilters {
   // Period filters (bulan/tahun — legacy, tetap dipertahankan)
@@ -65,23 +66,38 @@ export const useLaporanData = () => {
     return laporanService.transformSetoranData(allSetoran, dateFilter);
   }, [allSetoran, filters.selectedMonth, filters.selectedYear, filters.dateFrom, filters.dateTo]);
 
+  // ─── Derived data ──────────────────────────────────────────────────────────
+  const halaqahNames = useMemo(
+    () => laporanService.getHalaqahNames(groupedDataRaw),
+    [groupedDataRaw]
+  );
+
+  // Computed effective active halaqah to prevent syncing via useEffect
+  const effectiveActiveHalaqah = useMemo(() => {
+    if (filters.activeHalaqah === "all") return "all";
+    if (halaqahNames.length > 0 && !halaqahNames.includes(filters.activeHalaqah)) {
+      return halaqahNames[0];
+    }
+    return filters.activeHalaqah;
+  }, [filters.activeHalaqah, halaqahNames]);
+
   // ─── Apply additional client-side filters ──────────────────────────────────
   const groupedData = useMemo(() => {
-    const result: Record<string, any> = {};
+    const result: GroupedData = {};
 
-    Object.entries(groupedDataRaw).forEach(([halaqahName, group]: [string, any]) => {
+    Object.entries(groupedDataRaw).forEach(([halaqahName, group]: [string, GroupedHalaqahItem]) => {
       // Filter halaqah
       if (
-        filters.activeHalaqah !== "all" &&
-        filters.activeHalaqah !== "" &&
-        halaqahName !== filters.activeHalaqah
+        effectiveActiveHalaqah !== "all" &&
+        effectiveActiveHalaqah !== "" &&
+        halaqahName !== effectiveActiveHalaqah
       ) {
         return;
       }
 
-      const filteredSantriGroup: Record<string, any> = {};
+      const filteredSantriGroup: Record<number, GroupedSantriItem> = {};
 
-      Object.entries(group.santriGroup).forEach(([santriKey, santri]: [string, any]) => {
+      Object.entries(group.santriGroup).forEach(([santriKey, santri]: [string, GroupedSantriItem]) => {
         // Filter santri by name
         if (
           filters.selectedSantri !== "" &&
@@ -91,7 +107,7 @@ export const useLaporanData = () => {
         }
 
         // Filter individual setoran by date range & kategori
-        const filteredSetoran = santri.setoran.filter((s: any) => {
+        const filteredSetoran = santri.setoran.filter((s: SetoranItem) => {
           const tgl = new Date(s.tanggal_setoran);
 
           // Date range filter
@@ -119,12 +135,12 @@ export const useLaporanData = () => {
         });
 
         if (filteredSetoran.length > 0) {
-          filteredSantriGroup[santriKey] = {
+          filteredSantriGroup[Number(santriKey)] = {
             ...santri,
             setoran: filteredSetoran,
             // Recalculate stats
             stats: filteredSetoran.reduce(
-              (acc: any, s: any) => {
+              (acc: Record<string, number>, s: SetoranItem) => {
                 acc[s.kategori] = (acc[s.kategori] ?? 0) + 1;
                 return acc;
               },
@@ -140,45 +156,28 @@ export const useLaporanData = () => {
     });
 
     return result;
-  }, [groupedDataRaw, filters]);
-
-  // ─── Derived data ──────────────────────────────────────────────────────────
-  const halaqahNames = useMemo(
-    () => laporanService.getHalaqahNames(groupedDataRaw),
-    [groupedDataRaw]
-  );
+  }, [groupedDataRaw, filters, effectiveActiveHalaqah]);
 
   // List santri unik dari grouped raw (semua halaqah yg relevan)
   const santriNames = useMemo(() => {
     const names = new Set<string>();
-    Object.entries(groupedDataRaw).forEach(([halaqahName, group]: [string, any]) => {
+    Object.entries(groupedDataRaw).forEach(([halaqahName, group]: [string, GroupedHalaqahItem]) => {
       if (
-        filters.activeHalaqah !== "all" &&
-        filters.activeHalaqah !== "" &&
-        halaqahName !== filters.activeHalaqah
+        effectiveActiveHalaqah !== "all" &&
+        effectiveActiveHalaqah !== "" &&
+        halaqahName !== effectiveActiveHalaqah
       ) return;
-      Object.values(group.santriGroup).forEach((santri: any) => {
+      Object.values(group.santriGroup).forEach((santri: GroupedSantriItem) => {
         names.add(santri.nama);
       });
     });
     return Array.from(names).sort();
-  }, [groupedDataRaw, filters.activeHalaqah]);
-
-  useEffect(() => {
-    if (halaqahNames.length > 0) {
-      if (
-        !filters.activeHalaqah ||
-        (filters.activeHalaqah !== "all" && !halaqahNames.includes(filters.activeHalaqah))
-      ) {
-        setFilters((f) => ({ ...f, activeHalaqah: halaqahNames[0] }));
-      }
-    }
-  }, [halaqahNames, filters.activeHalaqah]);
+  }, [groupedDataRaw, effectiveActiveHalaqah]);
 
   const activeHalaqahId = useMemo(() => {
-    if (filters.activeHalaqah === "all") return null;
-    return laporanService.getHalaqahIdByName(listHalaqah, filters.activeHalaqah);
-  }, [listHalaqah, filters.activeHalaqah]);
+    if (effectiveActiveHalaqah === "all") return null;
+    return laporanService.getHalaqahIdByName(listHalaqah, effectiveActiveHalaqah);
+  }, [listHalaqah, effectiveActiveHalaqah]);
 
   const santriForAbsensi = useMemo(() => {
     if (!activeHalaqahId) return [];
@@ -253,7 +252,7 @@ export const useLaporanData = () => {
     filters.dateFrom !== null ||
     filters.dateTo !== null ||
     filters.selectedKategori !== "" ||
-    (filters.activeHalaqah !== "" && filters.activeHalaqah !== "all");
+    (effectiveActiveHalaqah !== "" && effectiveActiveHalaqah !== "all");
 
   return {
     // Raw data
@@ -266,7 +265,7 @@ export const useLaporanData = () => {
     filters,
     selectedMonth: filters.selectedMonth,
     selectedYear: filters.selectedYear,
-    activeHalaqah: filters.activeHalaqah,
+    activeHalaqah: effectiveActiveHalaqah,
     selectedSantri: filters.selectedSantri,
     dateFrom: filters.dateFrom,
     dateTo: filters.dateTo,

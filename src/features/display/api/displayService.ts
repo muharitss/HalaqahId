@@ -1,10 +1,9 @@
-﻿import axiosClient from "@/lib/axiosClient";
-import type { Santri } from "@/types/domain/santri";
+import axiosClient from "@/lib/axiosClient";
 import type { Halaqah } from "@/types/domain/halaqah";
-import type { SetoranRecord, AbsensiRecord, SantriDetailData } from "@/types/domain/display";
+import type { SetoranRecord, AbsensiRecord, SantriDetailData, DisplaySantri } from "@/types/domain/display";
 
 export const displayService = {
-  getSantriList: async (token: string): Promise<Santri[]> => {
+  getSantriList: async (token: string): Promise<DisplaySantri[]> => {
     const response = await axiosClient.get(`/display/${token}/santri`);
     return response.data.data; 
   },

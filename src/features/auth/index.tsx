@@ -8,6 +8,7 @@ import { LoginHeader } from "./components/login-header";
 import { LoginFooter } from "./components/login-footer";
 import { authService } from "./api/authService";
 import { CheckCircle2, XCircle, Loader2 } from "lucide-react";
+import { getErrorMessage } from "@/utils/error";
 
 export function LoginPage() {
   return (
@@ -96,11 +97,10 @@ export function VerifyEmailPage() {
         await authService.verifyEmail(token);
         setStatus("success");
         setMessage("Alhamdulillah! Email Anda berhasil diverifikasi. Silakan masuk untuk melanjutkan.");
-      } catch (error: any) {
+      } catch (error: unknown) {
         setStatus("error");
         setMessage(
-          error.response?.data?.message || 
-          "Gagal memverifikasi email. Link mungkin sudah kadaluarsa atau tidak valid."
+          getErrorMessage(error, "Gagal memverifikasi email. Link mungkin sudah kadaluarsa atau tidak valid.")
         );
       }
     };

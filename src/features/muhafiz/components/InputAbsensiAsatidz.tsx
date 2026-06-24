@@ -1,4 +1,4 @@
-﻿import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,15 +12,12 @@ interface Props {
   onStatusChange: (id: number, status: AbsensiStatus) => void;
 }
 
-export const InputAbsensiAsatidz = ({ 
-  muhafizList, 
-  attendanceMap, 
-  submittedAttendance, 
-  onStatusChange 
+export const InputAbsensiAsatidz = ({
+  muhafizList,
+  attendanceMap,
+  submittedAttendance,
+  onStatusChange
 }: Props) => {
-  
-  // Debug untuk cek apakah data prop sampai ke sini
-  console.log("PROP SUBMITTED:", submittedAttendance);
 
   return (
     <div className="border rounded-lg overflow-hidden">

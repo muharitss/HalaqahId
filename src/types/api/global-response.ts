@@ -1,10 +1,10 @@
-﻿export interface GlobalResponse<T = any> {
+export interface GlobalResponse<T = unknown> {
   success: boolean;
   message: string;
   data?: T;
-  errors?: any;
+  errors?: unknown;
 }
 
-export interface GlobalResponseWithPagination<T = any> extends GlobalResponse<T> {
+export interface GlobalResponseWithPagination<T = unknown> extends GlobalResponse<T> {
   pagination?: import('./pagination').PaginationMeta;
 }

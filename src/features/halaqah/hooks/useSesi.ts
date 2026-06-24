@@ -12,6 +12,8 @@ export function useSesi() {
 
   const { data: sesiList = [], isFetching: isLoadingSesi, refetch: fetchSesi } = useQuery({
     queryKey: ["sesi-halaqah"],
+    staleTime: 0,
+    gcTime: 0,
     queryFn: async () => {
       try {
         const response = await sesiService.getSesiHalaqah();
