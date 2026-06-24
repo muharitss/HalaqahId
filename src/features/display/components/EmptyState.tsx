@@ -1,4 +1,4 @@
-interface EmptyStateProps {
+﻿interface EmptyStateProps {
   searchQuery: string;
 }
 

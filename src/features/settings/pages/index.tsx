@@ -1,9 +1,9 @@
-import { useNavigate } from "react-router-dom";
+﻿import { useNavigate } from "react-router-dom";
 import { Info, Trash2, ChevronLeft, LogOut, ArrowLeft, Bot, Link as LinkIcon, Building2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { SettingItem } from "./SettingItem";
-import { useAuth } from "@/features/auth/context/AuthContext";
+import { useAuth } from "@/features/auth/components/auth-provider";
 import { Settings } from "@/components/custom/typed-text";
 import { Separator } from "@/components/ui/separator";
 import { isKepalaRole } from "@/types/domain/enums";

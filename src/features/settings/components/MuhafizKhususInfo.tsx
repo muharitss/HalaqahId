@@ -1,4 +1,4 @@
-import { AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+﻿import { AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 export function MuhafizKhususInfo() {
   return (
@@ -14,7 +14,7 @@ export function MuhafizKhususInfo() {
             <ul className="list-disc ml-5 space-y-1">
               <li>Muhafiz menyimak setoran hafalan santri dengan setiap santri harus setoran di setiap pertemuan.</li>
               <li>Muhafiz dapat memperbantukan santri pilihan untuk membantu menyimak setoran.</li>
-              <li>Muhafiz mengarahkan santri yang hendak setoran untuk menuliskan apa yang akan disetorkan di mutaba’ah masing-masing.</li>
+              <li>Muhafiz mengarahkan santri yang hendak setoran untuk menuliskan apa yang akan disetorkan di mutabaâ€™ah masing-masing.</li>
             </ul>
             <p className="font-bold text-xs mt-3 mb-1 italic uppercase">Aktivitas : Menyimak Setoran Sekali Duduk</p>
             <ul className="list-disc ml-5 space-y-1">
@@ -26,11 +26,11 @@ export function MuhafizKhususInfo() {
             <p className="font-bold text-xs mb-1 italic uppercase">Aktivitas : Mengabsen Kehadiran Santri Setiap Halaqah</p>
             <ul className="list-disc ml-5 space-y-1">
               <li>Sebelum melakukan setoran hafalan, muhafidz mengabsen kehadiran setiap anggota.</li>
-              <li>Ba'da isya’ luangkan waktu untuk laporan ke grup telegram sesuai format yang ditentukan.</li>
+              <li>Ba'da isyaâ€™ luangkan waktu untuk laporan ke grup telegram sesuai format yang ditentukan.</li>
             </ul>
             <p className="font-bold text-xs mt-3 mb-1 italic uppercase">Aktivitas : Mengupdate Data Hafalan Santri</p>
             <ul className="list-disc ml-5 space-y-1">
-              <li>Ba’da isya’ luangkan waktu untuk input apa yang telah disetorkan dari tasmi’ santri di hari itu ke link yang sudah ditentukan.</li>
+              <li>Baâ€™da isyaâ€™ luangkan waktu untuk input apa yang telah disetorkan dari tasmiâ€™ santri di hari itu ke link yang sudah ditentukan.</li>
               <li>Setiap bulan, muhafiz mengisi raport target setoran setiap anggota perihal ketercapaian target yang sudah ditentukan untuk tiap bulan</li>
             </ul>
           </div>

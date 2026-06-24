@@ -1,4 +1,4 @@
-export interface Sekolah {
+﻿export interface Sekolah {
   id_sekolah: number;
   nama_sekolah: string;
   alamat?: string | null;

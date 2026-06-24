@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { PieChart, Pie, Cell, Label } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";

@@ -1,10 +1,83 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { authService } from "@/features/auth/api/authService";
+import { LoginForm } from "./components/login-form";
+import { RegisterForm } from "./components/register-form";
 import { ThemeToggle } from "@/components/custom/theme/ThemeToggle";
+import { LoginCarousel } from "./components/login-carousel";
+import { LoginHeader } from "./components/login-header";
+import { LoginFooter } from "./components/login-footer";
+import { authService } from "./api/authService";
 import { CheckCircle2, XCircle, Loader2 } from "lucide-react";
 
-export default function VerifyEmailPage() {
+export function LoginPage() {
+  return (
+    <div className="flex h-screen w-full overflow-hidden bg-background-light dark:bg-background-dark">
+      
+      <div className="absolute top-4 right-4 z-50">
+        <ThemeToggle />
+      </div>
+      
+      <div className="relative hidden w-1/2 h-full lg:block border-r border-white/10">
+        <LoginHeader />
+        <LoginCarousel />
+      </div>
+
+      <div className="relative flex w-full flex-col items-center justify-center p-6 dark:bg-background-dark lg:w-1/2 overflow-y-auto">
+      
+        <div className="mx-auto w-full max-w-md space-y-8 py-10">
+          <div className="space-y-2 text-center lg:text-left">
+            <h2 className="text-3xl font-bold tracking-tight text-text-primary-light dark:text-text-primary-dark">
+              Assalamu'alaikum
+            </h2>
+            <p className="text-text-secondary-light dark:text-text-secondary-dark">
+              Silakan masuk ke akun Anda.
+            </p>
+          </div>
+
+          <LoginForm />
+        </div>
+
+        <LoginFooter />
+      </div>
+    </div>
+  );
+}
+
+export function RegisterPage() {
+  return (
+    <div className="flex h-screen w-full overflow-hidden bg-background-light dark:bg-background-dark">
+      
+      <div className="absolute top-4 right-4 z-50">
+        <ThemeToggle />
+      </div>
+      
+      <div className="relative hidden w-1/2 h-full lg:block border-r border-white/10">
+        <LoginHeader />
+        <LoginCarousel />
+      </div>
+
+      <div className="relative flex w-full flex-col items-center justify-center p-6 dark:bg-background-dark lg:w-1/2 overflow-y-auto">
+      
+        <div className="mx-auto w-full max-w-md space-y-8 py-10">
+          <div className="space-y-2 text-center lg:text-left">
+            <h2 className="text-3xl font-bold tracking-tight text-text-primary-light dark:text-text-primary-dark">
+              Daftar Baru
+            </h2>
+            <p className="text-text-secondary-light dark:text-text-secondary-dark">
+              Buat akun admin dan daftarkan institusi Anda.
+            </p>
+          </div>
+
+          <RegisterForm />
+        </div>
+
+        <LoginFooter />
+      </div>
+    </div>
+  );
+}
+
+export function VerifyEmailPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const token = searchParams.get("token");
@@ -23,7 +96,7 @@ export default function VerifyEmailPage() {
         await authService.verifyEmail(token);
         setStatus("success");
         setMessage("Alhamdulillah! Email Anda berhasil diverifikasi. Silakan masuk untuk melanjutkan.");
-      } catch (error: any) {
+      } catch (error) {
         setStatus("error");
         setMessage(
           error.response?.data?.message || 
@@ -71,3 +144,8 @@ export default function VerifyEmailPage() {
     </div>
   );
 }
+
+// eslint-disable-next-line react-refresh/only-export-components
+export * from './types/auth.schema';
+// eslint-disable-next-line react-refresh/only-export-components
+export * from './components/auth-provider';

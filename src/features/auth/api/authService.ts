@@ -1,5 +1,5 @@
-import axiosClient from "@/lib/axiosClient";
-import { type LoginFormValues, type RegisterFormValues } from "@/utils/zodSchema";
+﻿import axiosClient from "@/lib/axiosClient";
+import { type LoginFormValues, type RegisterFormValues } from "@/features/auth/types/auth.schema";
 import { type AuthResponse } from "@/types/domain/auth";
 
 export const authService = {

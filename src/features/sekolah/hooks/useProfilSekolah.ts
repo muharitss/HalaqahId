@@ -1,48 +1,49 @@
-import { useState, useEffect } from "react";
+﻿import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { sekolahService } from "@/features/sekolah/api/sekolahService";
-import { type Sekolah, type UpdateSekolahRequest } from "@/types/domain/sekolah";
+import { type UpdateSekolahRequest } from "@/types/domain/sekolah";
 import { toast } from "sonner";
 
 export const useProfilSekolah = () => {
-  const [sekolah, setSekolah] = useState<Sekolah | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [saving, setSaving] = useState<boolean>(false);
+  const queryClient = useQueryClient();
+  const queryKey = ["profil-sekolah"];
 
-  const fetchProfile = async () => {
-    try {
-      setLoading(true);
-      const res = await sekolahService.getProfile();
-      setSekolah(res.data ?? null);
-    } catch (error: any) {
-      toast.error(error.message || "Gagal memuat profil sekolah");
-    } finally {
-      setLoading(false);
+  const { data: sekolah = null, isFetching: loading, refetch: fetchProfile } = useQuery({
+    queryKey,
+    queryFn: async () => {
+      try {
+        const res = await sekolahService.getProfile();
+        return res.data ?? null;
+      } catch (error: any) {
+        toast.error(error.message || "Gagal memuat profil sekolah");
+        throw error;
+      }
     }
-  };
+  });
 
-  useEffect(() => {
-    fetchProfile();
-  }, []);
+  const updateMutation = useMutation({
+    mutationFn: (data: UpdateSekolahRequest) => sekolahService.updateProfile(data),
+    onSuccess: (res) => {
+      toast.success("Profil sekolah berhasil diperbarui");
+      queryClient.setQueryData(queryKey, res.data ?? null);
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Gagal memperbarui profil sekolah");
+    }
+  });
 
   const updateProfile = async (data: UpdateSekolahRequest) => {
     try {
-      setSaving(true);
-      const res = await sekolahService.updateProfile(data);
-      setSekolah(res.data ?? null);
-      toast.success("Profil sekolah berhasil diperbarui");
+      await updateMutation.mutateAsync(data);
       return true;
-    } catch (error: any) {
-      toast.error(error.message || "Gagal memperbarui profil sekolah");
+    } catch {
       return false;
-    } finally {
-      setSaving(false);
     }
   };
 
   return {
     sekolah,
     loading,
-    saving,
+    saving: updateMutation.isPending,
     updateProfile,
     refetch: fetchProfile,
   };

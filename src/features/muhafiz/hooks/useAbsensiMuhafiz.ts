@@ -1,23 +1,28 @@
-// src/features/kepala-muhafidz/kelola-muhafiz/hooks/useAbsensiMuhafiz.ts
-import { useState } from "react";
+﻿// src/features/kepala-muhafidz/kelola-muhafiz/hooks/useAbsensiMuhafiz.ts
+import { useMutation } from "@tanstack/react-query";
 import { muhafizService } from "../api/muhafizService";
 import { toast } from "sonner";
 import type { CreateAbsensiMuhafizRequest } from "@/types";
 
 export const useAbsensiMuhafiz = () => {
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const mutation = useMutation({
+    mutationFn: (payload: CreateAbsensiMuhafizRequest) => 
+      muhafizService.catatAbsensiAsatidz({ ...payload, keterangan: payload.keterangan || "" }),
+    onSuccess: () => {
+      toast.success("Absensi muhafiz berhasil dicatat");
+    },
+    onError: (error: any) => {
+      toast.error(error.message);
+    }
+  });
 
   const submitAbsensi = async (payload: CreateAbsensiMuhafizRequest) => {
-    setIsSubmitting(true);
     try {
-      await muhafizService.catatAbsensiAsatidz({ ...payload, keterangan: payload.keterangan || "" });
-      toast.success("Absensi muhafiz berhasil dicatat");
-    } catch (error: any) {
-      toast.error(error.message);
-    } finally {
-      setIsSubmitting(false);
+      await mutation.mutateAsync(payload);
+    } catch {
+      // Error handled in onError
     }
   };
 
-  return { submitAbsensi, isSubmitting };
+  return { submitAbsensi, isSubmitting: mutation.isPending };
 };

@@ -1,8 +1,8 @@
 import { Routes, Route, Navigate } from "react-router-dom";
-import KepalaMuhafidzDashboard from "@/features/dashboard";
+import { KepalaMuhafidzDashboard } from "@/features/dashboard";
 import KelolaMuhafizPage from "@/features/muhafiz";
-import KelolaHalaqahPage from "@/features/halaqah";
-import LaporanSetoranPage from "@/features/setoran";
+import { KelolaHalaqahPage } from "@/features/halaqah";
+import { LaporanSetoranPage } from "@/features/setoran";
 
 export default function KepalaMuhafidzRoot() {
   return (

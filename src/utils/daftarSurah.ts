@@ -1,4 +1,4 @@
-export interface SurahInJuz {
+﻿export interface SurahInJuz {
   nama: string;
   ayatMulai: number;
   ayatSelesai: number;

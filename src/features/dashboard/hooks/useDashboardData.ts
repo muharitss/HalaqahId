@@ -1,88 +1,53 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { dashboardService } from "../api/dashboardService";
-import type { PekanData, BulanData, AbsensiStat, CategoryStat, ViewType, SetoranData, Muhafiz } from "../types";
+import type { ViewType } from "../types";
 
 export const useDashboardData = () => {
-  const [loading, setLoading] = useState({
-    setoran: true,
-    absensi: true,
-    muhafiz: true
-  });
-  
-  const [setoranData, setSetoranData] = useState<SetoranData[]>([]);
-  const [muhafizList, setMuhafizList] = useState<Muhafiz[]>([]);
-  
   const [chartView, setChartView] = useState<ViewType>("pekan");
   const [absensiView, setAbsensiView] = useState<ViewType>("pekan");
-  
-  const [weeklyData, setWeeklyData] = useState<PekanData[]>([]);
-  const [monthlyData, setMonthlyData] = useState<BulanData[]>([]);
-  const [categoryData, setCategoryData] = useState<CategoryStat[]>([]);
-  
-  const [absensiStats, setAbsensiStats] = useState<AbsensiStat[]>([]);
-  const [totalAbsensi, setTotalAbsensi] = useState(0);
 
-  // Fetch initial data
-// Di useDashboardData.ts
-  useEffect(() => {
-    const fetchInitialData = async () => {
+  const { data: initialData, isFetching: loadingInitial } = useQuery({
+    queryKey: ["dashboard-initial"],
+    queryFn: async () => {
       try {
-        setLoading(prev => ({ ...prev, setoran: true, muhafiz: true }));
-        
-        // Panggil paralel agar lebih cepat
         const [setoran, muhafiz] = await Promise.all([
           dashboardService.getAllSetoran(),
           dashboardService.getMuhafizList()
         ]);
-
-        setSetoranData(setoran);
-        setMuhafizList(muhafiz as Muhafiz[]);
-
-        // Langsung proses data di sini
-        if (setoran.length > 0) {
-          setWeeklyData(dashboardService.getWeeklyChartData(setoran));
-          setMonthlyData(dashboardService.getMonthlyChartData(setoran));
-          setCategoryData(dashboardService.getCategoryDistribution(setoran));
-        }
+        return { setoran, muhafiz };
       } catch (error) {
         console.error("Error loading dashboard data:", error);
-      } finally {
-        setLoading(prev => ({ ...prev, setoran: false, muhafiz: false }));
+        throw error;
       }
-    };
+    }
+  });
 
-    fetchInitialData();
-  }, []); // Cukup sekali saat mount
-
-  // Fetch absensi data based on view
-  useEffect(() => {
-    const fetchAbsensi = async () => {
-      setLoading(prev => ({ ...prev, absensi: true }));
+  const { data: absensiData, isFetching: loadingAbsensi } = useQuery({
+    queryKey: ["dashboard-absensi", absensiView],
+    queryFn: async () => {
       try {
         const { stats, total } = await dashboardService.getAttendanceStats(absensiView);
-        setAbsensiStats(stats);
-        setTotalAbsensi(total);
+        return { stats, total };
       } catch (error) {
         console.error("Error loading absensi data:", error);
-      } finally {
-        setLoading(prev => ({ ...prev, absensi: false }));
+        throw error;
       }
-    };
-
-    fetchAbsensi();
-  }, [absensiView]);
-
-  // Update chart data when setoran data changes
-  useEffect(() => {
-    if (setoranData.length > 0) {
-      setWeeklyData(dashboardService.getWeeklyChartData(setoranData));
-      setMonthlyData(dashboardService.getMonthlyChartData(setoranData));
-      setCategoryData(dashboardService.getCategoryDistribution(setoranData));
     }
-  }, [setoranData]);
+  });
+
+  const setoranData = initialData?.setoran || [];
+  
+  const weeklyData = useMemo(() => dashboardService.getWeeklyChartData(setoranData), [setoranData]);
+  const monthlyData = useMemo(() => dashboardService.getMonthlyChartData(setoranData), [setoranData]);
+  const categoryData = useMemo(() => dashboardService.getCategoryDistribution(setoranData), [setoranData]);
 
   return {
-    loading,
+    loading: {
+      setoran: loadingInitial,
+      absensi: loadingAbsensi,
+      muhafiz: loadingInitial
+    },
     chartView,
     setChartView,
     absensiView,
@@ -90,8 +55,8 @@ export const useDashboardData = () => {
     weeklyData,
     monthlyData,
     categoryData,
-    absensiStats,
-    totalAbsensi,
-    muhafizList
+    absensiStats: absensiData?.stats || [],
+    totalAbsensi: absensiData?.total || 0,
+    muhafizList: initialData?.muhafiz || []
   };
 };

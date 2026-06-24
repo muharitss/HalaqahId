@@ -1,4 +1,4 @@
-
+﻿
 export default function Laporan() {
   return (
     <h1 className="text-xl md:text-2xl font-bold tracking-tight">

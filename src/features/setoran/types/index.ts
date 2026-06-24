@@ -1,4 +1,4 @@
-// Export semua type yang dibutuhkan
+﻿// Export semua type yang dibutuhkan
 export type KategoriSetoran =
   | "HAFALAN"
   | "MURAJAAH"

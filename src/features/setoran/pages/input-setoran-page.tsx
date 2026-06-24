@@ -8,7 +8,7 @@ import { Setoran } from "@/components/custom/typed-text";
 import { AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-export default function InputSetoranPage({ hideHeader = false }: { hideHeader?: boolean }) {
+export function InputSetoranPage({ hideHeader = false }: { hideHeader?: boolean }) {
   const { santriList, sesiList, loading, fetchSantri, addSetoran } = useSetoran();
   const [isFormValid, setIsFormValid] = useState(true);
 

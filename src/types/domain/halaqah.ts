@@ -1,4 +1,4 @@
-import { JenisHalaqah } from './enums';
+﻿import { JenisHalaqah } from './enums';
 
 export interface Halaqah {
   id_halaqah: number;

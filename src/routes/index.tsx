@@ -1,15 +1,15 @@
 import { Routes, Route, Navigate, Outlet } from "react-router-dom";
-import LoginPage from "@/features/auth/pages/LoginPage";
-import RegisterPage from "@/features/auth/pages/RegisterPage";
-import VerifyEmailPage from "@/features/auth/pages/VerifyEmailPage";
+
+
+import { LoginPage, RegisterPage, VerifyEmailPage } from "@/features/auth";
 import KepalaMuhafidzRoot from "@/layouts/KepalaMuhafidzRoot";
 import MuhafidzPage from "@/layouts/MuhafidzRoot"; 
 import SuperadminRoot from "@/layouts/SuperadminRoot";
-import { useAuth } from "@/features/auth/context/AuthContext";
+import { useAuth } from "@/features/auth/components/auth-provider";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import { Spinner } from "@/components/ui/spinner";
 import SettingsPage from "@/features/settings/pages";
-import LaporanSetoranPage from "@/features/setoran"; 
+
 import InfoSection from "@/features/settings/pages/InfoSection";
 import TrashSection from "@/features/settings/pages/TrashSection";
 import ProfilSekolahPage from "@/features/sekolah";
@@ -18,11 +18,10 @@ import PublicDisplay from "@/features/display/pages/PublicDisplay";
 import SantriDetail from "@/features/display/pages/SantriDetail";
 import { TahfidzAi } from "@/features/tahfidz-ai/components/TahfidzAi";
 import KelolaMuhafizPage from "@/features/muhafiz";
-import KelolaHalaqahPage from "@/features/halaqah";
-import KelolaSesiPage from "@/features/halaqah";
+import { KelolaHalaqahPage, KelolaSesiPage } from "@/features/halaqah";
 import AbsensiPage from "@/features/absensi";
-import SetoranPage from "@/features/setoran";
-import ProgresSantriPage from "@/features/santri";
+import { SetoranPage, LaporanSetoranPage } from "@/features/setoran";
+import { ProgresSantriPage } from "@/features/santri";
 import { Role, isKepalaRole } from "@/types/domain/enums";
 
 
@@ -66,7 +65,7 @@ export const AppRouter = () => {
 
   return (
     <Routes>
-      {/* 🔓 Public Route: Login */}
+      {/* ðŸ”“ Public Route: Login */}
       <Route 
         path="/display/:token" 
         element={
@@ -96,7 +95,7 @@ export const AppRouter = () => {
         element={<VerifyEmailPage />} 
       />
 
-      {/* 🔒 Protected Routes: Membutuhkan Login */}
+      {/* ðŸ”’ Protected Routes: Membutuhkan Login */}
       <Route element={<ProtectedRoute />}>
         <Route element={<DashboardLayout />}>
           

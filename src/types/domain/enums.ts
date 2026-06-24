@@ -1,4 +1,4 @@
-export const Role = {
+﻿export const Role = {
   SUPERADMIN: 'SUPERADMIN',
   ADMIN: 'ADMIN',
   KOORDINATOR_TAHFIZ: 'KOORDINATOR_TAHFIZ',
@@ -84,7 +84,7 @@ export function hasPermission(role: Role, permission: Permission): boolean {
   return ROLE_PERMISSIONS[role].includes(permission);
 }
 
-/** Cek apakah Role termasuk "kepala" (bukan MUHAFIZ) — untuk navigasi dashboard */
+/** Cek apakah Role termasuk "kepala" (bukan MUHAFIZ) â€” untuk navigasi dashboard */
 export function isKepalaRole(role: Role): boolean {
   return role === Role.SUPERADMIN || role === Role.ADMIN || role === Role.KOORDINATOR_TAHFIZ;
 }

@@ -1,8 +1,7 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import AbsensiPage from "@/features/absensi";
-import KelolaSantriPage from "@/features/santri";
-import SetoranPage from "@/features/setoran";
-import ProgresSantriPage from "@/features/santri"; // Tambahkan ini
+import { KelolaSantriPage, ProgresSantriPage } from "@/features/santri";
+import { SetoranPage } from "@/features/setoran";
 import SettingsPage from "@/features/settings/pages";
 import InfoSection from "@/features/settings/pages/InfoSection";
 import { NoHalaqahView } from "@/features/halaqah/pages/NoHalaqah";

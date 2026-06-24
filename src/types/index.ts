@@ -1,4 +1,4 @@
-// API Types
+﻿// API Types
 export * from './api/response';
 
 // Domain Types

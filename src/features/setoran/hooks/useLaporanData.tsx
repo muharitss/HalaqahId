@@ -1,38 +1,32 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+﻿import { useState, useEffect, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { laporanService } from "../api/laporanService";
 
 export const useLaporanData = () => {
-  const [allSetoran, setAllSetoran] = useState<any[]>([]);
-  const [listHalaqah, setListHalaqah] = useState<any[]>([]);
-  const [masterSantri, setMasterSantri] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  
   const [selectedMonth, setSelectedMonth] = useState<number | null>(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState<number | null>(new Date().getFullYear());
   const [activeHalaqah, setActiveHalaqah] = useState<string>("");
 
-  const fetchData = useCallback(async () => {
-    setLoading(true);
-    try {
-      const [setoranData, halaqahData, santriData] = await Promise.all([
-        laporanService.getAllSetoran(),
-        laporanService.getAllHalaqah(),
-        laporanService.getAllSantri()
-      ]);
-
-      setAllSetoran(setoranData);
-      setListHalaqah(halaqahData);
-      setMasterSantri(santriData);
-    } catch (error) {
-      console.error("Gagal mengambil data laporan:", error);
-    } finally {
-      setLoading(false);
+  const { data: { allSetoran = [], listHalaqah = [], masterSantri = [] } = {}, isFetching: loading, refetch: fetchData } = useQuery({
+    queryKey: ["laporan-data"],
+    queryFn: async () => {
+      try {
+        const [setoranData, halaqahData, santriData] = await Promise.all([
+          laporanService.getAllSetoran(),
+          laporanService.getAllHalaqah(),
+          laporanService.getAllSantri()
+        ]);
+        return {
+          allSetoran: setoranData,
+          listHalaqah: halaqahData,
+          masterSantri: santriData,
+        };
+      } catch (error) {
+        console.error("Gagal mengambil data laporan:", error);
+        throw error;
+      }
     }
-  }, []);
-
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+  });
 
   const groupedData = useMemo(() => {
     const filter = {

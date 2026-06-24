@@ -1,4 +1,4 @@
-import axiosClient from "@/lib/axiosClient";
+﻿import axiosClient from "@/lib/axiosClient";
 import { getErrorMessage } from "@/utils/error";
 import { type Santri, type CreateSantriData, type UpdateSantriData } from "../types";
 

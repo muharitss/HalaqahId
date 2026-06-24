@@ -1,4 +1,5 @@
-import { useState, useCallback } from "react";
+﻿import { useCallback } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { santriService } from "../api/santriService";
 import { type Santri, type CreateSantriData, type UpdateSantriData } from "../types";
 import { getErrorMessage } from "@/utils/error";
@@ -6,98 +7,79 @@ import { useParams } from "react-router-dom";
 
 export const useSantri = () => {
   const { halaqahId } = useParams();
-  const [santriList, setSantriList] = useState<Santri[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
-  // Load semua santri
-  const loadSantri = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      let data: Santri[] = []; // Inisialisasi sebagai array kosong
-      
-      if (halaqahId) {
-        data = await santriService.getByHalaqahId(Number(halaqahId));
-      } else {
-        data = await santriService.getAll();
+  const queryKey = ["santri", halaqahId];
+
+  const { data: santriList = [], isFetching: isLoadingSantri, error, refetch: loadSantri } = useQuery({
+    queryKey,
+    queryFn: async () => {
+      try {
+        let data: Santri[] = [];
+        if (halaqahId) {
+          data = await santriService.getByHalaqahId(Number(halaqahId));
+        } else {
+          data = await santriService.getAll();
+        }
+        return Array.isArray(data) ? data : [];
+      } catch (err: unknown) {
+        throw new Error(getErrorMessage(err, "Gagal memuat data santri"));
       }
-      
-      // Pastikan data yang di-set adalah array
-      setSantriList(Array.isArray(data) ? data : []);
-    } catch (err: unknown) {
-      setSantriList([]); // Jika error, set ke array kosong
-      setError(getErrorMessage(err, "Gagal memuat data santri"));
-    } finally {
-      setIsLoading(false);
     }
-  }, [halaqahId]);
+  });
 
-  // Tambah santri baru
-  const createSantri = useCallback(async (data: CreateSantriData) => {
-    setIsLoading(true);
-    setError(null);
+  const createMutation = useMutation({
+    mutationFn: (data: CreateSantriData) => santriService.create(data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey }),
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number, data: UpdateSantriData }) => santriService.update(id, data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey }),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => santriService.delete(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey }),
+  });
+
+  const createSantri = async (data: CreateSantriData) => {
     try {
-      const newSantri = await santriService.create(data);
-      setSantriList(prev => [...prev, newSantri]);
-      return newSantri;
+      return await createMutation.mutateAsync(data);
     } catch (err: unknown) {
-      setError(getErrorMessage(err, "Gagal menambah santri"));
-      throw err;
-    } finally {
-      setIsLoading(false);
+      throw new Error(getErrorMessage(err, "Gagal menambah santri"));
     }
-  }, []);
+  };
 
-  // Update santri
-  const updateSantri = useCallback(async (id: number, data: UpdateSantriData) => {
-    setIsLoading(true);
-    setError(null);
+  const updateSantri = async (id: number, data: UpdateSantriData) => {
     try {
-      const updatedSantri = await santriService.update(id, data);
-      setSantriList(prev => prev.map(s => 
-        s.id_santri === id ? updatedSantri : s
-      ));
-      return updatedSantri;
+      return await updateMutation.mutateAsync({ id, data });
     } catch (err: unknown) {
-      setError(getErrorMessage(err, "Gagal memperbarui data santri"));
-      throw err;
-    } finally {
-      setIsLoading(false);
+      throw new Error(getErrorMessage(err, "Gagal memperbarui data santri"));
     }
-  }, []);
+  };
 
-  const deleteSantri = useCallback(async (id: number) => {
-    setIsLoading(true);
+  const deleteSantri = async (id: number) => {
     try {
-      await santriService.delete(id);
-      setSantriList(prev => prev.filter(s => s.id_santri !== id));
+      await deleteMutation.mutateAsync(id);
     } catch (err: unknown) {
-      setError(getErrorMessage(err, "Gagal menghapus santri"));
-      throw err;
-    } finally {
-      setIsLoading(false);
+      throw new Error(getErrorMessage(err, "Gagal menghapus santri"));
     }
-  }, []);
+  };
 
-  const resetError = useCallback(() => {
-    setError(null);
-  }, []);
+  const isLoading = isLoadingSantri || createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
 
   return {
-    // State
     santriList,
     isLoading,
-    error,
+    error: error ? error.message : null,
     
-    // Actions
     loadSantri,
     createSantri,
     updateSantri,
     deleteSantri,
-    resetError,
+    resetError: () => {}, // No-op since React Query manages error state, or can be omitted if not strictly needed
     
-    // Helper getters
     getSantriById: useCallback((id: number) => 
       santriList.find(s => s.id_santri === id), 
       [santriList]

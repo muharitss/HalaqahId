@@ -1,4 +1,4 @@
-import axiosClient from "@/lib/axiosClient";
+﻿import axiosClient from "@/lib/axiosClient";
 import type { Santri } from "@/types/domain/santri";
 import type { Halaqah } from "@/types/domain/halaqah";
 import type { SetoranRecord, AbsensiRecord, SantriDetailData } from "@/types/domain/display";

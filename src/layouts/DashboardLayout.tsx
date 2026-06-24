@@ -1,7 +1,7 @@
-import { AppSidebar } from "@/components/custom/layout/AppSidebar";
+﻿import { AppSidebar } from "@/components/custom/layout/AppSidebar";
 import { MobileDock } from "@/components/custom/layout/MobileDock";
 import { ThemeToggle } from "@/components/custom/theme/ThemeToggle";
-import { useAuth } from "@/features/auth/context/AuthContext";
+import { useAuth } from "@/features/auth/components/auth-provider";
 import { Outlet, useNavigate } from "react-router-dom"; 
 import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";

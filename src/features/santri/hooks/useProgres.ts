@@ -1,25 +1,24 @@
-import { useState, useCallback } from "react";
+﻿import { useQuery } from "@tanstack/react-query";
 import { progresService } from "../api/progresService";
-import { type ProgresSantri } from "../types";
 
 export const useProgres = () => {
-  const [progresData, setProgresData] = useState<ProgresSantri[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchProgres = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
+  const { 
+    data: progresData = [], 
+    isFetching: loading, 
+    error,
+    refetch: fetchProgres 
+  } = useQuery({
+    queryKey: ["progres"],
+    queryFn: async () => {
       const response = await progresService.getAllProgres();
-      setProgresData(response.data || []);
-    } catch (err) {
-      setError("Gagal mengambil data progres");
-      console.error(err);
-    } finally {
-      setLoading(false);
+      return response.data || [];
     }
-  }, []);
+  });
 
-  return { progresData, loading, error, fetchProgres };
+  return { 
+    progresData, 
+    loading, 
+    error: error ? "Gagal mengambil data progres" : null, 
+    fetchProgres 
+  };
 };

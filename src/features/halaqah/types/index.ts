@@ -1,4 +1,4 @@
-import type { Halaqah as DomainHalaqah, Santri as DomainSantri } from '@/types';
+﻿import type { Halaqah as DomainHalaqah, Santri as DomainSantri } from '@/types';
 
 export interface Halaqah extends DomainHalaqah {
   _count?: {

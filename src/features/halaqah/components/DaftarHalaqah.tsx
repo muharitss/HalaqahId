@@ -1,4 +1,4 @@
-
+﻿
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUsers, faUserTie } from "@fortawesome/free-solid-svg-icons"; // Import icon tambahan
 import { faWhatsapp } from "@fortawesome/free-brands-svg-icons";
@@ -77,11 +77,11 @@ export function DaftarHalaqah({
                     <div className="flex items-center gap-2 mt-1 text-xs md:text-sm text-muted-foreground">
                       <span className="flex items-center gap-1">
                         <FontAwesomeIcon icon={faUserTie} className="text-[10px]" />
-                        {h.user?.name || "Tanpa Muhafiz"}
+                        {h.muhafiz?.email || "Tanpa Muhafiz"}
                       </span>
                       <span className="flex items-center gap-1">
                         <FontAwesomeIcon icon={faUsers} className="text-[10px]" />
-                        {h._count?.santri || 0} Santri
+                        {h.total_santri || 0} Santri
                       </span>
                     </div>
                   </div>

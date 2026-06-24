@@ -1,4 +1,4 @@
-import { useAuth } from "@/features/auth/context/AuthContext";
+﻿import { useAuth } from "@/features/auth/components/auth-provider";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {

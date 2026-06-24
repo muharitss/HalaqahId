@@ -1,4 +1,4 @@
-export type { Santri } from '@/types/domain/santri';
+﻿export type { Santri } from '@/types/domain/santri';
 
 export interface ProgresSantri {
   id: number;

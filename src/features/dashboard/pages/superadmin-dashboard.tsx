@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSchool, faUsers, faShieldHalved } from "@fortawesome/free-solid-svg-icons";
 
-export default function SuperadminDashboard() {
+export function SuperadminDashboard() {
   return (
     <div className="space-y-6">
       <div>

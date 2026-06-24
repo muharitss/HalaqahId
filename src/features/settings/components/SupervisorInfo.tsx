@@ -1,4 +1,4 @@
-import { AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+﻿import { AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 export function SupervisorInfo() {
   return (

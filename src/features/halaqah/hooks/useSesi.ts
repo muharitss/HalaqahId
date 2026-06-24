@@ -1,96 +1,110 @@
-import { useState, useCallback } from "react";
+﻿import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { sesiService } from "@/features/halaqah/api/sesiService";
 import type { 
-  SesiHalaqah, 
   CreateSesiHalaqahRequest, 
   UpdateSesiHalaqahRequest 
 } from "@/types/domain/sesi-halaqah";
+import axios from "axios";
 
 export function useSesi() {
-  const [sesiList, setSesiList] = useState<SesiHalaqah[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const queryClient = useQueryClient();
 
-  const fetchSesi = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const response = await sesiService.getSesiHalaqah();
-      setSesiList(response.data || []);
-    } catch (error: any) {
-      toast.error(error.message || "Gagal mengambil sesi halaqah");
-    } finally {
-      setIsLoading(false);
+  const { data: sesiList = [], isFetching: isLoadingSesi, refetch: fetchSesi } = useQuery({
+    queryKey: ["sesi-halaqah"],
+    queryFn: async () => {
+      try {
+        const response = await sesiService.getSesiHalaqah();
+        return response.data || [];
+      } catch (error) {
+        let errorMessage = "Gagal mengambil sesi halaqah";
+        if (axios.isAxiosError(error)) {
+          errorMessage = error.response?.data?.message || error.message;
+        } else if (error instanceof Error) {
+          errorMessage = error.message;
+        }
+        toast.error(errorMessage);
+        throw error;
+      }
     }
-  }, []);
+  });
+
+  const createMutation = useMutation({
+    mutationFn: (payload: CreateSesiHalaqahRequest) => sesiService.createSesi(payload),
+    onSuccess: () => {
+      toast.success("Sesi halaqah berhasil ditambahkan");
+      queryClient.invalidateQueries({ queryKey: ["sesi-halaqah"] });
+    },
+    onError: (error) => {
+      toast.error(error.message || "Gagal membuat sesi halaqah");
+    }
+  });
+
+  const createMultipleMutation = useMutation({
+    mutationFn: async (payloads: CreateSesiHalaqahRequest[]) => {
+      const results = await Promise.allSettled(payloads.map(p => sesiService.createSesi(p)));
+      const successCount = results.filter(r => r.status === "fulfilled").length;
+      return { successCount, total: payloads.length };
+    },
+    onSuccess: ({ successCount, total }) => {
+      if (successCount === total) {
+        toast.success(`Berhasil menambahkan ${successCount} sesi halaqah`);
+      } else {
+        toast.error(`Berhasil menambahkan ${successCount} sesi, gagal ${total - successCount} sesi`);
+      }
+      if (successCount > 0) {
+        queryClient.invalidateQueries({ queryKey: ["sesi-halaqah"] });
+      }
+    },
+    onError: (error) => {
+      toast.error(error.message || "Gagal membuat beberapa sesi halaqah");
+    }
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, payload }: { id: number, payload: UpdateSesiHalaqahRequest }) => sesiService.updateSesi(id, payload),
+    onSuccess: () => {
+      toast.success("Sesi halaqah berhasil diperbarui");
+      queryClient.invalidateQueries({ queryKey: ["sesi-halaqah"] });
+    },
+    onError: (error) => {
+      toast.error(error.message || "Gagal memperbarui sesi halaqah");
+    }
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => sesiService.deleteSesi(id),
+    onSuccess: () => {
+      toast.success("Sesi halaqah berhasil dihapus");
+      queryClient.invalidateQueries({ queryKey: ["sesi-halaqah"] });
+    },
+    onError: (error) => {
+      toast.error(error.message || "Gagal menghapus sesi halaqah");
+    }
+  });
 
   const createSesi = async (payload: CreateSesiHalaqahRequest) => {
-    setIsLoading(true);
-    try {
-      await sesiService.createSesi(payload);
-      toast.success("Sesi halaqah berhasil ditambahkan");
-      await fetchSesi();
-      return true;
-    } catch (error: any) {
-      toast.error(error.message || "Gagal membuat sesi halaqah");
-      return false;
-    } finally {
-      setIsLoading(false);
-    }
+    try { await createMutation.mutateAsync(payload); return true; } catch { return false; }
   };
 
   const createMultipleSesi = async (payloads: CreateSesiHalaqahRequest[]) => {
-    setIsLoading(true);
-    let successCount = 0;
-    try {
-      const results = await Promise.allSettled(payloads.map(p => sesiService.createSesi(p)));
-      successCount = results.filter(r => r.status === "fulfilled").length;
-      
-      if (successCount === payloads.length) {
-        toast.success(`Berhasil menambahkan ${successCount} sesi halaqah`);
-        return true;
-      } else {
-        toast.error(`Berhasil menambahkan ${successCount} sesi, gagal ${payloads.length - successCount} sesi`);
-        return successCount > 0;
-      }
-    } catch (error: any) {
-      toast.error(error.message || "Gagal membuat beberapa sesi halaqah");
-      return false;
-    } finally {
-      if (successCount > 0) await fetchSesi();
-      else setIsLoading(false);
+    try { 
+      const { successCount, total } = await createMultipleMutation.mutateAsync(payloads); 
+      return successCount === total ? true : (successCount > 0);
+    } catch { 
+      return false; 
     }
   };
 
   const updateSesi = async (id: number, payload: UpdateSesiHalaqahRequest) => {
-    setIsLoading(true);
-    try {
-      await sesiService.updateSesi(id, payload);
-      toast.success("Sesi halaqah berhasil diperbarui");
-      await fetchSesi();
-      return true;
-    } catch (error: any) {
-      toast.error(error.message || "Gagal memperbarui sesi halaqah");
-      return false;
-    } finally {
-      setIsLoading(false);
-    }
+    try { await updateMutation.mutateAsync({ id, payload }); return true; } catch { return false; }
   };
 
   const deleteSesi = async (id: number) => {
-    setIsLoading(true);
-    try {
-      await sesiService.deleteSesi(id);
-      toast.success("Sesi halaqah berhasil dihapus");
-      await fetchSesi();
-      return true;
-    } catch (error: any) {
-      // Menangkap error 400 dari backend
-      toast.error(error.message || "Gagal menghapus sesi halaqah");
-      return false;
-    } finally {
-      setIsLoading(false);
-    }
+    try { await deleteMutation.mutateAsync(id); return true; } catch { return false; }
   };
+
+  const isLoading = isLoadingSesi || createMutation.isPending || createMultipleMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
 
   return {
     sesiList,

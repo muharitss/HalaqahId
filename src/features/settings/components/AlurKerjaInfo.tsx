@@ -1,4 +1,4 @@
-import { AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+﻿import { AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 export function AlurKerjaInfo() {
   return (
@@ -18,13 +18,13 @@ export function AlurKerjaInfo() {
             <ul className="list-disc ml-5 space-y-1">
                 <li>Muhafiz menyimak setoran hafalan santri dengan target 2 santri per pekan.</li>
                 <li>Muhafiz dapat memperbantukan santri pilihan untuk membantu menyimak setoran.</li>
-                <li>Muhafiz mengarahkan santri yang hendak setoran untuk menuliskan apa yang akan disetorkan di mutaba’ah masing-masing.</li>
+                <li>Muhafiz mengarahkan santri yang hendak setoran untuk menuliskan apa yang akan disetorkan di mutabaâ€™ah masing-masing.</li>
             </ul>
             <p className="font-bold text-[11px] uppercase mt-2">Aktivitas : Menyimak Setoran Per Dua Pekan</p>
             <ul className="list-disc ml-5 space-y-1">
                 <li>Setiap sabtu kedua dan keempat, santri wajib menyetorkan hafalan selama dua pekan setiap periode sesuai target masing-masing.</li>
-                <li>Apa yang sudah disetorkan tetap dicatat di lembar mutaba’ah dan diberi tanda di samping kolom, misal : “tasmi’ per dua pekan” atau semisalnya.</li>
-                <li>Tasmi’ per dua pekan catatannya dibedakan dengan tasmi’ harian, yang berarti saat tiba tasmi’ periode kedua maka dia melanjutkan apa yang disetorkan di tasmi’ periode pertama bukan melanjutkan apa yang disetorkan di tasmi’ harian.</li>
+                <li>Apa yang sudah disetorkan tetap dicatat di lembar mutabaâ€™ah dan diberi tanda di samping kolom, misal : â€œtasmiâ€™ per dua pekanâ€ atau semisalnya.</li>
+                <li>Tasmiâ€™ per dua pekan catatannya dibedakan dengan tasmiâ€™ harian, yang berarti saat tiba tasmiâ€™ periode kedua maka dia melanjutkan apa yang disetorkan di tasmiâ€™ periode pertama bukan melanjutkan apa yang disetorkan di tasmiâ€™ harian.</li>
             </ul>
         </div>
         {/* Bacaan Alur */}
@@ -45,7 +45,7 @@ export function AlurKerjaInfo() {
             <ul className="list-disc ml-5 space-y-1">
                 <li>Muhafiz menyimak setoran hafalan santri dengan setiap santri harus setoran di setiap pertemuan.</li>
                 <li>Muhafiz dapat memperbantukan santri pilihan untuk membantu menyimak setoran.</li>
-                <li>Muhafiz mengarahkan santri yang hendak setoran untuk menuliskan apa yang akan disetorkan di mutaba’ah masing-masing.</li>
+                <li>Muhafiz mengarahkan santri yang hendak setoran untuk menuliskan apa yang akan disetorkan di mutabaâ€™ah masing-masing.</li>
             </ul>
         </div>
       </AccordionContent>

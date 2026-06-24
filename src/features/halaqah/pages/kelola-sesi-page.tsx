@@ -8,7 +8,7 @@ import { SesiModal } from "../components/SesiModal";
 import type { SesiHalaqah } from "@/types/domain/sesi-halaqah";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 
-export default function KelolaSesiPage() {
+export function KelolaSesiPage() {
   const { sesiList, isLoading: loadingSesi, fetchSesi, createSesi, createMultipleSesi, updateSesi, deleteSesi } = useSesi();
   const { halaqahs, fetchData: fetchHalaqahs } = useHalaqahManagement();
   

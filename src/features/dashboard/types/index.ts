@@ -1,4 +1,4 @@
-import type { Halaqah as DomainHalaqah, Santri as DomainSantri, User as DomainUser } from '@/types';
+﻿import type { Halaqah as DomainHalaqah, Santri as DomainSantri, User as DomainUser } from '@/types';
 import type { StatusKehadiran } from '@/types/domain/enums';
 
 export type Halaqah = DomainHalaqah;

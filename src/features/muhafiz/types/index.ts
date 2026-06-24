@@ -1,4 +1,4 @@
-import type { User as DomainUser } from '@/types';
+﻿import type { User as DomainUser } from '@/types';
 import type { StatusKehadiran } from '@/types/domain/enums';
 
 export interface Muhafiz extends DomainUser {

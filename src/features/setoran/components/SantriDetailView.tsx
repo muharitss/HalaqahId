@@ -1,4 +1,4 @@
-// src/features/display/pages/SantriDetailView.tsx
+﻿// src/features/display/pages/SantriDetailView.tsx
 
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { displayService } from "@/features/display/api/displayService";

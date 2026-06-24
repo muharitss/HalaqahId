@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -13,7 +13,7 @@ import { HistoryTable } from "../components/HistoryTable";
 import { Progres } from "@/components/custom/typed-text";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-export default function ProgresSantriPage() {
+export function ProgresSantriPage() {
   const { progresData, loading: loadingProgres, fetchProgres } = useProgres();
   const { fetchSetoranBySantri, history, loading: loadingHistory } = useSetoran();
 
@@ -23,9 +23,7 @@ export default function ProgresSantriPage() {
   const filterStatus = "semua";
   const filterTarget = "semua";
 
-  useEffect(() => {
-    fetchProgres();
-  }, [fetchProgres]);
+
 
   const filteredProgres = progresData.filter(progres => {
     const statusMatch = filterStatus === "semua" || progres.status === filterStatus;

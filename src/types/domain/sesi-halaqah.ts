@@ -1,4 +1,4 @@
-export interface SesiHalaqah {
+﻿export interface SesiHalaqah {
   id_sesi: number;
   nama_sesi: string;
   jam_mulai: string;

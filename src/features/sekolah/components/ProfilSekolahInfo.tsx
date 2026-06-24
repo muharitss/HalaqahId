@@ -1,4 +1,4 @@
-import { type Sekolah } from "@/types/domain/sekolah";
+﻿import { type Sekolah } from "@/types/domain/sekolah";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Building2, MapPin, Mail, Key } from "lucide-react";
 

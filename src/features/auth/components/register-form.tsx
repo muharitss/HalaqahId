@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Link, useNavigate } from "react-router-dom";
@@ -19,7 +19,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { authService } from "@/features/auth/api/authService";
-import { registerAdminSchema, type RegisterFormValues } from "@/utils/zodSchema";
+import { registerAdminSchema, type RegisterFormValues } from "@/features/auth/types/auth.schema";
 
 export function RegisterForm() {
   const navigate = useNavigate();
@@ -110,7 +110,7 @@ export function RegisterForm() {
               <Input
                 id="password"
                 type={showPassword ? "text" : "password"}
-                placeholder="••••••••"
+                placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                 className="pl-10 pr-10"
                 disabled={isLoading}
                 {...register("password")}
@@ -136,7 +136,7 @@ export function RegisterForm() {
               <Input
                 id="confirmPassword"
                 type={showConfirmPassword ? "text" : "password"}
-                placeholder="••••••••"
+                placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                 className="pl-10 pr-10"
                 disabled={isLoading}
                 {...register("confirmPassword")}

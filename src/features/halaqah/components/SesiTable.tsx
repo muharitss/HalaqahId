@@ -1,4 +1,4 @@
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+﻿import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Edit2, Trash2 } from "lucide-react";
 import type { SesiHalaqah } from "@/types/domain/sesi-halaqah";
@@ -40,7 +40,9 @@ export function SesiTable({ sesiList, isLoading, onEdit, onDelete }: SesiTablePr
           </TableRow>
         </TableHeader>
         <TableBody>
-          {sesiList.map((sesi) => (
+          {sesiList.map((sesi) => {
+            console.log(sesi)
+            return (
             <TableRow key={sesi.id_sesi}>
               <TableCell className="font-medium">{sesi.nama_sesi}</TableCell>
               <TableCell>{sesi.jam_mulai}</TableCell>
@@ -57,7 +59,7 @@ export function SesiTable({ sesiList, isLoading, onEdit, onDelete }: SesiTablePr
                 </Button>
               </TableCell>
             </TableRow>
-          ))}
+          )})} 
         </TableBody>
       </Table>
     </div>

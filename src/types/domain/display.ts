@@ -1,4 +1,4 @@
-import { KategoriTarget, StatusKehadiran, KategoriSetoran } from './enums';
+﻿import { KategoriTarget, StatusKehadiran, KategoriSetoran } from './enums';
 
 export interface DisplayHalaqah {
   id_halaqah: number;

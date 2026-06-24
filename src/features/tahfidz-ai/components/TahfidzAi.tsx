@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+﻿import { useEffect, useRef, useState, useCallback } from "react";
 import { useReactMediaRecorder } from "react-media-recorder";
 import Fuse from 'fuse.js';
 import { 
@@ -54,9 +54,9 @@ export const TahfidzAi = () => {
   const normalize = useCallback((text: string): string => {
     return text
       .replace(/[\u064B-\u065F]/g, "") // Hilangkan harakat
-      .replace(/[إأآا]/g, "ا")       
-      .replace(/ة/g, "ه")            
-      .replace(/ى/g, "ي")            
+      .replace(/[Ø¥Ø£Ø¢Ø§]/g, "Ø§")       
+      .replace(/Ø©/g, "Ù‡")            
+      .replace(/Ù‰/g, "ÙŠ")            
       .replace(/[\u06D6-\u06ED]/g, "") 
       .replace(/\s+/g, " ")          
       .trim();

@@ -1,1 +1,2 @@
-export { default } from './pages';
+export { SuperadminDashboard } from './pages/superadmin-dashboard';
+export { KepalaMuhafidzDashboard } from './pages/kepala-muhafidz-dashboard';

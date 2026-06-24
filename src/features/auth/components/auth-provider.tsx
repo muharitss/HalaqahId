@@ -1,6 +1,6 @@
-// FILE: ./context/AuthContext.tsx
+﻿// FILE: ./context/AuthContext.tsx
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
-import { type LoginFormValues } from "@/utils/zodSchema";
+import { type LoginFormValues } from "@/features/auth/types/auth.schema";
 import { authService } from "@/features/auth/api/authService";
 import { Role, isKepalaRole } from "@/types/domain/enums";
 import { type AuthUser, type AuthContextType } from "@/types/domain/auth";

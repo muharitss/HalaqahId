@@ -1,18 +1,14 @@
-import { useState, useCallback, useEffect } from "react";
-import { useAuth } from "@/features/auth/context/AuthContext";
+﻿import { useState, useEffect } from "react";
+import { useAuth } from "@/features/auth/components/auth-provider";
 import { muhafizService } from "../api/muhafizService";
 import { type Muhafiz, type AbsensiStatus } from "../types";
-import { type SesiHalaqah } from "@/types/domain/sesi-halaqah";
 import { sesiService } from "@/features/halaqah/api/sesiService";
 import { toast } from "sonner";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 export const useMuhafiz = () => {
   const { user, impersonate } = useAuth();
-  
-  // --- States ---
-  const [muhafizList, setMuhafizList] = useState<Muhafiz[]>([]);
-  const [activeMuhafizIds, setActiveMuhafizIds] = useState<Set<number>>(new Set());
-  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
   
   // Modal States
   const [editingMuhafiz, setEditingMuhafiz] = useState<Muhafiz | null>(null);
@@ -23,118 +19,71 @@ export const useMuhafiz = () => {
   // Absensi States
   const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [selectedSesi, setSelectedSesi] = useState<number | null>(null);
-  const [sesiList, setSesiList] = useState<SesiHalaqah[]>([]);
-  // Perbaikan tipe Record agar spesifik menggunakan AbsensiStatus
   const [attendanceMap, setAttendanceMap] = useState<Record<number, AbsensiStatus>>({});
-  const [submittedAttendance, setSubmittedAttendance] = useState<Record<number, AbsensiStatus>>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // --- Handlers ---
-
-  const loadMuhafiz = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const data = await muhafizService.getAllMuhafiz();
-      setMuhafizList(data);
-      
-      const activeIds = await muhafizService.getActiveMuhafizIds();
-      setActiveMuhafizIds(activeIds);
-
-      // Fetch sesi
-      const sesiRes = await sesiService.getSesiHalaqah();
-      const sesiData = sesiRes.data || [];
-      setSesiList(sesiData);
-      if (sesiData.length > 0 && !selectedSesi) {
-        setSelectedSesi(sesiData[0].id_sesi);
+  // Fetch Muhafiz List & Active IDs & Sesi
+  const { data: initData, isFetching: isLoadingInit, refetch: loadMuhafiz } = useQuery({
+    queryKey: ["muhafiz-init"],
+    queryFn: async () => {
+      try {
+        const [muhafizRes, activeIds, sesiRes] = await Promise.all([
+          muhafizService.getAllMuhafiz(),
+          muhafizService.getActiveMuhafizIds(),
+          sesiService.getSesiHalaqah()
+        ]);
+        const sesiData = sesiRes.data || [];
+        return {
+          muhafizList: muhafizRes,
+          activeMuhafizIds: activeIds,
+          sesiList: sesiData,
+        };
+      } catch (err) {
+        toast.error("Gagal memuat data muhafiz");
+        throw err;
       }
-    } catch {
-      toast.error("Gagal memuat data muhafiz");
-    } finally {
-      setIsLoading(false);
     }
-  }, []);
+  });
 
-  const checkExistingAbsensi = useCallback(async (date: string, sesiId: number | null) => {
-    try {
-      const res = await muhafizService.getDailyAsatidz(date);
-      
-      // Log ini untuk memastikan data status ada di console browser
-      console.log("Response Absensi Harian:", res.data);
+  // Set default sesi when sesiList loads
+  useEffect(() => {
+    if (initData?.sesiList && initData.sesiList.length > 0 && !selectedSesi) {
+      setSelectedSesi(initData.sesiList[0].id_sesi);
+    }
+  }, [initData?.sesiList, selectedSesi]);
 
-      if (res.data && Array.isArray(res.data)) {
-        const mappedData = res.data.reduce((acc: Record<number, AbsensiStatus>, item: any) => {
-          // Filter out if it doesn't match selected session (unless item.id_sesi is not available and we fallback)
-          if (sesiId && item.id_sesi && item.id_sesi !== sesiId) {
+  // Daily Absensi
+  const { data: submittedAttendance = {} } = useQuery({
+    queryKey: ["absensi-muhafiz", selectedDate, selectedSesi],
+    queryFn: async () => {
+      try {
+        const res = await muhafizService.getDailyAsatidz(selectedDate);
+        if (res.data && Array.isArray(res.data)) {
+          const mappedData = res.data.reduce((acc: Record<number, AbsensiStatus>, item: any) => {
+            if (selectedSesi && item.id_sesi && item.id_sesi !== selectedSesi) return acc;
+            const userId = item.id_user || item.id_user; 
+            const status = item.status;
+            if (userId && status) acc[Number(userId)] = status as AbsensiStatus;
             return acc;
-          }
-
-          // Cek apakah backend kirim id_user atau id_user
-          const userId = item.id_user || item.id_user; 
-          const status = item.status;
-
-          if (userId && status) {
-            acc[Number(userId)] = status as AbsensiStatus;
-          }
-          return acc;
-        }, {});
-        
-        setSubmittedAttendance(mappedData);
-      } else {
-        setSubmittedAttendance({});
+          }, {});
+          return mappedData;
+        }
+        return {};
+      } catch {
+        return {};
       }
-    } catch (err) {
-      setSubmittedAttendance({});
-    }
-  }, []);
+    },
+    enabled: !!selectedDate && !!selectedSesi,
+  });
 
-  useEffect(() => {
-    loadMuhafiz();
-  }, [loadMuhafiz]);
+  // Modals Actions
+  const openEditModal = (muhafiz: Muhafiz) => { setEditingMuhafiz(muhafiz); setIsEditOpen(true); };
+  const openDeleteModal = (muhafiz: Muhafiz) => { setDeletingMuhafiz(muhafiz); setIsDeleteOpen(true); };
+  const closeEditModal = () => { setIsEditOpen(false); setEditingMuhafiz(null); };
+  const closeDeleteModal = () => { setIsDeleteOpen(false); setDeletingMuhafiz(null); };
 
-  // Efek saat tanggal atau sesi berubah
-  useEffect(() => {
-    if (selectedDate && selectedSesi) {
-      checkExistingAbsensi(selectedDate, selectedSesi);
-      setAttendanceMap({}); // Reset draft pilihan setiap ganti
-    }
-  }, [selectedDate, selectedSesi, checkExistingAbsensi]);
-
-  // Modal Actions
-  const openEditModal = (muhafiz: Muhafiz) => {
-    setEditingMuhafiz(muhafiz);
-    setIsEditOpen(true);
-  };
-
-  const openDeleteModal = (muhafiz: Muhafiz) => {
-    setDeletingMuhafiz(muhafiz);
-    setIsDeleteOpen(true);
-  };
-
-  const closeEditModal = () => {
-    setIsEditOpen(false);
-    setEditingMuhafiz(null);
-  };
-
-  const closeDeleteModal = () => {
-    setIsDeleteOpen(false);
-    setDeletingMuhafiz(null);
-  };
-
-  // CRUD Callbacks
-  const handleCreateSuccess = () => {
-    toast.success("Akun muhafidz berhasil dibuat");
-    loadMuhafiz();
-  };
-
-  const handleEditSuccess = () => {
-    toast.success("Data muhafidz berhasil diperbarui");
-    loadMuhafiz();
-  };
-
-  const handleDeleteSuccess = () => {
-    toast.success("Muhafidz berhasil dihapus");
-    loadMuhafiz();
-  };
+  const handleCreateSuccess = () => { toast.success("Akun muhafidz berhasil dibuat"); queryClient.invalidateQueries({ queryKey: ["muhafiz-init"] }); };
+  const handleEditSuccess = () => { toast.success("Data muhafidz berhasil diperbarui"); queryClient.invalidateQueries({ queryKey: ["muhafiz-init"] }); };
+  const handleDeleteSuccess = () => { toast.success("Muhafidz berhasil dihapus"); queryClient.invalidateQueries({ queryKey: ["muhafiz-init"] }); };
 
   // Impersonate
   const handleImpersonate = async (muhafiz: Muhafiz) => {
@@ -159,11 +108,8 @@ export const useMuhafiz = () => {
     });
   };
 
-  // --- Absensi Handlers ---
-
   const handleStatusChange = (userId: number, status: AbsensiStatus) => {
     setAttendanceMap(prev => {
-      // Jika status yang dipilih sama dengan yang sudah ada, hapus dari map (toggle off)
       if (prev[userId] === status) {
         const newMap = { ...prev };
         delete newMap[userId];
@@ -173,15 +119,8 @@ export const useMuhafiz = () => {
     });
   };
 
-  const handleSaveAllAbsensi = async () => {
-    const selectedIds = Object.keys(attendanceMap).map(Number);
-    if (selectedIds.length === 0) {
-      toast.error("Pilih atau ubah status absensi terlebih dahulu");
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
+  const saveAbsensiMutation = useMutation({
+    mutationFn: async (selectedIds: number[]) => {
       const promises = selectedIds.map((userId) => 
         muhafizService.catatAbsensiAsatidz({ 
           id_user: userId, 
@@ -192,19 +131,28 @@ export const useMuhafiz = () => {
         })
       );
       await Promise.all(promises);
+    },
+    onSuccess: () => {
       toast.success("Absensi berhasil disimpan/diperbarui");
-      setAttendanceMap({}); // Kosongkan draft setelah simpan
-      await checkExistingAbsensi(selectedDate, selectedSesi); // Ambil data terbaru
-    } catch (err: any) {
+      setAttendanceMap({});
+      queryClient.invalidateQueries({ queryKey: ["absensi-muhafiz"] });
+    },
+    onError: (err: any) => {
       toast.error(err.message || "Gagal menyimpan absensi");
-    } finally {
-      setIsSubmitting(false);
     }
+  });
+
+  const handleSaveAllAbsensi = async () => {
+    const selectedIds = Object.keys(attendanceMap).map(Number);
+    if (selectedIds.length === 0) {
+      toast.error("Pilih atau ubah status absensi terlebih dahulu");
+      return;
+    }
+    await saveAbsensiMutation.mutateAsync(selectedIds);
   };
 
-  const handleAbsenMuhafiz = async (userId: number, status: AbsensiStatus) => {
-    try {
-      const today = new Date().toISOString().split('T')[0];
+  const absenSingleMutation = useMutation({
+    mutationFn: async ({ userId, status, today }: { userId: number, status: AbsensiStatus, today: string }) => {
       await muhafizService.catatAbsensiAsatidz({
         id_user: userId,
         id_sesi: selectedSesi || undefined,
@@ -212,31 +160,45 @@ export const useMuhafiz = () => {
         tanggal: today,
         keterangan: ""
       });
+      return { status, today };
+    },
+    onSuccess: ({ status, today }) => {
       toast.success(`Berhasil mencatat absensi: ${status}`);
-      // Refresh list kunci jika admin sedang melihat halaman di tanggal hari ini
-      if (selectedDate === today) checkExistingAbsensi(today, selectedSesi);
-    } catch (error: any) {
+      if (selectedDate === today) {
+        queryClient.invalidateQueries({ queryKey: ["absensi-muhafiz", today, selectedSesi] });
+      }
+    },
+    onError: (error: any) => {
       toast.error(error.message || "Gagal mencatat absensi");
     }
+  });
+
+  const handleAbsenMuhafiz = async (userId: number, status: AbsensiStatus) => {
+    const today = new Date().toISOString().split('T')[0];
+    absenSingleMutation.mutate({ userId, status, today });
   };
 
+  // Reset local draft when selectedDate/selectedSesi changes
+  useEffect(() => {
+    setAttendanceMap({});
+  }, [selectedDate, selectedSesi]);
+
+  const isSubmitting = saveAbsensiMutation.isPending || absenSingleMutation.isPending;
+
   return {
-    // States
-    muhafizList,
-    activeMuhafizIds,
-    isLoading,
+    muhafizList: initData?.muhafizList || [],
+    activeMuhafizIds: initData?.activeMuhafizIds || new Set(),
+    isLoading: isLoadingInit,
     editingMuhafiz,
     deletingMuhafiz,
     isEditOpen,
     isDeleteOpen,
     
-    // Absensi States
     selectedDate,
     attendanceMap,
     isSubmitting,
     submittedAttendance,
     
-    // Actions
     loadMuhafiz,
     handleCreateSuccess,
     handleEditSuccess,
@@ -247,11 +209,10 @@ export const useMuhafiz = () => {
     closeEditModal,
     closeDeleteModal,
     
-    // Absensi Actions
     setSelectedDate,
     selectedSesi,
     setSelectedSesi,
-    sesiList,
+    sesiList: initData?.sesiList || [],
     handleStatusChange,
     handleSaveAllAbsensi,
     handleAbsenMuhafiz

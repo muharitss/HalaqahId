@@ -1,9 +1,9 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate, Link } from "react-router-dom";
-import { loginSchema, type LoginFormValues } from "@/utils/zodSchema";
-import { useAuth } from "@/features/auth/context/AuthContext";
+import { loginSchema, type LoginFormValues } from "@/features/auth/types/auth.schema";
+import { useAuth } from "@/features/auth/components/auth-provider";
 import { getErrorMessage } from "@/utils/error";
 import { authService } from "@/features/auth/api/authService";
 

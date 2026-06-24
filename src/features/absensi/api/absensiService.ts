@@ -1,17 +1,14 @@
-import axiosClient from "@/lib/axiosClient";
+﻿import axiosClient from "@/lib/axiosClient";
 import { getErrorMessage } from "@/utils/error";
 import { type ApiResponse } from "@/features/halaqah/api/halaqahService";
-import { type StatusKehadiran as AbsensiStatus } from "@/types/domain/enums";
-import { type CreateAbsensiSantriRequest as AbsensiPayload, type AbsensiSantri as AbsensiRecord } from "@/types/domain/absensi";
-
-export interface MonthlyAbsensiData {
-  tanggal: string;
-  data: {
-    id_santri: number;
-    id_sesi: number;
-    status: AbsensiStatus;
-  }[];
-}
+import { 
+  type CreateAbsensiSantriRequest as AbsensiPayload, 
+  type AbsensiSantri as AbsensiRecord,
+  type UpdateAbsensiSantriRequest,
+  type CreateAbsensiMuhafizRequest,
+  type UpdateAbsensiMuhafizRequest
+} from "@/types/domain/absensi";
+import { type MonthlyAbsensiData } from "../types/absensi.schema";
 
 export const absensiService = {
   catatAbsensi: async (payload: AbsensiPayload) => {
@@ -88,15 +85,14 @@ export const absensiService = {
 
   getRiwayatAbsensiSantri: async (idSantri: number, params?: { page?: number; limit?: number }) => {
     try {
-      const query = params ? `?${new URLSearchParams(params as any).toString()}` : '';
-      const res = await axiosClient.get(`/absensi/santri/${idSantri}${query}`);
+      const res = await axiosClient.get(`/absensi/santri/${idSantri}`, {params});
       return res.data;
     } catch (error: unknown) {
       throw new Error(getErrorMessage(error, "Gagal mengambil riwayat absensi santri"));
     }
   },
 
-  updateAbsensiSantri: async (id: number, data: any) => {
+  updateAbsensiSantri: async (id: number, data: UpdateAbsensiSantriRequest) => {
     try {
       const res = await axiosClient.patch(`/absensi/${id}`, data);
       return res.data;
@@ -114,7 +110,7 @@ export const absensiService = {
     }
   },
 
-  catatAbsensiMuhafiz: async (data: any) => {
+  catatAbsensiMuhafiz: async (data: CreateAbsensiMuhafizRequest) => {
     try {
       const res = await axiosClient.post("/absensi/muhafiz", data);
       return res.data;
@@ -132,7 +128,7 @@ export const absensiService = {
     }
   },
 
-  updateAbsensiMuhafiz: async (id: number, data: any) => {
+  updateAbsensiMuhafiz: async (id: number, data: UpdateAbsensiMuhafizRequest) => {
     try {
       const res = await axiosClient.patch(`/absensi/muhafiz/${id}`, data);
       return res.data;

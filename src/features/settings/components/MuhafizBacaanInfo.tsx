@@ -1,4 +1,4 @@
-import { AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+﻿import { AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 export function MuhafizBacaanInfo() {
   return (
@@ -26,12 +26,12 @@ export function MuhafizBacaanInfo() {
             <h4 className="font-bold underline italic mb-1 uppercase text-xs">JobDesk : Mengabsen dan Input Data</h4>
             <p className="font-bold text-xs mb-1 italic uppercase">Aktivitas : Mengabsen kehadiran santri setiap halaqah</p>
             <ul className="list-disc ml-5 space-y-1">
-              <li>Setelah muqaddimah dan do’a, Muhafiz mengabsen kehadiran anggota.</li>
-              <li>Ba'da isya’ luangkan waktu untuk laporan ke grup telegram sesuai format yang ditentukan.</li>
+              <li>Setelah muqaddimah dan doâ€™a, Muhafiz mengabsen kehadiran anggota.</li>
+              <li>Ba'da isyaâ€™ luangkan waktu untuk laporan ke grup telegram sesuai format yang ditentukan.</li>
             </ul>
             <p className="font-bold text-xs mt-3 mb-1 italic uppercase">Aktivitas : Mengupdate Peningkatan Bacaan Santri</p>
             <ul className="list-disc ml-5 space-y-1">
-              <li>Ba’da isya’ luangkan waktu untuk input apa yang telah disetorkan dari tasmi’ santri di hari itu ke link yang sudah ditentukan.</li>
+              <li>Baâ€™da isyaâ€™ luangkan waktu untuk input apa yang telah disetorkan dari tasmiâ€™ santri di hari itu ke link yang sudah ditentukan.</li>
               <li>Setiap bulan, muhafiz mengisi raport target setoran setiap anggota perihal ketercapaian target yang sudah ditentukan untuk tiap bulan.</li>
             </ul>
           </div>

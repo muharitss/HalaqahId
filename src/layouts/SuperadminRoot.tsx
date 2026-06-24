@@ -1,5 +1,5 @@
 import { Routes, Route, Navigate } from "react-router-dom";
-import SuperadminDashboard from "@/features/dashboard";
+import { SuperadminDashboard } from "@/features/dashboard";
 import KelolaSekolahPage from "@/features/sekolah";
 
 export default function SuperadminRoot() {
