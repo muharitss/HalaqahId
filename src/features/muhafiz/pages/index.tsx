@@ -188,7 +188,7 @@ export default function KelolaMuhafizPage() {
 
         {/* TAB 3: REKAP */}
         <TabsContent value="monitoring" className="space-y-6 mt-0">
-          <RekapAbsensiAsatidz muhafizList={muhafizList} />
+          <RekapAbsensiAsatidz muhafizList={muhafizList} sesiList={sesiList} />
         </TabsContent>
       </Tabs>
 

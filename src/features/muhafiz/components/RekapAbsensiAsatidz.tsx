@@ -1,4 +1,4 @@
-// src/features/kepala-muhafidz/kelola-muhafiz/components/RekapAbsensiAsatidz.tsx
+// src/features/muhafiz/components/RekapAbsensiAsatidz.tsx
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -9,12 +9,14 @@ import { id } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { muhafizService } from "../api/muhafizService";
 import { type Muhafiz, type MonthlyAbsensiAsatidzRecord, type MonthlyAbsensiAsatidzItem } from "../types";
+import { type SesiHalaqah } from "@/types/domain/sesi-halaqah";
 
 interface Props {
   muhafizList: Muhafiz[];
+  sesiList: SesiHalaqah[];
 }
 
-export const RekapAbsensiAsatidz = ({ muhafizList }: Props) => {
+export const RekapAbsensiAsatidz = ({ muhafizList, sesiList }: Props) => {
   const [viewDate, setViewDate] = useState<Date>(new Date());
   const [monthlyData, setMonthlyData] = useState<MonthlyAbsensiAsatidzRecord[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -23,6 +25,10 @@ export const RekapAbsensiAsatidz = ({ muhafizList }: Props) => {
     start: startOfMonth(viewDate),
     end: endOfMonth(viewDate)
   }), [viewDate]);
+
+  const relevantSesi = useMemo(() => {
+    return sesiList.length > 0 ? sesiList : [{ id_sesi: 0, nama_sesi: "Sesi" } as unknown as SesiHalaqah];
+  }, [sesiList]);
 
   const fetchRekap = useCallback(async () => {
     setIsLoading(true);
@@ -40,22 +46,44 @@ export const RekapAbsensiAsatidz = ({ muhafizList }: Props) => {
 
   useEffect(() => { fetchRekap(); }, [fetchRekap]);
 
-  const getStatus = (userId: number, dateStr: string) => {
-    const dayRecord = monthlyData.find(m => m.tanggal === dateStr);
-    return dayRecord?.data?.find((item: MonthlyAbsensiAsatidzItem) => item.id_user === userId)?.status;
-  };
+  const getStatus = useCallback(
+    (userId: number, dateStr: string, sesiId: number) => {
+      const dayRecord = monthlyData.find((m) => m.tanggal === dateStr);
+      if (!dayRecord?.data) return undefined;
+      return dayRecord.data.find(
+        (item: MonthlyAbsensiAsatidzItem) =>
+          item.id_user === userId &&
+          (item.id_sesi === sesiId || sesiId === 0 || item.id_sesi === null)
+      )?.status;
+    },
+    [monthlyData]
+  );
 
-  const calculateTotal = (userId: number) => {
-    const totals = { HADIR: 0, IZIN: 0, SAKIT: 0, ALFA: 0, TERLAMBAT: 0 };
-    monthlyData.forEach(day => {
-      const status = day.data?.find((item: MonthlyAbsensiAsatidzItem) => item.id_user === userId)?.status;
-      if (status && status in totals) totals[status as keyof typeof totals]++;
-    });
-    return totals;
-  };
+  const calculateTotal = useCallback(
+    (userId: number, sesiId: number) => {
+      const totals = { HADIR: 0, IZIN: 0, SAKIT: 0, ALFA: 0, TERLAMBAT: 0 };
+      monthlyData.forEach((day) => {
+        if (!day.data) return;
+        const found = day.data.find(
+          (item: MonthlyAbsensiAsatidzItem) =>
+            item.id_user === userId &&
+            (item.id_sesi === sesiId || sesiId === 0 || item.id_sesi === null)
+        );
+        const status = found?.status as keyof typeof totals | undefined;
+        if (status && status in totals) {
+          totals[status]++;
+        }
+      });
+      return totals;
+    },
+    [monthlyData]
+  );
 
-  const getStatusStyle = (status?: string) => {
-    const base = "text-center p-0 border-r h-9 min-w-[34px] text-xs font-bold uppercase transition-colors";
+  const getStatusStyle = (status?: string, hasSesi?: boolean) => {
+    const base = "text-center p-0 border-r h-10 min-w-[34px] text-xs font-bold uppercase transition-colors";
+    if (!hasSesi) {
+      return cn(base, "bg-slate-100/50 text-slate-300 font-normal");
+    }
     switch (status) {
       case "HADIR": return cn(base, "bg-green-500 text-white hover:bg-green-600");
       case "IZIN": return cn(base, "bg-blue-500 text-white hover:bg-blue-600");
@@ -67,10 +95,8 @@ export const RekapAbsensiAsatidz = ({ muhafizList }: Props) => {
   };
 
   return (
-    // 'max-w-full overflow-hidden' memastikan komponen tidak akan membuat halaman scroll ke samping
     <div>
-      
-      {/* HEADER: Dibuat wrap (baris baru) jika di layar HP */}
+      {/* HEADER */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <h3 className="font-bold text-lg leading-tight p-4">Rekap Kehadiran Muhafiz</h3>
         <Select 
@@ -89,46 +115,124 @@ export const RekapAbsensiAsatidz = ({ muhafizList }: Props) => {
         </Select>
       </div>
 
-      {/* TABLE WRAPPER: Scroll horizontal HANYA di sini */}
-      <div className="relative border rounded-lg overflow-hidden bg-slate-50">
+      {/* TABLE WRAPPER */}
+      <div className="relative border rounded-lg overflow-hidden bg-slate-50 shadow-sm">
         <div className="overflow-x-auto overflow-y-hidden scrollbar-thin scrollbar-thumb-slate-300">
           <Table className="border-separate border-spacing-0 w-full min-w-[900px]">
             <TableHeader>
               <TableRow className="bg-slate-100">
-                {/* STICKY LEFT: Nama tidak ikut bergeser */}
-                <TableHead className="min-w-[150px] md:min-w-[200px] sticky left-0 z-20 bg-slate-100 font-bold border-r border-b text-xs shadow-[1px_0_0_0_#e2e8f0] h-12">
+                <TableHead 
+                  rowSpan={2}
+                  className="min-w-[150px] md:min-w-[200px] sticky left-0 z-20 bg-slate-100 font-bold border-r border-b text-xs shadow-[1px_0_0_0_#e2e8f0] h-12 align-middle"
+                >
                   Nama Muhafiz
                 </TableHead>
                 {daysInMonth.map((date) => (
-                  <TableHead key={date.toString()} className="text-center p-0 text-xs font-bold border-r border-b min-w-[32px] h-12">
+                  <TableHead 
+                    key={date.toString()} 
+                    colSpan={relevantSesi.length}
+                    className="text-center p-1 text-xs font-bold border-r border-b min-w-[32px] align-middle"
+                  >
                     {getDate(date)}
                   </TableHead>
                 ))}
+                <TableHead 
+                  colSpan={5}
+                  className="text-center min-w-[40px] bg-primary/10 font-bold border-r border-b text-primary text-xs h-12 align-middle"
+                >
+                  Total
+                </TableHead>
+              </TableRow>
+              <TableRow className="bg-slate-50">
+                {daysInMonth.map((date) => {
+                  return relevantSesi.map((sesi) => (
+                    <TableHead
+                      key={`${date.toString()}-${sesi.id_sesi}`}
+                      className="text-center p-1 text-[9px] min-w-[35px] border-r border-b text-muted-foreground truncate align-middle h-10"
+                      title={sesi.nama_sesi}
+                    >
+                      {sesi.nama_sesi.substring(0, 3)}
+                    </TableHead>
+                  ));
+                })}
                 {['H', 'I', 'S', 'A', 'T'].map(l => (
-                  <TableHead key={l} className="text-center min-w-[36px] bg-primary/10 font-bold border-r border-b text-primary text-xs h-12">{l}</TableHead>
+                  <TableHead 
+                    key={l} 
+                    className="text-center min-w-[36px] bg-primary/5 font-bold border-r border-b text-primary text-xs align-middle"
+                  >
+                    {l}
+                  </TableHead>
                 ))}
               </TableRow>
             </TableHeader>
             <TableBody className="bg-white">
               {isLoading ? (
-                <TableRow><TableCell colSpan={daysInMonth.length + 6} className="p-10 text-center"><Skeleton className="h-10 w-full" /></TableCell></TableRow>
+                <TableRow>
+                  <TableCell 
+                    colSpan={daysInMonth.length * relevantSesi.length + 6} 
+                    className="p-10 text-center"
+                  >
+                    <Skeleton className="h-10 w-full" />
+                  </TableCell>
+                </TableRow>
+              ) : muhafizList.length === 0 ? (
+                <TableRow>
+                  <TableCell 
+                    colSpan={daysInMonth.length * relevantSesi.length + 6} 
+                    className="p-10 text-center text-muted-foreground text-sm"
+                  >
+                    Tidak ada data muhafiz.
+                  </TableCell>
+                </TableRow>
               ) : (
                 muhafizList.map((m) => {
-                  const totals = calculateTotal(m.id_user);
+                  const grandTotals = { HADIR: 0, IZIN: 0, SAKIT: 0, ALFA: 0, TERLAMBAT: 0 };
+                  relevantSesi.forEach((sesi) => {
+                    const hasSesi = sesi.id_sesi === 0 || (
+                      m.halaqah?.sesi_halaqahs?.some((s) => s.id_sesi === sesi.id_sesi)
+                    ) || false;
+                    if (hasSesi) {
+                      const t = calculateTotal(m.id_user, sesi.id_sesi);
+                      grandTotals.HADIR += t.HADIR;
+                      grandTotals.IZIN += t.IZIN;
+                      grandTotals.SAKIT += t.SAKIT;
+                      grandTotals.ALFA += t.ALFA;
+                      grandTotals.TERLAMBAT += t.TERLAMBAT;
+                    }
+                  });
+
                   return (
                     <TableRow key={m.id_user} className="group hover:bg-slate-50 transition-colors">
-                      <TableCell className="sticky left-0 z-10 bg-white group-hover:bg-slate-50 border-r border-b py-3 text-xs font-semibold shadow-[1px_0_0_0_#e2e8f0] truncate">
-                        {m.name}
+                      <TableCell className="sticky left-0 z-10 bg-white group-hover:bg-slate-50 border-r border-b py-3 text-xs font-semibold shadow-[1px_0_0_0_#e2e8f0] truncate align-middle">
+                        <span className="truncate block w-32 md:w-40 font-bold" title={m.name}>
+                          {m.name}
+                        </span>
                       </TableCell>
                       {daysInMonth.map((date) => {
-                        const status = getStatus(m.id_user, format(date, "yyyy-MM-dd"));
-                        return <TableCell key={date.toString()} className={cn(getStatusStyle(status), "border-b h-10")}>{status ? status.charAt(0) : ""}</TableCell>;
+                        const dateStr = format(date, "yyyy-MM-dd");
+                        return relevantSesi.map((sesi) => {
+                          const hasSesi = sesi.id_sesi === 0 || (
+                            m.halaqah?.sesi_halaqahs?.some((s) => s.id_sesi === sesi.id_sesi)
+                          ) || false;
+                          const status = hasSesi ? getStatus(m.id_user, dateStr, sesi.id_sesi) : undefined;
+                          return (
+                            <TableCell 
+                              key={`${date.toString()}-${sesi.id_sesi}`} 
+                              className={cn(getStatusStyle(status, hasSesi), "border-b h-10 text-center")}
+                              title={hasSesi ? `${m.name} - ${format(date, "dd MMM")} - ${sesi.nama_sesi} : ${status || "Belum Ada"}` : `${m.name} - Tidak ada halaqah di sesi ini`}
+                            >
+                              <div className="flex h-9 w-full items-center justify-center">
+                                {hasSesi ? (status ? status.charAt(0) : "") : "-"}
+                              </div>
+                            </TableCell>
+                          );
+                        });
                       })}
-                      <TableCell className="text-center font-bold border-b border-r text-green-600 bg-green-50/20 text-xs">{totals.HADIR}</TableCell>
-                      <TableCell className="text-center font-bold border-b border-r text-blue-600 bg-blue-50/20 text-xs">{totals.IZIN}</TableCell>
-                      <TableCell className="text-center font-bold border-b border-r text-yellow-600 bg-yellow-50/20 text-xs">{totals.SAKIT}</TableCell>
-                      <TableCell className="text-center font-bold border-b border-r text-red-600 bg-red-50/20 text-xs">{totals.ALFA}</TableCell>
-                      <TableCell className="text-center font-bold border-b border-r text-orange-600 bg-orange-50/20 text-xs">{totals.TERLAMBAT}</TableCell>
+                      <TableCell className="text-center font-bold border-b border-r text-green-600 bg-green-50/20 text-xs align-middle">{grandTotals.HADIR}</TableCell>
+                      <TableCell className="text-center font-bold border-b border-r text-blue-600 bg-blue-50/20 text-xs align-middle">{grandTotals.IZIN}</TableCell>
+                      <TableCell className="text-center font-bold border-b border-r text-yellow-600 bg-yellow-50/20 text-xs align-middle">{grandTotals.SAKIT}</TableCell>
+                      <TableCell className="text-center font-bold border-b border-r text-red-600 bg-red-50/20 text-xs align-middle">{grandTotals.ALFA}</TableCell>
+                      <TableCell className="text-center font-bold border-b border-r text-orange-600 bg-orange-50/20 text-xs align-middle">{grandTotals.TERLAMBAT}</TableCell>
                     </TableRow>
                   );
                 })
@@ -138,7 +242,7 @@ export const RekapAbsensiAsatidz = ({ muhafizList }: Props) => {
         </div>
       </div>
 
-      {/* LEGENDA (WRAP: Baris baru otomatis jika sempit) */}
+      {/* LEGENDA */}
       <div className="flex flex-wrap gap-x-6 gap-y-2 text-xs text-muted-foreground pt-4 border-t px-2 mt-4 font-medium">
         <span className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 bg-green-500 rounded-sm" /> HADIR</span>
         <span className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 bg-blue-500 rounded-sm" /> IZIN</span>
