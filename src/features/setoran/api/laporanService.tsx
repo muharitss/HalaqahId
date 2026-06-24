@@ -1,4 +1,4 @@
-﻿import { setoranService } from "@/features/setoran/api/setoranService";
+import { setoranService } from "@/features/setoran/api/setoranService";
 import { halaqahService } from "@/features/halaqah/api/halaqahService";
 import { transformSetoranData } from "@/lib/dataTransformer";
 import type { DateFilter, GroupedData, SetoranItem } from "../types";
@@ -73,5 +73,51 @@ export const laporanService = {
       console.error("Gagal mengambil semua rekap absensi:", error);
       return [];
     }
+  },
+
+  // Hitung summary stats dari grouped data (client-side)
+  getSummaryStats: (
+    groupedData: GroupedData,
+    activeHalaqah: string,
+    periodLabel: string,
+  ) => {
+    let totalSetoran = 0;
+    const santriSet = new Set<string>();
+    const distribusiKategori: Record<string, number> = {};
+    const distribusiHalaqah: Record<string, number> = {};
+    let totalTaqwim = 0;
+
+    Object.entries(groupedData).forEach(([halaqahName, group]: [string, any]) => {
+      if (activeHalaqah !== "all" && activeHalaqah !== "" && halaqahName !== activeHalaqah) return;
+
+      let halaqahCount = 0;
+      Object.values(group.santriGroup).forEach((santri: any) => {
+        santri.setoran.forEach((s: any) => {
+          totalSetoran++;
+          halaqahCount++;
+          santriSet.add(santri.nama);
+          totalTaqwim += s.taqwim ?? 0;
+          distribusiKategori[s.kategori] = (distribusiKategori[s.kategori] ?? 0) + 1;
+        });
+      });
+      if (halaqahCount > 0) {
+        distribusiHalaqah[halaqahName] = halaqahCount;
+      }
+    });
+
+    const rataRataTaqwim = totalSetoran > 0 ? totalTaqwim / totalSetoran : 0;
+    const kategoriDominan = Object.entries(distribusiKategori).sort(
+      ([, a], [, b]) => b - a,
+    )[0]?.[0] ?? "";
+
+    return {
+      totalSetoran,
+      totalSantriAktif: santriSet.size,
+      rataRataTaqwim,
+      kategoriDominan,
+      distribusiKategori,
+      distribusiHalaqah,
+      periodLabel,
+    };
   },
 };
