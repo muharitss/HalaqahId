@@ -16,6 +16,7 @@ export default function SettingsPage() {
   const isKepala = user ? isKepalaRole(user.role) : false;
 
   const basePath = isKepala ? "/kepala-muhafidz/settings" : "/muhafidz/settings";
+  const dashboardPath = isKepala ? "/kepala-muhafidz" : "/muhafidz";
 
   const handleBackToSuperadmin = async () => {
     if (stopImpersonating) {
@@ -52,7 +53,7 @@ export default function SettingsPage() {
   return (
     <div className="space-y-6 max-w-3xl mx-auto animate-in fade-in duration-500">
       <div className="flex items-center gap-6 border-b pb-8">
-        <Button variant="outline" size="icon" onClick={() => navigate(-1)} className="rounded-full h-10 w-10 shrink-0">
+        <Button variant="outline" size="icon" onClick={() => navigate(dashboardPath)} className="rounded-full h-10 w-10 shrink-0">
           <ChevronLeft className="h-5 w-5" />
         </Button>
         <div className="space-y-1">

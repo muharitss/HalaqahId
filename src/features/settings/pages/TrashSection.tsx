@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, RotateCcw, User, Home, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -7,9 +7,15 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { toast } from "sonner";
 import { halaqahService, type Halaqah } from "@/features/halaqah/api/halaqahService";
 import { akunService, type Muhafiz } from "@/features/muhafiz/api/akunService";
+import { useAuth } from "@/features/auth/components/auth-provider";
+import { isKepalaRole } from "@/types/domain/enums";
 
 export default function TrashSection() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const basePath = user && isKepalaRole(user.role)
+    ? "/kepala-muhafidz/settings"
+    : "/muhafidz/settings";
   const [loading, setLoading] = useState(true);
   const [processingId, setProcessingId] = useState<number | null>(null);
   
@@ -71,7 +77,7 @@ export default function TrashSection() {
     <div className="space-y-6 animate-in fade-in duration-500">
       {/* Header */}
       <div className="flex items-center gap-6 border-b pb-8">
-        <Button variant="outline" size="icon" onClick={() => navigate(-1)} className="rounded-full h-10 w-10 shrink-0">
+        <Button variant="outline" size="icon" onClick={() => navigate(basePath)} className="rounded-full h-10 w-10 shrink-0">
           <ChevronLeft className="h-5 w-5" />
         </Button>
         <div className="space-y-1">

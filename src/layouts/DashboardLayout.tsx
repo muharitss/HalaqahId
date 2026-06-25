@@ -30,7 +30,12 @@ export default function DashboardLayout() {
   });
 
   const handleAvatarClick = () => {
-    const targetPath = user?.role === Role.SUPERADMIN ? "/superadmin/settings" : user && isKepalaRole(user.role) ? "/kepala-muhafidz/settings" : "muhafidz/settings";
+    let targetPath = "/muhafidz/settings";
+    if (user?.role === Role.SUPERADMIN) {
+      targetPath = "/superadmin/settings";
+    } else if (user && isKepalaRole(user.role)) {
+      targetPath = "/kepala-muhafidz/settings";
+    }
     navigate(targetPath);
   };
 

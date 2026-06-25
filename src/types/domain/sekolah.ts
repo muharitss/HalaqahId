@@ -1,5 +1,28 @@
 export type JenisLembaga = "PESANTREN" | "MADRASAH" | "SEKOLAH_UMUM" | "TPA";
 
+// ─── SOP Config Types ──────────────────────────────────────────────────────
+
+export type SOPItemType = "bullet_list" | "numbered_list" | "text";
+
+export interface SOPItem {
+  id: string;
+  subtitle?: string;
+  type: SOPItemType;
+  /** Untuk bullet_list / numbered_list: array string. Untuk text: satu string dalam array */
+  content: string[];
+}
+
+export interface SOPSection {
+  id: string;
+  title: string;
+  order: number;
+  items: SOPItem[];
+}
+
+export interface SOPConfig {
+  sections: SOPSection[];
+}
+
 export interface Sekolah {
   id_sekolah: number;
   // Identitas
@@ -31,6 +54,7 @@ export interface Sekolah {
   // Display & timestamps
   display_token: string;
   slug?: string | null;
+  sop_config?: SOPConfig | null;
   created_at: string;
   updated_at: string;
   deleted_at?: string | null;
@@ -59,5 +83,6 @@ export interface UpdateSekolahRequest {
   visi?: string;
   misi?: string;
   slug?: string;
+  sop_config?: SOPConfig | null;
 }
 

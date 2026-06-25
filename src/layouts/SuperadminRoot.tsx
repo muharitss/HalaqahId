@@ -1,13 +1,9 @@
-import { Routes, Route, Navigate } from "react-router-dom";
-import { SuperadminDashboard } from "@/features/dashboard";
-import { KelolaSekolahPage } from "@/features/sekolah";
-
+/**
+ * @deprecated
+ * File ini sudah tidak digunakan setelah migrasi ke createBrowserRouter.
+ * Semua route superadmin sekarang terdefinisi secara flat di src/routes/index.tsx.
+ * File ini dipertahankan agar tidak ada import error pada file lain yang mungkin masih merujuknya.
+ */
 export default function SuperadminRoot() {
-  return (
-    <Routes>
-      <Route index element={<SuperadminDashboard />} />
-      <Route path="sekolah" element={<KelolaSekolahPage />} />
-      <Route path="*" element={<Navigate to="." replace />} />
-    </Routes>
-  );
+  return null;
 }

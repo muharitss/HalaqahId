@@ -13,6 +13,7 @@ import {
   faUserShield,
   faBuilding,
   faClock,
+  faGear,
 } from "@fortawesome/free-solid-svg-icons";
 import {
   Sidebar,
@@ -54,6 +55,12 @@ export function AppSidebar() {
   };
 
   const isSuperAdmin = user?.role === Role.SUPERADMIN;
+
+  const settingsPath = isSuperAdmin
+    ? "/superadmin/settings"
+    : user && isKepalaRole(user.role)
+      ? "/kepala-muhafidz/settings"
+      : "/muhafidz/settings";
 
   const menuItems = isSuperAdmin
     ? [
@@ -142,7 +149,10 @@ export function AppSidebar() {
                 <SidebarMenuItem key={item.name}>
                   <SidebarMenuButton
                     asChild
-                    isActive={location.pathname === item.path}
+                    isActive={
+                    location.pathname === item.path ||
+                    location.pathname.startsWith(item.path + "/")
+                  }
                     tooltip={item.name}
                   >
                     <Link to={item.path}>
@@ -178,6 +188,19 @@ export function AppSidebar() {
                 </span>
               </div>
             </div>
+            <SidebarMenuButton
+              asChild
+              isActive={
+                location.pathname === settingsPath ||
+                location.pathname.startsWith(settingsPath + "/")
+              }
+              tooltip="Pengaturan"
+            >
+              <Link to={settingsPath}>
+                <FontAwesomeIcon icon={faGear} />
+                <span>Pengaturan</span>
+              </Link>
+            </SidebarMenuButton>
             <SidebarMenuButton
               onClick={logout}
               className="text-destructive hover:text-destructive hover:bg-destructive/10"
