@@ -72,7 +72,7 @@ export default function InfoSection() {
             Informasi &amp; SOP
           </h1>
           <p className="text-xs text-muted-foreground">
-            Standar Operasional Prosedur khusus untuk lembaga ini
+            Standar Operasional Prosedur khusus untuk manajemen halaqah ini.
           </p>
         </div>
         {canEdit && hasContent && !isLoading && (
