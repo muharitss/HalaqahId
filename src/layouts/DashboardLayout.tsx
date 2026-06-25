@@ -8,6 +8,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { useIsMobile } from "@/utils/use-mobile";
 import { isKepalaRole, Role } from "@/types/domain/enums";
+import { useQuery } from "@tanstack/react-query";
+import { sekolahService } from "@/features/sekolah/api/sekolahService";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {  faBookOpen } from "@fortawesome/free-solid-svg-icons";
@@ -17,6 +19,15 @@ export default function DashboardLayout() {
   const { user, isImpersonating } = useAuth();
   const isMobile = useIsMobile();
   const navigate = useNavigate(); 
+
+  const { data: sekolah } = useQuery({
+    queryKey: ["profil-sekolah"],
+    queryFn: async () => {
+      const res = await sekolahService.getProfile();
+      return res.data ?? null;
+    },
+    enabled: !!user?.id_sekolah,
+  });
 
   const handleAvatarClick = () => {
     const targetPath = user?.role === Role.SUPERADMIN ? "/superadmin/settings" : user && isKepalaRole(user.role) ? "/kepala-muhafidz/settings" : "muhafidz/settings";
@@ -56,9 +67,9 @@ export default function DashboardLayout() {
               className="focus:outline-none ml-1 relative group"
             >
               <Avatar className="h-9 w-9 border-2 border-background ring-1 ring-border group-hover:ring-primary/50 transition-all">
-                <AvatarImage src={user?.avatarUrl} />
+                <AvatarImage src={sekolah?.logo_url || user?.avatarUrl} />
                 <AvatarFallback className={isImpersonating ? "bg-amber-500/10 text-amber-600" : "bg-primary/10 text-primary"}>
-                  {user?.name?.[0]?.toUpperCase()}
+                  {sekolah?.nama_sekolah?.[0]?.toUpperCase() || user?.name?.[0]?.toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               {isImpersonating && (
