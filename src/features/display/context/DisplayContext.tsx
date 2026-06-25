@@ -6,18 +6,18 @@ import { type DisplayContextType, type DisplaySantri } from "@/types/domain/disp
 const DisplayContext = createContext<DisplayContextType | undefined>(undefined);
 
 export const DisplayProvider = ({ children }: { children: React.ReactNode }) => {
-  const { token } = useParams<{ token: string }>();
+  const { slug } = useParams<{ slug: string }>();
   const [santriList, setSantriList] = useState<DisplaySantri[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const refreshSantri = useCallback(async () => {
-    if (!token) {
+    if (!slug) {
       setIsLoading(false);
       return;
     }
     try {
       setIsLoading(true);
-      const result = await displayService.getSantriList(token);
+      const result = await displayService.getSantriList(slug);
       
       // Safeguard: Pastikan result benar-benar array sebelum masuk ke state
       setSantriList(Array.isArray(result) ? result : []);
@@ -27,7 +27,7 @@ export const DisplayProvider = ({ children }: { children: React.ReactNode }) => 
     } finally {
         setIsLoading(false);
     }
-  }, [token]);
+  }, [slug]);
 
   useEffect(() => {
     refreshSantri();

@@ -91,7 +91,7 @@ function DetailSkeleton() {
 }
 
 const SantriDetail = () => {
-  const { id, token } = useParams<{ id: string; token: string }>();
+  const { id, slug } = useParams<{ id: string; slug: string }>();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<SantriDetailData | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -105,11 +105,11 @@ const SantriDetail = () => {
   }, [viewDate]);
 
   const fetchData = useCallback(async () => {
-    if (!id || !token) return;
+    if (!id || !slug) return;
     try {
       setLoading(true);
       setError(null);
-      const res = await displayService.getSantriDetail(token, id);
+      const res = await displayService.getSantriDetail(slug, id);
       setData(res);
     } catch (err) {
       console.error("Error fetching santri detail:", err);
@@ -117,7 +117,7 @@ const SantriDetail = () => {
     } finally {
       setLoading(false);
     }
-  }, [id, token]);
+  }, [id, slug]);
 
   useEffect(() => {
     fetchData();

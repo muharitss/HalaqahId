@@ -30,6 +30,7 @@ export interface Sekolah {
   misi?: string | null;
   // Display & timestamps
   display_token: string;
+  slug?: string | null;
   created_at: string;
   updated_at: string;
   deleted_at?: string | null;
@@ -57,5 +58,6 @@ export interface UpdateSekolahRequest {
   deskripsi?: string;
   visi?: string;
   misi?: string;
+  slug?: string;
 }
 

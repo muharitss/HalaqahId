@@ -67,7 +67,7 @@ export const AppRouter = () => {
     <Routes>
       {/* ðŸ”“ Public Route: Login */}
       <Route 
-        path="/display/:token" 
+        path="/display/:slug" 
         element={
           <DisplayProvider>
             <PublicDisplay />
@@ -75,7 +75,7 @@ export const AppRouter = () => {
         } 
       />
       <Route 
-        path="/display/:token/santri/:id" 
+        path="/display/:slug/santri/:id" 
         element={
           <DisplayProvider>
             <SantriDetail /> 
