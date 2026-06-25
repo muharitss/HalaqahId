@@ -1,6 +1,8 @@
-﻿import { type Sekolah } from "@/types/domain/sekolah";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { type Sekolah } from "@/types/domain/sekolah";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Building2, MapPin, Mail, Key } from "lucide-react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
 
 interface ProfilSekolahInfoProps {
   sekolah: Sekolah;
@@ -8,48 +10,56 @@ interface ProfilSekolahInfoProps {
 
 export const ProfilSekolahInfo = ({ sekolah }: ProfilSekolahInfoProps) => {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Informasi Sekolah</CardTitle>
-        <CardDescription>
-          Detail profil sekolah yang terdaftar di sistem.
+    <Card className="overflow-hidden border-0 shadow-sm ring-1 ring-primary/10">
+      {/* Banner */}
+      <div className="h-32 bg-gradient-to-r from-primary/80 to-primary/40 relative">
+        <div className="absolute -bottom-10 left-6">
+          <Avatar className="h-20 w-20 border-4 border-background shadow-md">
+            <AvatarFallback className="bg-primary/10 text-primary text-2xl font-bold">
+              {sekolah.nama_sekolah.substring(0, 2).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+        </div>
+      </div>
+      
+      <CardHeader className="pt-14 pb-4">
+        <CardTitle className="text-2xl">{sekolah.nama_sekolah}</CardTitle>
+        <CardDescription className="text-base flex items-center gap-1.5 mt-1">
+          <Building2 className="w-4 h-4" /> Tenant Resmi Halaqah.id
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="flex items-start gap-3">
-          <Building2 className="w-5 h-5 text-muted-foreground mt-0.5" />
-          <div>
-            <p className="text-sm font-medium leading-none mb-1">Nama Sekolah</p>
-            <p className="text-sm text-muted-foreground">{sekolah.nama_sekolah}</p>
+      
+      <Separator className="mx-6 w-auto" />
+      
+      <CardContent className="pt-6 grid gap-6 sm:grid-cols-2">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground mb-1">
+            <MapPin className="w-4 h-4" /> Alamat Lengkap
           </div>
+          <p className="text-sm leading-relaxed">
+            {sekolah.alamat || <span className="italic text-muted-foreground">Belum diatur</span>}
+          </p>
         </div>
 
-        <div className="flex items-start gap-3">
-          <MapPin className="w-5 h-5 text-muted-foreground mt-0.5" />
-          <div>
-            <p className="text-sm font-medium leading-none mb-1">Alamat</p>
-            <p className="text-sm text-muted-foreground">
-              {sekolah.alamat || <span className="italic">Belum diatur</span>}
-            </p>
+        <div className="space-y-1">
+          <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground mb-1">
+            <Mail className="w-4 h-4" /> Email Sekolah
           </div>
+          <p className="text-sm font-medium">
+            {sekolah.email || <span className="italic text-muted-foreground">Belum diatur</span>}
+          </p>
         </div>
 
-        <div className="flex items-start gap-3">
-          <Mail className="w-5 h-5 text-muted-foreground mt-0.5" />
-          <div>
-            <p className="text-sm font-medium leading-none mb-1">Email</p>
-            <p className="text-sm text-muted-foreground">
-              {sekolah.email || <span className="italic">Belum diatur</span>}
-            </p>
+        <div className="space-y-1 sm:col-span-2">
+          <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground mb-1">
+            <Key className="w-4 h-4" /> Display Token (Portal Publik)
           </div>
-        </div>
-
-        <div className="flex items-start gap-3">
-          <Key className="w-5 h-5 text-muted-foreground mt-0.5" />
-          <div>
-            <p className="text-sm font-medium leading-none mb-1">Display Token</p>
-            <p className="text-sm text-muted-foreground font-mono">{sekolah.display_token}</p>
+          <div className="bg-muted/50 p-3 rounded-md font-mono text-sm border flex items-center justify-between">
+            <span>{sekolah.display_token}</span>
           </div>
+          <p className="text-xs text-muted-foreground mt-1.5">
+            Token ini digunakan untuk mengakses portal informasi publik sekolah Anda.
+          </p>
         </div>
       </CardContent>
     </Card>

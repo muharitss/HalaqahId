@@ -12,7 +12,7 @@ import SettingsPage from "@/features/settings/pages";
 
 import InfoSection from "@/features/settings/pages/InfoSection";
 import TrashSection from "@/features/settings/pages/TrashSection";
-import ProfilSekolahPage from "@/features/sekolah";
+import { ProfilSekolahPage } from "@/features/sekolah";
 import { DisplayProvider } from "@/features/display/context/DisplayContext";
 import PublicDisplay from "@/features/display/pages/PublicDisplay";
 import SantriDetail from "@/features/display/pages/SantriDetail";
