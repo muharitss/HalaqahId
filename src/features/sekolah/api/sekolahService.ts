@@ -1,4 +1,4 @@
-﻿import axiosClient from "@/lib/axiosClient";
+import axiosClient from "@/lib/axiosClient";
 import { getErrorMessage } from "@/utils/error";
 import { type ApiResponse } from "@/features/halaqah/api/halaqahService";
 import { type Sekolah, type UpdateSekolahRequest } from "@/types/domain/sekolah";
@@ -27,7 +27,7 @@ export const sekolahService = {
 
   updateProfile: async (data: UpdateSekolahRequest): Promise<ApiResponse<Sekolah>> => {
     try {
-      const res = await axiosClient.put<ApiResponse<Sekolah>>("/sekolah", data);
+      const res = await axiosClient.patch<ApiResponse<Sekolah>>("/sekolah", data);
       return res.data;
     } catch (error: unknown) {
       throw new Error(getErrorMessage(error, "Gagal memperbarui profil sekolah"));
