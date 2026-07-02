@@ -1,7 +1,7 @@
-﻿import axiosClient from "@/lib/axiosClient";
+import axiosClient from "@/lib/axiosClient";
 import { getErrorMessage } from "@/utils/error";
 import { type ApiResponse } from "@/features/halaqah/api/halaqahService";
-import { type SetoranPayload, type SetoranRecord } from "../types";
+import { type SetoranPayload, type SetoranRecord, type LaporanHafalanData } from "../types";
 import { type Santri } from "@/features/santri/types";
 
 export const setoranService = {
@@ -42,6 +42,16 @@ export const setoranService = {
       return response.data;
     } catch (error: unknown) {
       throw new Error(getErrorMessage(error, "Gagal mengambil data setoran santri"));
+    }
+  },
+
+  // GET /setoran/santri/:id/laporan
+  getLaporanHafalan: async (santriId: number): Promise<ApiResponse<LaporanHafalanData>> => {
+    try {
+      const response = await axiosClient.get<ApiResponse<LaporanHafalanData>>(`/setoran/santri/${santriId}/laporan`);
+      return response.data;
+    } catch (error: unknown) {
+      throw new Error(getErrorMessage(error, "Gagal mengambil laporan hafalan konsolidasi"));
     }
   },
 

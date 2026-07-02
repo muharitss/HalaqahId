@@ -36,7 +36,7 @@ import {
 } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
 import { Check, ChevronsUpDown, AlertCircle } from "lucide-react";
-import { pemetaanJuz } from "@/utils/daftarSurah";
+import { pemetaanJuz, SURAH_IDS } from "@/utils/daftarSurah";
 import { type Santri } from "@/features/santri/types";
 import { type SetoranFormValues, type SetoranPayload } from "../types";
 
@@ -91,6 +91,7 @@ export function SetoranForm({
   });
 
   // Watcher untuk sinkronisasi
+  // eslint-disable-next-line
   const selectedJuz = form.watch("juz");
   const selectedSurat = form.watch("surat");
   const availableSurah = pemetaanJuz[selectedJuz] || [];
@@ -122,6 +123,8 @@ export function SetoranForm({
   const onFormSubmit = async (values: SetoranFormValues) => {
     if (!isTodayValidForSesi) return;
 
+    const suratId = SURAH_IDS[values.surat] || 1;
+
     const payload = {
       id_santri: values.id_santri,
       id_sesi: values.id_sesi,
@@ -129,8 +132,12 @@ export function SetoranForm({
       surat: values.surat,
       ayat: `${values.ayat_mulai}-${values.ayat_selesai}`,
       kategori: values.kategori,
-      taqwim: values.taqwim,
+      taqwim: values.taqwim || 0,
       keterangan: values.keterangan,
+      start_surat_id: suratId,
+      start_ayat: values.ayat_mulai,
+      end_surat_id: suratId,
+      end_ayat: values.ayat_selesai,
     };
 
     const result = await onSubmit(payload);

@@ -1,4 +1,4 @@
-﻿// src/features/display/pages/SantriDetailView.tsx
+// src/features/display/pages/SantriDetailView.tsx
 
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { displayService } from "@/features/display/api/displayService";
@@ -12,6 +12,7 @@ import { ArrowLeft } from "lucide-react";
 import type { SantriDetailData } from "@/types/domain/display";
 import { eachDayOfInterval, startOfMonth, endOfMonth } from "date-fns";
 import { sekolahService } from "@/features/sekolah/api/sekolahService";
+import { LaporanKonsolidasi } from "@/features/setoran/components/LaporanKonsolidasi";
 
 interface SantriDetailViewProps {
   id: number;
@@ -134,8 +135,13 @@ export function SantriDetailView({ id, onBack }: SantriDetailViewProps) {
         </div>
       </div>
 
-      {/* TABLE SECTION: Judul dibuat lebih kecil lagi */}
+      {/* LAPORAN KONSOLIDASI SECTION */}
       <div className="space-y-2">
+        <LaporanKonsolidasi santriId={id} />
+      </div>
+
+      {/* TABLE SECTION: Judul dibuat lebih kecil lagi */}
+      <div className="space-y-2 mt-4">
         <div className="px-1">
           <h4 className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground/60">
             Riwayat Setoran

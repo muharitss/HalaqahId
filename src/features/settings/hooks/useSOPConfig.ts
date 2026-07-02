@@ -14,12 +14,11 @@ export function useSOPConfig() {
   // ── Fetch ────────────────────────────────────────────────────────────────
   useEffect(() => {
     let cancelled = false;
-    setIsLoading(true);
     sekolahService
       .getProfile()
       .then((res) => {
         if (!cancelled) {
-          setConfig(res.data.sop_config ?? null);
+          setConfig(res.data?.sop_config ?? null);
           setIsLoading(false);
         }
       })
@@ -39,7 +38,7 @@ export function useSOPConfig() {
     setSaveStatus("saving");
     try {
       const res = await sekolahService.updateProfile({ sop_config: newConfig });
-      setConfig(res.data.sop_config ?? null);
+      setConfig(res.data?.sop_config ?? null);
       setSaveStatus("saved");
       setTimeout(() => setSaveStatus("idle"), 2500);
     } catch {

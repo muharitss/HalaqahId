@@ -15,6 +15,10 @@ export interface SetoranPayload {
   kategori: KategoriSetoran;
   taqwim?: number;
   keterangan?: string;
+  start_surat_id: number;
+  start_ayat: number;
+  end_surat_id: number;
+  end_ayat: number;
 }
 
 export interface SetoranRecord {
@@ -31,7 +35,11 @@ export interface SetoranRecord {
   nilai: number;
   santri?: {
     nama_santri: string;
+    halaqah?: {
+      name_halaqah: string;
+    };
   };
+  is_valid_sequence?: boolean;
 }
 
 export interface SetoranFormValues {
@@ -69,6 +77,7 @@ export interface SetoranItem {
       name_halaqah: string;
     } | null;
   } | null;
+  is_valid_sequence?: boolean;
 }
 
 export interface GroupedSantriItem {
@@ -93,3 +102,25 @@ export interface EmptyStateProps { isFilterActive?: boolean; message?: string; i
 export interface HalaqahSelectorProps { halaqahNames: string[]; activeHalaqah: string; onHalaqahChange: (h: string) => void; }
 export interface PeriodSelectorProps { selectedMonth: number | null; selectedYear: number | null; onMonthChange: (m: number | null) => void; onYearChange: (y: number | null) => void; }
 export interface SantriAccordionProps { santriGroup: Record<number, GroupedSantriItem>; data?: unknown; halaqahName: string; }
+
+export interface LaporanRange {
+  start_global: number;
+  end_global: number;
+  total_ayat: number;
+  start_surah: string;
+  start_ayat: number;
+  end_surah: string;
+  end_ayat: number;
+}
+
+export interface LaporanKategoriItem {
+  kategori: KategoriSetoran;
+  total_ayat: number;
+  ranges: LaporanRange[];
+}
+
+export interface LaporanHafalanData {
+  id_santri: number;
+  nama_santri: string;
+  laporan: LaporanKategoriItem[];
+}
