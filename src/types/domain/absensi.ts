@@ -1,4 +1,4 @@
-import { StatusKehadiran } from './enums';
+﻿import { StatusKehadiran } from './enums';
 
 export interface AbsensiSantri {
   id_absensi: number;

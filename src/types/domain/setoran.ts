@@ -1,4 +1,4 @@
-import { KategoriSetoran } from './enums';
+﻿import { KategoriSetoran } from './enums';
 
 export interface Setoran {
   id_setoran: number;

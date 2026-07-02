@@ -1,37 +1,37 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { useParams } from "react-router-dom";
-import { displayService } from "@/features/display/services/displayService";
-import { type DisplayContextType } from "@/types/domain/display";
+import { displayService } from "@/features/display/api/displayService";
+import { type DisplayContextType, type DisplaySantri } from "@/types/domain/display";
 
 const DisplayContext = createContext<DisplayContextType | undefined>(undefined);
 
 export const DisplayProvider = ({ children }: { children: React.ReactNode }) => {
-  const { token } = useParams<{ token: string }>();
-  const [santriList, setSantriList] = useState([]);
+  const { slug } = useParams<{ slug: string }>();
+  const [santriList, setSantriList] = useState<DisplaySantri[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const refreshSantri = async () => {
-    if (!token) {
+  const refreshSantri = useCallback(async () => {
+    if (!slug) {
       setIsLoading(false);
       return;
     }
     try {
       setIsLoading(true);
-      const result = await displayService.getSantriList(token);
+      const result = await displayService.getSantriList(slug);
       
       // Safeguard: Pastikan result benar-benar array sebelum masuk ke state
-      setSantriList(Array.isArray(result) ? result : [] as any);
+      setSantriList(Array.isArray(result) ? result : []);
     } catch (error) {
         console.error("Gagal load santri:", error);
         setSantriList([]);
     } finally {
         setIsLoading(false);
     }
-    };
+  }, [slug]);
 
   useEffect(() => {
     refreshSantri();
-  }, []);
+  }, [refreshSantri]);
 
   return (
     <DisplayContext.Provider value={{ santriList, isLoading, refreshSantri }}>
@@ -40,6 +40,7 @@ export const DisplayProvider = ({ children }: { children: React.ReactNode }) => 
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useDisplay = () => {
   const context = useContext(DisplayContext);
   if (!context) throw new Error("useDisplay must be used within DisplayProvider");

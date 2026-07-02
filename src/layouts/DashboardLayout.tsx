@@ -1,13 +1,15 @@
-import { AppSidebar } from "@/components/layout/AppSidebar";
-import { MobileDock } from "@/components/layout/MobileDock";
-import { ThemeToggle } from "@/components/theme/ThemeToggle";
-import { useAuth } from "@/features/auth/context/AuthContext";
+import { AppSidebar } from "@/components/custom/layout/AppSidebar";
+import { MobileDock } from "@/components/custom/layout/MobileDock";
+import { ThemeToggle } from "@/components/custom/theme/ThemeToggle";
+import { useAuth } from "@/features/auth/components/auth-provider";
 import { Outlet, useNavigate } from "react-router-dom"; 
 import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsMobile } from "@/utils/use-mobile";
 import { isKepalaRole, Role } from "@/types/domain/enums";
+import { useQuery } from "@tanstack/react-query";
+import { sekolahService } from "@/features/sekolah/api/sekolahService";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {  faBookOpen } from "@fortawesome/free-solid-svg-icons";
@@ -18,8 +20,22 @@ export default function DashboardLayout() {
   const isMobile = useIsMobile();
   const navigate = useNavigate(); 
 
+  const { data: sekolah } = useQuery({
+    queryKey: ["profil-sekolah"],
+    queryFn: async () => {
+      const res = await sekolahService.getProfile();
+      return res.data ?? null;
+    },
+    enabled: !!user?.id_sekolah,
+  });
+
   const handleAvatarClick = () => {
-    const targetPath = user?.role === Role.SUPERADMIN ? "/superadmin/settings" : user && isKepalaRole(user.role) ? "/kepala-muhafidz/settings" : "muhafidz/settings";
+    let targetPath = "/muhafidz/settings";
+    if (user?.role === Role.SUPERADMIN) {
+      targetPath = "/superadmin/settings";
+    } else if (user && isKepalaRole(user.role)) {
+      targetPath = "/kepala-muhafidz/settings";
+    }
     navigate(targetPath);
   };
 
@@ -56,9 +72,9 @@ export default function DashboardLayout() {
               className="focus:outline-none ml-1 relative group"
             >
               <Avatar className="h-9 w-9 border-2 border-background ring-1 ring-border group-hover:ring-primary/50 transition-all">
-                <AvatarImage src={user?.avatarUrl} />
+                <AvatarImage src={sekolah?.logo_url || user?.avatarUrl} />
                 <AvatarFallback className={isImpersonating ? "bg-amber-500/10 text-amber-600" : "bg-primary/10 text-primary"}>
-                  {user?.name?.[0]?.toUpperCase()}
+                  {sekolah?.nama_sekolah?.[0]?.toUpperCase() || user?.name?.[0]?.toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               {isImpersonating && (
@@ -71,7 +87,7 @@ export default function DashboardLayout() {
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto overflow-x-hidden w-full bg-slate-50/50">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden w-full bg-slate-50/50 dark:bg-transparent">
           <div className="container mx-auto p-4 md:p-6 lg:p-10 max-w-7xl w-full box-border">
             <Outlet /> 
           </div>

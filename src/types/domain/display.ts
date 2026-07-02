@@ -104,7 +104,7 @@ export interface PublicSantriFeedProps {
 }
 
 export interface DisplayContextType {
-  santriList: any[];
+  santriList: DisplaySantri[];
   isLoading: boolean;
   refreshSantri: () => Promise<void>;
 }

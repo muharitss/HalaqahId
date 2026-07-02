@@ -1,48 +1,66 @@
-import { Routes, Route, Navigate, Outlet } from "react-router-dom";
-import LoginPage from "@/features/auth/pages/LoginPage";
-import RegisterPage from "@/features/auth/pages/RegisterPage";
-import VerifyEmailPage from "@/features/auth/pages/VerifyEmailPage";
-import KepalaMuhafidzRoot from "@/features/kepala-muhafidz/pages/KepalaMuhafidzRoot";
-import MuhafidzPage from "@/features/muhafidz/pages/MuhafidzRoot"; 
-import SuperadminRoot from "@/features/superadmin/pages/SuperadminRoot";
-import { useAuth } from "@/features/auth/context/AuthContext";
-import DashboardLayout from "@/layouts/DashboardLayout";
+/* eslint-disable react-refresh/only-export-components */
+import { createBrowserRouter, Navigate, Outlet } from "react-router-dom";
+import React from "react";
+
+import { useAuth } from "@/features/auth/components/auth-provider";
+import { Role, isKepalaRole } from "@/types/domain/enums";
 import { Spinner } from "@/components/ui/spinner";
-import SettingsPage from "@/pages/settings";
-import LaporanSetoranPage from "@/features/kepala-muhafidz/laporan-setoran"; 
-import InfoSection from "@/pages/settings/InfoSection";
-import TrashSection from "@/pages/settings/TrashSection";
-import ProfilSekolahPage from "@/features/kepala-muhafidz/profil-sekolah";
+import DashboardLayout from "@/layouts/DashboardLayout";
+
+// ── Pages: Auth ────────────────────────────────────────────────────────────
+import { LoginPage, RegisterPage, VerifyEmailPage } from "@/features/auth";
+
+// ── Pages: Public Display ──────────────────────────────────────────────────
 import { DisplayProvider } from "@/features/display/context/DisplayContext";
 import PublicDisplay from "@/features/display/pages/PublicDisplay";
 import SantriDetail from "@/features/display/pages/SantriDetail";
-import { TahfidzAi } from "@/components/features/tahfidz-ai/TahfidzAi";
-import KelolaMuhafizPage from "@/features/kepala-muhafidz/kelola-muhafiz";
-import KelolaHalaqahPage from "@/features/kepala-muhafidz/kelola-halaqah";
-import KelolaSesiPage from "@/features/kepala-muhafidz/kelola-sesi";
-import AbsensiPage from "@/features/muhafidz/absensi";
-import SetoranPage from "@/features/muhafidz/setoran";
-import ProgresSantriPage from "@/features/muhafidz/progres-santri";
-import { Role, isKepalaRole } from "@/types/domain/enums";
 
+// ── Pages: Superadmin ──────────────────────────────────────────────────────
+import { SuperadminDashboard } from "@/features/dashboard";
+import { KelolaSekolahPage } from "@/features/sekolah";
 
+// ── Pages: Kepala Muhafidz ─────────────────────────────────────────────────
+import { KepalaMuhafidzDashboard } from "@/features/dashboard";
+import KelolaMuhafizPage from "@/features/muhafiz";
+import { KelolaHalaqahPage, KelolaSesiPage } from "@/features/halaqah";
+import AbsensiPage from "@/features/absensi";
+import { SetoranPage, LaporanSetoranPage } from "@/features/setoran";
+import { TahfidzAi } from "@/features/tahfidz-ai/components/TahfidzAi";
+import { ProfilSekolahPage } from "@/features/sekolah";
+
+// ── Pages: Settings ────────────────────────────────────────────────────────
+import SettingsPage from "@/features/settings/pages";
+import InfoSection from "@/features/settings/pages/InfoSection";
+import TrashSection from "@/features/settings/pages/TrashSection";
+
+// ── Pages: Santri ──────────────────────────────────────────────────────────
+import { KelolaSantriPage, ProgresSantriPage } from "@/features/santri";
+
+// ── Pages: Muhafiz No Halaqah ──────────────────────────────────────────────
+import { NoHalaqahView } from "@/features/halaqah/pages/NoHalaqah";
+
+// ══════════════════════════════════════════════════════════════════════════════
+// Guard & Helper Components
+// ══════════════════════════════════════════════════════════════════════════════
+
+/** Spinner terpusat untuk saat auth sedang di-resolve */
+const LoadingScreen = () => (
+  <div className="flex items-center justify-center min-h-screen">
+    <Spinner className="w-8 h-8" />
+  </div>
+);
+
+/**
+ * Route guard: hanya bisa diakses oleh user yang SUDAH login.
+ * Jika `allowedRoles` diberikan, juga cek apakah role user diizinkan.
+ */
 const ProtectedRoute = ({ allowedRoles }: { allowedRoles?: Role[] }) => {
   const { user, isLoading } = useAuth();
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Spinner className="w-8 h-8" />
-      </div>
-    );
-  }
+  if (isLoading) return <LoadingScreen />;
 
-  // Jika tidak ada user (atau token habis), tendang ke login
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
+  if (!user) return <Navigate to="/login" replace />;
 
-  // Jika role tidak diizinkan, kembalikan ke dashboard sesuai role
   if (allowedRoles && !allowedRoles.includes(user.role)) {
     if (user.role === Role.SUPERADMIN) return <Navigate to="/superadmin" replace />;
     return isKepalaRole(user.role)
@@ -53,107 +71,147 @@ const ProtectedRoute = ({ allowedRoles }: { allowedRoles?: Role[] }) => {
   return <Outlet />;
 };
 
-export const AppRouter = () => {
+/**
+ * Route guard: hanya untuk tamu (belum login).
+ * Jika sudah login, redirect ke halaman utama sesuai role.
+ */
+const GuestRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, isLoading } = useAuth();
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Spinner className="w-8 h-8" />
-      </div>
-    );
+  if (isLoading) return <LoadingScreen />;
+  if (user) return <Navigate to="/" replace />;
+
+  return <>{children}</>;
+};
+
+/** Redirect otomatis berdasarkan role setelah login */
+const RoleRedirect = () => {
+  const { user } = useAuth();
+
+  if (user?.role === Role.SUPERADMIN) return <Navigate to="/superadmin" replace />;
+  if (user && isKepalaRole(user.role)) return <Navigate to="/kepala-muhafidz" replace />;
+  return <Navigate to="/muhafidz" replace />;
+};
+
+/**
+ * Guard khusus Muhafiz: jika belum punya halaqah, tampilkan NoHalaqahView.
+ * Settings tetap bisa diakses (route settings ada di luar guard ini).
+ */
+const MuhafizGuard = () => {
+  const { user } = useAuth();
+
+  if (user?.role === Role.MUHAFIZ && !user?.has_halaqah) {
+    return <NoHalaqahView />;
   }
 
-  return (
-    <Routes>
-      {/* 🔓 Public Route: Login */}
-      <Route 
-        path="/display/:token" 
-        element={
-          <DisplayProvider>
-            <PublicDisplay />
-          </DisplayProvider>
-        } 
-      />
-      <Route 
-        path="/display/:token/santri/:id" 
-        element={
-          <DisplayProvider>
-            <SantriDetail /> 
-          </DisplayProvider>
-        } 
-      />
-      <Route 
-        path="/login" 
-        element={user ? <Navigate to="/" replace /> : <LoginPage />} 
-      />
-      <Route 
-        path="/register" 
-        element={user ? <Navigate to="/" replace /> : <RegisterPage />} 
-      />
-      <Route 
-        path="/verify-email" 
-        element={<VerifyEmailPage />} 
-      />
-
-      {/* 🔒 Protected Routes: Membutuhkan Login */}
-      <Route element={<ProtectedRoute />}>
-        <Route element={<DashboardLayout />}>
-          
-          {/* Redirect berdasarkan role */}
-          <Route
-            index
-            element={
-              user?.role === Role.SUPERADMIN ? (
-                <Navigate to="/superadmin" replace />
-              ) : user && isKepalaRole(user.role) ? (
-                <Navigate to="/kepala-muhafidz" replace />
-              ) : (
-                <Navigate to="/muhafidz" replace />
-              )
-            }
-          />
-
-          {/* Rute Khusus Superadmin */}
-          <Route element={<ProtectedRoute allowedRoles={[Role.SUPERADMIN]} />}>
-            <Route path="/superadmin/*" element={<SuperadminRoot />} />
-          </Route>
-
-          {/* Rute Khusus Kepala (Superadmin, Admin, Koordinator Tahfiz) */}
-          <Route element={<ProtectedRoute allowedRoles={[Role.SUPERADMIN, Role.ADMIN, Role.KOORDINATOR_TAHFIZ]} />}>
-            <Route path="/kepala-muhafidz" element={<KepalaMuhafidzRoot />} />
-            <Route path="/kepala-muhafidz/muhafiz" element={<KelolaMuhafizPage />} />
-            <Route path="/kepala-muhafidz/halaqah" element={<KelolaHalaqahPage />} />
-            <Route path="/kepala-muhafidz/sesi" element={<KelolaSesiPage />} />
-            <Route path="/kepala-muhafidz/settings" element={<SettingsPage/>} />
-            <Route path="/kepala-muhafidz/settings/info" element={<InfoSection/>} />
-            <Route path="/kepala-muhafidz/settings/trash" element={<TrashSection/>} />
-            <Route path="/kepala-muhafidz/profil-sekolah" element={<ProfilSekolahPage />} />
-
-
-            {/* Tambahkan route superadmin lainnya di sini */}
-            <Route path="/kepala-muhafidz/laporan" element={<LaporanSetoranPage />} />
-            <Route path="/kepala-muhafidz/absensi" element={<AbsensiPage />} />
-            <Route path="/kepala-muhafidz/setoran" element={<SetoranPage />} />
-            <Route path="/kepala-muhafidz/tahfidzai" element={<TahfidzAi />} />
-            <Route path="/kepala-muhafidz/kontrol-halaqah/:halaqahId">
-              <Route path="absensi" element={<AbsensiPage />} />
-              <Route path="setoran" element={<SetoranPage />} />
-              <Route path="progres" element={<ProgresSantriPage />} />
-            </Route>
-          </Route>
-
-          {/* Rute Khusus Muhafidz */}
-          <Route element={<ProtectedRoute allowedRoles={[Role.MUHAFIZ]} />}>
-            <Route path="/muhafidz/tahfidzai" element={<TahfidzAi />} />
-            <Route path="/muhafidz/*" element={<MuhafidzPage />} />
-          </Route>
-
-        </Route>
-      </Route>
-
-      {/* 404 Fallback */}
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
-  );
+  return <Outlet />;
 };
+
+// ══════════════════════════════════════════════════════════════════════════════
+// Router Configuration — Flat, single source of truth
+// ══════════════════════════════════════════════════════════════════════════════
+
+export const router = createBrowserRouter([
+  // ── Public: Display Portal (tidak butuh login) ───────────────────────────
+  {
+    path: "/display/:slug",
+    element: (
+      <DisplayProvider>
+        <PublicDisplay />
+      </DisplayProvider>
+    ),
+  },
+  {
+    path: "/display/:slug/santri/:id",
+    element: (
+      <DisplayProvider>
+        <SantriDetail />
+      </DisplayProvider>
+    ),
+  },
+
+  // ── Public: Auth Pages ────────────────────────────────────────────────────
+  {
+    path: "/login",
+    element: <GuestRoute><LoginPage /></GuestRoute>,
+  },
+  {
+    path: "/register",
+    element: <GuestRoute><RegisterPage /></GuestRoute>,
+  },
+  {
+    path: "/verify-email",
+    element: <VerifyEmailPage />,
+  },
+
+  // ── Protected: Semua halaman yang butuh login ─────────────────────────────
+  {
+    element: <ProtectedRoute />,
+    children: [
+      {
+        element: <DashboardLayout />,
+        children: [
+          // Index: redirect berdasarkan role
+          { index: true, element: <RoleRedirect /> },
+
+          // ── SUPERADMIN ─────────────────────────────────────────────────────
+          {
+            element: <ProtectedRoute allowedRoles={[Role.SUPERADMIN]} />,
+            children: [
+              { path: "/superadmin", element: <SuperadminDashboard /> },
+              { path: "/superadmin/sekolah", element: <KelolaSekolahPage /> },
+              { path: "/superadmin/settings", element: <SettingsPage /> },
+            ],
+          },
+
+          // ── KEPALA (SUPERADMIN | ADMIN | KOORDINATOR_TAHFIZ) ──────────────
+          {
+            element: <ProtectedRoute allowedRoles={[Role.SUPERADMIN, Role.ADMIN, Role.KOORDINATOR_TAHFIZ]} />,
+            children: [
+              { path: "/kepala-muhafidz", element: <KepalaMuhafidzDashboard /> },
+              { path: "/kepala-muhafidz/muhafiz", element: <KelolaMuhafizPage /> },
+              { path: "/kepala-muhafidz/halaqah", element: <KelolaHalaqahPage /> },
+              { path: "/kepala-muhafidz/sesi", element: <KelolaSesiPage /> },
+              { path: "/kepala-muhafidz/absensi", element: <AbsensiPage /> },
+              { path: "/kepala-muhafidz/setoran", element: <SetoranPage /> },
+              { path: "/kepala-muhafidz/laporan", element: <LaporanSetoranPage /> },
+              { path: "/kepala-muhafidz/tahfidzai", element: <TahfidzAi /> },
+              { path: "/kepala-muhafidz/profil-sekolah", element: <ProfilSekolahPage /> },
+              { path: "/kepala-muhafidz/settings", element: <SettingsPage /> },
+              { path: "/kepala-muhafidz/settings/info", element: <InfoSection /> },
+              { path: "/kepala-muhafidz/settings/trash", element: <TrashSection /> },
+              // Kontrol per-halaqah
+              { path: "/kepala-muhafidz/halaqah/:halaqahId/absensi", element: <AbsensiPage /> },
+              { path: "/kepala-muhafidz/halaqah/:halaqahId/setoran", element: <SetoranPage /> },
+              { path: "/kepala-muhafidz/halaqah/:halaqahId/progres", element: <ProgresSantriPage /> },
+            ],
+          },
+
+          // ── MUHAFIZ ────────────────────────────────────────────────────────
+          {
+            element: <ProtectedRoute allowedRoles={[Role.MUHAFIZ]} />,
+            children: [
+              // Route yang butuh halaqah aktif — guard akan tampilkan NoHalaqahView jika belum punya
+              {
+                element: <MuhafizGuard />,
+                children: [
+                  { path: "/muhafidz", element: <AbsensiPage /> },
+                  { path: "/muhafidz/setoran", element: <SetoranPage /> },
+                  { path: "/muhafidz/santri", element: <KelolaSantriPage /> },
+                  { path: "/muhafidz/progres", element: <ProgresSantriPage /> },
+                  { path: "/muhafidz/tahfidzai", element: <TahfidzAi /> },
+                ],
+              },
+              // Settings selalu bisa diakses meski belum punya halaqah
+              { path: "/muhafidz/settings", element: <SettingsPage /> },
+              { path: "/muhafidz/settings/info", element: <InfoSection /> },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+
+  // ── 404 Fallback ──────────────────────────────────────────────────────────
+  { path: "*", element: <Navigate to="/" replace /> },
+]);

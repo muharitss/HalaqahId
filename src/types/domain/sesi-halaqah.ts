@@ -5,10 +5,11 @@ export interface SesiHalaqah {
   jam_selesai: string;
   hari?: number[];
   id_sekolah: number;
-  id_halaqah?: number | null;
-  halaqah?: {
+  id_halaqahs?: number[];
+  halaqahs?: {
+    id_halaqah: number;
     name_halaqah: string;
-  };
+  }[];
   created_at: string;
   updated_at: string;
   deleted_at?: string | null;
@@ -20,7 +21,7 @@ export interface CreateSesiHalaqahRequest {
   jam_selesai: string;
   hari?: number[];
   id_sekolah?: number;
-  id_halaqah?: number;
+  id_halaqahs?: number[];
 }
 
 export interface UpdateSesiHalaqahRequest {
@@ -28,4 +29,5 @@ export interface UpdateSesiHalaqahRequest {
   jam_mulai?: string;
   jam_selesai?: string;
   hari?: number[];
+  id_halaqahs?: number[];
 }

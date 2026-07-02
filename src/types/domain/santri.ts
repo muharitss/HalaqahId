@@ -1,4 +1,4 @@
-import { KategoriTarget } from './enums';
+﻿import { KategoriTarget } from './enums';
 
 export interface Santri {
   id_santri: number;

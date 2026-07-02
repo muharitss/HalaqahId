@@ -1,4 +1,4 @@
-export interface AxiosErrorResponse {
+﻿export interface AxiosErrorResponse {
   response?: {
     data?: {
       message?: string;
