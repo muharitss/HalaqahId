@@ -52,6 +52,9 @@ export function useLaporanPdf() {
               new Date(b.tanggal_setoran).getTime() - new Date(a.tanggal_setoran).getTime()
           );
           sorted.forEach((s: SetoranItem) => {
+            const kategoriName = typeof s.kategori === 'object' && s.kategori
+              ? (s.kategori as any).nama_kategori
+              : s.kategori || "HAFALAN";
             rows.push({
               no: counter++,
               tanggal: s.tanggal_setoran,
@@ -60,7 +63,7 @@ export function useLaporanPdf() {
               juz: s.juz,
               surat: s.surat,
               ayat: s.ayat,
-              kategori: s.kategori,
+              kategori: kategoriName,
               taqwim: s.taqwim ?? 0,
               keterangan: s.keterangan ?? undefined,
             });

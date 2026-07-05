@@ -109,7 +109,10 @@ export function LaporanStatsCard({ stats }: LaporanStatsCardProps) {
                   </p>
                   {card.isBadge && card.value !== "—" ? (
                     <Badge
-                      className={`text-sm font-bold px-2 py-0.5 border ${KATEGORI_COLOR[card.value] ?? "bg-muted text-muted-foreground"}`}
+                      className={`text-sm font-bold px-2 py-0.5 border ${
+                        KATEGORI_COLOR[card.value.toUpperCase()] ?? 
+                        "bg-slate-500/10 text-slate-700 border-slate-200 dark:text-slate-400"
+                      }`}
                       variant="outline"
                     >
                       {card.value}

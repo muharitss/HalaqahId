@@ -1,4 +1,4 @@
-﻿import {
+import {
   Table,
   TableBody,
   TableCell,
@@ -43,7 +43,14 @@ export function SetoranTable({ history, loading }: SetoranTableProps) {
                 <TableCell className="font-medium">
                   <div>
                     <div className="text-sm">{item.santri?.nama_santri}</div>
-                    <div className="text-[10px] uppercase text-muted-foreground">{item.kategori}</div>
+                    {(() => {
+                      const kategoriName = typeof item.kategori === 'object' && item.kategori
+                        ? (item.kategori as any).nama_kategori
+                        : item.kategori || "HAFALAN";
+                      return (
+                        <div className="text-[10px] uppercase text-muted-foreground">{kategoriName}</div>
+                      );
+                    })()}
                   </div>
                 </TableCell>
                 <TableCell>

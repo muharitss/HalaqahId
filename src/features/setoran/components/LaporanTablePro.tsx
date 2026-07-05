@@ -72,6 +72,9 @@ export function LaporanTablePro({ groupedData, activeHalaqah, filterComponent, i
       if (activeHalaqah !== "all" && activeHalaqah !== "" && halaqahName !== activeHalaqah) return;
       Object.values(group.santriGroup).forEach((santri: GroupedSantriItem) => {
         santri.setoran.forEach((s: SetoranItem) => {
+          const kategoriName = typeof s.kategori === 'object' && s.kategori
+            ? (s.kategori as any).nama_kategori
+            : s.kategori || "HAFALAN";
           rows.push({
             id_setoran: s.id_setoran,
             tanggal_setoran: s.tanggal_setoran,
@@ -80,7 +83,7 @@ export function LaporanTablePro({ groupedData, activeHalaqah, filterComponent, i
             juz: s.juz,
             surat: s.surat,
             ayat: s.ayat,
-            kategori: s.kategori,
+            kategori: kategoriName,
             taqwim: s.taqwim ?? 0,
             keterangan: s.keterangan || undefined,
           });
@@ -288,7 +291,10 @@ export function LaporanTablePro({ groupedData, activeHalaqah, filterComponent, i
                     <TableCell className="py-3">
                       <Badge
                         variant="outline"
-                        className={`text-[10px] font-semibold border ${KATEGORI_BADGE[row.kategori] ?? "bg-muted"}`}
+                        className={`text-[10px] font-semibold border ${
+                          KATEGORI_BADGE[row.kategori.toUpperCase()] ?? 
+                          "bg-slate-500/10 text-slate-700 border-slate-200 dark:text-slate-400"
+                        }`}
                       >
                         {row.kategori}
                       </Badge>

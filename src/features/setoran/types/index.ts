@@ -6,20 +6,76 @@ export type KategoriSetoran =
   | "INTENS"
   | "BACAAN";
 
+// ─────────────────────────────────────────────
+// UmmahAPI — Mushaf Page Types
+// ─────────────────────────────────────────────
+
+export interface MushafWord {
+  position: number;
+  text_uthmani: string;
+  text_uthmani_tajweed: string;
+  line_number: number;
+  char_type_name: "word" | "end" | "hizb" | "sajdah";
+  verse_key: string;
+  surah_number: number;
+  ayah_number: number;
+}
+
+export interface MushafPage {
+  page: number;
+  total_pages: number;
+  lines_per_page: number;
+  total_words: number;
+  words: MushafWord[];
+}
+
+export interface MushafPageResponse {
+  success: boolean;
+  service: string;
+  data: MushafPage;
+  timestamp: string;
+}
+
+/** Seleksi posisi ayat dari Mushaf interaktif */
+export interface MushafSelection {
+  startSurahNumber: number;
+  startSurahName: string;
+  startAyah: number;
+  startPage: number;
+  startLine: number;
+  endSurahNumber: number;
+  endSurahName: string;
+  endAyah: number;
+  endPage: number;
+  endLine: number;
+  totalBaris: number;
+}
+
+// ─────────────────────────────────────────────
+// Setoran Payload
+// ─────────────────────────────────────────────
+
 export interface SetoranPayload {
   id_santri: number;
   id_sesi?: number;
   juz: number;
   surat: string;
   ayat: string;
-  kategori: KategoriSetoran;
+  id_kategori: number;
   taqwim?: number;
   keterangan?: string;
   start_surat_id: number;
   start_ayat: number;
   end_surat_id: number;
   end_ayat: number;
+  // Mushaf page & line tracking (opsional, dari UmmahAPI)
+  start_page?: number;
+  start_line?: number;
+  end_page?: number;
+  end_line?: number;
+  total_baris?: number;
 }
+
 
 export interface SetoranRecord {
   id_setoran: number;
@@ -29,27 +85,38 @@ export interface SetoranRecord {
   juz: number;
   surat: string;
   ayat: string;
-  kategori: KategoriSetoran;
+  id_kategori: number;
+  kategori?: {
+    id_kategori: number;
+    nama_kategori: string;
+    perlu_validasi_urutan?: boolean;
+  };
   taqwim: number;
   keterangan: string;
   nilai: number;
   santri?: {
     nama_santri: string;
+    id_sekolah?: number;
     halaqah?: {
       name_halaqah: string;
     };
   };
   is_valid_sequence?: boolean;
+  start_page?: number | null;
+  start_line?: number | null;
+  end_page?: number | null;
+  end_line?: number | null;
+  total_baris?: number | null;
 }
 
-export interface SetoranFormValues {
+export interface SetoranFormFields {
   id_santri: number;
   id_sesi?: number;
   juz: number;
   surat: string;
   ayat_mulai: number;
   ayat_selesai: number;
-  kategori: KategoriSetoran;
+  id_kategori: number;
   taqwim?: number;
   keterangan?: string;
 }
@@ -63,7 +130,8 @@ export interface SetoranItem {
   juz: number;
   surat: string;
   ayat: string;
-  kategori: KategoriSetoran;
+  id_kategori: number;
+  kategori: any;
   taqwim?: number | null;
   keterangan?: string | null;
   created_at?: string;
@@ -78,6 +146,11 @@ export interface SetoranItem {
     } | null;
   } | null;
   is_valid_sequence?: boolean;
+  start_page?: number | null;
+  start_line?: number | null;
+  end_page?: number | null;
+  end_line?: number | null;
+  total_baris?: number | null;
 }
 
 export interface GroupedSantriItem {

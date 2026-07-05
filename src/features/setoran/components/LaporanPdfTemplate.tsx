@@ -296,7 +296,7 @@ const styles = StyleSheet.create({
 });
 
 function KategoriPill({ kategori }: { kategori: string }) {
-  const color = KATEGORI_COLOR[kategori] ?? "#64748b";
+  const color = KATEGORI_COLOR[kategori.toUpperCase()] ?? "#64748b";
   return (
     <View style={[styles.kategoriBadge, { backgroundColor: color + "20" }]}>
       <Text style={[styles.kategoriBadgeText, { color }]}>{kategori}</Text>

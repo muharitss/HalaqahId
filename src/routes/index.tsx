@@ -32,6 +32,7 @@ import { ProfilSekolahPage } from "@/features/sekolah";
 import SettingsPage from "@/features/settings/pages";
 import InfoSection from "@/features/settings/pages/InfoSection";
 import TrashSection from "@/features/settings/pages/TrashSection";
+import KategoriSettingsPage from "@/features/settings/pages/KategoriSettingsPage";
 
 // ── Pages: Santri ──────────────────────────────────────────────────────────
 import { KelolaSantriPage, ProgresSantriPage } from "@/features/santri";
@@ -180,6 +181,7 @@ export const router = createBrowserRouter([
               { path: "/kepala-muhafidz/settings", element: <SettingsPage /> },
               { path: "/kepala-muhafidz/settings/info", element: <InfoSection /> },
               { path: "/kepala-muhafidz/settings/trash", element: <TrashSection /> },
+              { path: "/kepala-muhafidz/settings/kategori", element: <KategoriSettingsPage /> },
               // Kontrol per-halaqah
               { path: "/kepala-muhafidz/halaqah/:halaqahId/absensi", element: <AbsensiPage /> },
               { path: "/kepala-muhafidz/halaqah/:halaqahId/setoran", element: <SetoranPage /> },

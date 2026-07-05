@@ -32,5 +32,53 @@ export const sekolahService = {
     } catch (error: unknown) {
       throw new Error(getErrorMessage(error, "Gagal memperbarui profil sekolah"));
     }
+  },
+
+  // ── Kategori Setoran Sekolah API ──
+  getKategori: async (): Promise<ApiResponse<any[]>> => {
+    try {
+      const res = await axiosClient.get<ApiResponse<any[]>>("/sekolah/kategori");
+      return res.data;
+    } catch (error: unknown) {
+      throw new Error(getErrorMessage(error, "Gagal mengambil kategori setoran"));
+    }
+  },
+
+  createKategori: async (data: {
+    nama_kategori: string;
+    deskripsi?: string;
+    perlu_validasi_urutan?: boolean;
+  }): Promise<ApiResponse<any>> => {
+    try {
+      const res = await axiosClient.post<ApiResponse<any>>("/sekolah/kategori", data);
+      return res.data;
+    } catch (error: unknown) {
+      throw new Error(getErrorMessage(error, "Gagal menambahkan kategori setoran"));
+    }
+  },
+
+  updateKategori: async (
+    id: number,
+    data: {
+      nama_kategori?: string;
+      deskripsi?: string | null;
+      perlu_validasi_urutan?: boolean;
+    }
+  ): Promise<ApiResponse<any>> => {
+    try {
+      const res = await axiosClient.patch<ApiResponse<any>>(`/sekolah/kategori/${id}`, data);
+      return res.data;
+    } catch (error: unknown) {
+      throw new Error(getErrorMessage(error, "Gagal memperbarui kategori setoran"));
+    }
+  },
+
+  deleteKategori: async (id: number): Promise<ApiResponse<null>> => {
+    try {
+      const res = await axiosClient.delete<ApiResponse<null>>(`/sekolah/kategori/${id}`);
+      return res.data;
+    } catch (error: unknown) {
+      throw new Error(getErrorMessage(error, "Gagal menghapus kategori setoran"));
+    }
   }
 };

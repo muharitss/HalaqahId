@@ -21,7 +21,7 @@ export function InputSetoranPage({ hideHeader = false }: { hideHeader?: boolean 
       {!hideHeader && (
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b pb-8">
           <div className="space-y-1">
-            <Setoran/>
+            <Setoran />
           </div>
         </div>
       )}
@@ -30,13 +30,17 @@ export function InputSetoranPage({ hideHeader = false }: { hideHeader?: boolean 
         <Card>
           <CardHeader>
             <CardTitle>Form Input</CardTitle>
-            <CardDescription>Masukkan detail hafalan santri terbaru.</CardDescription>
+            <CardDescription>
+              Masukkan detail hafalan santri terbaru. Gunakan tombol{" "}
+              <span className="font-medium text-foreground">Pilih dari Mushaf</span>{" "}
+              untuk memilih ayat langsung dari tampilan mushaf interaktif.
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <SetoranForm 
-              santriList={santriList} 
+            <SetoranForm
+              santriList={santriList}
               sesiList={sesiList}
-              onSubmit={addSetoran} 
+              onSubmit={addSetoran}
               onValidationChange={setIsFormValid}
             />
           </CardContent>
@@ -46,9 +50,13 @@ export function InputSetoranPage({ hideHeader = false }: { hideHeader?: boolean 
       <div className="flex flex-col md:flex-row items-center justify-between gap-4 border-t pt-6">
         <div className="flex items-start gap-3 text-muted-foreground italic text-xs max-w-md">
           <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
-          <p>Daftar santri yang muncul hanya yang terdaftar di halaqah Anda. Pastikan data juz dan surah sudah benar sebelum menyimpan.</p>
+          <p>
+            Daftar santri yang muncul hanya yang terdaftar di halaqah Anda.
+            Pastikan data juz dan surah sudah benar sebelum menyimpan.
+            Data halaman dan baris akan tercatat otomatis jika menggunakan fitur Mushaf.
+          </p>
         </div>
-        <Button 
+        <Button
           type="submit"
           form="setoran-form"
           disabled={loading || santriList.length === 0 || !isFormValid}

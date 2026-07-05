@@ -8,7 +8,7 @@ export const setoranSchema = z
     // Kita gunakan field helper untuk UI
     ayat_mulai: z.coerce.number().min(1),
     ayat_selesai: z.coerce.number().min(1),
-    kategori: z.enum(["HAFALAN", "MURAJAAH", "ZIYADAH", "INTENS", "BACAAN"]),
+    id_kategori: z.coerce.number().min(1, "Kategori wajib dipilih"),
     taqwim: z.coerce.number().optional(),
     keterangan: z.string().optional(),
   })
