@@ -242,36 +242,21 @@ export function MuhafizDashboard() {
                 Belum ada data progres santri
               </div>
             ) : (
-              <div className="divide-y max-h-[400px] overflow-y-auto scrollbar-thin">
+              <div className="divide-y max-h-[300px] sm:max-h-[400px] overflow-y-auto scrollbar-thin">
                 {progresData.map((item) => (
                   <div
                     key={item.id_santri}
-                    className="p-4 hover:bg-muted/30 transition-colors duration-200 flex flex-col gap-2"
+                    className="px-4 py-2.5 hover:bg-muted/30 transition-colors duration-200 flex items-center justify-between"
                   >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-semibold text-sm">{item.nama_santri}</p>
-                        <p className="text-xs text-muted-foreground">
-                          Target: {item.target?.nama_target || "Bebas"}
-                        </p>
-                      </div>
-                      <Badge className={`border text-[10px] font-semibold tracking-wide uppercase ${getStatusColor(item.progres?.status)}`}>
-                        {item.progres?.status?.replace("_", " ")}
-                      </Badge>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold text-sm truncate">{item.nama_santri}</p>
+                      <p className="text-[10px] text-muted-foreground truncate mt-0">
+                        Target: {item.target?.nama_target || "Bebas"} • {item.progres?.capaian} {item.progres?.satuan} ({item.progres?.persentase || 0}%)
+                      </p>
                     </div>
-
-                    <div className="space-y-1">
-                      <div className="flex justify-between text-[10px] text-muted-foreground">
-                        <span>Capaian: {item.progres?.capaian} {item.progres?.satuan}</span>
-                        <span className="font-semibold text-foreground">
-                          {item.progres?.persentase}%
-                        </span>
-                      </div>
-                      <Progress
-                        value={Math.min(item.progres?.persentase || 0, 100)}
-                        className="h-1.5"
-                      />
-                    </div>
+                    <Badge className={`border text-[9px] font-semibold tracking-wide uppercase shrink-0 ${getStatusColor(item.progres?.status)}`}>
+                      {item.progres?.status?.replace("_", " ")}
+                    </Badge>
                   </div>
                 ))}
               </div>
@@ -308,7 +293,7 @@ export function MuhafizDashboard() {
                 Belum ada setoran masuk pekan ini
               </div>
             ) : (
-              <div className="divide-y max-h-[400px] overflow-y-auto scrollbar-thin">
+              <div className="divide-y max-h-[250px] sm:max-h-[400px] overflow-y-auto scrollbar-thin">
                 {recentSetorans.map((setoran: any) => (
                   <div
                     key={setoran.id_setoran}

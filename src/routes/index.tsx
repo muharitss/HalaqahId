@@ -26,6 +26,7 @@ import KelolaMuhafizPage from "@/features/muhafiz";
 import { KelolaHalaqahPage, KelolaSesiPage } from "@/features/halaqah";
 import AbsensiPage from "@/features/absensi";
 import { SetoranPage, LaporanSetoranPage } from "@/features/setoran";
+import { MushafPage } from "@/features/setoran/pages/mushaf-page";
 import { TahfidzAi } from "@/features/tahfidz-ai/components/TahfidzAi";
 import { ProfilSekolahPage } from "@/features/sekolah";
 
@@ -180,6 +181,7 @@ export const router = createBrowserRouter([
               { path: "/kepala-muhafidz/sesi", element: <KelolaSesiPage /> },
               { path: "/kepala-muhafidz/absensi", element: <AbsensiPage /> },
               { path: "/kepala-muhafidz/setoran", element: <SetoranPage /> },
+              { path: "/kepala-muhafidz/setoran/mushaf", element: <MushafPage /> },
               { path: "/kepala-muhafidz/laporan", element: <LaporanSetoranPage /> },
               { path: "/kepala-muhafidz/tahfidzai", element: <TahfidzAi /> },
               { path: "/kepala-muhafidz/profil-sekolah", element: <ProfilSekolahPage /> },
@@ -206,6 +208,7 @@ export const router = createBrowserRouter([
                   { path: "/muhafidz", element: <MuhafizDashboard /> },
                   { path: "/muhafidz/absensi", element: <AbsensiPage /> },
                   { path: "/muhafidz/setoran", element: <SetoranPage /> },
+                  { path: "/muhafidz/setoran/mushaf", element: <MushafPage /> },
                   { path: "/muhafidz/santri", element: <KelolaSantriPage /> },
                   { path: "/muhafidz/progres", element: <ProgresSantriPage /> },
                   { path: "/muhafidz/tahfidzai", element: <TahfidzAi /> },

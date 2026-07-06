@@ -173,8 +173,13 @@ export const useMuhafizDashboard = () => {
     // Adapt setoranHistory structure to match SetoranData needed by dashboardService chart methods
     const chartDataFormat = setoranHistory.map((s) => ({
       id_setoran: s.id_setoran,
+      id_santri: s.id_santri,
       tanggal_setoran: s.tanggal_setoran,
       kategori: s.kategori?.nama_kategori || s.kategori || "",
+      santri: {
+        id_santri: s.id_santri,
+        nama_santri: s.santriName,
+      },
     })) as any;
 
     const weeklyChartData = dashboardService.getWeeklyChartData(chartDataFormat);
