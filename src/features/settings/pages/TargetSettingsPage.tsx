@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { useForm, type Resolver } from "react-hook-form";
+import { useForm, useWatch, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Plus, Pencil, Trash2, Target, ChevronLeft, Loader2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Target, ChevronLeft, Loader2, CalendarDays } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
@@ -50,10 +50,20 @@ import {
 } from "../hooks/useTarget";
 import { targetSchema, type TargetFormValues } from "@/utils/zodSchema";
 import type { TargetSekolah } from "@/types/domain/target";
-import { TIPE_TARGET_LABELS, SATUAN_TARGET_LABELS } from "@/types/domain/target";
+import {
+  TIPE_TARGET_LABELS,
+  SATUAN_TARGET_LABELS,
+  HARI_LABELS_SHORT,
+  parseHariAktif,
+  formatHariAktif,
+} from "@/types/domain/target";
+
+// ---------------------------------------------------------------------------
+// Konstanta
+// ---------------------------------------------------------------------------
 
 const TIPE_OPTIONS = [
-  { value: "HARIAN", label: "Harian", desc: "Dievaluasi setiap hari" },
+  { value: "HARIAN", label: "Harian", desc: "Target per sesi setoran, dengan pilihan hari aktif" },
   { value: "MINGGUAN", label: "Mingguan", desc: "Dievaluasi per minggu (Senin–Minggu)" },
   { value: "BULANAN", label: "Bulanan", desc: "Dievaluasi per bulan" },
   { value: "SEMESTER", label: "Semester", desc: "Dievaluasi per semester (Jan–Jun / Jul–Des)" },
@@ -75,6 +85,123 @@ const STATUS_COLORS: Record<string, string> = {
   GLOBAL: "bg-slate-100 text-slate-700 dark:bg-slate-800",
 };
 
+/**
+ * Daftar hari yang ditampilkan di toggle chip.
+ * Urutan: Senin–Minggu (lebih intuitif untuk konteks sekolah Indonesia).
+ * Kita urutkan dari Senin (1) ke Minggu (0).
+ */
+const HARI_CHIPS = [
+  { day: 1, label: "Sen" },
+  { day: 2, label: "Sel" },
+  { day: 3, label: "Rab" },
+  { day: 4, label: "Kam" },
+  { day: 5, label: "Jum" },
+  { day: 6, label: "Sab" },
+  { day: 0, label: "Min" },
+] as const;
+
+/** Preset hari yang umum digunakan di sekolah */
+const PRESET_HARI = [
+  { label: "Senin–Jumat", days: [1, 2, 3, 4, 5], desc: "5 hari/pekan" },
+  { label: "Senin–Sabtu", days: [1, 2, 3, 4, 5, 6], desc: "6 hari/pekan" },
+  { label: "Senin–Kamis", days: [1, 2, 3, 4], desc: "4 hari/pekan" },
+] as const;
+
+// ---------------------------------------------------------------------------
+// Sub-komponen: HariAktifPicker
+// ---------------------------------------------------------------------------
+
+interface HariAktifPickerProps {
+  value: number[] | null | undefined;
+  onChange: (val: number[]) => void;
+}
+
+function HariAktifPicker({ value, onChange }: HariAktifPickerProps) {
+  const selected = value ?? [];
+
+  const toggle = (day: number) => {
+    if (selected.includes(day)) {
+      onChange(selected.filter((d) => d !== day));
+    } else {
+      onChange([...selected, day].sort());
+    }
+  };
+
+  const applyPreset = (days: readonly number[]) => {
+    onChange([...days].sort());
+  };
+
+  const jumlahHari = selected.length;
+
+  return (
+    <div className="space-y-3 rounded-xl border border-blue-200 bg-blue-50/50 dark:border-blue-800/40 dark:bg-blue-950/20 p-3">
+      {/* Label section */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2 text-sm font-medium text-blue-800 dark:text-blue-300">
+          <CalendarDays className="h-4 w-4" />
+          <span>Hari Setoran Aktif</span>
+        </div>
+        {jumlahHari > 0 && (
+          <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">
+            {jumlahHari} hari/pekan dipilih
+          </span>
+        )}
+      </div>
+
+      {/* Toggle chip hari */}
+      <div className="flex flex-wrap gap-1.5">
+        {HARI_CHIPS.map(({ day, label }) => {
+          const isActive = selected.includes(day);
+          return (
+            <button
+              key={day}
+              type="button"
+              onClick={() => toggle(day)}
+              className={[
+                "px-3 py-1.5 rounded-lg text-sm font-semibold border transition-all duration-150 select-none",
+                isActive
+                  ? "bg-blue-600 border-blue-600 text-white shadow-sm"
+                  : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-blue-400 hover:text-blue-600",
+              ].join(" ")}
+            >
+              {label}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Preset cepat */}
+      <div className="space-y-1">
+        <p className="text-xs text-muted-foreground">Preset cepat:</p>
+        <div className="flex flex-wrap gap-1.5">
+          {PRESET_HARI.map((preset) => (
+            <button
+              key={preset.label}
+              type="button"
+              onClick={() => applyPreset(preset.days)}
+              className="px-2.5 py-1 rounded-md text-xs border border-dashed border-blue-300 dark:border-blue-700 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
+            >
+              {preset.label}
+              <span className="ml-1 text-muted-foreground">({preset.desc})</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Info: jika tidak ada hari dipilih */}
+      {jumlahHari === 0 && (
+        <p className="text-xs text-amber-600 dark:text-amber-400">
+          ⚠️ Pilih minimal 1 hari, atau biarkan kosong untuk "semua hari aktif"
+        </p>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Komponen utama
+// ---------------------------------------------------------------------------
+
 export default function TargetSettingsPage() {
   const navigate = useNavigate();
   const { data: targets = [], isLoading } = useTargetList();
@@ -94,8 +221,13 @@ export default function TargetSettingsPage() {
       nilai_target: 1,
       satuan: "HALAMAN",
       deskripsi: "",
+      hari_aktif: [1, 2, 3, 4, 5], // default: Senin–Jumat
     },
   });
+
+  // Watch tipe agar section HariAktifPicker bisa show/hide secara reaktif
+  const watchedTipe = useWatch({ control: form.control, name: "tipe" });
+  const isHarian = watchedTipe === "HARIAN";
 
   const openCreate = () => {
     setEditingTarget(null);
@@ -105,18 +237,22 @@ export default function TargetSettingsPage() {
       nilai_target: 1,
       satuan: "HALAMAN",
       deskripsi: "",
+      hari_aktif: [1, 2, 3, 4, 5],
     });
     setIsFormOpen(true);
   };
 
   const openEdit = (target: TargetSekolah) => {
     setEditingTarget(target);
+    const hariParsed = parseHariAktif(target.hari_aktif);
     form.reset({
       nama_target: target.nama_target,
       tipe: target.tipe,
       nilai_target: target.nilai_target,
       satuan: target.satuan,
       deskripsi: target.deskripsi ?? "",
+      // Jika tidak ada hari_aktif (target lama), default ke Senin-Jumat agar user tahu
+      hari_aktif: hariParsed ?? [1, 2, 3, 4, 5],
     });
     setIsFormOpen(true);
   };
@@ -125,6 +261,8 @@ export default function TargetSettingsPage() {
     const payload = {
       ...values,
       deskripsi: values.deskripsi || null,
+      // Hanya kirim hari_aktif jika tipe HARIAN
+      hari_aktif: values.tipe === "HARIAN" ? (values.hari_aktif ?? null) : null,
     };
 
     if (editingTarget) {
@@ -161,7 +299,8 @@ export default function TargetSettingsPage() {
             <h1 className="text-xl font-bold tracking-tight">Target Setoran</h1>
           </div>
           <p className="text-sm text-muted-foreground">
-            Atur target hafalan sesuai kurikulum sekolah Anda. Setiap santri dapat ditetapkan ke salah satu target, atau dibiarkan tanpa target.
+            Atur target hafalan sesuai kurikulum sekolah Anda. Setiap santri dapat ditetapkan ke
+            salah satu target, atau dibiarkan tanpa target.
           </p>
         </div>
         <Button onClick={openCreate} className="ml-auto shrink-0">
@@ -190,58 +329,90 @@ export default function TargetSettingsPage() {
         </div>
       ) : (
         <div className="grid gap-3">
-          {targets.map((target) => (
-            <Card key={target.id_target} className="border shadow-sm hover:shadow-md transition-shadow">
-              <CardContent className="p-4">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="space-y-2 flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <p className="font-semibold text-base truncate">{target.nama_target}</p>
-                      <span
-                        className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLORS[target.tipe] ?? "bg-muted"}`}
+          {targets.map((target) => {
+            const hariArr = target.tipe === "HARIAN" ? parseHariAktif(target.hari_aktif) : null;
+            return (
+              <Card key={target.id_target} className="border shadow-sm hover:shadow-md transition-shadow">
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="space-y-2 flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="font-semibold text-base truncate">{target.nama_target}</p>
+                        <span
+                          className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLORS[target.tipe] ?? "bg-muted"}`}
+                        >
+                          {TIPE_TARGET_LABELS[target.tipe]}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                        <span className="font-mono font-semibold text-foreground text-lg">
+                          {target.nilai_target}
+                        </span>
+                        <span>{SATUAN_TARGET_LABELS[target.satuan]}</span>
+                        <span className="text-xs">per {TIPE_TARGET_LABELS[target.tipe].toLowerCase()}</span>
+                      </div>
+
+                      {/* Tampilan hari aktif untuk target HARIAN */}
+                      {target.tipe === "HARIAN" && (
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <CalendarDays className="h-3.5 w-3.5 text-blue-500 shrink-0" />
+                          {hariArr && hariArr.length > 0 ? (
+                            <div className="flex items-center gap-1 flex-wrap">
+                              {hariArr.map((d) => (
+                                <span
+                                  key={d}
+                                  className="text-xs px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 font-medium"
+                                >
+                                  {HARI_LABELS_SHORT[d]}
+                                </span>
+                              ))}
+                              <span className="text-xs text-muted-foreground ml-1">
+                                ({hariArr.length} hari/pekan)
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="text-xs text-muted-foreground italic">
+                              {formatHariAktif([0, 1, 2, 3, 4, 5, 6])}
+                            </span>
+                          )}
+                        </div>
+                      )}
+
+                      {target.deskripsi && (
+                        <p className="text-xs text-muted-foreground line-clamp-2">{target.deskripsi}</p>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                        onClick={() => openEdit(target)}
                       >
-                        {TIPE_TARGET_LABELS[target.tipe]}
-                      </span>
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                        onClick={() => setDeletingTarget(target)}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
                     </div>
-                    <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                      <span className="font-mono font-semibold text-foreground text-lg">
-                        {target.nilai_target}
-                      </span>
-                      <span>{SATUAN_TARGET_LABELS[target.satuan]}</span>
-                      <span className="text-xs">per {TIPE_TARGET_LABELS[target.tipe].toLowerCase()}</span>
-                    </div>
-                    {target.deskripsi && (
-                      <p className="text-xs text-muted-foreground line-clamp-2">{target.deskripsi}</p>
-                    )}
                   </div>
-                  <div className="flex items-center gap-1 shrink-0">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                      onClick={() => openEdit(target)}
-                    >
-                      <Pencil className="h-3.5 w-3.5" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                      onClick={() => setDeletingTarget(target)}
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       )}
 
-      {/* Form Dialog — Create / Edit */}
+      {/* ---------------------------------------------------------------- */}
+      {/* Form Dialog — Create / Edit                                       */}
+      {/* ---------------------------------------------------------------- */}
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {editingTarget ? "Edit Target Setoran" : "Tambah Target Baru"}
@@ -327,6 +498,27 @@ export default function TargetSettingsPage() {
                 />
               </div>
 
+              {/* -------------------------------------------------------- */}
+              {/* Hari Aktif Picker — hanya muncul saat tipe = HARIAN       */}
+              {/* -------------------------------------------------------- */}
+              {isHarian && (
+                <FormField
+                  control={form.control}
+                  name="hari_aktif"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <HariAktifPicker
+                          value={field.value}
+                          onChange={field.onChange}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+
               {/* Nilai Target */}
               <FormField
                 control={form.control}
@@ -344,7 +536,7 @@ export default function TargetSettingsPage() {
                       />
                     </FormControl>
                     <p className="text-xs text-muted-foreground">
-                      Boleh desimal, contoh: 0.5 halaman (= setengah halaman = 7-8 baris)
+                      Boleh desimal, contoh: 0.5 halaman (= setengah halaman = 7–8 baris)
                     </p>
                     <FormMessage />
                   </FormItem>
