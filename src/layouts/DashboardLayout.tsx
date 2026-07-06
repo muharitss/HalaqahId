@@ -4,7 +4,6 @@ import { ThemeToggle } from "@/components/custom/theme/ThemeToggle";
 import { useAuth } from "@/features/auth/components/auth-provider";
 import { Outlet, useNavigate } from "react-router-dom"; 
 import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { useIsMobile } from "@/utils/use-mobile";
 import { isKepalaRole, Role } from "@/types/domain/enums";
