@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { laporanService } from "../api/laporanService";
+import { sekolahService } from "@/features/sekolah/api/sekolahService";
 import { startOfDay, endOfDay, isWithinInterval } from "date-fns";
 import type { GroupedData, GroupedHalaqahItem, GroupedSantriItem, SetoranItem } from "../types";
 
@@ -31,22 +32,24 @@ export const useLaporanData = () => {
   });
 
   const {
-    data: { allSetoran = [], listHalaqah = [], masterSantri = [] } = {},
+    data: { allSetoran = [], listHalaqah = [], masterSantri = [], kategoriList = [] } = {},
     isFetching: loading,
     refetch: fetchData,
   } = useQuery({
     queryKey: ["laporan-data"],
     queryFn: async () => {
       try {
-        const [setoranData, halaqahData, santriData] = await Promise.all([
+        const [setoranData, halaqahData, santriData, kategoriRes] = await Promise.all([
           laporanService.getAllSetoran(),
           laporanService.getAllHalaqah(),
           laporanService.getAllSantri(),
+          sekolahService.getKategori(),
         ]);
         return {
           allSetoran: setoranData,
           listHalaqah: halaqahData,
           masterSantri: santriData,
+          kategoriList: kategoriRes.data || [],
         };
       } catch (error) {
         console.error("Gagal mengambil data laporan:", error);
@@ -54,6 +57,10 @@ export const useLaporanData = () => {
       }
     },
   });
+
+  const kategoriNames = useMemo(() => {
+    return kategoriList.map((k) => k.nama_kategori);
+  }, [kategoriList]);
 
   // ─── Grouped data (bulan/tahun filter untuk transformSetoranData) ──────────
   const groupedDataRaw = useMemo(() => {
@@ -264,6 +271,7 @@ export const useLaporanData = () => {
     allSetoran,
     listHalaqah,
     masterSantri,
+    kategoriNames,
     loading,
 
     // Filter state

@@ -35,20 +35,42 @@ export const santriSchema = z.object({
 });
 
 /** Schema untuk membuat/mengedit TargetSekolah */
-export const targetSchema = z.object({
-  nama_target: z.string().min(3, "Nama target minimal 3 karakter"),
-  tipe: z.enum(["HARIAN", "MINGGUAN", "BULANAN", "SEMESTER", "GLOBAL"], {
-    message: "Pilih tipe periode target",
-  }),
-  nilai_target: z.coerce
-    .number({ message: "Nilai target wajib diisi" })
-    .positive("Nilai target harus lebih dari 0")
-    .max(1000, "Nilai target terlalu besar"),
-  satuan: z.enum(["BARIS", "HALAMAN", "AYAT", "JUZ"], {
-    message: "Pilih satuan target",
-  }),
-  deskripsi: z.string().max(300, "Deskripsi maksimal 300 karakter").optional().nullable(),
-});
+export const targetSchema = z
+  .object({
+    nama_target: z.string().min(3, "Nama target minimal 3 karakter"),
+    tipe: z.enum(["HARIAN", "MINGGUAN", "BULANAN", "SEMESTER", "GLOBAL"], {
+      message: "Pilih tipe periode target",
+    }),
+    nilai_target: z.coerce
+      .number({ message: "Nilai target wajib diisi" })
+      .positive("Nilai target harus lebih dari 0")
+      .max(1000, "Nilai target terlalu besar"),
+    satuan: z.enum(["BARIS", "HALAMAN", "AYAT", "JUZ"], {
+      message: "Pilih satuan target",
+    }),
+    deskripsi: z.string().max(300, "Deskripsi maksimal 300 karakter").optional().nullable(),
+    /**
+     * Hari aktif setoran: array angka 0–6 (0=Minggu, 1=Senin, ..., 6=Sabtu).
+     * Hanya relevan dan wajib diisi minimal 1 hari jika tipe = HARIAN.
+     * Jika null/undefined dan tipe HARIAN, berarti belum dipilih.
+     */
+    hari_aktif: z
+      .array(z.number().int().min(0).max(6))
+      .nullable()
+      .optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.tipe === "HARIAN" && data.hari_aktif !== null && data.hari_aktif !== undefined) {
+      if (data.hari_aktif.length === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["hari_aktif"],
+          message: "Pilih minimal 1 hari setoran aktif",
+        });
+      }
+    }
+  });
+
 
 export type SetoranFormValues = z.infer<typeof setoranSchema>;
 export type HalaqahFormValues = z.infer<typeof halaqahSchema>;

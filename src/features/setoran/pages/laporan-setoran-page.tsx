@@ -27,6 +27,7 @@ export function LaporanSetoranPage() {
     groupedData,
     halaqahNames,
     santriNames,
+    kategoriNames,
     periodLabel,
     isFilterActive,
     setSelectedMonth,
@@ -150,6 +151,7 @@ export function LaporanSetoranPage() {
                 onDateToChange={setDateTo}
                 selectedKategori={selectedKategori}
                 onKategoriChange={setSelectedKategori}
+                kategoriNames={kategoriNames}
                 onReset={resetFilters}
                 isFilterActive={isFilterActive}
               />

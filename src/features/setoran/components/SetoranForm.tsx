@@ -38,7 +38,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Check, ChevronsUpDown, AlertCircle, Layers, ArrowDown, BookOpen } from "lucide-react";
 import { pemetaanJuz, SURAH_IDS } from "@/utils/daftarSurah";
-import { surahNameToNumber, SURAH_PAGE_START } from "@/utils/mushafUtils";
+import { surahNameToNumber, SURAH_PAGE_START, surahNumberToName } from "@/utils/mushafUtils";
 import { type Santri } from "@/features/santri/types";
 import { type SetoranFormFields, type SetoranPayload, type MushafSelection } from "../types";
 import { MushafViewer } from "./MushafViewer";
@@ -58,22 +58,86 @@ import {
 // ─────────────────────────────────────────────
 // Schema validasi
 // ─────────────────────────────────────────────
+const getGlobalAyahId = (surahName: string, ayahNum: number): number => {
+  const surahId = SURAH_IDS[surahName] || 0;
+  return surahId * 10000 + ayahNum;
+};
+
+const getTodayString = () => {
+  const d = new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+const getSurahTotalAyat = (surahName: string): number => {
+  for (const surahs of Object.values(pemetaanJuz)) {
+    const match = surahs.find((s) => s.nama.toLowerCase() === surahName.toLowerCase());
+    if (match) return match.totalAyat;
+  }
+  return 286;
+};
+
+const findJuzBySurahAndAyah = (surahName: string, ayahNum: number): number => {
+  for (const [juzNumStr, surahs] of Object.entries(pemetaanJuz)) {
+    const juzNum = Number(juzNumStr);
+    const match = surahs.find(
+      (s) =>
+        s.nama.toLowerCase() === surahName.toLowerCase() &&
+        ayahNum >= s.ayatMulai &&
+        ayahNum <= s.ayatSelesai
+    );
+    if (match) return juzNum;
+  }
+  return 1;
+};
+
 const setoranSchema = z
   .object({
     id_santri: z.coerce.number().min(1, "Pilih santri"),
     id_sesi: z.coerce.number().min(1, "Pilih sesi halaqah"),
     juz: z.coerce.number().min(1).max(30),
-    surat: z.string().min(1, "Pilih surah"),
-    ayat_mulai: z.coerce.number().min(1),
-    ayat_selesai: z.coerce.number().min(1),
+    surat_mulai: z.string().min(1, "Pilih surah mulai"),
+    ayat_mulai: z.coerce.number().min(1, "Ayat mulai minimal 1"),
+    surat_selesai: z.string().min(1, "Pilih surah selesai"),
+    ayat_selesai: z.coerce.number().min(1, "Ayat selesai minimal 1"),
     id_kategori: z.coerce.number().min(1, "Pilih kategori setoran"),
+    tanggal_setoran: z.string().min(1, "Pilih tanggal setoran"),
     taqwim: z.coerce.number().optional(),
     keterangan: z.string().optional(),
   })
-  .refine((data) => data.ayat_selesai >= data.ayat_mulai, {
-    message: "Ayat selesai tidak boleh kurang dari mulai",
-    path: ["ayat_selesai"],
-  });
+  .refine(
+    (data) => {
+      const startId = getGlobalAyahId(data.surat_mulai, data.ayat_mulai);
+      const endId = getGlobalAyahId(data.surat_selesai, data.ayat_selesai);
+      return endId >= startId;
+    },
+    {
+      message: "Posisi akhir tidak boleh sebelum posisi awal setoran",
+      path: ["surat_selesai"],
+    }
+  )
+  .refine(
+    (data) => {
+      const maxAyatMulai = getSurahTotalAyat(data.surat_mulai);
+      return data.ayat_mulai <= maxAyatMulai;
+    },
+    {
+      message: "Ayat mulai melebihi total ayat surah tersebut",
+      path: ["ayat_mulai"],
+    }
+  )
+  .refine(
+    (data) => {
+      const maxAyatSelesai = getSurahTotalAyat(data.surat_selesai);
+      return data.ayat_selesai <= maxAyatSelesai;
+    },
+    {
+      message: "Ayat selesai melebihi total ayat surah tersebut",
+      path: ["ayat_selesai"],
+    }
+  );
 
 import { type SesiHalaqah } from "@/types/domain/sesi-halaqah";
 
@@ -94,30 +158,40 @@ const parseAyatRange = (ayatStr: string) => {
 
 const checkDuplicateSetoran = (
   history: any[],
-  newSurat: string,
-  newStartAyat: number,
-  newEndAyat: number,
-  newKategoriId: number
+  startSurahName: string,
+  startAyat: number,
+  endSurahName: string,
+  endAyat: number,
+  kategoriId: number
 ) => {
+  const newStartId = getGlobalAyahId(startSurahName, startAyat);
+  const newEndId = getGlobalAyahId(endSurahName, endAyat);
+
   return history.some((item) => {
-    const isSameCategory = item.id_kategori === newKategoriId;
-    const isSameSurah = 
-      item.surat?.toLowerCase() === newSurat.toLowerCase() || 
-      item.start_surat_id === SURAH_IDS[newSurat];
+    if (item.id_kategori !== kategoriId) return false;
+
+    const startSurahId = item.start_surat_id || SURAH_IDS[item.surat] || 1;
+    const endSurahId = item.end_surat_id || startSurahId;
     
-    if (isSameCategory && isSameSurah) {
-      const itemStart = item.start_ayat !== null && item.start_ayat !== undefined 
-        ? item.start_ayat 
-        : parseAyatRange(item.ayat).start;
-      const itemEnd = item.end_ayat !== null && item.end_ayat !== undefined 
-        ? item.end_ayat 
-        : parseAyatRange(item.ayat).end;
+    const itemStartAyat = item.start_ayat !== null && item.start_ayat !== undefined 
+      ? item.start_ayat 
+      : parseAyatRange(item.ayat).start;
+    const itemEndAyat = item.end_ayat !== null && item.end_ayat !== undefined 
+      ? item.end_ayat 
+      : parseAyatRange(item.ayat).end;
       
-      return newStartAyat <= itemEnd && itemStart <= newEndAyat;
-    }
-    return false;
+    const itemStartId = startSurahId * 10000 + itemStartAyat;
+    const itemEndId = endSurahId * 10000 + itemEndAyat;
+
+    return newStartId <= itemEndId && itemStartId <= newEndId;
   });
 };
+
+const ALL_SURAHS = Array.from({ length: 114 }, (_, i) => {
+  const num = i + 1;
+  const name = surahNumberToName(num);
+  return { number: num, name };
+});
 
 export function SetoranForm({
   santriList,
@@ -125,7 +199,8 @@ export function SetoranForm({
   onSubmit,
   onValidationChange,
 }: SetoranFormProps) {
-  const [open, setOpen] = useState(false);
+  const [openMulai, setOpenMulai] = useState(false);
+  const [openSelesai, setOpenSelesai] = useState(false);
 
   // ── State Input Method & Mushaf ──
   const [inputMethod, setInputMethod] = useState<"manual" | "mushaf">("manual");
@@ -143,9 +218,11 @@ export function SetoranForm({
       id_sesi: undefined,
       juz: 1,
       id_kategori: undefined,
-      surat: "",
+      surat_mulai: "",
       ayat_mulai: undefined,
+      surat_selesai: "",
       ayat_selesai: undefined,
+      tanggal_setoran: getTodayString(),
       taqwim: 0,
       keterangan: "",
     },
@@ -170,18 +247,10 @@ export function SetoranForm({
       return res.data || [];
     }
   });
-
-  // Watcher untuk sinkronisasi
-  // eslint-disable-next-line
-  const selectedJuz = form.watch("juz");
-  const selectedSurat = form.watch("surat");
-  const availableSurah = pemetaanJuz[selectedJuz] || [];
-  const currentSurahDetail = availableSurah.find(
-    (s) => s.nama === selectedSurat,
-  );
-
   const selectedSesiId = form.watch("id_sesi");
   const selectedSesiObj = sesiList.find((s) => s.id_sesi === selectedSesiId);
+
+  const selectedTanggal = form.watch("tanggal_setoran");
 
   const isTodayValidForSesi = useMemo(() => {
     if (
@@ -190,10 +259,12 @@ export function SetoranForm({
       selectedSesiObj.hari.length === 0
     )
       return true;
-    const jsDay = new Date().getDay();
+
+    const targetDate = selectedTanggal ? new Date(selectedTanggal) : new Date();
+    const jsDay = targetDate.getDay();
     const mappedDay = jsDay === 0 ? 7 : jsDay;
     return selectedSesiObj.hari.includes(mappedDay);
-  }, [selectedSesiObj]);
+  }, [selectedSesiObj, selectedTanggal]);
 
   useEffect(() => {
     if (onValidationChange) {
@@ -208,7 +279,7 @@ export function SetoranForm({
   // Ketika user masuk ke mode mushaf, set halaman awal mushaf berdasarkan surah di form jika ada
   useEffect(() => {
     if (inputMethod === "mushaf") {
-      const currentSurat = form.getValues("surat");
+      const currentSurat = form.getValues("surat_mulai");
       if (currentSurat) {
         const surahNum = surahNameToNumber(currentSurat);
         if (surahNum) {
@@ -220,20 +291,26 @@ export function SetoranForm({
   }, [inputMethod]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const proceedSubmit = async (values: SetoranFormFields) => {
-    const suratId = SURAH_IDS[values.surat] || 1;
+    const startSuratId = SURAH_IDS[values.surat_mulai] || 1;
+    const endSuratId = SURAH_IDS[values.surat_selesai] || startSuratId;
+
+    const calculatedJuz = findJuzBySurahAndAyah(values.surat_mulai, values.ayat_mulai);
 
     const payload: SetoranPayload = {
       id_santri: values.id_santri,
       id_sesi: values.id_sesi,
-      juz: values.juz,
-      surat: values.surat,
+      juz: calculatedJuz,
+      surat: values.surat_mulai === values.surat_selesai
+        ? values.surat_mulai
+        : `${values.surat_mulai} - ${values.surat_selesai}`,
       ayat: `${values.ayat_mulai}-${values.ayat_selesai}`,
       id_kategori: values.id_kategori,
+      tanggal_setoran: values.tanggal_setoran,
       taqwim: values.taqwim || 0,
       keterangan: values.keterangan,
-      start_surat_id: suratId,
+      start_surat_id: startSuratId,
       start_ayat: values.ayat_mulai,
-      end_surat_id: suratId,
+      end_surat_id: endSuratId,
       end_ayat: values.ayat_selesai,
       // Field mushaf (jika ada seleksi via mushaf)
       ...(mushafSelection && {
@@ -250,9 +327,11 @@ export function SetoranForm({
       form.reset({
         ...form.getValues(),
         id_santri: undefined,
-        surat: "",
+        surat_mulai: "",
+        surat_selesai: "",
         ayat_mulai: 1,
         ayat_selesai: 1,
+        tanggal_setoran: getTodayString(),
       });
       setMushafSelection(null);
       setInputMethod("manual");
@@ -269,8 +348,9 @@ export function SetoranForm({
       selectedCategory?.perlu_validasi_urutan &&
       checkDuplicateSetoran(
         studentHistory,
-        values.surat,
+        values.surat_mulai,
         values.ayat_mulai,
+        values.surat_selesai,
         values.ayat_selesai,
         values.id_kategori
       );
@@ -291,7 +371,7 @@ export function SetoranForm({
         onSubmit={form.handleSubmit(onFormSubmit)}
         className="space-y-4"
       >
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <FormField
             control={form.control}
             name="id_santri"
@@ -381,6 +461,20 @@ export function SetoranForm({
               </FormItem>
             )}
           />
+
+          <FormField
+            control={form.control}
+            name="tanggal_setoran"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Tanggal Setoran</FormLabel>
+                <FormControl>
+                  <Input type="date" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </div>
 
         {/* Selector Input Method */}
@@ -438,12 +532,19 @@ export function SetoranForm({
                 control={form.control}
                 name="juz"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Juz</FormLabel>
+                  <FormItem className="md:col-span-4">
+                    <FormLabel>Referi Juz Utama</FormLabel>
                     <Select
                       onValueChange={(v) => {
                         field.onChange(Number(v));
-                        form.setValue("surat", "");
+                        // Set surah awal secara default dari juz yang dipilih untuk membantu mempercepat input
+                        const surahsInJuz = pemetaanJuz[Number(v)] || [];
+                        if (surahsInJuz.length > 0) {
+                          form.setValue("surat_mulai", surahsInJuz[0].nama);
+                          form.setValue("surat_selesai", surahsInJuz[0].nama);
+                          form.setValue("ayat_mulai", surahsInJuz[0].ayatMulai);
+                          form.setValue("ayat_selesai", surahsInJuz[0].ayatMulai);
+                        }
                         setMushafSelection(null);
                       }}
                       value={field.value.toString()}
@@ -465,84 +566,89 @@ export function SetoranForm({
                   </FormItem>
                 )}
               />
-
-              <FormField
-                control={form.control}
-                name="surat"
-                render={({ field }) => (
-                  <FormItem className="md:col-span-3">
-                    <FormLabel>Surah</FormLabel>
-                    <Popover open={open} onOpenChange={setOpen}>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant="outline"
-                            role="combobox"
-                            aria-expanded={open}
-                            className="w-full justify-between font-normal text-left"
-                          >
-                            {field.value || "Pilih Surah..."}
-                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-[300px] p-0 popover-content-custom" align="start">
-                        <Command>
-                          <CommandInput placeholder="Cari Surah..." />
-                          <CommandEmpty>Surah tidak ditemukan.</CommandEmpty>
-                          <CommandGroup>
-                            <CommandList>
-                              {availableSurah.map((surah) => (
-                                <CommandItem
-                                  key={surah.nama}
-                                  value={surah.nama}
-                                  onSelect={() => {
-                                    form.setValue("surat", surah.nama);
-                                    form.setValue("ayat_mulai", surah.ayatMulai);
-                                    form.setValue(
-                                      "ayat_selesai",
-                                      surah.ayatMulai,
-                                    );
-                                    setOpen(false);
-                                    form.trigger(["ayat_mulai", "ayat_selesai"]);
-                                    setMushafSelection(null);
-                                  }}
-                                >
-                                  <Check
-                                    className={cn(
-                                      "mr-2 h-4 w-4",
-                                      field.value === surah.nama
-                                        ? "opacity-100"
-                                        : "opacity-0",
-                                    )}
-                                  />
-                                  {surah.nama}
-                                </CommandItem>
-                              ))}
-                            </CommandList>
-                          </CommandGroup>
-                        </Command>
-                      </PopoverContent>
-                    </Popover>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
             </div>
 
-            <div className="space-y-2">
-              <div className="flex items-end gap-3 flex-wrap">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 flex-1">
+            {/* Layout Grid Lintas Surah (Dari - Sampai) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* POSISI AWAL (DARI) */}
+              <div className="border border-border rounded-2xl p-4 bg-muted/20 space-y-4 shadow-sm">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0" />
+                  <h4 className="text-xs font-bold text-foreground/80 tracking-wider uppercase">Dari Posisi (Awal)</h4>
+                </div>
+
+                <div className="grid grid-cols-3 gap-3">
+                  {/* Surah Mulai */}
+                  <FormField
+                    control={form.control}
+                    name="surat_mulai"
+                    render={({ field }) => (
+                      <FormItem className="col-span-2">
+                        <FormLabel>Surah Awal</FormLabel>
+                        <Popover open={openMulai} onOpenChange={setOpenMulai}>
+                          <PopoverTrigger asChild>
+                            <FormControl>
+                              <Button
+                                variant="outline"
+                                role="combobox"
+                                aria-expanded={openMulai}
+                                className="w-full justify-between font-normal text-left"
+                              >
+                                {field.value || "Pilih Surah..."}
+                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                              </Button>
+                            </FormControl>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-[300px] p-0 popover-content-custom" align="start">
+                            <Command>
+                              <CommandInput placeholder="Cari Surah..." />
+                              <CommandEmpty>Surah tidak ditemukan.</CommandEmpty>
+                              <CommandGroup>
+                                <CommandList>
+                                  {ALL_SURAHS.map((surah) => (
+                                    <CommandItem
+                                      key={surah.number}
+                                      value={surah.name}
+                                      onSelect={() => {
+                                        form.setValue("surat_mulai", surah.name);
+                                        // Secara default ikut set surah_selesai agar mempercepat jika satu surah
+                                        if (!form.getValues("surat_selesai")) {
+                                          form.setValue("surat_selesai", surah.name);
+                                        }
+                                        setOpenMulai(false);
+                                        setMushafSelection(null);
+                                      }}
+                                    >
+                                      <Check
+                                        className={cn(
+                                          "mr-2 h-4 w-4",
+                                          field.value === surah.name ? "opacity-100" : "opacity-0"
+                                        )}
+                                      />
+                                      {surah.name}
+                                    </CommandItem>
+                                  ))}
+                                </CommandList>
+                              </CommandGroup>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Ayat Mulai */}
                   <FormField
                     control={form.control}
                     name="ayat_mulai"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Ayat Mulai</FormLabel>
+                        <FormLabel>Ayat Awal</FormLabel>
                         <FormControl>
                           <Input
                             type="number"
-                            placeholder="Mulai"
+                            placeholder="Ayat"
                             {...field}
                             value={field.value || ""}
                             onChange={(e) => {
@@ -550,60 +656,7 @@ export function SetoranForm({
                               field.onChange(val === "" ? undefined : Number(val));
                               if (mushafSelection) setMushafSelection(null);
                             }}
-                            onFocus={(e) =>
-                              e.target.value === "0" && (e.target.value = "")
-                            }
                           />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="ayat_selesai"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Ayat Selesai</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            placeholder="Selesai"
-                            {...field}
-                            value={field.value || ""}
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              const numVal = val === "" ? undefined : Number(val);
-
-                              if (
-                                numVal &&
-                                currentSurahDetail &&
-                                numVal > currentSurahDetail.totalAyat
-                              )
-                                return;
-
-                              field.onChange(numVal);
-                              if (mushafSelection) setMushafSelection(null);
-                            }}
-                            onFocus={(e) =>
-                              e.target.value === "0" && (e.target.value = "")
-                            }
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="taqwim"
-                    render={({ field }) => (
-                      <FormItem className="md:col-span-2">
-                        <FormLabel>Taqwim</FormLabel>
-                        <FormControl>
-                          <Input type="number" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -612,35 +665,143 @@ export function SetoranForm({
                 </div>
               </div>
 
-              {mushafSelection && (
-                <div className="flex items-center gap-1.5 text-xs text-primary dark:text-primary bg-primary/10 border border-primary/20 px-2.5 py-1.5 rounded-lg w-fit animate-in fade-in zoom-in duration-200">
-                  <Layers className="h-3.5 w-3.5 shrink-0" />
-                  <span className="font-semibold text-primary/90 dark:text-primary">
-                    Terisi otomatis dari Mushaf: {mushafSelection.totalBaris} baris
-                  </span>
-                  <span className="text-emerald-500">·</span>
-                  <span>
-                    Hal. {mushafSelection.startPage}
-                    {mushafSelection.startPage !== mushafSelection.endPage &&
-                      `–${mushafSelection.endPage}`}
-                  </span>
+              {/* POSISI AKHIR (SAMPAI) */}
+              <div className="border border-border rounded-2xl p-4 bg-muted/20 space-y-4 shadow-sm">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-primary shrink-0 animate-pulse" />
+                  <h4 className="text-xs font-bold text-foreground/80 tracking-wider uppercase">Sampai Posisi (Akhir)</h4>
                 </div>
-              )}
+
+                <div className="grid grid-cols-3 gap-3">
+                  {/* Surah Selesai */}
+                  <FormField
+                    control={form.control}
+                    name="surat_selesai"
+                    render={({ field }) => (
+                      <FormItem className="col-span-2">
+                        <FormLabel>Surah Akhir</FormLabel>
+                        <Popover open={openSelesai} onOpenChange={setOpenSelesai}>
+                          <PopoverTrigger asChild>
+                            <FormControl>
+                              <Button
+                                variant="outline"
+                                role="combobox"
+                                aria-expanded={openSelesai}
+                                className="w-full justify-between font-normal text-left"
+                              >
+                                {field.value || "Pilih Surah..."}
+                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                              </Button>
+                            </FormControl>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-[300px] p-0 popover-content-custom" align="start">
+                            <Command>
+                              <CommandInput placeholder="Cari Surah..." />
+                              <CommandEmpty>Surah tidak ditemukan.</CommandEmpty>
+                              <CommandGroup>
+                                <CommandList>
+                                  {ALL_SURAHS.map((surah) => (
+                                    <CommandItem
+                                      key={surah.number}
+                                      value={surah.name}
+                                      onSelect={() => {
+                                        form.setValue("surat_selesai", surah.name);
+                                        setOpenSelesai(false);
+                                        setMushafSelection(null);
+                                      }}
+                                    >
+                                      <Check
+                                        className={cn(
+                                          "mr-2 h-4 w-4",
+                                          field.value === surah.name ? "opacity-100" : "opacity-0"
+                                        )}
+                                      />
+                                      {surah.name}
+                                    </CommandItem>
+                                  ))}
+                                </CommandList>
+                              </CommandGroup>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Ayat Selesai */}
+                  <FormField
+                    control={form.control}
+                    name="ayat_selesai"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Ayat Akhir</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder="Ayat"
+                            {...field}
+                            value={field.value || ""}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              field.onChange(val === "" ? undefined : Number(val));
+                              if (mushafSelection) setMushafSelection(null);
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
             </div>
 
-            <FormField
-              control={form.control}
-              name="keterangan"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Keterangan</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Catatan tambahan (opsional)" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {/* Taqwim & Keterangan */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <FormField
+                control={form.control}
+                name="taqwim"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Taqwim</FormLabel>
+                    <FormControl>
+                      <Input type="number" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="keterangan"
+                render={({ field }) => (
+                  <FormItem className="md:col-span-2">
+                    <FormLabel>Keterangan</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Catatan tambahan (opsional)" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {mushafSelection && (
+              <div className="flex items-center gap-1.5 text-xs text-primary dark:text-primary bg-primary/10 border border-primary/20 px-2.5 py-1.5 rounded-lg w-fit animate-in fade-in zoom-in duration-200">
+                <Layers className="h-3.5 w-3.5 shrink-0" />
+                <span className="font-semibold text-primary/90 dark:text-primary">
+                  Terisi otomatis dari Mushaf: {mushafSelection.totalBaris} baris
+                </span>
+                <span className="text-emerald-500">·</span>
+                <span>
+                  Hal. {mushafSelection.startPage}
+                  {mushafSelection.startPage !== mushafSelection.endPage &&
+                    `–${mushafSelection.endPage}`}
+                </span>
+              </div>
+            )}
           </>
         ) : (
           <div className="space-y-4 animate-in fade-in slide-in-from-bottom duration-300">
@@ -676,7 +837,8 @@ export function SetoranForm({
               type="button"
               onClick={() => {
                 if (mushafSelection) {
-                  form.setValue("surat", mushafSelection.startSurahName);
+                  form.setValue("surat_mulai", mushafSelection.startSurahName);
+                  form.setValue("surat_selesai", mushafSelection.endSurahName);
                   form.setValue("ayat_mulai", mushafSelection.startAyah);
                   form.setValue("ayat_selesai", mushafSelection.endAyah);
                   
@@ -690,7 +852,7 @@ export function SetoranForm({
                       }
                     }
                   }
-                  form.trigger(["juz", "surat", "ayat_mulai", "ayat_selesai"]);
+                  form.trigger(["juz", "surat_mulai", "surat_selesai", "ayat_mulai", "ayat_selesai"]);
                 }
                 setInputMethod("manual");
               }}

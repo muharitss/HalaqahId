@@ -20,8 +20,12 @@ export function SesiModal({ isOpen, onClose, sesi, halaqahList, onSave, isSubmit
   const [namaSesi, setNamaSesi] = useState(sesi?.nama_sesi || "");
   const [jamMulai, setJamMulai] = useState(sesi?.jam_mulai || "");
   const [jamSelesai, setJamSelesai] = useState(sesi?.jam_selesai || "");
-  const [idHalaqahs, setIdHalaqahs] = useState<string[]>(sesi?.halaqahs ? sesi.halaqahs.map(h => h.id_halaqah.toString()) : []);
+  const [idHalaqahs, setIdHalaqahs] = useState<string[]>(
+    sesi?.halaqahs ? sesi.halaqahs.map(h => h.id_halaqah.toString()) : []
+  );
   const [hari, setHari] = useState<number[]>(sesi?.hari || []);
+
+  const isEdit = !!sesi;
 
   const HARI_OPTIONS = [
     { value: 1, label: "Senin" },
@@ -35,43 +39,25 @@ export function SesiModal({ isOpen, onClose, sesi, halaqahList, onSave, isSubmit
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const isEdit = !!sesi;
-    
-    let payload;
-    if (isEdit) {
-      if (idHalaqahs.length === 0) {
-        alert("Pilih minimal satu halaqah");
-        return;
-      }
-      payload = {
-        nama_sesi: namaSesi,
-        jam_mulai: jamMulai,
-        jam_selesai: jamSelesai,
-        hari: hari.length > 0 ? hari : undefined,
-        id_halaqahs: idHalaqahs.map(Number),
-      } as UpdateSesiHalaqahRequest;
-    } else {
-      if (idHalaqahs.length === 0) {
-        alert("Pilih minimal satu halaqah");
-        return;
-      }
-      
-      payload = {
-        nama_sesi: namaSesi,
-        jam_mulai: jamMulai,
-        jam_selesai: jamSelesai,
-        hari: hari.length > 0 ? hari : undefined,
-        id_halaqahs: idHalaqahs.map(Number),
-      } as CreateSesiHalaqahRequest;
+
+    if (idHalaqahs.length === 0) {
+      alert("Pilih minimal satu halaqah");
+      return;
     }
+
+    const payload = {
+      nama_sesi: namaSesi,
+      jam_mulai: jamMulai,
+      jam_selesai: jamSelesai,
+      hari: hari.length > 0 ? hari : undefined,
+      id_halaqahs: idHalaqahs.map(Number),
+    } as CreateSesiHalaqahRequest | UpdateSesiHalaqahRequest;
 
     const success = await onSave(payload);
     if (success) {
       onClose();
     }
   };
-
-  const isEdit = !!sesi;
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -82,34 +68,34 @@ export function SesiModal({ isOpen, onClose, sesi, halaqahList, onSave, isSubmit
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="nama_sesi">Nama Sesi <span className="text-red-500">*</span></Label>
-            <Input 
-              id="nama_sesi" 
-              value={namaSesi} 
-              onChange={(e) => setNamaSesi(e.target.value)} 
-              placeholder="Contoh: Bada Subuh" 
-              required 
+            <Input
+              id="nama_sesi"
+              value={namaSesi}
+              onChange={(e) => setNamaSesi(e.target.value)}
+              placeholder="Contoh: Bada Subuh"
+              required
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="jam_mulai">Jam Mulai <span className="text-red-500">*</span></Label>
-              <Input 
-                id="jam_mulai" 
-                type="time" 
-                value={jamMulai} 
-                onChange={(e) => setJamMulai(e.target.value)} 
-                required 
+              <Input
+                id="jam_mulai"
+                type="time"
+                value={jamMulai}
+                onChange={(e) => setJamMulai(e.target.value)}
+                required
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="jam_selesai">Jam Selesai <span className="text-red-500">*</span></Label>
-              <Input 
-                id="jam_selesai" 
-                type="time" 
-                value={jamSelesai} 
-                onChange={(e) => setJamSelesai(e.target.value)} 
-                required 
+              <Input
+                id="jam_selesai"
+                type="time"
+                value={jamSelesai}
+                onChange={(e) => setJamSelesai(e.target.value)}
+                required
               />
             </div>
           </div>
@@ -119,8 +105,8 @@ export function SesiModal({ isOpen, onClose, sesi, halaqahList, onSave, isSubmit
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2 border rounded-md p-3">
               {HARI_OPTIONS.map((h) => (
                 <div key={h.value} className="flex items-center space-x-2">
-                  <Checkbox 
-                    id={`hari-${h.value}`} 
+                  <Checkbox
+                    id={`hari-${h.value}`}
                     checked={hari.includes(h.value)}
                     onCheckedChange={(checked) => {
                       if (checked) {
@@ -142,8 +128,8 @@ export function SesiModal({ isOpen, onClose, sesi, halaqahList, onSave, isSubmit
             <div className="flex items-center justify-between">
               <Label>Halaqah <span className="text-red-500">*</span></Label>
               <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="all-halaqah" 
+                <Checkbox
+                  id="all-halaqah"
                   checked={idHalaqahs.length === halaqahList.length && halaqahList.length > 0}
                   onCheckedChange={(checked) => {
                     if (checked) {
@@ -153,14 +139,16 @@ export function SesiModal({ isOpen, onClose, sesi, halaqahList, onSave, isSubmit
                     }
                   }}
                 />
-                <Label htmlFor="all-halaqah" className="text-sm font-normal cursor-pointer text-muted-foreground">Pilih Semua</Label>
+                <Label htmlFor="all-halaqah" className="text-sm font-normal cursor-pointer text-muted-foreground">
+                  Pilih Semua
+                </Label>
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2 border rounded-md p-3 max-h-40 overflow-y-auto">
               {halaqahList.map((h) => (
                 <div key={h.id_halaqah} className="flex items-center space-x-2">
-                  <Checkbox 
-                    id={`halaqah-${h.id_halaqah}`} 
+                  <Checkbox
+                    id={`halaqah-${h.id_halaqah}`}
                     checked={idHalaqahs.includes(h.id_halaqah.toString())}
                     onCheckedChange={(checked) => {
                       if (checked) {

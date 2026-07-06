@@ -62,6 +62,7 @@ export interface SetoranPayload {
   surat: string;
   ayat: string;
   id_kategori: number;
+  tanggal_setoran?: string;
   taqwim?: number;
   keterangan?: string;
   start_surat_id: number;
@@ -116,10 +117,12 @@ export interface SetoranFormFields {
   id_santri: number;
   id_sesi?: number;
   juz: number;
-  surat: string;
-  ayat_mulai: number;
-  ayat_selesai: number;
   id_kategori: number;
+  surat_mulai: string;
+  ayat_mulai: number;
+  surat_selesai: string;
+  ayat_selesai: number;
+  tanggal_setoran: string;
   taqwim?: number;
   keterangan?: string;
 }

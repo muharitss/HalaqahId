@@ -1,4 +1,4 @@
-﻿import axiosClient from "@/lib/axiosClient";
+import axiosClient from "@/lib/axiosClient";
 import { getErrorMessage } from "@/utils/error";
 import { type Santri, type CreateSantriData, type UpdateSantriData } from "../types";
 
@@ -16,7 +16,7 @@ export const santriService = {
   // 2. Get Santri List (Auto-Filter berdasarkan role)
   async getAll(): Promise<Santri[]> {
     try {
-      const response = await axiosClient.get("/santri");
+      const response = await axiosClient.get("/santri", { params: { limit: 1000 } });
       return response.data.data;
     } catch (error: unknown) {
       throw new Error(getErrorMessage(error, "Gagal mengambil data santri"));

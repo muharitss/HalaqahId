@@ -22,13 +22,27 @@ export function KelolaSantriPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedSantri, setSelectedSantri] = useState<Santri | null>(null);
 
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [showAll, setShowAll] = useState(false);
+
   useEffect(() => {
     loadSantri();
   }, [loadSantri]);
 
+  // Reset page when search term changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
   const filteredSantri = santriList.filter((s) =>
     s.nama_santri.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const totalPages = Math.ceil(filteredSantri.length / 10);
+  const displayedSantri = showAll
+    ? filteredSantri
+    : filteredSantri.slice((currentPage - 1) * 10, currentPage * 10);
 
   const handleEdit = (santri: Santri) => {
     setSelectedSantri(santri);
@@ -93,13 +107,69 @@ export function KelolaSantriPage() {
         </div>
 
         <SantriTable 
-          data={filteredSantri}
+          data={displayedSantri}
           searchTerm={searchTerm}
           isAdmin={isAdmin}
           halaqahList={[]} 
           onEdit={handleEdit}
           onDelete={handleDelete}
         />
+
+        {/* Pagination Section */}
+        {filteredSantri.length > 10 && (
+          <div className="p-4 border-t flex flex-col sm:flex-row items-center justify-between gap-4 bg-muted/10">
+            <div className="text-xs text-muted-foreground">
+              {showAll ? (
+                <span>Menampilkan semua <strong>{filteredSantri.length}</strong> santri</span>
+              ) : (
+                <span>
+                  Menampilkan <strong>{Math.min((currentPage - 1) * 10 + 1, filteredSantri.length)}</strong> -{" "}
+                  <strong>{Math.min(currentPage * 10, filteredSantri.length)}</strong> dari{" "}
+                  <strong>{filteredSantri.length}</strong> santri
+                </span>
+              )}
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-xs h-8 px-3"
+                onClick={() => {
+                  setShowAll(!showAll);
+                  setCurrentPage(1);
+                }}
+              >
+                {showAll ? "Batasi 10 per Halaman" : "Tampilkan Semua"}
+              </Button>
+              
+              {!showAll && totalPages > 1 && (
+                <div className="flex items-center gap-2 ml-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 px-3"
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  >
+                    Sebelumnya
+                  </Button>
+                  <span className="text-xs text-muted-foreground min-w-[45px] text-center">
+                    {currentPage} / {totalPages}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 px-3"
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  >
+                    Selanjutnya
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       <SantriModal
