@@ -1,17 +1,93 @@
-import { useMemo } from "react";
-import { format } from "date-fns";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useMemo, useState } from "react";
+import { format, subDays, startOfMonth, endOfMonth } from "date-fns";
+import { id as idLocale } from "date-fns/locale";
+import { toast } from "sonner";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Card, CardContent } from "@/components/ui/card";
-import { FileText, ClipboardList, BookOpen, Layers } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  History,
+  CalendarDays,
+  FileDown,
+  Loader2,
+} from "lucide-react";
 import { type SetoranRecord } from "../../setoran/types";
+import { type ProgresSantri } from "../types";
+import { useSantriHistoryPdf } from "../hooks/useSantriHistoryPdf";
+import { cn } from "@/lib/utils";
 
 interface HistoryTableProps {
-  data: SetoranRecord[];
-  monthName?: string;
+  santri: ProgresSantri;
+  history: SetoranRecord[];
 }
 
-export function HistoryTable({ data, monthName }: HistoryTableProps) {
+const KATEGORI_OPTIONS = [
+  { value: "all", label: "Semua Kategori" },
+  { value: "HAFALAN", label: "Hafalan" },
+  { value: "MURAJAAH", label: "Muraja'ah" },
+  { value: "ZIYADAH", label: "Ziyadah" },
+  { value: "INTENS", label: "Intensif" },
+  { value: "BACAAN", label: "Bacaan" },
+];
+
+const DATE_FILTER_OPTIONS = [
+  { value: "all", label: "Semua Waktu" },
+  { value: "week", label: "7 Hari Terakhir" },
+  { value: "month", label: "Bulan Ini" },
+  { value: "custom", label: "Kustom Tanggal" },
+];
+
+const KATEGORI_BADGE_VARIANT: Record<
+  string,
+  "default" | "secondary" | "outline"
+> = {
+  HAFALAN: "default",
+  MURAJAAH: "secondary",
+  ZIYADAH: "outline",
+  INTENS: "secondary",
+  BACAAN: "outline",
+};
+
+export function HistoryTable({ santri, history }: HistoryTableProps) {
+  const { generateSantriHistoryPdf, isGenerating } = useSantriHistoryPdf();
+
+  // Local Filter States
+  const [selectedKategori, setSelectedKategori] = useState("all");
+  const [dateFilterType, setDateFilterType] = useState("all");
+  const [dateFrom, setDateFrom] = useState<Date | null>(null);
+  const [dateTo, setDateTo] = useState<Date | null>(null);
+  const [calFromOpen, setCalFromOpen] = useState(false);
+  const [calToOpen, setCalToOpen] = useState(false);
+
   // Helper resolver nama kategori
   const getKategoriName = (item: SetoranRecord) => {
     if (typeof item.kategori === "object" && item.kategori) {
@@ -20,177 +96,411 @@ export function HistoryTable({ data, monthName }: HistoryTableProps) {
     return (item.kategori as unknown as string) || "HAFALAN";
   };
 
-  // Group data by Kategori
-  const groupedData = useMemo(() => {
-    const groups: Record<string, SetoranRecord[]> = {};
-    data.forEach((item) => {
-      const name = getKategoriName(item);
-      if (!groups[name]) {
-        groups[name] = [];
+  // Filter history records in real-time
+  const filteredHistory = useMemo(() => {
+    return history.filter((item) => {
+      // 1. Kategori Filter
+      const catName = getKategoriName(item);
+      if (
+        selectedKategori !== "all" &&
+        catName.toUpperCase() !== selectedKategori.toUpperCase()
+      ) {
+        return false;
       }
-      groups[name].push(item);
+
+      // 2. Date Range Filter
+      const date = new Date(item.tanggal_setoran);
+      const now = new Date();
+      if (dateFilterType === "week") {
+        const sevenDaysAgo = subDays(now, 7);
+        if (date < sevenDaysAgo) return false;
+      } else if (dateFilterType === "month") {
+        const currentMonthStart = startOfMonth(now);
+        const currentMonthEnd = endOfMonth(now);
+        if (date < currentMonthStart || date > currentMonthEnd) return false;
+      } else if (dateFilterType === "custom") {
+        if (dateFrom) {
+          const start = new Date(dateFrom);
+          start.setHours(0, 0, 0, 0);
+          if (date < start) return false;
+        }
+        if (dateTo) {
+          const end = new Date(dateTo);
+          end.setHours(23, 59, 59, 999);
+          if (date > end) return false;
+        }
+      }
+
+      return true;
     });
-    return groups;
-  }, [data]);
+  }, [history, selectedKategori, dateFilterType, dateFrom, dateTo]);
 
-  const categories = useMemo(() => Object.keys(groupedData).sort(), [groupedData]);
-
-  if (data.length === 0) {
-    return (
-      <div className="p-8 text-center text-sm text-muted-foreground">
-        Belum ada riwayat setoran di bulan {monthName || "ini"}.
-      </div>
+  // Sort chronological (newest first)
+  const sortedHistory = useMemo(() => {
+    return [...filteredHistory].sort(
+      (a, b) =>
+        new Date(b.tanggal_setoran).getTime() -
+        new Date(a.tanggal_setoran).getTime(),
     );
-  }
+  }, [filteredHistory]);
 
-  // Helper hitung statistik untuk sekelompok setoran
-  const getStats = (records: SetoranRecord[]) => {
-    const totalSetoran = records.length;
-    const totalBaris = records.reduce((sum, item) => sum + (item.total_baris || 0), 0);
-    
-    // Hitung total halaman berdasarkan data halaman mulai & selesai
-    const totalHalaman = records.reduce((sum, item) => {
-      // @ts-ignore
-      const startPage = item.start_page || item.startPage;
-      // @ts-ignore
-      const endPage = item.end_page || item.endPage;
+  // Metrics summary based on filtered list
+  const stats = useMemo(() => {
+    const totalSetoran = sortedHistory.length;
+    const totalBaris = sortedHistory.reduce(
+      (sum, item) => sum + (item.total_baris || 0),
+      0,
+    );
+    const totalHalaman = sortedHistory.reduce((sum, item) => {
+      const startPage = item.start_page ?? item.startPage;
+      const endPage = item.end_page ?? item.endPage;
       if (startPage && endPage) {
         return sum + (endPage - startPage + 1);
       }
       return sum;
     }, 0);
 
-    // Konversi baris ke halaman (jika data halaman kosong, gunakan estimasi total baris / 15 baris per halaman)
     const estimasiHalaman = totalBaris > 0 ? (totalBaris / 15).toFixed(1) : "0";
 
     return {
       totalSetoran,
       totalBaris,
-      totalHalaman: totalHalaman > 0 ? totalHalaman.toString() : estimasiHalaman,
+      totalHalaman:
+        totalHalaman > 0 ? totalHalaman.toString() : estimasiHalaman,
     };
+  }, [sortedHistory]);
+
+  // Generate period label for PDF filename/header
+  const getPeriodLabel = () => {
+    if (dateFilterType === "week") return "7-Hari-Terakhir";
+    if (dateFilterType === "month")
+      return format(new Date(), "MMMM-yyyy", { locale: idLocale });
+    if (dateFilterType === "custom") {
+      const fromStr = dateFrom ? format(dateFrom, "dd-MM-yyyy") : "Awal";
+      const toStr = dateTo ? format(dateTo, "dd-MM-yyyy") : "Akhir";
+      return `${fromStr}-s.d.-${toStr}`;
+    }
+    return "Semua-Periode";
+  };
+
+  const handleDownloadSinglePdf = async (type: "filtered" | "all") => {
+    try {
+      const pdfHistory = type === "filtered" ? sortedHistory : history;
+      const pdfPeriodLabel =
+        type === "filtered"
+          ? getPeriodLabel().replace(/-/g, " ")
+          : "Semua Periode";
+
+      await generateSantriHistoryPdf({
+        santri,
+        history: pdfHistory,
+        periodLabel: pdfPeriodLabel,
+        namaSekolah: "Halaqah ID",
+      });
+      toast.success(`PDF Riwayat ${santri.nama_santri} berhasil diunduh!`);
+    } catch (err) {
+      console.error("Single PDF export error:", err);
+      toast.error("Gagal mengunduh PDF riwayat");
+    }
   };
 
   return (
     <div className="space-y-4">
-      <Tabs defaultValue={categories[0]} className="w-full">
-        <div className="px-6 pt-3">
-          <TabsList className="grid grid-flow-col auto-cols-auto justify-start gap-1 p-1 h-9.5 overflow-x-auto bg-muted/40">
-            {categories.map((cat) => (
-              <TabsTrigger 
-                key={cat} 
-                value={cat} 
-                className="text-xs font-bold px-3.5 py-1.5 rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm"
+      {/* PDF Download Dropdown positioned absolutely in Dialog Header */}
+      {sortedHistory.length > 0 && (
+        <div className="absolute right-12 top-[18px] z-50">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                className="h-8 gap-2 px-3"
+                disabled={isGenerating}
               >
-                <Layers className="h-3 w-3 mr-1.5 opacity-60" />
-                {cat}
-                <span className="ml-1.5 text-[10px] bg-muted px-1.5 py-0.5 rounded-full text-muted-foreground group-data-[state=active]:bg-primary/10">
-                  {groupedData[cat].length}
-                </span>
-              </TabsTrigger>
-            ))}
-          </TabsList>
+                {isGenerating ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Generating...</span>{" "}
+                  </>
+                ) : (
+                  <>
+                    <FileDown className="h-4 w-4" />
+                    <span className="text-sm font-medium">pdf</span>
+                  </>
+                )}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-52">
+              <DropdownMenuLabel className="text-xs">
+                Opsi Ekspor Laporan
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => handleDownloadSinglePdf("filtered")}
+                disabled={isGenerating}
+                className="cursor-pointer text-xs"
+              >
+                Unduh Hasil Filter ({sortedHistory.length} Setoran)
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => handleDownloadSinglePdf("all")}
+                disabled={isGenerating}
+                className="cursor-pointer text-xs"
+              >
+                Unduh Semua Riwayat ({history.length} Setoran)
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
+      )}
 
-        {categories.map((cat) => {
-          const records = groupedData[cat];
-          const stats = getStats(records);
+      {/* ── FILTER SECTION ── */}
+      <div className="flex flex-wrap gap-2 items-center justify-between bg-muted/20 p-3 rounded-lg border">
+        <div className="flex flex-wrap gap-2 items-center">
+          {/* Category Selector */}
+          <Select value={selectedKategori} onValueChange={setSelectedKategori}>
+            <SelectTrigger className="h-9 w-[160px] bg-background">
+              <SelectValue placeholder="Pilih Kategori" />
+            </SelectTrigger>
+            <SelectContent>
+              {KATEGORI_OPTIONS.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-          return (
-            <TabsContent key={cat} value={cat} className="space-y-4 pt-2">
-              {/* ── STATS CARDS GRID ── */}
-              <div className="grid grid-cols-3 gap-4 px-6">
-                <Card className="bg-card/50 shadow-none border-border/50">
-                  <CardContent className="p-4 flex items-center gap-3">
-                    <div className="h-8 w-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-                      <ClipboardList className="h-4 w-4" />
-                    </div>
-                    <div>
-                      <p className="text-[10px] text-muted-foreground font-semibold uppercase">Total Setoran</p>
-                      <h4 className="text-base font-extrabold">{stats.totalSetoran} kali</h4>
-                    </div>
-                  </CardContent>
-                </Card>
+          {/* Date Range Option Selector */}
+          <Select value={dateFilterType} onValueChange={setDateFilterType}>
+            <SelectTrigger className="h-9 w-[160px] bg-background">
+              <SelectValue placeholder="Pilih Waktu" />
+            </SelectTrigger>
+            <SelectContent>
+              {DATE_FILTER_OPTIONS.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-                <Card className="bg-card/50 shadow-none border-border/50">
-                  <CardContent className="p-4 flex items-center gap-3">
-                    <div className="h-8 w-8 rounded-lg bg-amber-500/10 text-amber-600 flex items-center justify-center">
-                      <BookOpen className="h-4 w-4" />
-                    </div>
-                    <div>
-                      <p className="text-[10px] text-muted-foreground font-semibold uppercase">Total Halaman</p>
-                      <h4 className="text-base font-extrabold">{stats.totalHalaman} hal</h4>
-                    </div>
-                  </CardContent>
-                </Card>
+          {/* Custom Date Pickers */}
+          {dateFilterType === "custom" && (
+            <div className="flex items-center gap-2">
+              <Popover open={calFromOpen} onOpenChange={setCalFromOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className={cn(
+                      "h-9 gap-1.5 text-xs bg-background font-normal min-w-32 justify-start",
+                      dateFrom && "border-primary/50 text-primary bg-primary/5",
+                    )}
+                  >
+                    <CalendarDays className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    {dateFrom
+                      ? format(dateFrom, "dd MMM yyyy", { locale: idLocale })
+                      : "Mulai Tanggal"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <div className="p-2 border-b flex items-center justify-between">
+                    <p className="text-xs font-semibold text-muted-foreground">
+                      Mulai Dari
+                    </p>
+                    {dateFrom && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-5 text-[10px] text-muted-foreground px-1"
+                        onClick={() => {
+                          setDateFrom(null);
+                          setCalFromOpen(false);
+                        }}
+                      >
+                        Hapus
+                      </Button>
+                    )}
+                  </div>
+                  <Calendar
+                    mode="single"
+                    selected={dateFrom ?? undefined}
+                    onSelect={(d) => {
+                      setDateFrom(d ?? null);
+                      setCalFromOpen(false);
+                    }}
+                    disabled={(d) => (dateTo ? d > dateTo : false)}
+                    locale={idLocale}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
 
-                <Card className="bg-card/50 shadow-none border-border/50">
-                  <CardContent className="p-4 flex items-center gap-3">
-                    <div className="h-8 w-8 rounded-lg bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
-                      <FileText className="h-4 w-4" />
-                    </div>
-                    <div>
-                      <p className="text-[10px] text-muted-foreground font-semibold uppercase">Total Baris</p>
-                      <h4 className="text-base font-extrabold">{stats.totalBaris} baris</h4>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
+              <Popover open={calToOpen} onOpenChange={setCalToOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className={cn(
+                      "h-9 gap-1.5 text-xs bg-background font-normal min-w-32 justify-start",
+                      dateTo && "border-primary/50 text-primary bg-primary/5",
+                    )}
+                  >
+                    <CalendarDays className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    {dateTo
+                      ? format(dateTo, "dd MMM yyyy", { locale: idLocale })
+                      : "Hingga Tanggal"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <div className="p-2 border-b flex items-center justify-between">
+                    <p className="text-xs font-semibold text-muted-foreground">
+                      Hingga
+                    </p>
+                    {dateTo && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-5 text-[10px] text-muted-foreground px-1"
+                        onClick={() => {
+                          setDateTo(null);
+                          setCalToOpen(false);
+                        }}
+                      >
+                        Hapus
+                      </Button>
+                    )}
+                  </div>
+                  <Calendar
+                    mode="single"
+                    selected={dateTo ?? undefined}
+                    onSelect={(d) => {
+                      setDateTo(d ?? null);
+                      setCalToOpen(false);
+                    }}
+                    disabled={(d) => (dateFrom ? d < dateFrom : false)}
+                    locale={idLocale}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+          )}
+        </div>
+      </div>
 
-              {/* ── DETAILED HISTORY TABLE ── */}
-              <div className="overflow-x-auto border-t">
-                <Table>
-                  <TableHeader className="bg-muted/30">
-                    <TableRow>
-                      <TableHead className="w-[120px] pl-6 text-xs font-semibold">Tanggal</TableHead>
-                      <TableHead className="text-xs font-semibold">Materi Setoran</TableHead>
-                      <TableHead className="w-[100px] text-xs font-semibold text-center">Taqwim</TableHead>
-                      <TableHead className="pr-6 text-xs font-semibold">Keterangan</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {records.map((item) => {
-                      // @ts-ignore
-                      const startPage = item.start_page || item.startPage;
-                      // @ts-ignore
-                      const endPage = item.end_page || item.endPage;
-                      // @ts-ignore
-                      const totalBaris = item.total_baris || item.totalBaris;
+      {/* ── STATS CARDS ROW ── */}
+      <div className="grid grid-cols-3 gap-3">
+        <Card className="shadow-sm">
+          <CardContent className="p-3">
+            <p className="text-[10px] text-muted-foreground font-semibold uppercase">
+              Total Setoran
+            </p>
+            <h4 className="text-base font-bold mt-0.5">
+              {stats.totalSetoran} kali
+            </h4>
+          </CardContent>
+        </Card>
 
-                      return (
-                        <TableRow key={item.id_setoran} className="hover:bg-muted/5">
-                          <TableCell className="text-xs pl-6 py-3">
-                            <div className="font-bold">{format(new Date(item.tanggal_setoran), "dd MMM yyyy")}</div>
-                            <div className="text-muted-foreground text-[10px]">{format(new Date(item.tanggal_setoran), "HH:mm")}</div>
-                          </TableCell>
-                          <TableCell className="py-3">
-                            <div className="text-sm font-extrabold">Juz {item.juz}: {item.surat}</div>
-                            <div className="text-xs text-muted-foreground mt-0.5">
-                              Ayat {item.ayat}
-                              {startPage && (
-                                <span className="ml-2 bg-muted px-1.5 py-0.5 rounded text-[10px] text-foreground font-medium">
-                                  Halaman {startPage === endPage ? startPage : `${startPage}-${endPage}`} ({totalBaris} baris)
-                                </span>
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-center py-3">
-                            <span className={`text-sm font-extrabold ${item.taqwim === 0 ? "text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-full" : "text-amber-600 bg-amber-500/10 px-2 py-0.5 rounded-full"}`}>
-                              {item.taqwim}
-                            </span>
-                          </TableCell>
-                          <TableCell className="text-xs text-muted-foreground pr-6 py-3 max-w-[200px] truncate">
-                            {item.keterangan || "—"}
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              </div>
-            </TabsContent>
-          );
-        })}
-      </Tabs>
+        <Card className="shadow-sm">
+          <CardContent className="p-3">
+            <p className="text-[10px] text-muted-foreground font-semibold uppercase">
+              Total Halaman
+            </p>
+            <h4 className="text-base font-bold mt-0.5">
+              {stats.totalHalaman} hal
+            </h4>
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-sm">
+          <CardContent className="p-3">
+            <p className="text-[10px] text-muted-foreground font-semibold uppercase">
+              Total Baris
+            </p>
+            <h4 className="text-base font-bold mt-0.5">
+              {stats.totalBaris} baris
+            </h4>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* ── TABLE VIEW ── */}
+      <div className="border rounded-xl overflow-hidden bg-card">
+        {sortedHistory.length === 0 ? (
+          <div className="p-12 text-center text-sm text-muted-foreground flex flex-col items-center justify-center gap-2">
+            <History className="h-8 w-8 text-muted-foreground/40" />
+            <span>Tidak ada riwayat setoran yang cocok dengan filter.</span>
+          </div>
+        ) : (
+          <Table>
+            <TableHeader className="bg-muted/30">
+              <TableRow>
+                <TableHead className="w-[60px] pl-4 text-xs">#</TableHead>
+                <TableHead className="w-[120px] text-xs">Tanggal</TableHead>
+                <TableHead className="text-xs">Materi Setoran</TableHead>
+                <TableHead className="w-[110px] text-xs">Kategori</TableHead>
+                <TableHead className="w-[80px] text-xs text-center">
+                  Taqwim
+                </TableHead>
+                <TableHead className="pr-4 text-xs">Keterangan</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {sortedHistory.map((item, idx) => {
+                const date = new Date(item.tanggal_setoran);
+                const dateLabel = format(date, "dd/MM/yyyy", {
+                  locale: idLocale,
+                });
+                const timeLabel = format(date, "HH:mm");
+                const catName = getKategoriName(item);
+                const startPage = item.start_page ?? item.startPage;
+                const endPage = item.end_page ?? item.endPage;
+                const totalBaris = item.total_baris ?? item.totalBaris;
+
+                return (
+                  <TableRow key={item.id_setoran}>
+                    <TableCell className="pl-4 py-3 text-xs text-muted-foreground">
+                      {idx + 1}
+                    </TableCell>
+                    <TableCell className="py-3 text-xs">
+                      <div className="font-semibold">{dateLabel}</div>
+                      <div className="text-muted-foreground text-[10px]">
+                        {timeLabel} WIB
+                      </div>
+                    </TableCell>
+                    <TableCell className="py-3">
+                      <div className="text-xs font-semibold">
+                        Juz {item.juz}: {item.surat}
+                      </div>
+                      <div className="text-[10px] text-muted-foreground mt-0.5">
+                        Ayat {item.ayat}
+                        {startPage &&
+                          ` · Hal ${startPage === endPage ? startPage : `${startPage}-${endPage}`} (${totalBaris} baris)`}
+                      </div>
+                    </TableCell>
+                    <TableCell className="py-3">
+                      <Badge
+                        variant={
+                          KATEGORI_BADGE_VARIANT[catName.toUpperCase()] ??
+                          "outline"
+                        }
+                      >
+                        {catName}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-center py-3 text-xs font-semibold">
+                      {item.taqwim}
+                    </TableCell>
+                    <TableCell className="text-xs text-muted-foreground pr-4 py-3 max-w-[200px] truncate">
+                      {item.keterangan || "—"}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        )}
+      </div>
     </div>
   );
 }

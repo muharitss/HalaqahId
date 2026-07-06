@@ -44,9 +44,7 @@ export function SetoranTable({ history, loading }: SetoranTableProps) {
                   <div>
                     <div className="text-sm">{item.santri?.nama_santri}</div>
                     {(() => {
-                      const kategoriName = typeof item.kategori === 'object' && item.kategori
-                        ? (item.kategori as any).nama_kategori
-                        : item.kategori || "HAFALAN";
+                      const kategoriName = item.kategori?.nama_kategori || "HAFALAN";
                       return (
                         <div className="text-[10px] uppercase text-muted-foreground">{kategoriName}</div>
                       );

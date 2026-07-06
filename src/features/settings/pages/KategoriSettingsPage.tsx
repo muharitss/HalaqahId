@@ -18,7 +18,7 @@ interface KategoriSetoran {
   id_kategori: number;
   nama_kategori: string;
   deskripsi: string | null;
-  perlu_validasi_urutan: boolean;
+  perlu_validasi_urutan?: boolean;
 }
 
 export default function KategoriSettingsPage() {
@@ -41,7 +41,7 @@ export default function KategoriSettingsPage() {
     queryKey: ["kategori-setoran"],
     queryFn: async () => {
       const res = await sekolahService.getKategori();
-      return res.data || [];
+      return (res.data || []) as KategoriSetoran[];
     }
   });
 
@@ -100,7 +100,7 @@ export default function KategoriSettingsPage() {
     setSelectedKategori(kat);
     setNamaKategori(kat.nama_kategori);
     setDeskripsi(kat.deskripsi || "");
-    setPerluValidasiUrutan(kat.perlu_validasi_urutan);
+    setPerluValidasiUrutan(!!kat.perlu_validasi_urutan);
     setIsEditOpen(true);
   };
 

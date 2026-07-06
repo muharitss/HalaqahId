@@ -2,26 +2,13 @@ import { useState, useCallback } from "react";
 import { pdf } from "@react-pdf/renderer";
 import { format } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
-import { LaporanPdfTemplate } from "../components/LaporanPdfTemplate";
-import type { LaporanStats } from "../components/LaporanStatsCard";
+import { LaporanPdfTemplate, type LaporanPdfStats, type LaporanPdfRow } from "../components/LaporanPdfTemplate";
 import type { GroupedData, GroupedSantriItem, SetoranItem } from "../types";
-
-interface PdfRow {
-  no: number;
-  tanggal: string;
-  nama_santri: string;
-  nama_halaqah: string;
-  juz: number;
-  surat: string;
-  ayat: string;
-  kategori: string;
-  taqwim: number;
-  keterangan?: string;
-}
+import { useProfilSekolah } from "@/features/sekolah/hooks/useProfilSekolah";
 
 interface UseLaporanPdfOptions {
   groupedData: GroupedData;
-  stats: LaporanStats;
+  stats: LaporanPdfStats;
   activeHalaqah: string;
   periodLabel: string;
   namaSekolah?: string;
@@ -29,6 +16,7 @@ interface UseLaporanPdfOptions {
 
 export function useLaporanPdf() {
   const [isGenerating, setIsGenerating] = useState(false);
+  const { sekolah } = useProfilSekolah();
 
   const generatePdf = useCallback(async ({
     groupedData,
@@ -40,7 +28,8 @@ export function useLaporanPdf() {
     setIsGenerating(true);
     try {
       // Flatten & numerate rows
-      const rows: PdfRow[] = [];
+      const rows: LaporanPdfRow[] = [];
+
       let counter = 1;
 
       Object.entries(groupedData).forEach(([halaqahName, group]) => {
@@ -52,9 +41,7 @@ export function useLaporanPdf() {
               new Date(b.tanggal_setoran).getTime() - new Date(a.tanggal_setoran).getTime()
           );
           sorted.forEach((s: SetoranItem) => {
-            const kategoriName = typeof s.kategori === 'object' && s.kategori
-              ? (s.kategori as any).nama_kategori
-              : s.kategori || "HAFALAN";
+            const kategoriName = s.kategori?.nama_kategori || "HAFALAN";
             rows.push({
               no: counter++,
               tanggal: s.tanggal_setoran,
@@ -85,6 +72,7 @@ export function useLaporanPdf() {
           rows={rows}
           stats={stats}
           periodLabel={periodLabel}
+          sekolah={sekolah}
           namaSekolah={namaSekolah}
           namaHalaqah={namaHalaqah}
           generatedAt={generatedAt}
@@ -110,7 +98,7 @@ export function useLaporanPdf() {
     } finally {
       setIsGenerating(false);
     }
-  }, []);
+  }, [sekolah]);
 
   return { generatePdf, isGenerating };
 }

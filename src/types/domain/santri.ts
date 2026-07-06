@@ -1,11 +1,12 @@
-﻿import { KategoriTarget } from './enums';
+import type { TargetSekolah } from './target';
 
 export interface Santri {
   id_santri: number;
   nama_santri: string;
   nomor_telepon?: string | null;
   id_sekolah: number;
-  target: KategoriTarget;
+  id_target: number | null;
+  target?: TargetSekolah | null;
   id_halaqah: number;
   created_at: string;
   updated_at: string;
@@ -19,13 +20,13 @@ export interface Santri {
 export interface CreateSantriRequest {
   nama_santri: string;
   nomor_telepon?: string;
-  target?: KategoriTarget;
+  id_target?: number | null;
   id_halaqah: number;
 }
 
 export interface UpdateSantriRequest {
   nama_santri?: string;
   nomor_telepon?: string;
-  target?: KategoriTarget;
+  id_target?: number | null;
   id_halaqah?: number;
 }

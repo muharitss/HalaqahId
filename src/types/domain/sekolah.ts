@@ -60,6 +60,21 @@ export interface Sekolah {
   deleted_at?: string | null;
 }
 
+export interface SekolahCount {
+  users: number;
+  halaqah: number;
+  santri: number;
+}
+
+export interface SekolahWithCount extends Sekolah {
+  _count: SekolahCount;
+}
+
+export interface SekolahListResponse {
+  data: SekolahWithCount[];
+  total: number;
+}
+
 export interface UpdateSekolahRequest {
   nama_sekolah?: string;
   nama_singkat?: string;

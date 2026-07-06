@@ -1,4 +1,4 @@
-﻿import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUsers, faUserGraduate, faBook, faBullseye } from "@fortawesome/free-solid-svg-icons";
 import {
   Card,
@@ -9,26 +9,34 @@ import {
 import { type Santri } from "../types";
 
 export function SantriStats({ santriList }: { santriList: Santri[] }) {
+  const withTarget = santriList.filter((s) => s.id_target !== null && s.id_target !== undefined).length;
+  const noTarget = santriList.length - withTarget;
+  const percent = santriList.length > 0 ? Math.round((withTarget / santriList.length) * 100) : 0;
+
   const stats = [
     { 
       label: "Total Santri", 
       value: santriList.length, 
       icon: faUsers,
+      sub: "Terdaftar aktif",
     },
     { 
-      label: "Target Ringan", 
-      value: santriList.filter(s => s.target === "RINGAN").length, 
-      icon: faUserGraduate,
+      label: "Memiliki Target", 
+      value: withTarget, 
+      icon: faBullseye,
+      sub: "Mengikuti kurikulum",
     },
     { 
-      label: "Target Sedang", 
-      value: santriList.filter(s => s.target === "SEDANG").length, 
+      label: "Tanpa Target", 
+      value: noTarget, 
       icon: faBook,
+      sub: "Belajar mandiri",
     },
     { 
-      label: "Target Intense", 
-      value: santriList.filter(s => s.target === "INTENSE").length, 
-      icon: faBullseye, 
+      label: "Rasio Target", 
+      value: `${percent}%`, 
+      icon: faUserGraduate, 
+      sub: "Santri terarah",
     },
   ];
 
@@ -48,7 +56,7 @@ export function SantriStats({ santriList }: { santriList: Santri[] }) {
           <CardContent>
             <div className="text-2xl font-bold">{stat.value}</div>
             <p className="text-xs text-muted-foreground mt-1">
-              Aktif dalam sistem
+              {stat.sub}
             </p>
           </CardContent>
         </Card>

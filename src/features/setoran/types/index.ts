@@ -107,6 +107,9 @@ export interface SetoranRecord {
   end_page?: number | null;
   end_line?: number | null;
   total_baris?: number | null;
+  startPage?: number | null;
+  endPage?: number | null;
+  totalBaris?: number | null;
 }
 
 export interface SetoranFormFields {
@@ -131,7 +134,11 @@ export interface SetoranItem {
   surat: string;
   ayat: string;
   id_kategori: number;
-  kategori: any;
+  kategori: {
+    id_kategori: number;
+    nama_kategori: string;
+    perlu_validasi_urutan?: boolean;
+  };
   taqwim?: number | null;
   keterangan?: string | null;
   created_at?: string;

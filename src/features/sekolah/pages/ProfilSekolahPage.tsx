@@ -70,7 +70,7 @@ export default function ProfilSekolahPage() {
                 Ubah informasi nama dan alamat sekolah Anda di sini.
               </DialogDescription>
             </DialogHeader>
-            <div className="py-4">
+            <div className="py-4 max-h-[70vh] overflow-y-auto pr-2">
               <ProfilSekolahForm 
                 sekolah={sekolah} 
                 saving={saving} 

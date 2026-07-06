@@ -1,4 +1,5 @@
 import { parseISO, getMonth, getYear } from "date-fns";
+import type { SetoranItem } from "@/features/setoran/types";
 
 interface DateFilter {
   month: number | null;
@@ -19,7 +20,7 @@ interface DashboardItem {
   id_santri?: number; // Primary key dari backend
   santri?: SantriBase | null;
   tanggal_setoran?: string;
-  kategori?: string;
+  kategori?: string | { id_kategori: number; nama_kategori: string; perlu_validasi_urutan?: boolean; };
   status?: string;
 }
 
@@ -80,14 +81,14 @@ export const transformSetoranData = (
       santriGroup: {
         [key: number]: {
           nama: string;
-          setoran: any[];
+          setoran: SetoranItem[];
           stats: Record<string, number>;
         };
       };
     };
   }
 
-  return filteredData.reduce((acc: AccType, item: any) => {
+  return (filteredData as unknown as SetoranItem[]).reduce((acc: AccType, item: SetoranItem) => {
     const halaqahName = item.santri?.halaqah?.name_halaqah || "Tanpa Halaqah";
     const santriId = item.id_santri || 0;
     const santriName = item.santri?.nama_santri || "Nama Tidak Diketahui";
@@ -95,7 +96,7 @@ export const transformSetoranData = (
     // Resolusi nama kategori baik format objek (relasi baru) maupun string (legacy)
     const rawKategori = item.kategori;
     const kategoriName = typeof rawKategori === 'object' && rawKategori && 'nama_kategori' in rawKategori
-      ? (rawKategori as any).nama_kategori
+      ? (rawKategori as { nama_kategori: string }).nama_kategori
       : rawKategori;
     const kategori = (kategoriName || "HAFALAN").toUpperCase();
 

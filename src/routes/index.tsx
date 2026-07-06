@@ -18,6 +18,8 @@ import SantriDetail from "@/features/display/pages/SantriDetail";
 // ── Pages: Superadmin ──────────────────────────────────────────────────────
 import { SuperadminDashboard } from "@/features/dashboard";
 import { KelolaSekolahPage } from "@/features/sekolah";
+import KelolaUserPage from "@/features/dashboard/pages/kelola-user-page";
+import KelolaAuditLogPage from "@/features/dashboard/pages/kelola-audit-log-page";
 
 // ── Pages: Kepala Muhafidz ─────────────────────────────────────────────────
 import { KepalaMuhafidzDashboard } from "@/features/dashboard";
@@ -30,9 +32,11 @@ import { ProfilSekolahPage } from "@/features/sekolah";
 
 // ── Pages: Settings ────────────────────────────────────────────────────────
 import SettingsPage from "@/features/settings/pages";
+import SuperadminSettingsPage from "@/features/settings/pages/SuperadminSettingsPage";
 import InfoSection from "@/features/settings/pages/InfoSection";
 import TrashSection from "@/features/settings/pages/TrashSection";
 import KategoriSettingsPage from "@/features/settings/pages/KategoriSettingsPage";
+import TargetSettingsPage from "@/features/settings/pages/TargetSettingsPage";
 
 // ── Pages: Santri ──────────────────────────────────────────────────────────
 import { KelolaSantriPage, ProgresSantriPage } from "@/features/santri";
@@ -161,7 +165,9 @@ export const router = createBrowserRouter([
             children: [
               { path: "/superadmin", element: <SuperadminDashboard /> },
               { path: "/superadmin/sekolah", element: <KelolaSekolahPage /> },
-              { path: "/superadmin/settings", element: <SettingsPage /> },
+              { path: "/superadmin/users", element: <KelolaUserPage /> },
+              { path: "/superadmin/audit-logs", element: <KelolaAuditLogPage /> },
+              { path: "/superadmin/settings", element: <SuperadminSettingsPage /> },
             ],
           },
 
@@ -182,6 +188,7 @@ export const router = createBrowserRouter([
               { path: "/kepala-muhafidz/settings/info", element: <InfoSection /> },
               { path: "/kepala-muhafidz/settings/trash", element: <TrashSection /> },
               { path: "/kepala-muhafidz/settings/kategori", element: <KategoriSettingsPage /> },
+              { path: "/kepala-muhafidz/settings/target", element: <TargetSettingsPage /> },
               // Kontrol per-halaqah
               { path: "/kepala-muhafidz/halaqah/:halaqahId/absensi", element: <AbsensiPage /> },
               { path: "/kepala-muhafidz/halaqah/:halaqahId/setoran", element: <SetoranPage /> },

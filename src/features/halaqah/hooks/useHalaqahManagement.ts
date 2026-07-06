@@ -30,7 +30,7 @@ export function useHalaqahManagement() {
           map[h.id_halaqah] = (h.santri || []).map((s) => ({
             ...s,
             id_halaqah: h.id_halaqah,
-          })) as Santri[];
+          })) as unknown as Santri[];
         });
         return { halaqahs: data, santriMap: map };
       } catch (error) {
@@ -63,13 +63,13 @@ export function useHalaqahManagement() {
     mutationFn: async (data: {
       nama_santri: string | FormDataEntryValue | null;
       nomor_telepon: string | FormDataEntryValue | null;
-      target: string;
+      id_target: number | null;
       id_halaqah: number | undefined;
     }) => {
       const payload = {
         nama_santri: String(data.nama_santri),
         nomor_telepon: String(data.nomor_telepon),
-        target: data.target as "RINGAN" | "SEDANG" | "INTENSE",
+        id_target: data.id_target,
         id_halaqah: data.id_halaqah || selectedHalaqah?.id_halaqah || 0,
       };
 
@@ -111,7 +111,7 @@ export function useHalaqahManagement() {
       await halaqahManagementService.updateSantri(santriId, {
         nama_santri: selectedSantri.nama_santri,
         nomor_telepon: selectedSantri.nomor_telepon || "",
-        target: selectedSantri.target as "RINGAN" | "SEDANG" | "INTENSE",
+        id_target: selectedSantri.id_target,
         id_halaqah: targetHalaqahId,
       });
     },
@@ -128,9 +128,9 @@ export function useHalaqahManagement() {
 
   const handleSaveSantri = useCallback(
     async (data: {
-      nama_santri: string | FormDataEntryValue | null;
-      nomor_telepon: string | FormDataEntryValue | null;
-      target: string;
+      nama_santri: string;
+      nomor_telepon: string;
+      id_target: number | null;
       id_halaqah: number | undefined;
     }) => {
       await saveSantriMutation.mutateAsync(data);

@@ -2,17 +2,31 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { MessageCircle, BookOpen, User, Target, Phone } from "lucide-react";
+import { type TargetSekolah } from "@/types/domain/target";
 
 interface ProfileCardProps {
   nama: string;
   halaqah: string;
   nomorTelepon?: string;
-  target?: string;
+  target?: string | TargetSekolah | null;
   muhafiz?: string;
 }
 
-function getTargetConfig(target?: string) {
-  switch (target?.toUpperCase()) {
+function getTargetConfig(target?: string | TargetSekolah | null) {
+  if (!target) {
+    return { label: "Tanpa Target", className: "bg-muted text-muted-foreground border-border" };
+  }
+
+  if (typeof target === "object" && "nama_target" in target) {
+    const satuanStr = target.satuan.toLowerCase();
+    const tipeStr = target.tipe.toLowerCase();
+    return {
+      label: `${target.nama_target} (${target.nilai_target} ${satuanStr}/${tipeStr})`,
+      className: "bg-orange-500/10 text-orange-600 border-orange-200 dark:border-orange-500/30 dark:text-orange-400"
+    };
+  }
+
+  switch (target.toString().toUpperCase()) {
     case "INTENSE":
       return { label: "Intense", className: "bg-rose-500/10 text-rose-600 border-rose-200 dark:border-rose-500/30 dark:text-rose-400" };
     case "SEDANG":
@@ -20,7 +34,7 @@ function getTargetConfig(target?: string) {
     case "RINGAN":
       return { label: "Ringan", className: "bg-emerald-500/10 text-emerald-600 border-emerald-200 dark:border-emerald-500/30 dark:text-emerald-400" };
     default:
-      return { label: target || "-", className: "bg-muted text-muted-foreground border-border" };
+      return { label: target.toString() || "-", className: "bg-muted text-muted-foreground border-border" };
   }
 }
 

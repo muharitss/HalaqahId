@@ -42,7 +42,18 @@ import { surahNameToNumber, SURAH_PAGE_START } from "@/utils/mushafUtils";
 import { type Santri } from "@/features/santri/types";
 import { type SetoranFormFields, type SetoranPayload, type MushafSelection } from "../types";
 import { MushafViewer } from "./MushafViewer";
-import { sekolahService } from "@/features/sekolah/api/sekolahService";
+import { sekolahService, type KategoriSetoranResponse } from "@/features/sekolah/api/sekolahService";
+import { setoranService } from "../api/setoranService";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 // ─────────────────────────────────────────────
 // Schema validasi
@@ -73,6 +84,41 @@ interface SetoranFormProps {
   onValidationChange?: (isValid: boolean) => void;
 }
 
+const parseAyatRange = (ayatStr: string) => {
+  if (!ayatStr) return { start: 1, end: 1 };
+  const parts = ayatStr.split("-");
+  const start = parseInt(parts[0]) || 1;
+  const end = parseInt(parts[1]) || start;
+  return { start, end };
+};
+
+const checkDuplicateSetoran = (
+  history: any[],
+  newSurat: string,
+  newStartAyat: number,
+  newEndAyat: number,
+  newKategoriId: number
+) => {
+  return history.some((item) => {
+    const isSameCategory = item.id_kategori === newKategoriId;
+    const isSameSurah = 
+      item.surat?.toLowerCase() === newSurat.toLowerCase() || 
+      item.start_surat_id === SURAH_IDS[newSurat];
+    
+    if (isSameCategory && isSameSurah) {
+      const itemStart = item.start_ayat !== null && item.start_ayat !== undefined 
+        ? item.start_ayat 
+        : parseAyatRange(item.ayat).start;
+      const itemEnd = item.end_ayat !== null && item.end_ayat !== undefined 
+        ? item.end_ayat 
+        : parseAyatRange(item.ayat).end;
+      
+      return newStartAyat <= itemEnd && itemStart <= newEndAyat;
+    }
+    return false;
+  });
+};
+
 export function SetoranForm({
   santriList,
   sesiList,
@@ -87,14 +133,8 @@ export function SetoranForm({
   const [mushafSelectionMode, setMushafSelectionMode] = useState<"start" | "end">("start");
   const [mushafSelection, setMushafSelection] = useState<MushafSelection | null>(null);
 
-  // Fetch Kategori Data dinamis dari backend
-  const { data: kategoriList = [] } = useQuery({
-    queryKey: ["kategori-setoran"],
-    queryFn: async () => {
-      const res = await sekolahService.getKategori();
-      return res.data || [];
-    }
-  });
+  const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
+  const [pendingValues, setPendingValues] = useState<SetoranFormFields | null>(null);
 
   const form = useForm<SetoranFormFields>({
     resolver: zodResolver(setoranSchema) as Resolver<SetoranFormFields>,
@@ -109,6 +149,26 @@ export function SetoranForm({
       taqwim: 0,
       keterangan: "",
     },
+  });
+
+  const selectedSantriId = form.watch("id_santri");
+  const { data: studentHistory = [] } = useQuery({
+    queryKey: ["setoran-history-local", selectedSantriId],
+    queryFn: async () => {
+      if (!selectedSantriId) return [];
+      const res = await setoranService.getSetoranBySantri(selectedSantriId);
+      return res.data || [];
+    },
+    enabled: !!selectedSantriId,
+  });
+
+  // Fetch Kategori Data dinamis dari backend
+  const { data: kategoriList = [] } = useQuery({
+    queryKey: ["kategori-setoran"],
+    queryFn: async () => {
+      const res = await sekolahService.getKategori();
+      return res.data || [];
+    }
   });
 
   // Watcher untuk sinkronisasi
@@ -159,9 +219,7 @@ export function SetoranForm({
     }
   }, [inputMethod]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const onFormSubmit = async (values: SetoranFormFields) => {
-    if (!isTodayValidForSesi) return;
-
+  const proceedSubmit = async (values: SetoranFormFields) => {
     const suratId = SURAH_IDS[values.surat] || 1;
 
     const payload: SetoranPayload = {
@@ -199,6 +257,31 @@ export function SetoranForm({
       setMushafSelection(null);
       setInputMethod("manual");
     }
+  };
+
+  const onFormSubmit = async (values: SetoranFormFields) => {
+    if (!isTodayValidForSesi) return;
+
+    const selectedCategory = kategoriList.find(
+      (k: KategoriSetoranResponse) => k.id_kategori === values.id_kategori
+    );
+    const hasOverlap =
+      selectedCategory?.perlu_validasi_urutan &&
+      checkDuplicateSetoran(
+        studentHistory,
+        values.surat,
+        values.ayat_mulai,
+        values.ayat_selesai,
+        values.id_kategori
+      );
+
+    if (hasOverlap) {
+      setPendingValues(values);
+      setShowDuplicateDialog(true);
+      return;
+    }
+
+    await proceedSubmit(values);
   };
 
   return (
@@ -284,7 +367,7 @@ export function SetoranForm({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {kategoriList.map((kat: any) => (
+                    {kategoriList.map((kat: KategoriSetoranResponse) => (
                       <SelectItem 
                         key={kat.id_kategori} 
                         value={kat.id_kategori.toString()}
@@ -619,6 +702,53 @@ export function SetoranForm({
           </div>
         )}
       </form>
+
+      <AlertDialog open={showDuplicateDialog} onOpenChange={setShowDuplicateDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-amber-600">
+              <AlertCircle className="h-5 w-5" />
+              Peringatan Setoran Duplikat
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-foreground">
+              Ayat ini sudah disetorkan sebelumnya. Apakah Anda ingin tetap menyetorkannya kembali, mengganti kategori, atau membatalkannya?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex flex-col sm:flex-row gap-2 mt-4">
+            <AlertDialogCancel
+              onClick={() => {
+                setShowDuplicateDialog(false);
+                setPendingValues(null);
+              }}
+              className="w-full sm:w-auto"
+            >
+              Batal
+            </AlertDialogCancel>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowDuplicateDialog(false);
+                setPendingValues(null);
+              }}
+              className="w-full sm:w-auto border-amber-300 text-amber-700 hover:bg-amber-50"
+            >
+              Ganti Kategori
+            </Button>
+            <AlertDialogAction
+              onClick={() => {
+                if (pendingValues) {
+                  proceedSubmit(pendingValues);
+                }
+                setShowDuplicateDialog(false);
+                setPendingValues(null);
+              }}
+              className="w-full sm:w-auto bg-amber-600 hover:bg-amber-700 text-white"
+            >
+              Tetap Input
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Form>
   );
 }

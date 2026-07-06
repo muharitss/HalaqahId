@@ -79,9 +79,7 @@ export function SantriAccordion({ santriGroup }: SantriAccordionProps) {
                     </TableCell>
                     <TableCell>
                       {(() => {
-                        const kategoriName = typeof s.kategori === 'object' && s.kategori
-                          ? (s.kategori as any).nama_kategori
-                          : s.kategori || "HAFALAN";
+                        const kategoriName = s.kategori?.nama_kategori || "HAFALAN";
                         return (
                           <Badge 
                             variant={kategoriName.toUpperCase() === "HAFALAN" ? "default" : "secondary"}

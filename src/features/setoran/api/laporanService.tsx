@@ -99,9 +99,7 @@ export const laporanService = {
           halaqahCount++;
           santriSet.add(santri.nama);
           totalTaqwim += s.taqwim ?? 0;
-          const kategoriName = typeof s.kategori === 'object' && s.kategori
-            ? (s.kategori as any).nama_kategori
-            : s.kategori || "HAFALAN";
+          const kategoriName = s.kategori?.nama_kategori || "HAFALAN";
           const key = kategoriName.toUpperCase();
           distribusiKategori[key] = (distribusiKategori[key] ?? 0) + 1;
         });

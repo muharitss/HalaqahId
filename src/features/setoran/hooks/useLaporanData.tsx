@@ -126,10 +126,7 @@ export const useLaporanData = () => {
             if (tgl > endOfDay(filters.dateTo)) return false;
           }
 
-          // Kategori filter
-          const kategoriName = typeof s.kategori === 'object' && s.kategori
-            ? (s.kategori as any).nama_kategori
-            : s.kategori || "HAFALAN";
+          const kategoriName = s.kategori?.nama_kategori || "HAFALAN";
           if (
             filters.selectedKategori !== "" && 
             kategoriName.toUpperCase() !== filters.selectedKategori.toUpperCase()
@@ -147,9 +144,7 @@ export const useLaporanData = () => {
             // Recalculate stats
             stats: filteredSetoran.reduce(
               (acc: Record<string, number>, s: SetoranItem) => {
-                const kName = typeof s.kategori === 'object' && s.kategori
-                  ? (s.kategori as any).nama_kategori
-                  : s.kategori || "HAFALAN";
+                const kName = s.kategori?.nama_kategori || "HAFALAN";
                 const key = kName.toUpperCase();
                 acc[key] = (acc[key] ?? 0) + 1;
                 return acc;
