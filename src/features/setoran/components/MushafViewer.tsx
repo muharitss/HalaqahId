@@ -6,13 +6,14 @@
  * - Menampilkan halaman mushaf dari UmmahAPI (per baris, RTL)
  * - Klik ayat untuk memilih start/end setoran (dual-select mode)
  * - Highlight range ayat yang dipilih
- * - Navigasi antar halaman
+ * - Navigasi antar halaman (header atas + tombol bawah)
  * - ✅ Quick Jump Input: klik nomor halaman → ketik langsung → Enter
  * - ✅ Navigasi Surah: combobox 114 surah → lompat langsung
  * - ✅ Navigasi Juz: select Juz 1–30 → lompat ke halaman awal juz
- * - ✅ Format 15 Baris Mushaf: render header surah & bismillah di baris yang sesuai
+ * - ✅ Format 15 Baris Mushaf: CSS Grid repeat(15,1fr) — selalu 15 baris memenuhi layar
  * - ✅ Penanda Ayat: border lingkaran khas mushaf untuk nomor ayat
- * - ✅ Navigasi RTL: urutan navigasi footer disesuaikan arah baca Al-Quran (kanan-ke-kiri)
+ * - ✅ Navigasi RTL: urutan navigasi disesuaikan arah baca Al-Quran (kanan-ke-kiri)
+ * - ✅ Prefetch: 5 halaman sebelum & sesudah di-prefetch otomatis
  */
 
 import { useMemo, useState, useRef, useEffect } from "react";
@@ -21,7 +22,6 @@ import {
   ChevronRight,
   Loader2,
   AlertCircle,
-  BookOpen,
   Search,
   BookMarked,
 } from "lucide-react";
@@ -48,7 +48,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useMushafPage } from "../hooks/useMushafPage";
+import { useMushafPage, usePrefetchMushafPages } from "../hooks/useMushafPage";
 import {
   surahNumberToName,
   hitungTotalBaris,
@@ -122,7 +122,7 @@ function PageJumpInput({
           min={1}
           max={totalPages}
           inputMode="numeric"
-          className="w-16 h-7 text-center text-xs px-1 font-mono"
+          className="w-14 h-7 text-center text-xs px-1 font-mono"
           value={inputVal}
           onChange={(e) => setInputVal(e.target.value)}
           onBlur={handleCommit}
@@ -141,7 +141,7 @@ function PageJumpInput({
         setEditing(true);
       }}
       title="Klik untuk loncat ke halaman tertentu"
-      className="text-xs font-mono text-muted-foreground hover:text-foreground hover:underline cursor-pointer px-2 py-1 rounded hover:bg-muted transition-colors"
+      className="text-xs font-mono text-muted-foreground hover:text-foreground hover:underline cursor-pointer px-1.5 py-1 rounded hover:bg-muted transition-colors"
     >
       {currentPage} / {totalPages}
     </button>
@@ -165,14 +165,14 @@ function SurahJumpCombobox({
           type="button"
           variant="outline"
           size="sm"
-          className="h-7 gap-1.5 text-xs px-2.5 font-medium"
+          className="h-7 gap-1 text-xs px-2 font-medium"
           title="Lompat ke Surah"
         >
           <Search className="h-3 w-3 text-primary" />
-          <span className="hidden sm:inline">Ke Surah</span>
+          <span className="hidden sm:inline">Surah</span>
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[240px] p-0" align="start" side="top">
+      <PopoverContent className="w-[240px] p-0 z-[10000]" align="start" side="bottom">
         <Command>
           <CommandInput placeholder="Cari nama surah..." className="h-9 text-xs" />
           <CommandList className="max-h-[240px]">
@@ -183,7 +183,7 @@ function SurahJumpCombobox({
               {SURAH_LIST.map((surah) => (
                 <CommandItem
                   key={surah.number}
-                  value={`${surah.number} ${surah.name}`}
+                  value={`${surah.number} ${surah.name}`.toLowerCase()}
                   onSelect={() => {
                     onJump(surah.page);
                     setOpen(false);
@@ -221,11 +221,11 @@ function JuzJumpSelect({
         onJump(page);
       }}
     >
-      <SelectTrigger className="h-7 text-xs w-[90px] gap-1 px-2">
+      <SelectTrigger className="h-7 text-xs w-[78px] gap-1 px-2">
         <BookMarked className="h-3 w-3 text-primary shrink-0" />
         <SelectValue placeholder="Juz" />
       </SelectTrigger>
-      <SelectContent>
+      <SelectContent className="z-[10000]">
         {Array.from({ length: 30 }, (_, i) => i + 1).map((juz) => (
           <SelectItem key={juz} value={String(juz)} className="text-xs">
             Juz {juz}
@@ -277,6 +277,8 @@ interface MushafViewerProps {
   /** Mode seleksi: "start" = menunggu klik pertama, "end" = menunggu klik kedua */
   selectionMode: "start" | "end";
   onSelectionModeChange: (mode: "start" | "end") => void;
+  /** Callback tambahan untuk tombol aksi di atas (misal "Terapkan Ayat") */
+  headerAction?: React.ReactNode;
 }
 
 // ─────────────────────────────────────────────
@@ -289,13 +291,14 @@ export function MushafViewer({
   onSelectionChange,
   selectionMode,
   onSelectionModeChange,
+  headerAction,
 }: MushafViewerProps) {
   const { page, isLoading, isError } = useMushafPage(currentPage);
 
-  const linesPerPage = page?.lines_per_page ?? 15;
-  const allLineNumbers = useMemo(() => {
-    return Array.from({ length: linesPerPage }, (_, i) => i + 1);
-  }, [linesPerPage]);
+  // Prefetch 5 halaman sebelum & sesudah untuk navigasi instan
+  usePrefetchMushafPages(currentPage);
+
+  const linesPerPage = 15; // Selalu 15 baris
 
   const lineGroups = useMemo(() => {
     if (!page) return new Map<number, MushafWord[]>();
@@ -377,7 +380,7 @@ export function MushafViewer({
             word.line_number,
             selection.startPage,
             selection.startLine,
-            page?.lines_per_page ?? 15,
+            linesPerPage,
           ),
         });
       } else {
@@ -393,7 +396,7 @@ export function MushafViewer({
             selection.startLine,
             currentPage,
             word.line_number,
-            page?.lines_per_page ?? 15,
+            linesPerPage,
           ),
         });
       }
@@ -406,225 +409,247 @@ export function MushafViewer({
     onSelectionModeChange("start");
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center gap-3 py-16 text-muted-foreground">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <p className="text-sm">Memuat halaman {currentPage}...</p>
-      </div>
-    );
-  }
-
-  if (isError || !page) {
-    return (
-      <div className="flex flex-col items-center justify-center gap-3 py-16 text-destructive">
-        <AlertCircle className="h-8 w-8" />
-        <p className="text-sm font-medium">Gagal memuat halaman mushaf</p>
-        <p className="text-xs text-muted-foreground">Periksa koneksi internet Anda</p>
-      </div>
-    );
-  }
-
   return (
-    <div className="flex flex-col gap-0 h-full">
-      {/* ── Header: Info Halaman + Quick Navigation ── */}
-      <div className="flex items-center justify-between px-3 py-2 border-b bg-muted/30 gap-2 flex-wrap">
-        {/* Kiri: icon + label halaman */}
-        <div className="flex items-center gap-2 shrink-0">
-          <BookOpen className="h-4 w-4 text-primary" />
-          <span className="text-xs font-semibold text-muted-foreground hidden sm:inline">
-            Mushaf
-          </span>
+    <div className="flex flex-col flex-1 min-h-0 bg-background overflow-hidden" style={{ height: "100%" }}>
+      {/* ── Header: Navigasi + Info + Action ── */}
+      <div className="border-b bg-muted/20 shrink-0 w-full">
+        <div className="max-w-3xl mx-auto flex items-center justify-between gap-1.5 px-3 py-1.5 flex-wrap">
+          {/* Kiri: Tombol Berikutnya (RTL: halaman bertambah) */}
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="h-7 px-2 gap-1 text-xs shrink-0"
+            onClick={() => onPageChange(currentPage + 1)}
+            disabled={!page || currentPage >= page.total_pages}
+          >
+            <ChevronLeft className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline text-xs">Berikutnya</span>
+          </Button>
+
+          {/* Tengah: navigasi surah + juz + halaman */}
+          <div className="flex items-center gap-1 flex-1 justify-center flex-wrap min-w-0">
+            {/* Surah Combobox */}
+            <SurahJumpCombobox onJump={onPageChange} />
+
+            {/* Juz Select */}
+            <JuzJumpSelect onJump={onPageChange} />
+
+            {/* Quick Jump Input */}
+            {page && (
+              <PageJumpInput
+                currentPage={currentPage}
+                totalPages={page.total_pages}
+                onJump={onPageChange}
+              />
+            )}
+          </div>
+
+          {/* Kanan: badge mode + headerAction (tombol Terapkan Ayat dsb) */}
+          <div className="flex items-center gap-1.5 shrink-0">
+            <Badge
+              variant={selectionMode === "start" ? "secondary" : "default"}
+              className="text-[10px] h-5 px-1.5 shrink-0"
+            >
+              {selectionMode === "start" ? "Klik Mulai" : "Klik Akhir"}
+            </Badge>
+            {headerAction}
+          </div>
         </div>
-
-        {/* Tengah: navigasi surah + juz + halaman */}
-        <div className="flex items-center gap-2 flex-1 justify-center flex-wrap">
-          {/* Surah Combobox */}
-          <SurahJumpCombobox onJump={onPageChange} />
-
-          {/* Juz Select */}
-          <JuzJumpSelect onJump={onPageChange} />
-
-          {/* Quick Jump Input */}
-          <PageJumpInput
-            currentPage={currentPage}
-            totalPages={page.total_pages}
-            onJump={onPageChange}
-          />
-        </div>
-
-        {/* Kanan: badge mode seleksi */}
-        <Badge
-          variant={selectionMode === "start" ? "secondary" : "default"}
-          className="text-xs h-5 px-2 shrink-0"
-        >
-          {selectionMode === "start" ? "Klik → Mulai" : "Klik → Selesai"}
-        </Badge>
       </div>
 
-      {/* ── Mushaf Content (RTL) ── */}
-      <div
-        className="flex-1 overflow-y-auto px-4 py-3 select-none"
-        dir="rtl"
-        style={{ fontFamily: "'Scheherazade New', 'Amiri', serif" }}
-      >
-        {allLineNumbers.map((lineNum) => {
-          const specialLine = specialLines.get(lineNum);
+      {/* ── Loading / Error State ── */}
+      {isLoading && (
+        <div className="flex flex-col items-center justify-center gap-3 flex-1 text-muted-foreground">
+          <Loader2 className="h-7 w-7 animate-spin text-primary" />
+          <p className="text-sm">Memuat halaman {currentPage}...</p>
+        </div>
+      )}
 
-          if (specialLine) {
-            if (specialLine.type === "surah_header") {
-              return (
-                <div key={`header-${lineNum}`} className="w-full flex items-center justify-center py-1.5 px-4 select-none my-1" dir="rtl">
-                  <div className="relative w-full max-w-md border border-primary/45 rounded-lg bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 py-1 px-6 text-center shadow-sm border-double">
-                    <div className="absolute inset-y-1 left-2 right-2 border-y border-dashed border-primary/20 pointer-events-none" />
-                    <span className="font-serif text-sm font-bold text-primary tracking-wide z-10 relative">
-                      سُورَةُ {specialLine.surahName}
-                    </span>
+      {(isError || (!isLoading && !page)) && (
+        <div className="flex flex-col items-center justify-center gap-3 flex-1 text-destructive">
+          <AlertCircle className="h-7 w-7" />
+          <p className="text-sm font-medium">Gagal memuat halaman mushaf</p>
+          <p className="text-xs text-muted-foreground">Periksa koneksi internet Anda</p>
+        </div>
+      )}
+
+      {/* ── Mushaf Content (RTL) — flex column tanpa scroll agar fix 15 baris ── */}
+      {page && !isLoading && (
+        <div
+          className="flex-1 min-h-0 overflow-hidden select-none px-0.5 max-w-3xl mx-auto w-full"
+          dir="rtl"
+          style={{
+            fontFamily: "'Scheherazade New', 'Amiri', serif",
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          {Array.from({ length: linesPerPage }, (_, i) => i + 1).map((lineNum) => {
+            const specialLine = specialLines.get(lineNum);
+
+            if (specialLine) {
+              if (specialLine.type === "surah_header") {
+                return (
+                <div
+                    key={`header-${lineNum}`}
+                    className="flex flex-1 items-center justify-center px-2 select-none"
+                    dir="rtl"
+                  >
+                    <div className="relative w-full border border-primary/45 rounded-md bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 py-0.5 px-4 text-center shadow-sm border-double">
+                      <div className="absolute inset-y-0.5 left-1.5 right-1.5 border-y border-dashed border-primary/20 pointer-events-none" />
+                      <span className="font-serif text-[clamp(10px,2.8vw,13px)] font-bold text-primary tracking-wide z-10 relative">
+                        سُورَةُ {specialLine.surahName}
+                      </span>
+                    </div>
                   </div>
-                </div>
-              );
-            }
-
-            if (specialLine.type === "bismillah") {
-              return (
-                <div key={`bismillah-${lineNum}`} className="w-full text-center py-2 font-serif text-lg font-medium text-primary/90 select-none tracking-normal leading-normal">
-                  بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ
-                </div>
-              );
-            }
-          }
-
-          const lineWords = lineGroups.get(lineNum) ?? [];
-          if (lineWords.length === 0) {
-            return <div key={`empty-${lineNum}`} className="h-8 border-b border-dashed border-border/10 last:border-0" />;
-          }
-
-          return (
-            <div
-              key={lineNum}
-              className="flex flex-wrap justify-center items-baseline gap-x-1 gap-y-0.5 py-1 border-b border-dashed border-border/30 last:border-0 min-h-8"
-            >
-              {lineWords.map((word, idx) => {
-                const isSelected = isAyahInRange(
-                  word.surah_number,
-                  word.ayah_number,
-                  selection,
                 );
-                const isStart =
-                  selection !== null &&
-                  word.surah_number === selection.startSurahNumber &&
-                  word.ayah_number === selection.startAyah;
-                const isEnd =
-                  selection !== null &&
-                  word.surah_number === selection.endSurahNumber &&
-                  word.ayah_number === selection.endAyah;
-                const isEndChar = word.char_type_name === "end";
+              }
 
-                if (isEndChar) {
+              if (specialLine.type === "bismillah") {
+                return (
+                <div
+                    key={`bismillah-${lineNum}`}
+                    className="flex flex-1 items-center justify-center font-serif text-[clamp(13px,3.8vw,18px)] font-medium text-primary/90 select-none tracking-normal"
+                  >
+                    بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ
+                  </div>
+                );
+              }
+            }
+
+            const lineWords = lineGroups.get(lineNum) ?? [];
+            if (lineWords.length === 0) {
+              return <div key={`empty-${lineNum}`} className="flex-1 border-b border-dashed border-border/10 last:border-0" />;
+            }
+
+            return (
+              <div
+                key={lineNum}
+                className="flex flex-1 flex-nowrap justify-center items-center gap-x-0.5 border-b border-dashed border-border/20 last:border-0 overflow-hidden whitespace-nowrap"
+              >
+                {lineWords.map((word, idx) => {
+                  const isSelected = isAyahInRange(
+                    word.surah_number,
+                    word.ayah_number,
+                    selection,
+                  );
+                  const isStart =
+                    selection !== null &&
+                    word.surah_number === selection.startSurahNumber &&
+                    word.ayah_number === selection.startAyah;
+                  const isEnd =
+                    selection !== null &&
+                    word.surah_number === selection.endSurahNumber &&
+                    word.ayah_number === selection.endAyah;
+                  const isEndChar = word.char_type_name === "end";
+
+                  if (isEndChar) {
+                    return (
+                      <span
+                        key={`${word.verse_key}-${word.position}-${idx}`}
+                        className="inline-flex items-center justify-center border border-primary/75 rounded-full w-[clamp(12px,3.5vw,18px)] h-[clamp(12px,3.5vw,18px)] mx-0.5 text-[clamp(6px,2vw,10px)] font-sans font-bold text-primary bg-primary/5 shadow-sm align-middle select-none shrink-0"
+                        title={`Ayat ${word.ayah_number}`}
+                      >
+                        {word.ayah_number}
+                      </span>
+                    );
+                  }
+
+                  let roundedClass = "rounded-none";
+                  if (isStart && isEnd) {
+                    roundedClass = "rounded-md";
+                  } else if (isStart) {
+                    roundedClass = "rounded-r-md";
+                  } else if (isEnd) {
+                    roundedClass = "rounded-l-md";
+                  }
+
                   return (
                     <span
                       key={`${word.verse_key}-${word.position}-${idx}`}
-                      className="inline-flex items-center justify-center border border-primary/75 rounded-full w-5 h-5 mx-1 text-[9px] font-sans font-bold text-primary bg-primary/5 shadow-sm align-middle select-none"
-                      title={`Ayat ${word.ayah_number}`}
+                      onClick={() => handleWordClick(word)}
+                      title={word.verse_key}
+                      className={cn(
+                        "inline-block leading-tight transition-all duration-100 cursor-pointer hover:scale-110",
+                        // Fluid font size agar text menyusut otomatis pada lebar layar sempit
+                        "text-[clamp(11px,4vw,23px)] sm:text-xl md:text-2xl",
+                        isSelected &&
+                          "bg-primary/20 text-foreground px-0.5 py-0.5",
+                        isSelected && roundedClass,
+                        (isStart || isEnd) &&
+                          "bg-primary/30 font-semibold",
+                        !isSelected && "hover:bg-primary/10 rounded-sm",
+                      )}
                     >
-                      {word.ayah_number}
+                      {word.text_uthmani}
                     </span>
                   );
-                }
-
-                let roundedClass = "rounded-none";
-                if (isStart && isEnd) {
-                  roundedClass = "rounded-lg";
-                } else if (isStart) {
-                  roundedClass = "rounded-r-lg";
-                } else if (isEnd) {
-                  roundedClass = "rounded-l-lg";
-                }
-
-                return (
-                  <span
-                    key={`${word.verse_key}-${word.position}-${idx}`}
-                    onClick={() => handleWordClick(word)}
-                    title={word.verse_key}
-                    className={cn(
-                      "inline-block text-xl leading-relaxed transition-all duration-150 cursor-pointer hover:scale-110 px-0.5",
-                      isSelected &&
-                        "bg-primary/20 text-foreground px-1 -mx-0.5 py-0.5",
-                      isSelected && roundedClass,
-                      (isStart || isEnd) &&
-                        "bg-primary/30 font-semibold",
-                      !isSelected && "hover:bg-primary/10 rounded-md",
-                    )}
-                  >
-                    {word.text_uthmani}
-                  </span>
-                );
-              })}
-            </div>
-          );
-        })}
-      </div>
-
-      {/* ── Footer: Selection Summary + Navigation ── */}
-      <div className="border-t bg-background px-3 py-2 space-y-2">
-        {/* Selection summary */}
-        {selection ? (
-          <div className="flex items-start justify-between gap-2">
-            <div className="text-xs text-muted-foreground leading-relaxed">
-              <span className="font-medium text-foreground">{selection.startSurahName} {selection.startAyah}</span>
-              {" → "}
-              <span className="font-medium text-foreground">{selection.endSurahName} {selection.endAyah}</span>
-              <span className="ml-1 text-primary font-semibold">
-                ({selection.totalBaris} baris)
-              </span>
-            </div>
-            <button
-              type="button"
-              onClick={handleClearSelection}
-              className="text-xs text-destructive/70 hover:text-destructive underline shrink-0"
-            >
-              Hapus
-            </button>
-          </div>
-        ) : (
-          <p className="text-xs text-muted-foreground italic text-center">
-            Klik kata untuk memilih rentang setoran
-          </p>
-        )}
-
-        {/* Navigation buttons + Quick Jump Input */}
-        <div className="flex items-center justify-between gap-2">
-          {/* Tombol Berikutnya (ke kiri / halaman bertambah) */}
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="h-8 gap-1 text-xs"
-            onClick={() => onPageChange(currentPage + 1)}
-            disabled={currentPage >= page.total_pages}
-          >
-            <ChevronLeft className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Berikutnya</span>
-          </Button>
-
-          <span className="text-xs font-mono text-muted-foreground px-2">
-            {currentPage} / {page.total_pages}
-          </span>
-
-          {/* Tombol Sebelumnya (ke kanan / halaman berkurang) */}
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="h-8 gap-1 text-xs"
-            onClick={() => onPageChange(currentPage - 1)}
-            disabled={currentPage <= 1}
-          >
-            <span className="hidden sm:inline">Sebelumnya</span>
-            <ChevronRight className="h-3.5 w-3.5" />
-          </Button>
+                })}
+              </div>
+            );
+          })}
         </div>
-      </div>
+      )}
+
+      {/* ── Footer: Selection Summary + Navigasi bawah (prev/next) ── */}
+      {page && !isLoading && (
+        <div className="border-t bg-background shrink-0 w-full">
+          <div className="max-w-3xl mx-auto flex items-center justify-between gap-2 px-3 py-1.5">
+            {/* Selection summary */}
+            {selection ? (
+              <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                <div className="text-xs text-muted-foreground leading-tight truncate">
+                  <span className="font-medium text-foreground">{selection.startSurahName} {selection.startAyah}</span>
+                  {" → "}
+                  <span className="font-medium text-foreground">{selection.endSurahName} {selection.endAyah}</span>
+                  <span className="ml-1 text-primary font-semibold">
+                    ({selection.totalBaris} baris)
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleClearSelection}
+                  className="text-xs text-destructive/70 hover:text-destructive underline shrink-0"
+                >
+                  Hapus
+                </button>
+              </div>
+            ) : (
+              <p className="text-xs text-muted-foreground italic flex-1 text-center">
+                Klik kata untuk memilih rentang setoran
+              </p>
+            )}
+
+            {/* Navigasi bawah — compact */}
+            <div className="flex items-center gap-1 shrink-0">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-7 px-2"
+                onClick={() => onPageChange(currentPage + 1)}
+                disabled={currentPage >= page.total_pages}
+              >
+                <ChevronLeft className="h-3.5 w-3.5" />
+              </Button>
+              <span className="text-xs font-mono text-muted-foreground px-1">
+                {currentPage}/{page.total_pages}
+              </span>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-7 px-2"
+                onClick={() => onPageChange(currentPage - 1)}
+                disabled={currentPage <= 1}
+              >
+                <ChevronRight className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

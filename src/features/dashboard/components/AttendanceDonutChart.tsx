@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import { PieChart, Pie, Cell, Label } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -33,9 +33,9 @@ export const AttendanceDonutChart = ({
   onViewChange 
 }: AttendanceDonutChartProps) => {
   return (
-    <Card className="lg:col-span-2 border-none shadow-sm bg-muted/20 flex flex-col">
+    <Card className="lg:col-span-2 border-none shadow-sm bg-muted/20 flex flex-col w-full min-w-0 overflow-hidden">
       <CardHeader className="pb-2">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="space-y-1">
             <CardTitle className="flex items-center gap-2 text-base">
               <FontAwesomeIcon icon={faCheckDouble} className="text-primary" />
@@ -56,13 +56,13 @@ export const AttendanceDonutChart = ({
         </div>
       </CardHeader>
 
-      <CardContent className="flex-1 pb-0">
+      <CardContent className="flex-1 p-3 sm:p-6 pb-0 sm:pb-0 min-w-0 w-full flex flex-col">
         {loading ? (
           <div className="flex items-center justify-center h-70">
             <Skeleton className="h-48 w-48 rounded-full" />
           </div>
         ) : (
-          <ChartContainer config={chartConfig} className="mx-auto aspect-square max-h-75">
+          <ChartContainer config={chartConfig} className="mx-auto aspect-square max-h-75 min-w-0 w-full">
             <PieChart>
               <ChartTooltip 
                 cursor={false} 

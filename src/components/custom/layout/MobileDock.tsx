@@ -10,7 +10,6 @@ import {
   faBookOpen,
   faBuilding,
   faClock,
-  faGear,
 } from "@fortawesome/free-solid-svg-icons";
 import { isKepalaRole, Role } from "@/types/domain/enums";
 
@@ -20,17 +19,10 @@ export function MobileDock() {
 
   const isSuperAdmin = user?.role === Role.SUPERADMIN;
 
-  const settingsPath = isSuperAdmin
-    ? "/superadmin/settings"
-    : user && isKepalaRole(user.role)
-      ? "/kepala-muhafidz/settings"
-      : "/muhafidz/settings";
-
   const menuItems = isSuperAdmin
     ? [
         { name: "Dash", path: "/superadmin", icon: faChartPie },
         { name: "Sekolah", path: "/superadmin/sekolah", icon: faBuilding },
-        { name: "Atur", path: settingsPath, icon: faGear },
       ]
     : user && isKepalaRole(user.role)
       ? [
@@ -39,22 +31,26 @@ export function MobileDock() {
           { name: "Halaqah", path: "/kepala-muhafidz/halaqah", icon: faBook },
           { name: "Sesi", path: "/kepala-muhafidz/sesi", icon: faClock },
           { name: "Laporan", path: "/kepala-muhafidz/laporan", icon: faClipboardCheck },
-          { name: "Atur", path: settingsPath, icon: faGear },
         ]
       : [
-          { name: "Absen", path: "/muhafidz", icon: faClipboardCheck },
+          { name: "Dash", path: "/muhafidz", icon: faChartPie },
+          { name: "Absen", path: "/muhafidz/absensi", icon: faClipboardCheck },
           { name: "Setoran", path: "/muhafidz/setoran", icon: faBookOpen },
           { name: "Santri", path: "/muhafidz/santri", icon: faUsers },
-          { name: "Progres", path: "/muhafidz/progres", icon: faChartPie },
-          { name: "Atur", path: settingsPath, icon: faGear },
         ];
 
   return (
     <div className="dock fixed bottom-0 left-0 right-0 z-50 bg-background border-t pb-safe">
       {menuItems.map((item) => {
-        const isActive =
-          location.pathname === item.path ||
-          location.pathname.startsWith(item.path + "/");
+        const isDashboard = [
+          "/superadmin",
+          "/kepala-muhafidz",
+          "/muhafidz",
+        ].includes(item.path);
+        const isActive = isDashboard
+          ? location.pathname === item.path
+          : location.pathname === item.path ||
+            location.pathname.startsWith(item.path + "/");
         return (
           <Link
             key={item.name}

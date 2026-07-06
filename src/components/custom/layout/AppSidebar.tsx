@@ -103,8 +103,13 @@ export function AppSidebar() {
         ]
       : [
           {
-            name: "Absensi Hari Ini",
+            name: "Dashboard",
             path: "/muhafidz",
+            icon: faChartPie,
+          },
+          {
+            name: "Absensi Hari Ini",
+            path: "/muhafidz/absensi",
             icon: faClipboardCheck,
           },
           {
@@ -159,23 +164,32 @@ export function AppSidebar() {
           <SidebarGroupLabel>Main Menu</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {menuItems.map((item) => (
-                <SidebarMenuItem key={item.name}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={
-                    location.pathname === item.path ||
-                    location.pathname.startsWith(item.path + "/")
-                  }
-                    tooltip={item.name}
-                  >
-                    <Link to={item.path}>
-                      <FontAwesomeIcon icon={item.icon} />
-                      <span>{item.name}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              {menuItems.map((item) => {
+                const isDashboard = [
+                  "/superadmin",
+                  "/kepala-muhafidz",
+                  "/muhafidz",
+                ].includes(item.path);
+                const isActive = isDashboard
+                  ? location.pathname === item.path
+                  : location.pathname === item.path ||
+                    location.pathname.startsWith(item.path + "/");
+
+                return (
+                  <SidebarMenuItem key={item.name}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={isActive}
+                      tooltip={item.name}
+                    >
+                      <Link to={item.path}>
+                        <FontAwesomeIcon icon={item.icon} />
+                        <span>{item.name}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

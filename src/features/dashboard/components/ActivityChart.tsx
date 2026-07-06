@@ -1,4 +1,4 @@
-﻿import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChartLine, faCalendarAlt } from "@fortawesome/free-solid-svg-icons";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -31,8 +31,8 @@ export const ActivityChart = ({
   onViewChange, 
   loading 
 }: ActivityChartProps) => (
-  <Card className="lg:col-span-3 border-none shadow-sm bg-muted/20">
-    <CardHeader className="flex flex-row items-center justify-between pb-2">
+  <Card className="lg:col-span-3 border-none shadow-sm bg-muted/20 w-full min-w-0 overflow-hidden">
+    <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2">
       <div className="space-y-1">
         <CardTitle className="flex items-center gap-2 text-base">
           <FontAwesomeIcon icon={faChartLine} className="text-primary" />
@@ -50,11 +50,11 @@ export const ActivityChart = ({
         </TabsList>
       </Tabs>
     </CardHeader>
-    <CardContent className="pb-0">
+    <CardContent className="p-3 sm:p-6 pb-0 sm:pb-0 min-w-0 w-full">
       {loading ? (
         <Skeleton className="h-[250px] w-full" />
       ) : (
-        <ChartContainer config={chartConfig} className="h-[250px] w-full">
+        <ChartContainer config={chartConfig} className="h-[250px] w-full min-w-0">
           {view === "pekan" ? (
             <BarChart 
               data={dataPekan} 

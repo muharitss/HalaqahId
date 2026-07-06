@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -36,12 +37,11 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
-import { Check, ChevronsUpDown, AlertCircle, Layers, ArrowDown, BookOpen } from "lucide-react";
+import { Check, ChevronsUpDown, AlertCircle, Layers, BookOpen } from "lucide-react";
 import { pemetaanJuz, SURAH_IDS } from "@/utils/daftarSurah";
 import { surahNameToNumber, SURAH_PAGE_START, surahNumberToName } from "@/utils/mushafUtils";
 import { type Santri } from "@/features/santri/types";
 import { type SetoranFormFields, type SetoranPayload, type MushafSelection } from "../types";
-import { MushafViewer } from "./MushafViewer";
 import { sekolahService, type KategoriSetoranResponse } from "@/features/sekolah/api/sekolahService";
 import { setoranService } from "../api/setoranService";
 import {
@@ -202,10 +202,9 @@ export function SetoranForm({
   const [openMulai, setOpenMulai] = useState(false);
   const [openSelesai, setOpenSelesai] = useState(false);
 
-  // ── State Input Method & Mushaf ──
-  const [inputMethod, setInputMethod] = useState<"manual" | "mushaf">("manual");
-  const [mushafPage, setMushafPage] = useState<number>(1);
-  const [mushafSelectionMode, setMushafSelectionMode] = useState<"start" | "end">("start");
+  // ── State Mushaf ──
+  const navigate = useNavigate();
+  const location = useLocation();
   const [mushafSelection, setMushafSelection] = useState<MushafSelection | null>(null);
 
   const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
@@ -227,6 +226,34 @@ export function SetoranForm({
       keterangan: "",
     },
   });
+
+  // Baca selection yang dikembalikan dari halaman mushaf via sessionStorage
+  // Harus di-define SETELAH useForm agar 'form' sudah diinisialisasi
+  const readMushafSelectionFromStorage = useCallback(() => {
+    const stored = sessionStorage.getItem("mushaf_selection_pending");
+    if (stored) {
+      try {
+        const { selection, juzNumber } = JSON.parse(stored);
+        sessionStorage.removeItem("mushaf_selection_pending");
+        if (selection) {
+          setMushafSelection(selection);
+          form.setValue("surat_mulai", selection.startSurahName);
+          form.setValue("surat_selesai", selection.endSurahName);
+          form.setValue("ayat_mulai", selection.startAyah);
+          form.setValue("ayat_selesai", selection.endAyah);
+          if (juzNumber) form.setValue("juz", juzNumber);
+          form.trigger(["juz", "surat_mulai", "surat_selesai", "ayat_mulai", "ayat_selesai"]);
+        }
+      } catch {
+        sessionStorage.removeItem("mushaf_selection_pending");
+      }
+    }
+  }, [form]);
+
+  // Jalankan setiap kali location berubah (setelah navigate(-1) dari mushaf)
+  useEffect(() => {
+    readMushafSelectionFromStorage();
+  }, [location, readMushafSelectionFromStorage]);
 
   const selectedSantriId = form.watch("id_santri");
   const { data: studentHistory = [] } = useQuery({
@@ -268,27 +295,26 @@ export function SetoranForm({
 
   useEffect(() => {
     if (onValidationChange) {
-      if (inputMethod === "mushaf") {
-        onValidationChange(false);
-      } else {
-        onValidationChange(isTodayValidForSesi);
-      }
+      onValidationChange(isTodayValidForSesi);
     }
-  }, [inputMethod, isTodayValidForSesi, onValidationChange]);
+  }, [isTodayValidForSesi, onValidationChange]);
 
-  // Ketika user masuk ke mode mushaf, set halaman awal mushaf berdasarkan surah di form jika ada
-  useEffect(() => {
-    if (inputMethod === "mushaf") {
-      const currentSurat = form.getValues("surat_mulai");
-      if (currentSurat) {
-        const surahNum = surahNameToNumber(currentSurat);
-        if (surahNum) {
-          const pageStart = SURAH_PAGE_START[surahNum] ?? 1;
-          setMushafPage(pageStart);
-        }
-      }
-    }
-  }, [inputMethod]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Fungsi untuk buka halaman mushaf
+  const handleOpenMushaf = () => {
+    const currentSurat = form.getValues("surat_mulai");
+    const surahNum = currentSurat ? surahNameToNumber(currentSurat) : undefined;
+    const initialPage = surahNum ? (SURAH_PAGE_START[surahNum] ?? 1) : 1;
+    // Deteksi prefix route (muhafidz atau kepala-muhafidz) dari URL aktif
+    const basePath = location.pathname.startsWith("/kepala-muhafidz")
+      ? "/kepala-muhafidz"
+      : "/muhafidz";
+    navigate(`${basePath}/setoran/mushaf?page=${initialPage}`, {
+      state: {
+        initialSurahNumber: surahNum,
+        currentSelection: mushafSelection,
+      },
+    });
+  };
 
   const proceedSubmit = async (values: SetoranFormFields) => {
     const startSuratId = SURAH_IDS[values.surat_mulai] || 1;
@@ -334,7 +360,6 @@ export function SetoranForm({
         tanggal_setoran: getTodayString(),
       });
       setMushafSelection(null);
-      setInputMethod("manual");
     }
   };
 
@@ -477,40 +502,41 @@ export function SetoranForm({
           />
         </div>
 
-        {/* Selector Input Method */}
-        <div className="space-y-2 p-4 bg-muted/30 border border-muted/50 rounded-2xl">
-          <label className="text-sm font-bold text-muted-foreground block">Metode Input Ayat</label>
-          <div className="grid grid-cols-2 gap-3">
-            <button
-              type="button"
-              onClick={() => setInputMethod("manual")}
-              className={cn(
-                "flex items-center justify-center gap-2 py-3 px-4 rounded-xl border text-sm font-bold transition-all duration-200",
-                inputMethod === "manual"
-                  ? "bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/20"
-                  : "bg-card text-muted-foreground border-border hover:bg-muted/40 hover:text-foreground"
-              )}
-            >
-              <Check className={cn("h-4 w-4 transition-transform", inputMethod === "manual" ? "scale-100" : "scale-0 w-0")} />
-              Input Manual (Ketik)
-            </button>
-            <button
-              type="button"
-              onClick={() => setInputMethod("mushaf")}
-              className={cn(
-                "flex items-center justify-center gap-2 py-3 px-4 rounded-xl border text-sm font-bold transition-all duration-200",
-                inputMethod === "mushaf"
-                  ? "bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/20"
-                  : "bg-card text-muted-foreground border-border hover:bg-muted/40 hover:text-foreground"
-              )}
-            >
-              <BookOpen className="h-4 w-4" />
-              Pilih dari Mushaf (Interaktif)
-            </button>
+        {/* Tombol Pilih dari Mushaf */}
+        <div className="flex items-center justify-between gap-3 p-3 bg-muted/30 border border-muted/50 rounded-2xl">
+          <div className="flex-1 min-w-0">
+            {mushafSelection ? (
+              <div className="flex items-center gap-1.5 text-xs text-primary">
+                <Layers className="h-3.5 w-3.5 shrink-0" />
+                <span className="font-semibold">
+                  {mushafSelection.startSurahName} {mushafSelection.startAyah} → {mushafSelection.endSurahName} {mushafSelection.endAyah}
+                </span>
+                <span className="text-muted-foreground">({mushafSelection.totalBaris} baris)</span>
+                <button
+                  type="button"
+                  onClick={() => setMushafSelection(null)}
+                  className="ml-1 text-destructive/70 hover:text-destructive underline text-xs"
+                >
+                  Hapus
+                </button>
+              </div>
+            ) : (
+              <p className="text-xs text-muted-foreground">Pilih ayat langsung dari tampilan Mushaf Al-Quran interaktif</p>
+            )}
           </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleOpenMushaf}
+            className="gap-2 h-9 text-sm font-medium shrink-0"
+          >
+            <BookOpen className="h-4 w-4" />
+            <span>Pilih dari Mushaf</span>
+          </Button>
         </div>
 
-        {inputMethod === "manual" ? (
+        {(
           <>
             {!isTodayValidForSesi && (
               <div className="bg-amber-50 border border-amber-200 text-amber-700 p-4 rounded-lg flex items-start gap-3">
@@ -803,65 +829,6 @@ export function SetoranForm({
               </div>
             )}
           </>
-        ) : (
-          <div className="space-y-4 animate-in fade-in slide-in-from-bottom duration-300">
-            <div className="border rounded-2xl shadow-lg bg-card overflow-hidden h-[600px] flex flex-col">
-              <div className="flex items-center justify-between px-4 py-3 border-b bg-muted/40 shrink-0">
-                <div className="flex items-center gap-2">
-                  <BookOpen className="h-4.5 w-4.5 text-primary" />
-                  <span className="text-sm font-bold">Mushaf Al-Quran</span>
-                </div>
-                <div className="text-xs text-muted-foreground bg-background px-3 py-1.5 rounded-full border">
-                  {mushafSelection ? (
-                    <span className="font-bold text-primary">
-                      Terpilih: {mushafSelection.startSurahName} {mushafSelection.startAyah}-{mushafSelection.endAyah} ({mushafSelection.totalBaris} baris)
-                    </span>
-                  ) : (
-                    "Pilih ayat awal & akhir pada Mushaf"
-                  )}
-                </div>
-              </div>
-              <div className="flex-1 overflow-hidden">
-                <MushafViewer
-                  currentPage={mushafPage}
-                  onPageChange={setMushafPage}
-                  selection={mushafSelection}
-                  onSelectionChange={setMushafSelection}
-                  selectionMode={mushafSelectionMode}
-                  onSelectionModeChange={setMushafSelectionMode}
-                />
-              </div>
-            </div>
-
-            <Button
-              type="button"
-              onClick={() => {
-                if (mushafSelection) {
-                  form.setValue("surat_mulai", mushafSelection.startSurahName);
-                  form.setValue("surat_selesai", mushafSelection.endSurahName);
-                  form.setValue("ayat_mulai", mushafSelection.startAyah);
-                  form.setValue("ayat_selesai", mushafSelection.endAyah);
-                  
-                  const surahNum = surahNameToNumber(mushafSelection.startSurahName);
-                  if (surahNum) {
-                    for (const [juzNum, surahs] of Object.entries(pemetaanJuz)) {
-                      const match = surahs.find(s => s.nama === mushafSelection.startSurahName);
-                      if (match) {
-                        form.setValue("juz", Number(juzNum));
-                        break;
-                      }
-                    }
-                  }
-                  form.trigger(["juz", "surat_mulai", "surat_selesai", "ayat_mulai", "ayat_selesai"]);
-                }
-                setInputMethod("manual");
-              }}
-              className="w-full h-12 gap-2 text-base font-bold shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl"
-            >
-              <ArrowDown className="h-5 w-5 animate-bounce" />
-              Terapkan Ayat & Kembali ke Formulir
-            </Button>
-          </div>
         )}
       </form>
 
