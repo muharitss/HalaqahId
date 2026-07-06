@@ -42,10 +42,10 @@ export function MobileDock() {
           { name: "Atur", path: settingsPath, icon: faGear },
         ]
       : [
-          { name: "Absen", path: "/muhafidz", icon: faClipboardCheck },
+          { name: "Dash", path: "/muhafidz", icon: faChartPie },
+          { name: "Absen", path: "/muhafidz/absensi", icon: faClipboardCheck },
           { name: "Setoran", path: "/muhafidz/setoran", icon: faBookOpen },
           { name: "Santri", path: "/muhafidz/santri", icon: faUsers },
-          { name: "Progres", path: "/muhafidz/progres", icon: faChartPie },
           { name: "Atur", path: settingsPath, icon: faGear },
         ];
 

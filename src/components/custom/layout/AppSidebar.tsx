@@ -103,8 +103,13 @@ export function AppSidebar() {
         ]
       : [
           {
-            name: "Absensi Hari Ini",
+            name: "Dashboard",
             path: "/muhafidz",
+            icon: faChartPie,
+          },
+          {
+            name: "Absensi Hari Ini",
+            path: "/muhafidz/absensi",
             icon: faClipboardCheck,
           },
           {

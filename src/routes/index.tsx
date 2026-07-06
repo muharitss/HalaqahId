@@ -16,13 +16,12 @@ import PublicDisplay from "@/features/display/pages/PublicDisplay";
 import SantriDetail from "@/features/display/pages/SantriDetail";
 
 // ── Pages: Superadmin ──────────────────────────────────────────────────────
-import { SuperadminDashboard } from "@/features/dashboard";
+import { SuperadminDashboard, KepalaMuhafidzDashboard, MuhafizDashboard } from "@/features/dashboard";
 import { KelolaSekolahPage } from "@/features/sekolah";
 import KelolaUserPage from "@/features/dashboard/pages/kelola-user-page";
 import KelolaAuditLogPage from "@/features/dashboard/pages/kelola-audit-log-page";
 
 // ── Pages: Kepala Muhafidz ─────────────────────────────────────────────────
-import { KepalaMuhafidzDashboard } from "@/features/dashboard";
 import KelolaMuhafizPage from "@/features/muhafiz";
 import { KelolaHalaqahPage, KelolaSesiPage } from "@/features/halaqah";
 import AbsensiPage from "@/features/absensi";
@@ -204,7 +203,8 @@ export const router = createBrowserRouter([
               {
                 element: <MuhafizGuard />,
                 children: [
-                  { path: "/muhafidz", element: <AbsensiPage /> },
+                  { path: "/muhafidz", element: <MuhafizDashboard /> },
+                  { path: "/muhafidz/absensi", element: <AbsensiPage /> },
                   { path: "/muhafidz/setoran", element: <SetoranPage /> },
                   { path: "/muhafidz/santri", element: <KelolaSantriPage /> },
                   { path: "/muhafidz/progres", element: <ProgresSantriPage /> },
