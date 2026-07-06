@@ -22,7 +22,6 @@ import {
   ChevronRight,
   Loader2,
   AlertCircle,
-  BookOpen,
   Search,
   BookMarked,
 } from "lucide-react";

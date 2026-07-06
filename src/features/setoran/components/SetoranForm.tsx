@@ -360,7 +360,6 @@ export function SetoranForm({
         tanggal_setoran: getTodayString(),
       });
       setMushafSelection(null);
-      setInputMethod("manual");
     }
   };
 
