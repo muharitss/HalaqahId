@@ -50,11 +50,12 @@ export const groupSetoranByHalaqahAndSantri = (data: SetoranItem[]): GroupedSeto
     acc[halaqahName].santriGroup[santriId].setoran.push(item);
 
     // 4. Update Stats Global Halaqah & Stats Per Santri
+    const kategoriName = (item.kategori?.nama_kategori || "HAFALAN").toUpperCase();
     acc[halaqahName][
-      item.kategori === "HAFALAN" ? "totalHafalan" : "totalMurajaah"
+      kategoriName === "HAFALAN" ? "totalHafalan" : "totalMurajaah"
     ]++;
-    acc[halaqahName].santriGroup[santriId].stats[item.kategori] = 
-      (acc[halaqahName].santriGroup[santriId].stats[item.kategori] || 0) + 1;
+    acc[halaqahName].santriGroup[santriId].stats[kategoriName] = 
+      (acc[halaqahName].santriGroup[santriId].stats[kategoriName] || 0) + 1;
 
     return acc;
   }, {});

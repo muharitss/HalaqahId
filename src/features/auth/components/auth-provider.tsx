@@ -65,6 +65,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   // Function untuk kembali ke superadmin
   const stopImpersonating = async () => {
     const superadminSession = localStorage.getItem("superadmin_session");
+    const impersonatedUserId = user?.id_user;
     
     if (superadminSession) {
       try {
@@ -82,6 +83,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
         setUser(superadminUser);
         saveUserToStorage(superadminUser);
+
+        // Call backend API to log stop impersonation
+        if (impersonatedUserId) {
+          try {
+            await authService.stopImpersonateUser({ targetUserId: impersonatedUserId });
+          } catch (e) {
+            console.error("Gagal mencatat log stop impersonasi di backend:", e);
+          }
+        }
         
         // Refresh token untuk memastikan valid
         try {

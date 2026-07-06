@@ -42,15 +42,15 @@ export function KelolaSantriPage() {
   };
 
   const handleSave = async (data: {
-    nama_santri: string | FormDataEntryValue | null;
-    nomor_telepon: string | FormDataEntryValue | null;
-    target: string;
+    nama_santri: string;
+    nomor_telepon: string;
+    id_target: number | null;
     id_halaqah: number | undefined;
   }) => {
     const payload = {
-      nama_santri: typeof data.nama_santri === "string" ? data.nama_santri : (data.nama_santri?.toString() || ""),
-      nomor_telepon: typeof data.nomor_telepon === "string" ? data.nomor_telepon : (data.nomor_telepon?.toString() || ""),
-      target: data.target as "RINGAN" | "SEDANG" | "INTENSE",
+      nama_santri: data.nama_santri,
+      nomor_telepon: data.nomor_telepon,
+      id_target: data.id_target,
       id_halaqah: data.id_halaqah || 0,
     };
     if (selectedSantri) {

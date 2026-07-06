@@ -1,7 +1,7 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import tailwindcss from '@tailwindcss/vite'
-import path from 'path'
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
+import path from "path";
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -13,11 +13,11 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      '/api': {
-        target: 'https://halaqahid-be.vercel.app',
+      "/api": {
+        target: "https://halaqahid-be.vercel.app",
         changeOrigin: true,
         secure: false,
-      }
-    }
-  }
-})
+      },
+    },
+  },
+});

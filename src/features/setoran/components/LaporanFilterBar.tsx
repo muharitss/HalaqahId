@@ -36,13 +36,6 @@ const MONTHS = [
 ];
 
 const KATEGORI_LIST = ["HAFALAN", "MURAJAAH", "ZIYADAH", "INTENS", "BACAAN"];
-const KATEGORI_COLOR: Record<string, string> = {
-  HAFALAN: "bg-emerald-500/10 text-emerald-700 border-emerald-200",
-  MURAJAAH: "bg-blue-500/10 text-blue-700 border-blue-200",
-  ZIYADAH: "bg-violet-500/10 text-violet-700 border-violet-200",
-  INTENS: "bg-amber-500/10 text-amber-700 border-amber-200",
-  BACAAN: "bg-rose-500/10 text-rose-700 border-rose-200",
-};
 
 const currentYear = new Date().getFullYear();
 const YEARS = Array.from({ length: 5 }, (_, i) => currentYear - i);
@@ -120,19 +113,19 @@ export function LaporanFilterBar({
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground/60">
+        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
           Filter Laporan
         </p>
         {isFilterActive && (
           <Button
             variant="ghost"
             size="sm"
-            className="h-7 gap-1 text-[11px] text-muted-foreground hover:text-foreground"
+            className="h-7 text-xs text-muted-foreground hover:text-foreground gap-1"
             onClick={onReset}
           >
             <FilterX className="h-3 w-3" />
             Reset filter
-            <Badge variant="secondary" className="text-[10px] h-4 px-1">
+            <Badge variant="secondary" className="h-4 px-1 text-[10px]">
               {activeCount}
             </Badge>
           </Button>
@@ -145,7 +138,7 @@ export function LaporanFilterBar({
           value={activeHalaqah || "all"}
           onValueChange={(v) => onHalaqahChange(v === "all" ? "all" : v)}
         >
-          <SelectTrigger className="h-8 gap-1.5 text-xs w-auto min-w-36 border-dashed">
+          <SelectTrigger className="h-8 text-xs w-auto min-w-36 gap-1.5">
             <GraduationCap className="h-3.5 w-3.5 text-muted-foreground" />
             <SelectValue placeholder="Semua Halaqah" />
           </SelectTrigger>
@@ -168,10 +161,7 @@ export function LaporanFilterBar({
               variant="outline"
               size="sm"
               role="combobox"
-              className={cn(
-                "h-8 gap-1.5 text-xs border-dashed min-w-36 justify-between font-normal",
-                selectedSantri && "border-primary/50 text-primary bg-primary/5"
-              )}
+              className="h-8 gap-1.5 text-xs min-w-36 justify-between font-normal"
             >
               <Users className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
               <span className="truncate max-w-28">
@@ -211,21 +201,13 @@ export function LaporanFilterBar({
           </PopoverContent>
         </Popover>
 
-        {/* ── SEPARATOR ── */}
-        <div className="h-8 w-px bg-border self-center" />
-
-        {/* ── BULAN ── (disabled jika date range aktif) */}
+        {/* ── BULAN ── */}
         <Select
           value={selectedMonth !== null && !isDateRangeMode ? String(selectedMonth) : "__all__"}
           onValueChange={(v) => onMonthChange(v === "__all__" ? null : Number(v))}
           disabled={isDateRangeMode}
         >
-          <SelectTrigger
-            className={cn(
-              "h-8 gap-1.5 text-xs w-36 border-dashed",
-              isDateRangeMode && "opacity-40 cursor-not-allowed"
-            )}
-          >
+          <SelectTrigger className="h-8 gap-1.5 text-xs w-36">
             <CalendarDays className="h-3.5 w-3.5 text-muted-foreground" />
             <SelectValue placeholder="Semua Bulan" />
           </SelectTrigger>
@@ -241,18 +223,13 @@ export function LaporanFilterBar({
           </SelectContent>
         </Select>
 
-        {/* ── TAHUN ── (disabled jika date range aktif) */}
+        {/* ── TAHUN ── */}
         <Select
           value={selectedYear !== null && !isDateRangeMode ? String(selectedYear) : "__all__"}
           onValueChange={(v) => onYearChange(v === "__all__" ? null : Number(v))}
           disabled={isDateRangeMode}
         >
-          <SelectTrigger
-            className={cn(
-              "h-8 text-xs w-28 border-dashed",
-              isDateRangeMode && "opacity-40 cursor-not-allowed"
-            )}
-          >
+          <SelectTrigger className="h-8 text-xs w-28">
             <SelectValue placeholder="Tahun" />
           </SelectTrigger>
           <SelectContent>
@@ -267,19 +244,13 @@ export function LaporanFilterBar({
           </SelectContent>
         </Select>
 
-        {/* ── SEPARATOR ── */}
-        <div className="h-8 w-px bg-border self-center hidden sm:block" />
-
         {/* ── DATE RANGE: DARI ── */}
         <Popover open={calFromOpen} onOpenChange={setCalFromOpen}>
           <PopoverTrigger asChild>
             <Button
               variant="outline"
               size="sm"
-              className={cn(
-                "h-8 gap-1.5 text-xs border-dashed font-normal min-w-36",
-                dateFrom && "border-primary/50 text-primary bg-primary/5"
-              )}
+              className="h-8 gap-1.5 text-xs font-normal min-w-36"
             >
               <CalendarDays className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
               {dateFrom
@@ -318,10 +289,7 @@ export function LaporanFilterBar({
             <Button
               variant="outline"
               size="sm"
-              className={cn(
-                "h-8 gap-1.5 text-xs border-dashed font-normal min-w-36",
-                dateTo && "border-primary/50 text-primary bg-primary/5"
-              )}
+              className="h-8 gap-1.5 text-xs font-normal min-w-36"
             >
               <CalendarDays className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
               {dateTo
@@ -354,15 +322,12 @@ export function LaporanFilterBar({
           </PopoverContent>
         </Popover>
 
-        {/* ── SEPARATOR ── */}
-        <div className="h-8 w-px bg-border self-center" />
-
         {/* ── KATEGORI ── */}
         <Select
           value={selectedKategori || "__all__"}
           onValueChange={(v) => onKategoriChange(v === "__all__" ? "" : v)}
         >
-          <SelectTrigger className="h-8 gap-1.5 text-xs w-36 border-dashed">
+          <SelectTrigger className="h-8 gap-1.5 text-xs w-36">
             <BookOpen className="h-3.5 w-3.5 text-muted-foreground" />
             <SelectValue placeholder="Semua Kategori" />
           </SelectTrigger>
@@ -372,9 +337,7 @@ export function LaporanFilterBar({
             </SelectItem>
             {KATEGORI_LIST.map((k) => (
               <SelectItem key={k} value={k}>
-                <span className={cn("text-xs font-semibold px-1.5 py-0.5 rounded", KATEGORI_COLOR[k])}>
-                  {k}
-                </span>
+                <span className="text-xs">{k}</span>
               </SelectItem>
             ))}
           </SelectContent>
@@ -385,38 +348,32 @@ export function LaporanFilterBar({
       {isFilterActive && (
         <div className="flex flex-wrap gap-1.5 pt-0.5">
           {activeHalaqah !== "" && activeHalaqah !== "all" && (
-            <Badge variant="secondary" className="text-[10px] h-5 px-2 gap-1 font-normal">
-              <GraduationCap className="h-2.5 w-2.5" />
-              {activeHalaqah}
-              <button onClick={() => onHalaqahChange("all")} className="ml-0.5 hover:text-foreground opacity-50 hover:opacity-100">✕</button>
+            <Badge variant="secondary">
+              Halaqah: {activeHalaqah}
+              <button onClick={() => onHalaqahChange("all")} className="ml-1 opacity-50 hover:opacity-100">✕</button>
             </Badge>
           )}
           {selectedSantri !== "" && (
-            <Badge variant="secondary" className="text-[10px] h-5 px-2 gap-1 font-normal">
-              <Users className="h-2.5 w-2.5" />
-              {selectedSantri}
-              <button onClick={() => onSantriChange("")} className="ml-0.5 hover:text-foreground opacity-50 hover:opacity-100">✕</button>
+            <Badge variant="secondary">
+              Santri: {selectedSantri}
+              <button onClick={() => onSantriChange("")} className="ml-1 opacity-50 hover:opacity-100">✕</button>
             </Badge>
           )}
           {isDateRangeMode && (
-            <Badge variant="outline" className="text-[10px] h-5 px-2 gap-1 font-normal border-primary/40 text-primary bg-primary/5">
-              <CalendarDays className="h-2.5 w-2.5" />
-              {dateFrom && format(dateFrom, "dd MMM", { locale: idLocale })}
+            <Badge variant="secondary">
+              Tanggal: {dateFrom && format(dateFrom, "dd MMM", { locale: idLocale })}
               {dateFrom && dateTo && " – "}
               {dateTo && format(dateTo, "dd MMM yyyy", { locale: idLocale })}
               <button
                 onClick={() => { onDateFromChange(null); onDateToChange(null); }}
-                className="ml-0.5 hover:text-foreground opacity-60 hover:opacity-100"
+                className="ml-1 opacity-50 hover:opacity-100"
               >✕</button>
             </Badge>
           )}
           {selectedKategori !== "" && (
-            <Badge
-              variant="outline"
-              className={cn("text-[10px] h-5 px-2 gap-1 font-semibold border", KATEGORI_COLOR[selectedKategori])}
-            >
-              {selectedKategori}
-              <button onClick={() => onKategoriChange("")} className="ml-0.5 opacity-60 hover:opacity-100">✕</button>
+            <Badge variant="secondary">
+              Kategori: {selectedKategori}
+              <button onClick={() => onKategoriChange("")} className="ml-1 opacity-50 hover:opacity-100">✕</button>
             </Badge>
           )}
         </div>
@@ -424,3 +381,4 @@ export function LaporanFilterBar({
     </div>
   );
 }
+

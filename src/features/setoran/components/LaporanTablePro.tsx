@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { format } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
@@ -11,17 +11,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Search,
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
-  Users,
   Filter,
+  ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { GroupedData, GroupedSantriItem, SetoranItem } from "@/features/setoran/types";
+import { cn } from "@/lib/utils";
 
 interface SetoranRow {
   id_setoran: number;
@@ -43,19 +43,6 @@ interface LaporanTableProProps {
   isFilterActive?: boolean;
 }
 
-const KATEGORI_BADGE: Record<string, string> = {
-  HAFALAN:
-    "bg-emerald-500/10 text-emerald-700 border-emerald-200 dark:text-emerald-400",
-  MURAJAAH:
-    "bg-blue-500/10 text-blue-700 border-blue-200 dark:text-blue-400",
-  ZIYADAH:
-    "bg-violet-500/10 text-violet-700 border-violet-200 dark:text-violet-400",
-  INTENS:
-    "bg-amber-500/10 text-amber-700 border-amber-200 dark:text-amber-400",
-  BACAAN:
-    "bg-rose-500/10 text-rose-700 border-rose-200 dark:text-rose-400",
-};
-
 type SortKey = "tanggal_setoran" | "nama_santri" | "juz" | "kategori" | "taqwim";
 type SortDir = "asc" | "desc";
 
@@ -64,6 +51,14 @@ export function LaporanTablePro({ groupedData, activeHalaqah, filterComponent, i
   const [sortKey, setSortKey] = useState<SortKey>("tanggal_setoran");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
   const [showFilter, setShowFilter] = useState(false);
+  const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
+
+  const toggleGroup = (groupName: string) => {
+    setCollapsedGroups((prev) => ({
+      ...prev,
+      [groupName]: !prev[groupName],
+    }));
+  };
 
   // Flatten all rows from groupedData
   const allRows = useMemo<SetoranRow[]>(() => {
@@ -72,6 +67,7 @@ export function LaporanTablePro({ groupedData, activeHalaqah, filterComponent, i
       if (activeHalaqah !== "all" && activeHalaqah !== "" && halaqahName !== activeHalaqah) return;
       Object.values(group.santriGroup).forEach((santri: GroupedSantriItem) => {
         santri.setoran.forEach((s: SetoranItem) => {
+          const kategoriName = s.kategori?.nama_kategori || "HAFALAN";
           rows.push({
             id_setoran: s.id_setoran,
             tanggal_setoran: s.tanggal_setoran,
@@ -80,7 +76,7 @@ export function LaporanTablePro({ groupedData, activeHalaqah, filterComponent, i
             juz: s.juz,
             surat: s.surat,
             ayat: s.ayat,
-            kategori: s.kategori,
+            kategori: kategoriName,
             taqwim: s.taqwim ?? 0,
             keterangan: s.keterangan || undefined,
           });
@@ -129,117 +125,113 @@ export function LaporanTablePro({ groupedData, activeHalaqah, filterComponent, i
   };
 
   const renderSortIcon = (col: SortKey) => {
-    if (sortKey !== col) return <ArrowUpDown className="h-3 w-3 ml-1 opacity-30" />;
+    if (sortKey !== col) return <ArrowUpDown className="h-3 w-3 ml-1.5 opacity-30" />;
     return sortDir === "asc" ? (
-      <ArrowUp className="h-3 w-3 ml-1 text-primary" />
+      <ArrowUp className="h-3 w-3 ml-1.5 text-primary" />
     ) : (
-      <ArrowDown className="h-3 w-3 ml-1 text-primary" />
+      <ArrowDown className="h-3 w-3 ml-1.5 text-primary" />
     );
   };
 
-  const taqwimColor = (val: number) => {
-    if (val === 0) return "text-emerald-600 font-bold";
-    if (val <= 2) return "text-amber-600 font-bold";
-    return "text-rose-600 font-bold";
-  };
+  // Group sortedRows by Halaqah name
+  const groupedRows = useMemo(() => {
+    const groups: Record<string, SetoranRow[]> = {};
+    sortedRows.forEach((row) => {
+      const gName = row.nama_halaqah || "Tanpa Halaqah";
+      if (!groups[gName]) {
+        groups[gName] = [];
+      }
+      groups[gName].push(row);
+    });
+    return groups;
+  }, [sortedRows]);
 
   return (
-    <Card className="shadow-sm">
-      <CardHeader className="pb-3 pt-5 px-5">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <CardTitle className="text-sm font-bold flex items-center gap-2">
-            <div className="h-5 w-5 rounded bg-primary/10 flex items-center justify-center">
-              <Users className="h-3 w-3 text-primary" />
-            </div>
-            Detail Riwayat Setoran
-            <Badge variant="secondary" className="text-xs font-semibold ml-1">
-              {sortedRows.length} catatan
-            </Badge>
-          </CardTitle>
-          <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
-            <div className="relative w-full sm:w-64 shrink-0">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-              <Input
-                placeholder="Cari santri, surat, halaqah..."
-                className="pl-8 h-8 text-xs w-full"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-            </div>
-            {filterComponent && (
-              <Button
-                variant={isFilterActive ? "default" : "outline"}
-                size="sm"
-                className="h-8 px-3 text-xs w-full sm:w-auto shrink-0"
-                onClick={() => setShowFilter(!showFilter)}
-              >
-                <Filter className="h-3.5 w-3.5 mr-1.5" />
-                Filter
-                {isFilterActive && <span className="ml-1.5 w-1.5 h-1.5 rounded-full bg-primary-foreground animate-pulse" />}
-              </Button>
-            )}
-          </div>
+    <div className="rounded-xl border bg-card shadow-sm overflow-hidden">
+      <div className="p-6 border-b flex flex-col sm:flex-row justify-between items-center gap-4">
+        <div className="flex items-center gap-2">
+          <h3 className="font-bold text-lg">Detail Riwayat Setoran</h3>
+          <Badge variant="secondary" className="font-bold">
+            {sortedRows.length} catatan
+          </Badge>
         </div>
-        {showFilter && filterComponent && (
-          <div className="mt-4 pt-4 border-t animate-in fade-in slide-in-from-top-2 duration-200">
-            {filterComponent}
+        <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
+          <div className="relative w-full sm:w-64 shrink-0">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Cari nama santri, surat, halaqah..."
+              className="pl-9 h-9 text-xs w-full bg-background"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
           </div>
-        )}
-      </CardHeader>
-      <CardContent className="p-0">
+          {filterComponent && (
+            <Button
+              variant={isFilterActive ? "secondary" : "outline"}
+              size="sm"
+              onClick={() => setShowFilter(!showFilter)}
+            >
+              <Filter className="h-4 w-4 mr-2" />
+              Filter
+            </Button>
+          )}
+        </div>
+      </div>
+      {showFilter && filterComponent && (
+        <div className="p-6 border-b bg-muted/20 space-y-4 animate-in fade-in duration-200">
+          {filterComponent}
+        </div>
+      )}
+      
+      <div className="p-0">
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
-              <TableRow className="bg-muted/40 hover:bg-muted/40">
-                <TableHead className="pl-5 font-bold text-xs w-32">
+              <TableRow>
+                <TableHead className="pl-6 w-36">
                   <Button
                     variant="ghost"
-                    size="sm"
-                    className="h-auto p-0 font-bold text-xs hover:bg-transparent text-foreground"
                     onClick={() => toggleSort("tanggal_setoran")}
+                    className="hover:bg-transparent -ml-4"
                   >
                     Tanggal {renderSortIcon("tanggal_setoran")}
                   </Button>
                 </TableHead>
-                <TableHead className="font-bold text-xs">
+                <TableHead>
                   <Button
                     variant="ghost"
-                    size="sm"
-                    className="h-auto p-0 font-bold text-xs hover:bg-transparent text-foreground"
                     onClick={() => toggleSort("nama_santri")}
+                    className="hover:bg-transparent -ml-4"
                   >
                     Santri {renderSortIcon("nama_santri")}
                   </Button>
                 </TableHead>
-                <TableHead className="font-bold text-xs hidden md:table-cell">
+                <TableHead className="hidden md:table-cell">
                   Halaqah
                 </TableHead>
-                <TableHead className="font-bold text-xs">
+                <TableHead>
                   <Button
                     variant="ghost"
-                    size="sm"
-                    className="h-auto p-0 font-bold text-xs hover:bg-transparent text-foreground"
                     onClick={() => toggleSort("juz")}
+                    className="hover:bg-transparent -ml-4"
                   >
                     Materi {renderSortIcon("juz")}
                   </Button>
                 </TableHead>
-                <TableHead className="font-bold text-xs">
+                <TableHead>
                   <Button
                     variant="ghost"
-                    size="sm"
-                    className="h-auto p-0 font-bold text-xs hover:bg-transparent text-foreground"
                     onClick={() => toggleSort("kategori")}
+                    className="hover:bg-transparent -ml-4"
                   >
                     Kategori {renderSortIcon("kategori")}
                   </Button>
                 </TableHead>
-                <TableHead className="font-bold text-xs text-right pr-5">
+                <TableHead className="text-right pr-6">
                   <Button
                     variant="ghost"
-                    size="sm"
-                    className="h-auto p-0 font-bold text-xs hover:bg-transparent text-foreground ml-auto"
                     onClick={() => toggleSort("taqwim")}
+                    className="hover:bg-transparent -ml-4 -mr-4 ml-auto"
                   >
                     Taqwim {renderSortIcon("taqwim")}
                   </Button>
@@ -249,75 +241,95 @@ export function LaporanTablePro({ groupedData, activeHalaqah, filterComponent, i
             <TableBody>
               {sortedRows.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-16 text-muted-foreground text-sm">
+                  <TableCell colSpan={6} className="text-center py-16 text-muted-foreground text-xs font-semibold">
                     {search ? `Tidak ada hasil untuk "${search}"` : "Tidak ada data setoran"}
                   </TableCell>
                 </TableRow>
               ) : (
-                sortedRows.map((row, idx) => (
-                  <TableRow
-                    key={row.id_setoran}
-                    className={`hover:bg-muted/30 transition-colors ${idx % 2 === 0 ? "" : "bg-muted/10"}`}
-                  >
-                    <TableCell className="pl-5 py-3">
-                      <p className="text-xs font-medium">
-                        {format(new Date(row.tanggal_setoran), "dd MMM yyyy", { locale: idLocale })}
-                      </p>
-                      <p className="text-[10px] text-muted-foreground">
-                        {format(new Date(row.tanggal_setoran), "HH:mm")}
-                      </p>
-                    </TableCell>
-                    <TableCell className="py-3">
-                      <p className="text-xs font-semibold uppercase leading-tight">
-                        {row.nama_santri}
-                      </p>
-                    </TableCell>
-                    <TableCell className="py-3 hidden md:table-cell">
-                      <span className="text-[11px] text-muted-foreground bg-muted px-2 py-0.5 rounded-full font-medium">
-                        {row.nama_halaqah}
-                      </span>
-                    </TableCell>
-                    <TableCell className="py-3">
-                      <p className="text-xs font-medium">
-                        Juz {row.juz} — {row.surat}
-                      </p>
-                      <p className="text-[10px] text-muted-foreground">
-                        Ayat {row.ayat}
-                      </p>
-                    </TableCell>
-                    <TableCell className="py-3">
-                      <Badge
-                        variant="outline"
-                        className={`text-[10px] font-semibold border ${KATEGORI_BADGE[row.kategori] ?? "bg-muted"}`}
+                Object.entries(groupedRows).map(([groupName, rows]) => {
+                  const isCollapsed = collapsedGroups[groupName];
+                  return (
+                    <React.Fragment key={`group-${groupName}`}>
+                      {/* Accordion Group Header */}
+                      <TableRow
+                        className="bg-muted/20 hover:bg-muted/30 cursor-pointer select-none border-y"
+                        onClick={() => toggleGroup(groupName)}
                       >
-                        {row.kategori}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="py-3 text-right pr-5">
-                      <span className={`text-sm ${taqwimColor(row.taqwim)}`}>
-                        {row.taqwim}
-                      </span>
-                      {row.keterangan && (
-                        <p className="text-[10px] text-muted-foreground italic max-w-24 ml-auto truncate" title={row.keterangan}>
-                          {row.keterangan}
-                        </p>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))
+                        <TableCell colSpan={6} className="pl-6 py-2.5 font-semibold text-sm">
+                          <div className="flex items-center gap-2">
+                            <ChevronRight className={cn(
+                              "h-4 w-4 text-muted-foreground transition-transform duration-200",
+                              !isCollapsed && "rotate-90 text-primary"
+                            )} />
+                            <span className="font-bold">{groupName}</span>
+                            <Badge variant="secondary">
+                              {rows.length} setoran
+                            </Badge>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+
+                      {/* Grouped Rows */}
+                      {!isCollapsed &&
+                        rows.map((row) => (
+                          <TableRow
+                            key={row.id_setoran}
+                            className="hover:bg-muted/5 border-b"
+                          >
+                            <TableCell className="pl-6 py-3">
+                              <div className="font-semibold">
+                                {format(new Date(row.tanggal_setoran), "dd MMM yyyy", { locale: idLocale })}
+                              </div>
+                              <div className="text-xs text-muted-foreground">
+                                {format(new Date(row.tanggal_setoran), "HH:mm")} WIB
+                              </div>
+                            </TableCell>
+                            <TableCell className="py-3">
+                              <div className="font-semibold">{row.nama_santri}</div>
+                            </TableCell>
+                            <TableCell className="py-3 hidden md:table-cell text-muted-foreground">
+                              {row.nama_halaqah}
+                            </TableCell>
+                            <TableCell className="py-3">
+                              <div className="font-semibold">
+                                Juz {row.juz} — {row.surat}
+                              </div>
+                              <div className="text-xs text-muted-foreground">
+                                Ayat {row.ayat}
+                              </div>
+                            </TableCell>
+                            <TableCell className="py-3">
+                              <Badge variant="outline">
+                                {row.kategori}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="py-3 text-right pr-6">
+                              <div className="font-semibold">{row.taqwim}</div>
+                              {row.keterangan && (
+                                <div className="text-xs text-muted-foreground mt-0.5" title={row.keterangan}>
+                                  {row.keterangan}
+                                </div>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                    </React.Fragment>
+                  );
+                })
               )}
             </TableBody>
           </Table>
         </div>
         {sortedRows.length > 0 && (
-          <div className="px-5 py-3 border-t bg-muted/20 flex items-center justify-between">
-            <p className="text-[11px] text-muted-foreground">
+          <div className="px-6 py-3 border-t bg-muted/10 flex items-center justify-between">
+            <p className="text-xs text-muted-foreground">
               Menampilkan <span className="font-semibold text-foreground">{sortedRows.length}</span> dari{" "}
-              <span className="font-semibold text-foreground">{allRows.length}</span> catatan
+              <span className="font-semibold text-foreground">{allRows.length}</span> catatan setoran
             </p>
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
+

@@ -126,8 +126,11 @@ export const useLaporanData = () => {
             if (tgl > endOfDay(filters.dateTo)) return false;
           }
 
-          // Kategori filter
-          if (filters.selectedKategori !== "" && s.kategori !== filters.selectedKategori) {
+          const kategoriName = s.kategori?.nama_kategori || "HAFALAN";
+          if (
+            filters.selectedKategori !== "" && 
+            kategoriName.toUpperCase() !== filters.selectedKategori.toUpperCase()
+          ) {
             return false;
           }
 
@@ -141,10 +144,12 @@ export const useLaporanData = () => {
             // Recalculate stats
             stats: filteredSetoran.reduce(
               (acc: Record<string, number>, s: SetoranItem) => {
-                acc[s.kategori] = (acc[s.kategori] ?? 0) + 1;
+                const kName = s.kategori?.nama_kategori || "HAFALAN";
+                const key = kName.toUpperCase();
+                acc[key] = (acc[key] ?? 0) + 1;
                 return acc;
               },
-              { HAFALAN: 0, MURAJAAH: 0, ZIYADAH: 0, INTENS: 0, BACAAN: 0 }
+              {}
             ),
           };
         }

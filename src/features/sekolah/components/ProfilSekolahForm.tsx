@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Save, Building2, MapPin, Users, BookOpen } from "lucide-react";
+import { ImageUploadField } from "@/components/ui/ImageUploadField";
 
 const formSchema = z.object({
   // Identitas
@@ -17,7 +18,7 @@ const formSchema = z.object({
   email: z.string().email("Format email tidak valid").optional().or(z.literal("")),
   no_telepon: z.string().optional(),
   whatsapp: z.string().optional(),
-  logo_url: z.string().url("Harus berupa URL valid").optional().or(z.literal("")),
+  logo_url: z.string().optional(),
   // Lokasi
   alamat: z.string().optional(),
   kelurahan: z.string().optional(),
@@ -29,7 +30,7 @@ const formSchema = z.object({
   // Kepemimpinan
   kepala_sekolah: z.string().optional(),
   jabatan_kepala: z.string().optional(),
-  foto_kepala_url: z.string().url("Harus berupa URL valid").optional().or(z.literal("")),
+  foto_kepala_url: z.string().optional(),
   // Profil lembaga
   jenis_lembaga: z.enum(["PESANTREN", "MADRASAH", "SEKOLAH_UMUM", "TPA", ""]).optional(),
   jenjang: z.string().optional(),
@@ -143,9 +144,15 @@ export const ProfilSekolahForm = ({ sekolah, onSubmit, saving, onSuccess }: Prof
             </div>
             <FormField control={form.control} name="logo_url" render={({ field }) => (
               <FormItem>
-                <FormLabel>URL Logo Sekolah</FormLabel>
-                <FormControl><Input placeholder="https://cdn.sekolah.id/logo.png" {...field} /></FormControl>
-                <FormDescription>Link langsung ke gambar logo (https://...)</FormDescription>
+                <FormControl>
+                  <ImageUploadField
+                    label="Logo Sekolah"
+                    description="Logo akan digunakan di halaman profil dan laporan PDF"
+                    value={field.value ?? ""}
+                    onChange={field.onChange}
+                    folder="halaqahid/logos"
+                  />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )} />
@@ -229,9 +236,15 @@ export const ProfilSekolahForm = ({ sekolah, onSubmit, saving, onSuccess }: Prof
             )} />
             <FormField control={form.control} name="foto_kepala_url" render={({ field }) => (
               <FormItem>
-                <FormLabel>URL Foto Pimpinan</FormLabel>
-                <FormControl><Input placeholder="https://cdn.sekolah.id/kepala.jpg" {...field} /></FormControl>
-                <FormDescription>Link langsung ke foto (https://...)</FormDescription>
+                <FormControl>
+                  <ImageUploadField
+                    label="Foto Pimpinan"
+                    description="Foto kepala sekolah / mudir yang ditampilkan di profil"
+                    value={field.value ?? ""}
+                    onChange={field.onChange}
+                    folder="halaqahid/pimpinan"
+                  />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )} />

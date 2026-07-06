@@ -1,4 +1,4 @@
-﻿import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faEllipsisH,
   faEdit,
@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { type Santri } from "../types";
 import { type Halaqah } from "@/features/halaqah/api/halaqahService";
+import type { TargetSekolah } from "@/types/domain/target";
 
 interface SantriTableProps {
   data: Santri[];
@@ -44,39 +45,20 @@ export function SantriTable({
   onEdit,
   onDelete,
 }: SantriTableProps) {
-  const renderTargetBadge = (target: string) => {
-    switch (target) {
-      case "RINGAN":
-        return (
-          <Badge variant="secondary" className="font-normal">
-            RINGAN
-          </Badge>
-        );
-      case "SEDANG":
-        return (
-          <Badge variant="outline" className="font-normal">
-            SEDANG
-          </Badge>
-        );
-      case "INTENSE":
-        return (
-          <Badge variant="default" className="font-normal">
-            INTENS
-          </Badge>
-        );
-      case "CUSTOM_KHUSUS":
-        return (
-          <Badge variant="destructive" className="font-normal">
-            KHUSUS
-          </Badge>
-        );
-      default:
-        return (
-          <Badge variant="outline" className="font-normal">
-            {target}
-          </Badge>
-        );
+  const renderTargetBadge = (target?: TargetSekolah | null) => {
+    if (!target) {
+      return (
+        <Badge variant="outline" className="font-normal text-muted-foreground">
+          Bebas
+        </Badge>
+      );
     }
+
+    return (
+      <Badge variant="secondary" className="font-medium bg-orange-100 text-orange-700 dark:bg-orange-950/40 dark:text-orange-400 border-orange-200 dark:border-orange-900/50">
+        {target.nama_target}
+      </Badge>
+    );
   };
 
   const formatWhatsApp = (phone: string | null | undefined) => {

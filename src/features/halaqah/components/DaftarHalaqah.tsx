@@ -1,4 +1,4 @@
-﻿
+
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUsers, faUserTie } from "@fortawesome/free-solid-svg-icons"; // Import icon tambahan
 import { faWhatsapp } from "@fortawesome/free-brands-svg-icons";
@@ -156,9 +156,15 @@ export function DaftarHalaqah({
                             </a>
                           </TableCell>
                           <TableCell className="py-2 px-2">
-                            <Badge variant={s.target === "INTENSE" ? "default" : "outline"}>
-                              {s.target}
-                            </Badge>
+                            {s.target ? (
+                              <Badge variant="secondary" className="bg-orange-100 text-orange-700 dark:bg-orange-950/40 dark:text-orange-400 border-orange-200 dark:border-orange-900/50">
+                                {s.target.nama_target}
+                              </Badge>
+                            ) : (
+                              <Badge variant="outline" className="text-muted-foreground font-normal">
+                                Bebas
+                              </Badge>
+                            )}
                           </TableCell>
                           <TableCell className="py-2 px-2 text-right">
                             <DropdownMenu>

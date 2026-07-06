@@ -5,17 +5,18 @@ import {
   View,
   StyleSheet,
   Font,
+  Image,
 } from "@react-pdf/renderer";
+import { type Sekolah } from "@/types/domain/sekolah";
 import { format } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
 
-// Register font (system font fallback)
 Font.register({
   family: "Helvetica",
   fonts: [],
 });
 
-interface SetoranPdfRow {
+export interface LaporanPdfRow {
   no: number;
   tanggal: string;
   nama_santri: string;
@@ -28,18 +29,21 @@ interface SetoranPdfRow {
   keterangan?: string;
 }
 
-interface PdfStats {
+export interface LaporanPdfStats {
   totalSetoran: number;
   totalSantriAktif: number;
   rataRataTaqwim: number;
   kategoriDominan: string;
   distribusiKategori: Record<string, number>;
+  distribusiHalaqah: Record<string, number>;
+  periodLabel: string;
 }
 
 interface LaporanPdfTemplateProps {
-  rows: SetoranPdfRow[];
-  stats: PdfStats;
+  rows: LaporanPdfRow[];
+  stats: LaporanPdfStats;
   periodLabel: string;
+  sekolah?: Sekolah | null;
   namaSekolah?: string;
   namaHalaqah?: string;
   generatedAt: string;
@@ -53,264 +57,249 @@ const KATEGORI_COLOR: Record<string, string> = {
   BACAAN: "#e11d48",
 };
 
+const TAQWIM_LABEL: Record<number, string> = {
+  0: "Lancar",
+  1: "1 Salah",
+  2: "2 Salah",
+  3: "3+ Salah",
+};
+
 const styles = StyleSheet.create({
   page: {
     fontFamily: "Helvetica",
     backgroundColor: "#ffffff",
-    padding: 0,
+    paddingHorizontal: 36,
+    paddingVertical: 36,
   },
-  // ─── HEADER ───────────────────────────────────────────────────────────────
+  // ─── KOP SURAT / HEADER ───────────────────────────────────────────────────
   header: {
-    backgroundColor: "#1e293b",
-    paddingHorizontal: 36,
-    paddingVertical: 24,
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
+    borderBottom: "2px solid #0f172a",
+    paddingBottom: 10,
+    marginBottom: 18,
+    gap: 16,
   },
-  headerLeft: {
+  logo: {
+    width: 55,
+    height: 55,
+    objectFit: "contain",
+  },
+  headerMain: {
     flex: 1,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontFamily: "Helvetica-Bold",
-    color: "#ffffff",
-    letterSpacing: 0.5,
-  },
-  headerSubtitle: {
-    fontSize: 9,
-    color: "#94a3b8",
-    marginTop: 3,
-    letterSpacing: 0.3,
-  },
-  headerRight: {
-    alignItems: "flex-end",
-  },
-  headerBadge: {
-    backgroundColor: "#3b82f6",
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 4,
-  },
-  headerBadgeText: {
-    fontSize: 8,
-    fontFamily: "Helvetica-Bold",
-    color: "#ffffff",
-    letterSpacing: 0.5,
-  },
-  headerDate: {
-    fontSize: 7.5,
-    color: "#64748b",
-    marginTop: 4,
-  },
-  // ─── CONTENT ──────────────────────────────────────────────────────────────
-  content: {
-    paddingHorizontal: 36,
-    paddingVertical: 20,
-    flex: 1,
-  },
-  // ─── INFO SECTION ─────────────────────────────────────────────────────────
-  infoRow: {
-    flexDirection: "row",
-    marginBottom: 16,
-    gap: 8,
-  },
-  infoItem: {
-    flex: 1,
-    borderLeft: "3px solid #3b82f6",
-    paddingLeft: 8,
-    paddingVertical: 2,
-  },
-  infoLabel: {
-    fontSize: 7.5,
-    color: "#64748b",
-    fontFamily: "Helvetica-Bold",
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-  },
-  infoValue: {
-    fontSize: 10,
-    fontFamily: "Helvetica-Bold",
-    color: "#1e293b",
-    marginTop: 2,
-  },
-  // ─── KPI CARDS ────────────────────────────────────────────────────────────
-  kpiSection: {
-    flexDirection: "row",
-    gap: 8,
-    marginBottom: 16,
-  },
-  kpiCard: {
-    flex: 1,
-    backgroundColor: "#f8fafc",
-    border: "1px solid #e2e8f0",
-    borderRadius: 6,
-    padding: 10,
     alignItems: "center",
   },
-  kpiValue: {
-    fontSize: 20,
+  schoolName: {
+    fontSize: 13,
     fontFamily: "Helvetica-Bold",
-    color: "#1e293b",
-  },
-  kpiLabel: {
-    fontSize: 7,
-    color: "#64748b",
-    textAlign: "center",
-    marginTop: 3,
+    color: "#0f172a",
     textTransform: "uppercase",
     letterSpacing: 0.5,
+    textAlign: "center",
   },
-  kpiSub: {
+  schoolDetails: {
     fontSize: 7.5,
-    color: "#94a3b8",
+    color: "#475569",
     marginTop: 2,
     textAlign: "center",
+    lineHeight: 1.3,
   },
-  // ─── SECTION TITLE ────────────────────────────────────────────────────────
-  sectionTitle: {
-    fontSize: 9,
+  docTitle: {
+    fontSize: 10.5,
     fontFamily: "Helvetica-Bold",
     color: "#1e293b",
-    textTransform: "uppercase",
-    letterSpacing: 1,
-    marginBottom: 8,
-    paddingBottom: 6,
-    borderBottom: "1.5px solid #e2e8f0",
-  },
-  // ─── TABLE ────────────────────────────────────────────────────────────────
-  table: {
-    width: "100%",
-    borderRadius: 6,
-    overflow: "hidden",
-    border: "1px solid #e2e8f0",
-  },
-  tableHeader: {
-    flexDirection: "row",
-    backgroundColor: "#1e293b",
-    paddingVertical: 7,
-    paddingHorizontal: 4,
-  },
-  tableHeaderCell: {
-    fontSize: 7.5,
-    fontFamily: "Helvetica-Bold",
-    color: "#94a3b8",
+    marginTop: 6,
     textTransform: "uppercase",
     letterSpacing: 0.5,
+    textAlign: "center",
   },
-  tableRow: {
-    flexDirection: "row",
-    paddingVertical: 6,
-    paddingHorizontal: 4,
-    borderBottom: "1px solid #f1f5f9",
-  },
-  tableRowAlt: {
-    backgroundColor: "#f8fafc",
-  },
-  tableCell: {
-    fontSize: 8,
-    color: "#334155",
-  },
-  tableCellBold: {
-    fontSize: 8,
-    fontFamily: "Helvetica-Bold",
-    color: "#1e293b",
-  },
-  tableCellMuted: {
-    fontSize: 7,
-    color: "#94a3b8",
+  periodText: {
+    fontSize: 8.5,
+    color: "#64748b",
     marginTop: 1,
+    textAlign: "center",
   },
-  // Column widths
-  colNo: { width: "4%" },
-  colTanggal: { width: "11%" },
-  colNama: { width: "20%" },
-  colHalaqah: { width: "13%" },
-  colMateri: { width: "22%" },
-  colKategori: { width: "13%" },
-  colTaqwim: { width: "8%" },
-  colKet: { width: "9%" },
-  // ─── KATEGORI BADGE ───────────────────────────────────────────────────────
-  kategoriBadge: {
-    borderRadius: 3,
-    paddingHorizontal: 4,
-    paddingVertical: 2,
-    alignSelf: "flex-start",
+  // ─── SUMMARY INFO BOX ─────────────────────────────────────────────────────
+  summaryContainer: {
+    flexDirection: "row",
+    border: "1px solid #e2e8f0",
+    borderRadius: 8,
+    backgroundColor: "#f8fafc",
+    padding: 12,
+    marginBottom: 14,
+    gap: 16,
   },
-  kategoriBadgeText: {
-    fontSize: 7,
+  summaryCol: {
+    flex: 1,
+    gap: 5,
+  },
+  summaryField: {
+    flexDirection: "row",
+    fontSize: 8.5,
+  },
+  summaryLabel: {
+    width: 100,
+    color: "#64748b",
+    fontFamily: "Helvetica-Bold",
+  },
+  summaryValue: {
+    flex: 1,
+    color: "#0f172a",
+    fontFamily: "Helvetica",
+  },
+  summaryValueBold: {
+    flex: 1,
+    color: "#0f172a",
     fontFamily: "Helvetica-Bold",
   },
   // ─── DISTRIBUSI SECTION ───────────────────────────────────────────────────
+  distribusiContainer: {
+    flexDirection: "row",
+    gap: 8,
+    marginBottom: 14,
+  },
+  distribusiCard: {
+    flex: 1,
+    border: "1px solid #e2e8f0",
+    borderRadius: 6,
+    backgroundColor: "#f8fafc",
+    padding: 8,
+  },
+  distribusiTitle: {
+    fontSize: 7.5,
+    fontFamily: "Helvetica-Bold",
+    color: "#475569",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+    marginBottom: 6,
+  },
   distribusiRow: {
     flexDirection: "row",
-    gap: 6,
-    marginBottom: 16,
-  },
-  distribusiItem: {
-    flex: 1,
-    flexDirection: "row",
     alignItems: "center",
-    gap: 4,
+    marginBottom: 3,
+    gap: 5,
   },
   distribusiDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: 6,
+    height: 6,
+    borderRadius: 3,
   },
-  distribusiText: {
+  distribusiName: {
+    flex: 1,
     fontSize: 7.5,
     color: "#334155",
   },
   distribusiCount: {
     fontSize: 7.5,
     fontFamily: "Helvetica-Bold",
-    color: "#1e293b",
-    marginLeft: 2,
+    color: "#0f172a",
+  },
+  // ─── SECTION TITLE ────────────────────────────────────────────────────────
+  sectionTitle: {
+    fontSize: 9,
+    fontFamily: "Helvetica-Bold",
+    color: "#0f172a",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+    marginBottom: 6,
+  },
+  // ─── TABLE ────────────────────────────────────────────────────────────────
+  table: {
+    width: "100%",
+    border: "1px solid #e2e8f0",
+    borderRadius: 6,
+    overflow: "hidden",
+    marginBottom: 20,
+  },
+  tableHeader: {
+    flexDirection: "row",
+    backgroundColor: "#f1f5f9",
+    borderBottom: "1px solid #cbd5e1",
+    paddingVertical: 7,
+    paddingHorizontal: 5,
+  },
+  tableHeaderCell: {
+    fontSize: 7.5,
+    fontFamily: "Helvetica-Bold",
+    color: "#475569",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  tableRow: {
+    flexDirection: "row",
+    paddingVertical: 6,
+    paddingHorizontal: 5,
+    borderBottom: "1px solid #f1f5f9",
+    alignItems: "center",
+  },
+  tableRowAlt: {
+    backgroundColor: "#f8fafc",
+  },
+  tableCell: {
+    fontSize: 7.5,
+    color: "#334155",
+  },
+  tableCellBold: {
+    fontSize: 7.5,
+    fontFamily: "Helvetica-Bold",
+    color: "#0f172a",
+  },
+  // Column widths — portrait A4 layout
+  colNo:       { width: "5%" },
+  colTanggal:  { width: "10%" },
+  colNama:     { width: "20%" },
+  colHalaqah:  { width: "14%" },
+  colJuz:      { width: "5%" },
+  colSurat:    { width: "20%" },
+  colAyat:     { width: "8%" },
+  colKategori: { width: "10%" },
+  colTaqwim:   { width: "8%" },
+  // ─── BADGE ────────────────────────────────────────────────────────────────
+  badge: {
+    borderRadius: 3,
+    paddingHorizontal: 4,
+    paddingVertical: 2,
+    alignSelf: "flex-start",
+  },
+  badgeText: {
+    fontSize: 6.5,
+    fontFamily: "Helvetica-Bold",
   },
   // ─── FOOTER ───────────────────────────────────────────────────────────────
   footer: {
-    backgroundColor: "#f8fafc",
+    position: "absolute",
+    bottom: 24,
+    left: 36,
+    right: 36,
     borderTop: "1px solid #e2e8f0",
-    paddingHorizontal: 36,
-    paddingVertical: 10,
+    paddingTop: 8,
     flexDirection: "row",
-    alignItems: "center",
     justifyContent: "space-between",
+    alignItems: "center",
   },
-  footerLeft: {
-    fontSize: 7.5,
-    color: "#94a3b8",
-  },
-  footerRight: {
-    fontSize: 7.5,
-    color: "#94a3b8",
-    fontFamily: "Helvetica-Bold",
-  },
-  watermark: {
+  footerText: {
     fontSize: 7,
-    color: "#cbd5e1",
-    textAlign: "center",
-    marginTop: 2,
+    color: "#94a3b8",
   },
 });
 
-function KategoriPill({ kategori }: { kategori: string }) {
-  const color = KATEGORI_COLOR[kategori] ?? "#64748b";
+function KategoriBadge({ kategori }: { kategori: string }) {
+  const color = KATEGORI_COLOR[kategori.toUpperCase()] ?? "#64748b";
   return (
-    <View style={[styles.kategoriBadge, { backgroundColor: color + "20" }]}>
-      <Text style={[styles.kategoriBadgeText, { color }]}>{kategori}</Text>
+    <View style={[styles.badge, { backgroundColor: color + "20" }]}>
+      <Text style={[styles.badgeText, { color }]}>{kategori}</Text>
     </View>
   );
 }
 
-function TaqwimText({ value }: { value: number }) {
-  const color =
-    value === 0 ? "#059669" : value <= 2 ? "#d97706" : "#dc2626";
+function TaqwimBadge({ taqwim }: { taqwim: number }) {
+  const isLancar = taqwim === 0;
+  const color = isLancar ? "#059669" : taqwim <= 2 ? "#d97706" : "#dc2626";
+  const label = TAQWIM_LABEL[taqwim] ?? `${taqwim} Salah`;
   return (
-    <Text style={{ fontSize: 9, fontFamily: "Helvetica-Bold", color }}>
-      {value}
-    </Text>
+    <View style={[styles.badge, { backgroundColor: color + "15" }]}>
+      <Text style={[styles.badgeText, { color }]}>{label}</Text>
+    </View>
   );
 }
 
@@ -318,206 +307,330 @@ export function LaporanPdfTemplate({
   rows,
   stats,
   periodLabel,
+  sekolah,
   namaSekolah = "Halaqah ID",
   namaHalaqah = "Semua Halaqah",
   generatedAt,
 }: LaporanPdfTemplateProps) {
-  const ROWS_PER_PAGE = 22;
-  const totalPages = Math.ceil(rows.length / ROWS_PER_PAGE) || 1;
+  // Halaman pertama: lebih sedikit baris karena ada summary & distribusi
+  const ROWS_FIRST = 10;
+  const ROWS_REST = 18;
 
-  const pages = Array.from({ length: totalPages }, (_, i) =>
-    rows.slice(i * ROWS_PER_PAGE, (i + 1) * ROWS_PER_PAGE)
+  const resolvedNamaSekolah = sekolah?.nama_sekolah || namaSekolah;
+  const resolvedNamaSingkat = sekolah?.nama_singkat || resolvedNamaSekolah;
+
+  const firstPageRows = rows.slice(0, ROWS_FIRST);
+  const restRows = rows.slice(ROWS_FIRST);
+  const restPages: LaporanPdfRow[][] = [];
+  for (let i = 0; i < restRows.length; i += ROWS_REST) {
+    restPages.push(restRows.slice(i, i + ROWS_REST));
+  }
+
+  const allPages: Array<{ rows: LaporanPdfRow[]; isFirst: boolean }> = [
+    { rows: firstPageRows, isFirst: true },
+    ...restPages.map((r) => ({ rows: r, isFirst: false })),
+  ];
+  const totalPages = allPages.length || 1;
+
+  const taqwimLabel =
+    stats.rataRataTaqwim === 0
+      ? "Sempurna / Lancar"
+      : stats.rataRataTaqwim <= 2
+        ? "Baik (Itqan)"
+        : "Perlu Perbaikan";
+
+  const distribusiKategoriEntries = Object.entries(stats.distribusiKategori).sort(
+    (a, b) => b[1] - a[1]
   );
+  const distribusiHalaqahEntries = Object.entries(stats.distribusiHalaqah).sort(
+    (a, b) => b[1] - a[1]
+  );
+
+  const formatTanggal = (raw: string) => {
+    try {
+      return format(new Date(raw), "dd/MM/yy", { locale: idLocale });
+    } catch {
+      return raw;
+    }
+  };
 
   return (
     <Document
-      title={`Laporan Setoran — ${periodLabel}`}
-      author={namaSekolah}
-      subject="Laporan Setoran Hafalan"
+      title={`Laporan Setoran Hafalan — ${periodLabel}`}
+      author={resolvedNamaSekolah}
+      subject="Laporan Rekapitulasi Setoran Hafalan"
     >
-      {pages.map((pageRows, pageIdx) => (
-        <Page key={pageIdx} size="A4" orientation="landscape" style={styles.page}>
-          {/* ── HEADER ── */}
+      {allPages.map((pageData, pageIdx) => (
+        <Page key={pageIdx} size="A4" style={styles.page}>
+          {/* ── KOP SURAT ── */}
           <View style={styles.header}>
-            <View style={styles.headerLeft}>
-              <Text style={styles.headerTitle}>LAPORAN SETORAN HAFALAN</Text>
-              <Text style={styles.headerSubtitle}>
-                {namaSekolah} · {namaHalaqah} · {periodLabel}
+            {sekolah?.logo_url ? (
+              <Image src={sekolah.logo_url} style={styles.logo} />
+            ) : null}
+            <View style={styles.headerMain}>
+              <Text style={styles.schoolName}>{resolvedNamaSekolah}</Text>
+              {sekolah ? (
+                <Text style={styles.schoolDetails}>
+                  {sekolah.alamat ? sekolah.alamat : ""}
+                  {sekolah.kota ? ` · ${sekolah.kota}` : ""}
+                  {sekolah.provinsi ? ` · ${sekolah.provinsi}` : ""}
+                  {sekolah.no_telepon || sekolah.whatsapp || sekolah.email
+                    ? "\n"
+                    : ""}
+                  {sekolah.no_telepon ? `Telp: ${sekolah.no_telepon}` : ""}
+                  {sekolah.whatsapp ? ` · WA: ${sekolah.whatsapp}` : ""}
+                  {sekolah.email ? ` · Email: ${sekolah.email}` : ""}
+                </Text>
+              ) : null}
+              <Text style={styles.docTitle}>
+                Laporan Rekapitulasi Setoran Hafalan
+              </Text>
+              <Text style={styles.periodText}>
+                Periode Laporan: {periodLabel}
               </Text>
             </View>
-            <View style={styles.headerRight}>
-              <View style={styles.headerBadge}>
-                <Text style={styles.headerBadgeText}>LAPORAN RESMI</Text>
-              </View>
-              <Text style={styles.headerDate}>
-                Dicetak: {generatedAt} · Hal. {pageIdx + 1}/{totalPages}
-              </Text>
-            </View>
+            {sekolah?.logo_url ? <View style={{ width: 55 }} /> : null}
           </View>
 
-          {/* ── CONTENT ── */}
-          <View style={styles.content}>
-            {/* Hanya tampilkan info & KPI di halaman pertama */}
-            {pageIdx === 0 && (
-              <>
-                {/* Info row */}
-                <View style={styles.infoRow}>
-                  <View style={[styles.infoItem, { borderLeftColor: "#3b82f6" }]}>
-                    <Text style={styles.infoLabel}>Periode Laporan</Text>
-                    <Text style={styles.infoValue}>{periodLabel}</Text>
+          {/* ── SUMMARY & DISTRIBUSI (Hanya Halaman 1) ── */}
+          {pageData.isFirst && (
+            <>
+              <View style={styles.summaryContainer}>
+                <View style={styles.summaryCol}>
+                  <View style={styles.summaryField}>
+                    <Text style={styles.summaryLabel}>Periode Laporan</Text>
+                    <Text style={styles.summaryValue}>{periodLabel}</Text>
                   </View>
-                  <View style={[styles.infoItem, { borderLeftColor: "#10b981" }]}>
-                    <Text style={styles.infoLabel}>Halaqah</Text>
-                    <Text style={styles.infoValue}>{namaHalaqah}</Text>
+                  <View style={styles.summaryField}>
+                    <Text style={styles.summaryLabel}>Halaqah</Text>
+                    <Text style={styles.summaryValue}>{namaHalaqah}</Text>
                   </View>
-                  <View style={[styles.infoItem, { borderLeftColor: "#8b5cf6" }]}>
-                    <Text style={styles.infoLabel}>Lembaga</Text>
-                    <Text style={styles.infoValue}>{namaSekolah}</Text>
+                  <View style={styles.summaryField}>
+                    <Text style={styles.summaryLabel}>Total Setoran</Text>
+                    <Text style={styles.summaryValueBold}>
+                      {stats.totalSetoran.toLocaleString("id-ID")} setoran
+                    </Text>
                   </View>
                 </View>
 
-                {/* KPI Cards */}
-                <View style={styles.kpiSection}>
-                  <View style={styles.kpiCard}>
-                    <Text style={styles.kpiValue}>{stats.totalSetoran}</Text>
-                    <Text style={styles.kpiLabel}>Total Setoran</Text>
+                <View style={styles.summaryCol}>
+                  <View style={styles.summaryField}>
+                    <Text style={styles.summaryLabel}>Santri Aktif</Text>
+                    <Text
+                      style={[styles.summaryValueBold, { color: "#2563eb" }]}
+                    >
+                      {stats.totalSantriAktif} Santri
+                    </Text>
                   </View>
-                  <View style={styles.kpiCard}>
-                    <Text style={styles.kpiValue}>{stats.totalSantriAktif}</Text>
-                    <Text style={styles.kpiLabel}>Santri Aktif</Text>
+                  <View style={styles.summaryField}>
+                    <Text style={styles.summaryLabel}>Rata-rata Kelancaran</Text>
+                    <Text
+                      style={[styles.summaryValueBold, { color: "#059669" }]}
+                    >
+                      {stats.rataRataTaqwim.toFixed(1)} — {taqwimLabel}
+                    </Text>
                   </View>
-                  <View style={styles.kpiCard}>
+                  <View style={styles.summaryField}>
+                    <Text style={styles.summaryLabel}>Kategori Dominan</Text>
                     <Text
                       style={[
-                        styles.kpiValue,
+                        styles.summaryValueBold,
                         {
                           color:
-                            stats.rataRataTaqwim === 0
-                              ? "#059669"
-                              : stats.rataRataTaqwim <= 2
-                                ? "#d97706"
-                                : "#dc2626",
+                            KATEGORI_COLOR[
+                              stats.kategoriDominan?.toUpperCase()
+                            ] ?? "#334155",
                         },
-                      ]}
-                    >
-                      {stats.rataRataTaqwim.toFixed(1)}
-                    </Text>
-                    <Text style={styles.kpiLabel}>Rata-rata Taqwim</Text>
-                    <Text style={styles.kpiSub}>
-                      {stats.rataRataTaqwim === 0
-                        ? "Sempurna"
-                        : stats.rataRataTaqwim <= 2
-                          ? "Baik"
-                          : "Perlu Perbaikan"}
-                    </Text>
-                  </View>
-                  <View style={[styles.kpiCard, { borderLeftColor: KATEGORI_COLOR[stats.kategoriDominan] ?? "#64748b" }]}>
-                    <Text
-                      style={[
-                        styles.kpiValue,
-                        { fontSize: 13, color: KATEGORI_COLOR[stats.kategoriDominan] ?? "#1e293b" },
                       ]}
                     >
                       {stats.kategoriDominan || "—"}
                     </Text>
-                    <Text style={styles.kpiLabel}>Kategori Dominan</Text>
                   </View>
                 </View>
-
-                {/* Distribusi kategori */}
-                <View style={styles.distribusiRow}>
-                  {Object.entries(stats.distribusiKategori).map(([k, v]) => (
-                    <View key={k} style={styles.distribusiItem}>
-                      <View style={[styles.distribusiDot, { backgroundColor: KATEGORI_COLOR[k] ?? "#94a3b8" }]} />
-                      <Text style={styles.distribusiText}>{k}:</Text>
-                      <Text style={styles.distribusiCount}>{v}</Text>
-                    </View>
-                  ))}
-                </View>
-              </>
-            )}
-
-            {/* Section title */}
-            <Text style={styles.sectionTitle}>
-              Rincian Setoran {pageIdx > 0 ? `(Lanjutan — Hal. ${pageIdx + 1})` : ""}
-            </Text>
-
-            {/* Table */}
-            <View style={styles.table}>
-              <View style={styles.tableHeader}>
-                <Text style={[styles.tableHeaderCell, styles.colNo]}>#</Text>
-                <Text style={[styles.tableHeaderCell, styles.colTanggal]}>Tanggal</Text>
-                <Text style={[styles.tableHeaderCell, styles.colNama]}>Nama Santri</Text>
-                <Text style={[styles.tableHeaderCell, styles.colHalaqah]}>Halaqah</Text>
-                <Text style={[styles.tableHeaderCell, styles.colMateri]}>Materi</Text>
-                <Text style={[styles.tableHeaderCell, styles.colKategori]}>Kategori</Text>
-                <Text style={[styles.tableHeaderCell, styles.colTaqwim, { textAlign: "center" }]}>Taqwim</Text>
-                <Text style={[styles.tableHeaderCell, styles.colKet]}>Keterangan</Text>
               </View>
 
-              {pageRows.length > 0 ? (
-                pageRows.map((row, idx) => {
-                  const globalIdx = pageIdx * ROWS_PER_PAGE + idx;
-                  return (
-                    <View
-                      key={row.no}
-                      style={[styles.tableRow, globalIdx % 2 === 1 ? styles.tableRowAlt : {}]}
-                    >
-                      <Text style={[styles.tableCell, styles.colNo, { color: "#94a3b8" }]}>
-                        {row.no}
+              {(distribusiKategoriEntries.length > 0 ||
+                distribusiHalaqahEntries.length > 0) && (
+                <View style={styles.distribusiContainer}>
+                  {distribusiKategoriEntries.length > 0 && (
+                    <View style={styles.distribusiCard}>
+                      <Text style={styles.distribusiTitle}>
+                        Distribusi Kategori
                       </Text>
-                      <View style={styles.colTanggal}>
-                        <Text style={styles.tableCell}>
-                          {format(new Date(row.tanggal), "dd/MM/yyyy", { locale: idLocale })}
-                        </Text>
-                        <Text style={styles.tableCellMuted}>
-                          {format(new Date(row.tanggal), "HH:mm")}
-                        </Text>
-                      </View>
-                      <Text style={[styles.tableCellBold, styles.colNama]}>
-                        {row.nama_santri}
-                      </Text>
-                      <Text style={[styles.tableCell, styles.colHalaqah, { color: "#64748b" }]}>
-                        {row.nama_halaqah}
-                      </Text>
-                      <View style={styles.colMateri}>
-                        <Text style={styles.tableCellBold}>
-                          Juz {row.juz} — {row.surat}
-                        </Text>
-                        <Text style={styles.tableCellMuted}>Ayat {row.ayat}</Text>
-                      </View>
-                      <View style={styles.colKategori}>
-                        <KategoriPill kategori={row.kategori} />
-                      </View>
-                      <View style={[styles.colTaqwim, { alignItems: "center" }]}>
-                        <TaqwimText value={row.taqwim} />
-                      </View>
-                      <Text style={[styles.tableCell, styles.colKet, { color: "#94a3b8", fontSize: 7 }]}>
-                        {row.keterangan ?? "—"}
-                      </Text>
+                      {distribusiKategoriEntries.slice(0, 6).map(([kat, count]) => (
+                        <View key={kat} style={styles.distribusiRow}>
+                          <View
+                            style={[
+                              styles.distribusiDot,
+                              {
+                                backgroundColor:
+                                  KATEGORI_COLOR[kat.toUpperCase()] ??
+                                  "#94a3b8",
+                              },
+                            ]}
+                          />
+                          <Text style={styles.distribusiName}>{kat}</Text>
+                          <Text style={styles.distribusiCount}>{count}</Text>
+                        </View>
+                      ))}
                     </View>
-                  );
-                })
-              ) : (
-                <View style={{ padding: 16 }}>
-                  <Text style={{ fontSize: 9, color: "#94a3b8", textAlign: "center" }}>
-                    Tidak ada data setoran
-                  </Text>
+                  )}
+
+                  {distribusiHalaqahEntries.length > 0 && (
+                    <View style={styles.distribusiCard}>
+                      <Text style={styles.distribusiTitle}>
+                        Distribusi Halaqah
+                      </Text>
+                      {distribusiHalaqahEntries.slice(0, 6).map(([halaqah, count]) => (
+                        <View key={halaqah} style={styles.distribusiRow}>
+                          <View
+                            style={[
+                              styles.distribusiDot,
+                              { backgroundColor: "#6366f1" },
+                            ]}
+                          />
+                          <Text style={styles.distribusiName}>{halaqah}</Text>
+                          <Text style={styles.distribusiCount}>{count}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  )}
                 </View>
               )}
+            </>
+          )}
+
+          {/* ── SECTION TITLE ── */}
+          <Text style={styles.sectionTitle}>
+            Daftar Setoran Hafalan
+            {pageIdx > 0 ? ` (Lanjutan — Hal. ${pageIdx + 1})` : ""}
+          </Text>
+
+          {/* ── TABLE ── */}
+          <View style={styles.table}>
+            <View style={styles.tableHeader}>
+              <Text style={[styles.tableHeaderCell, styles.colNo]}>#</Text>
+              <Text style={[styles.tableHeaderCell, styles.colTanggal]}>
+                Tanggal
+              </Text>
+              <Text style={[styles.tableHeaderCell, styles.colNama]}>
+                Nama Santri
+              </Text>
+              <Text style={[styles.tableHeaderCell, styles.colHalaqah]}>
+                Halaqah
+              </Text>
+              <Text style={[styles.tableHeaderCell, styles.colJuz]}>Juz</Text>
+              <Text style={[styles.tableHeaderCell, styles.colSurat]}>
+                Surat
+              </Text>
+              <Text style={[styles.tableHeaderCell, styles.colAyat]}>
+                Ayat
+              </Text>
+              <Text style={[styles.tableHeaderCell, styles.colKategori]}>
+                Kategori
+              </Text>
+              <Text style={[styles.tableHeaderCell, styles.colTaqwim]}>
+                Kelancaran
+              </Text>
             </View>
+
+            {pageData.rows.length > 0 ? (
+              pageData.rows.map((row, idx) => {
+                const globalIdx = pageData.isFirst
+                  ? idx
+                  : ROWS_FIRST +
+                    (pageIdx - 1) * ROWS_REST +
+                    idx;
+                return (
+                  <View
+                    key={row.no}
+                    style={[
+                      styles.tableRow,
+                      globalIdx % 2 === 1 ? styles.tableRowAlt : {},
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.tableCell,
+                        styles.colNo,
+                        { color: "#94a3b8" },
+                      ]}
+                    >
+                      {row.no}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.tableCell,
+                        styles.colTanggal,
+                        { color: "#64748b" },
+                      ]}
+                    >
+                      {formatTanggal(row.tanggal)}
+                    </Text>
+                    <Text style={[styles.tableCellBold, styles.colNama]}>
+                      {row.nama_santri}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.tableCell,
+                        styles.colHalaqah,
+                        { color: "#64748b" },
+                      ]}
+                    >
+                      {row.nama_halaqah}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.tableCellBold,
+                        styles.colJuz,
+                        { textAlign: "center" },
+                      ]}
+                    >
+                      {row.juz}
+                    </Text>
+                    <Text style={[styles.tableCell, styles.colSurat]}>
+                      {row.surat}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.tableCell,
+                        styles.colAyat,
+                        { color: "#64748b" },
+                      ]}
+                    >
+                      {row.ayat}
+                    </Text>
+                    <View style={styles.colKategori}>
+                      <KategoriBadge kategori={row.kategori} />
+                    </View>
+                    <View style={styles.colTaqwim}>
+                      <TaqwimBadge taqwim={row.taqwim ?? 0} />
+                    </View>
+                  </View>
+                );
+              })
+            ) : (
+              <View style={{ padding: 16 }}>
+                <Text
+                  style={{
+                    fontSize: 9,
+                    color: "#94a3b8",
+                    textAlign: "center",
+                  }}
+                >
+                  Tidak ada data setoran
+                </Text>
+              </View>
+            )}
           </View>
 
           {/* ── FOOTER ── */}
           <View style={styles.footer}>
-            <Text style={styles.footerLeft}>
-              {namaSekolah} · Laporan Setoran Hafalan · {periodLabel}
+            <Text style={styles.footerText}>
+              Dicetak pada: {generatedAt} · {resolvedNamaSingkat}
             </Text>
-            <Text style={styles.watermark}>
-              Dokumen ini dibuat secara otomatis oleh sistem Halaqah ID
-            </Text>
-            <Text style={styles.footerRight}>
-              Halaman {pageIdx + 1} / {totalPages}
+            <Text style={styles.footerText}>
+              Halaman {pageIdx + 1} dari {totalPages}
             </Text>
           </View>
         </Page>

@@ -1,4 +1,5 @@
 import { parseISO, getMonth, getYear } from "date-fns";
+import type { SetoranItem } from "@/features/setoran/types";
 
 interface DateFilter {
   month: number | null;
@@ -19,7 +20,7 @@ interface DashboardItem {
   id_santri?: number; // Primary key dari backend
   santri?: SantriBase | null;
   tanggal_setoran?: string;
-  kategori?: string;
+  kategori?: string | { id_kategori: number; nama_kategori: string; perlu_validasi_urutan?: boolean; };
   status?: string;
 }
 
@@ -76,22 +77,28 @@ export const transformSetoranData = (
       name: string;
       totalHafalan: number;
       totalMurajaah: number;
-      totalZiyadah: number; // Tambahkan Ziyadah
+      totalZiyadah: number;
       santriGroup: {
         [key: number]: {
           nama: string;
-          setoran: DashboardItem[];
-          stats: { HAFALAN: number; MURAJAAH: number; ZIYADAH: number };
+          setoran: SetoranItem[];
+          stats: Record<string, number>;
         };
       };
     };
   }
 
-  return filteredData.reduce((acc: AccType, item: DashboardItem) => {
+  return (filteredData as unknown as SetoranItem[]).reduce((acc: AccType, item: SetoranItem) => {
     const halaqahName = item.santri?.halaqah?.name_halaqah || "Tanpa Halaqah";
     const santriId = item.id_santri || 0;
     const santriName = item.santri?.nama_santri || "Nama Tidak Diketahui";
-    const kategori = (item.kategori || "HAFALAN").toUpperCase();
+    
+    // Resolusi nama kategori baik format objek (relasi baru) maupun string (legacy)
+    const rawKategori = item.kategori;
+    const kategoriName = typeof rawKategori === 'object' && rawKategori && 'nama_kategori' in rawKategori
+      ? (rawKategori as { nama_kategori: string }).nama_kategori
+      : rawKategori;
+    const kategori = (kategoriName || "HAFALAN").toUpperCase();
 
     if (!acc[halaqahName]) {
       acc[halaqahName] = {
@@ -107,27 +114,21 @@ export const transformSetoranData = (
       acc[halaqahName].santriGroup[santriId] = {
         nama: santriName,
         setoran: [],
-        stats: { HAFALAN: 0, MURAJAAH: 0, ZIYADAH: 0 },
+        stats: {},
       };
     }
 
     acc[halaqahName].santriGroup[santriId].setoran.push(item);
 
-    // Update Global Count
-    if (kategori === "HAFALAN") acc[halaqahName].totalHafalan++;
-    else if (kategori === "ZIYADAH") acc[halaqahName].totalZiyadah++;
-    else acc[halaqahName].totalMurajaah++;
+    // Update Global Count (Prioritas pencocokan kata kunci)
+    if (kategori.includes("HAFALAN")) acc[halaqahName].totalHafalan++;
+    else if (kategori.includes("ZIYADAH")) acc[halaqahName].totalZiyadah++;
+    else if (kategori.includes("MURAJAAH")) acc[halaqahName].totalMurajaah++;
+    else acc[halaqahName].totalMurajaah++; // Fallback
 
-    // Update Santri Stats
-    if (
-      kategori === "HAFALAN" ||
-      kategori === "MURAJAAH" ||
-      kategori === "ZIYADAH"
-    ) {
-      acc[halaqahName].santriGroup[santriId].stats[
-        kategori as "HAFALAN" | "MURAJAAH" | "ZIYADAH"
-      ]++;
-    }
+    // Update Santri Stats secara dinamis
+    acc[halaqahName].santriGroup[santriId].stats[kategori] = 
+      (acc[halaqahName].santriGroup[santriId].stats[kategori] || 0) + 1;
 
     return acc;
   }, {});

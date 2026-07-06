@@ -70,6 +70,16 @@ export function AppSidebar() {
           path: "/superadmin/sekolah",
           icon: faBuilding,
         },
+        {
+          name: "Kelola Pengguna",
+          path: "/superadmin/users",
+          icon: faUsers,
+        },
+        {
+          name: "Audit Logs",
+          path: "/superadmin/audit-logs",
+          icon: faClock,
+        },
       ]
     : user && isKepalaRole(user.role)
       ? [
@@ -135,7 +145,11 @@ export function AppSidebar() {
                 className="bg-yellow-500/10 text-yellow-600 hover:bg-yellow-500/20 hover:text-yellow-700"
               >
                 <FontAwesomeIcon icon={faArrowLeft} />
-                <span>Kembali ke Admin</span>
+                <span>
+                  {user?.originalUser?.role === Role.SUPERADMIN
+                    ? "Kembali ke Superadmin"
+                    : "Kembali ke Admin"}
+                </span>
               </SidebarMenuButton>
             </SidebarGroupContent>
           </SidebarGroup>

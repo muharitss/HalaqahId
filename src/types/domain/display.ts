@@ -1,4 +1,5 @@
-import { KategoriTarget, StatusKehadiran, KategoriSetoran } from './enums';
+import { StatusKehadiran, KategoriSetoran } from './enums';
+import type { TargetSekolah } from './target';
 
 export interface DisplayHalaqah {
   id_halaqah: number;
@@ -38,7 +39,7 @@ export interface DisplaySantriDetail {
     id_santri: number;
     nama_santri: string;
     nomor_telepon: string;
-    target: KategoriTarget;
+    target: TargetSekolah | string | null;
     nama_halaqah: string;
     nama_muhafiz: string;
   };

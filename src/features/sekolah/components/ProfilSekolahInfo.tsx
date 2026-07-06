@@ -49,12 +49,19 @@ export const ProfilSekolahInfo = ({ sekolah }: ProfilSekolahInfoProps) => {
         {/* Banner */}
         <div className="h-32 bg-gradient-to-r from-primary/80 to-primary/40 relative">
           <div className="absolute -bottom-10 left-6">
-            <Avatar className="h-20 w-20 border-4 border-background shadow-md">
-              {sekolah.logo_url && <AvatarImage src={sekolah.logo_url} alt={sekolah.nama_sekolah} />}
-              <AvatarFallback className="bg-primary/10 text-primary text-2xl font-bold">
-                {sekolah.nama_sekolah.substring(0, 2).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
+            <div className="h-20 w-32 border-4 border-background bg-white rounded-xl shadow-md overflow-hidden flex items-center justify-center p-1.5">
+              {sekolah.logo_url ? (
+                <img
+                  src={sekolah.logo_url}
+                  alt={sekolah.nama_sekolah}
+                  className="max-h-full max-w-full object-contain"
+                />
+              ) : (
+                <div className="bg-primary/10 text-primary w-full h-full flex items-center justify-center text-xl font-bold rounded-lg">
+                  {sekolah.nama_sekolah.substring(0, 2).toUpperCase()}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 

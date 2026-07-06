@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { dashboardService } from "../api/dashboardService";
+import { laporanService } from "@/features/setoran/api/laporanService";
 import type { ViewType } from "../types";
 
 export const useDashboardData = () => {
@@ -42,6 +43,11 @@ export const useDashboardData = () => {
   const monthlyData = useMemo(() => dashboardService.getMonthlyChartData(setoranData), [setoranData]);
   const categoryData = useMemo(() => dashboardService.getCategoryDistribution(setoranData), [setoranData]);
 
+  const stats = useMemo(() => {
+    const grouped = laporanService.transformSetoranData(setoranData as any);
+    return laporanService.getSummaryStats(grouped, "all", "Semua Periode");
+  }, [setoranData]);
+
   return {
     loading: {
       setoran: loadingInitial,
@@ -57,6 +63,8 @@ export const useDashboardData = () => {
     categoryData,
     absensiStats: absensiData?.stats || [],
     totalAbsensi: absensiData?.total || 0,
-    muhafizList: initialData?.muhafiz || []
+    muhafizList: initialData?.muhafiz || [],
+    stats,
   };
 };
+

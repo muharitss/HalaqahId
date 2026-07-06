@@ -1,5 +1,6 @@
 import { ActivityChart } from "../components/ActivityChart";
 import { AttendanceDonutChart } from "../components/AttendanceDonutChart";
+import { LaporanChartSection } from "@/features/setoran/components/LaporanChartSection";
 import { useDashboardData } from "../hooks/useDashboardData";
 
 export function KepalaMuhafidzDashboard() {
@@ -13,6 +14,7 @@ export function KepalaMuhafidzDashboard() {
     monthlyData,
     absensiStats,
     totalAbsensi,
+    stats,
   } = useDashboardData();
 
   return (
@@ -40,6 +42,14 @@ export function KepalaMuhafidzDashboard() {
           onViewChange={setAbsensiView}
         />
       </div>
+
+      {!loading.setoran && stats && (
+        <LaporanChartSection
+          distribusiKategori={stats.distribusiKategori}
+          distribusiHalaqah={stats.distribusiHalaqah}
+        />
+      )}
     </div>
   );
 }
+

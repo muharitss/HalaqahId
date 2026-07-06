@@ -8,7 +8,7 @@ export const setoranSchema = z
     // Kita gunakan field helper untuk UI
     ayat_mulai: z.coerce.number().min(1),
     ayat_selesai: z.coerce.number().min(1),
-    kategori: z.enum(["HAFALAN", "MURAJAAH", "ZIYADAH", "INTENS", "BACAAN"]),
+    id_kategori: z.coerce.number().min(1, "Kategori wajib dipilih"),
     taqwim: z.coerce.number().optional(),
     keterangan: z.string().optional(),
   })
@@ -29,10 +29,28 @@ export const santriSchema = z.object({
     .min(10, "Nomor telepon minimal 10 digit")
     .max(15, "Nomor telepon maksimal 15 digit")
     .regex(/^[0-9]+$/, "Nomor telepon hanya boleh berisi angka"),
-  target: z.enum(["RINGAN", "SEDANG", "INTENSE"]),
+  /** id_target nullable — santri boleh tidak memiliki target */
+  id_target: z.coerce.number().nullable().optional(),
   id_halaqah: z.coerce.number().min(1, "Pilih halaqah").optional(),
+});
+
+/** Schema untuk membuat/mengedit TargetSekolah */
+export const targetSchema = z.object({
+  nama_target: z.string().min(3, "Nama target minimal 3 karakter"),
+  tipe: z.enum(["HARIAN", "MINGGUAN", "BULANAN", "SEMESTER", "GLOBAL"], {
+    message: "Pilih tipe periode target",
+  }),
+  nilai_target: z.coerce
+    .number({ message: "Nilai target wajib diisi" })
+    .positive("Nilai target harus lebih dari 0")
+    .max(1000, "Nilai target terlalu besar"),
+  satuan: z.enum(["BARIS", "HALAMAN", "AYAT", "JUZ"], {
+    message: "Pilih satuan target",
+  }),
+  deskripsi: z.string().max(300, "Deskripsi maksimal 300 karakter").optional().nullable(),
 });
 
 export type SetoranFormValues = z.infer<typeof setoranSchema>;
 export type HalaqahFormValues = z.infer<typeof halaqahSchema>;
 export type SantriFormValues = z.infer<typeof santriSchema>;
+export type TargetFormValues = z.infer<typeof targetSchema>;

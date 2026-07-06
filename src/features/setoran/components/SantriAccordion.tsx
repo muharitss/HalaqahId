@@ -78,12 +78,17 @@ export function SantriAccordion({ santriGroup }: SantriAccordionProps) {
                       <div className="text-xs text-muted-foreground">Ayat {s.ayat}</div>
                     </TableCell>
                     <TableCell>
-                      <Badge 
-                        variant={s.kategori === "HAFALAN" ? "default" : "secondary"}
-                        className="text-[10px] font-normal"
-                      >
-                        {s.kategori}
-                      </Badge>
+                      {(() => {
+                        const kategoriName = s.kategori?.nama_kategori || "HAFALAN";
+                        return (
+                          <Badge 
+                            variant={kategoriName.toUpperCase() === "HAFALAN" ? "default" : "secondary"}
+                            className="text-[10px] font-normal"
+                          >
+                            {kategoriName}
+                          </Badge>
+                        );
+                      })()}
                     </TableCell>
                     <TableCell>
                       <div className="flex flex-col">
