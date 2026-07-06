@@ -2,8 +2,12 @@ import { AppSidebar } from "@/components/custom/layout/AppSidebar";
 import { MobileDock } from "@/components/custom/layout/MobileDock";
 import { ThemeToggle } from "@/components/custom/theme/ThemeToggle";
 import { useAuth } from "@/features/auth/components/auth-provider";
-import { Outlet, useNavigate } from "react-router-dom"; 
-import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
+import { Outlet, useNavigate } from "react-router-dom";
+import {
+  SidebarProvider,
+  SidebarTrigger,
+  SidebarInset,
+} from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
 import { useIsMobile } from "@/utils/use-mobile";
 import { isKepalaRole, Role } from "@/types/domain/enums";
@@ -11,13 +15,13 @@ import { useQuery } from "@tanstack/react-query";
 import { sekolahService } from "@/features/sekolah/api/sekolahService";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {  faBookOpen } from "@fortawesome/free-solid-svg-icons";
+import { faBookOpen } from "@fortawesome/free-solid-svg-icons";
 import { cn } from "@/lib/utils";
 
 export default function DashboardLayout() {
-  const { user, isImpersonating, stopImpersonating } = useAuth();
+  const { user, isImpersonating } = useAuth();
   const isMobile = useIsMobile();
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
 
   const { data: sekolah } = useQuery({
     queryKey: ["profil-sekolah"],
@@ -38,31 +42,20 @@ export default function DashboardLayout() {
     navigate(targetPath);
   };
 
-  const handleBackToSuperadmin = async () => {
-    if (stopImpersonating) {
-      const originalRole = user?.originalUser?.role;
-      await stopImpersonating();
-      
-      if (originalRole === Role.SUPERADMIN) {
-        navigate("/superadmin");
-      } else {
-        navigate("/kepala-muhafidz");
-      }
-    }
-  };
-
   return (
     <SidebarProvider>
       {!isMobile && <AppSidebar />}
-      
-      <SidebarInset className={cn(
-        "flex-1 min-w-0 flex flex-col h-screen overflow-hidden", // Kunci: min-w-0 dan overflow-hidden
-        isMobile ? "pb-20" : ""
-      )}>
+
+      <SidebarInset
+        className={cn(
+          "flex-1 min-w-0 flex flex-col h-screen overflow-hidden", // Kunci: min-w-0 dan overflow-hidden
+          isMobile ? "pb-20" : "",
+        )}
+      >
         <header className="flex h-16 shrink-0 items-center justify-between border-b px-4 md:px-6 lg:px-8 sticky top-0 bg-background/95 backdrop-blur z-40 shadow-sm/5">
           <div className="flex items-center gap-3 md:gap-4">
             {!isMobile && <SidebarTrigger />}
-            
+
             {isMobile && (
               <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-md">
                 <FontAwesomeIcon icon={faBookOpen} className="text-base" />
@@ -70,7 +63,7 @@ export default function DashboardLayout() {
             )}
 
             <Separator orientation="vertical" className="h-6 hidden sm:block" />
-            
+
             <h1 className="text-sm md:text-base lg:text-lg font-bold tracking-tight">
               {isMobile ? user?.name : `Halo, ${user?.name}`}
             </h1>
@@ -79,7 +72,7 @@ export default function DashboardLayout() {
           <div className="flex items-center gap-1 sm:gap-3">
             <ThemeToggle />
 
-            <button 
+            <button
               onClick={handleAvatarClick}
               className="focus:outline-none ml-1 relative group"
             >
@@ -97,11 +90,16 @@ export default function DashboardLayout() {
                     className="h-full w-full object-cover"
                   />
                 ) : (
-                  <div className={cn(
-                    "w-full h-full flex items-center justify-center text-xs font-bold rounded-full",
-                    isImpersonating ? "bg-amber-500/10 text-amber-600" : "bg-primary/10 text-primary"
-                  )}>
-                    {sekolah?.nama_sekolah?.[0]?.toUpperCase() || user?.name?.[0]?.toUpperCase()}
+                  <div
+                    className={cn(
+                      "w-full h-full flex items-center justify-center text-xs font-bold rounded-full",
+                      isImpersonating
+                        ? "bg-amber-500/10 text-amber-600"
+                        : "bg-primary/10 text-primary",
+                    )}
+                  >
+                    {sekolah?.nama_sekolah?.[0]?.toUpperCase() ||
+                      user?.name?.[0]?.toUpperCase()}
                   </div>
                 )}
               </div>
@@ -115,29 +113,9 @@ export default function DashboardLayout() {
           </div>
         </header>
 
-        {isImpersonating && (
-          <div className="bg-amber-500 text-amber-950 px-4 py-2.5 text-xs md:text-sm font-semibold flex items-center justify-between shadow-sm sticky top-16 z-30 select-none animate-in slide-in-from-top duration-300">
-            <div className="flex items-center gap-2">
-              <span className="flex h-2 w-2 relative shrink-0">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-200 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-100"></span>
-              </span>
-              <span>
-                Mode Impersonasi: Anda sedang masuk sebagai <span className="underline decoration-wavy decoration-amber-900">{user?.name}</span> ({user?.role?.toLowerCase()})
-              </span>
-            </div>
-            <button
-              onClick={handleBackToSuperadmin}
-              className="bg-amber-950/15 hover:bg-amber-950/25 px-2.5 py-1 rounded text-xs font-bold transition-all border border-amber-950/20 shadow-sm cursor-pointer shrink-0"
-            >
-              Kembali ke {user?.originalUser?.role === Role.SUPERADMIN ? "Superadmin" : "Admin"}
-            </button>
-          </div>
-        )}
-
         <main className="flex-1 overflow-y-auto overflow-x-hidden w-full bg-slate-50/50 dark:bg-transparent">
           <div className="container mx-auto p-4 md:p-6 lg:p-10 max-w-7xl w-full box-border">
-            <Outlet /> 
+            <Outlet />
           </div>
         </main>
 

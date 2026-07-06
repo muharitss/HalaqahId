@@ -35,7 +35,7 @@ const MONTHS = [
   "Juli", "Agustus", "September", "Oktober", "November", "Desember",
 ];
 
-const KATEGORI_LIST = ["HAFALAN", "MURAJAAH", "ZIYADAH", "INTENS", "BACAAN"];
+const DEFAULT_KATEGORI_LIST = ["HAFALAN", "MURAJAAH", "ZIYADAH", "INTENS", "BACAAN"];
 
 const currentYear = new Date().getFullYear();
 const YEARS = Array.from({ length: 5 }, (_, i) => currentYear - i);
@@ -66,6 +66,7 @@ interface LaporanFilterBarProps {
   // Kategori
   selectedKategori: string;
   onKategoriChange: (v: string) => void;
+  kategoriNames?: string[];
 
   // Reset
   onReset: () => void;
@@ -89,6 +90,7 @@ export function LaporanFilterBar({
   onDateToChange,
   selectedKategori,
   onKategoriChange,
+  kategoriNames = [],
   onReset,
   isFilterActive,
 }: LaporanFilterBarProps) {
@@ -335,7 +337,7 @@ export function LaporanFilterBar({
             <SelectItem value="__all__">
               <span className="text-xs">Semua Kategori</span>
             </SelectItem>
-            {KATEGORI_LIST.map((k) => (
+            {(kategoriNames.length > 0 ? kategoriNames : DEFAULT_KATEGORI_LIST).map((k) => (
               <SelectItem key={k} value={k}>
                 <span className="text-xs">{k}</span>
               </SelectItem>

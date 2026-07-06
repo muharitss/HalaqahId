@@ -23,6 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
   FormControl,
@@ -86,25 +87,24 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 /**
- * Daftar hari yang ditampilkan di toggle chip.
- * Urutan: Senin–Minggu (lebih intuitif untuk konteks sekolah Indonesia).
- * Kita urutkan dari Senin (1) ke Minggu (0).
+ * Daftar hari yang ditampilkan di form target.
+ * Urutan: Senin–Ahad (konsisten dengan SesiModal).
+ * Nilai: 1=Senin, ..., 6=Sabtu, 0=Ahad (sesuai target DB).
  */
-const HARI_CHIPS = [
-  { day: 1, label: "Sen" },
-  { day: 2, label: "Sel" },
-  { day: 3, label: "Rab" },
-  { day: 4, label: "Kam" },
-  { day: 5, label: "Jum" },
-  { day: 6, label: "Sab" },
-  { day: 0, label: "Min" },
+const HARI_OPTIONS = [
+  { value: 1, label: "Senin" },
+  { value: 2, label: "Selasa" },
+  { value: 3, label: "Rabu" },
+  { value: 4, label: "Kamis" },
+  { value: 5, label: "Jumat" },
+  { value: 6, label: "Sabtu" },
+  { value: 0, label: "Ahad" },
 ] as const;
 
 /** Preset hari yang umum digunakan di sekolah */
 const PRESET_HARI = [
-  { label: "Senin–Jumat", days: [1, 2, 3, 4, 5], desc: "5 hari/pekan" },
-  { label: "Senin–Sabtu", days: [1, 2, 3, 4, 5, 6], desc: "6 hari/pekan" },
-  { label: "Senin–Kamis", days: [1, 2, 3, 4], desc: "4 hari/pekan" },
+  { label: "Senin–Jumat", days: [1, 2, 3, 4, 5], desc: "5 hari" },
+  { label: "Senin–Sabtu", days: [1, 2, 3, 4, 5, 6], desc: "6 hari" },
 ] as const;
 
 // ---------------------------------------------------------------------------
@@ -119,11 +119,11 @@ interface HariAktifPickerProps {
 function HariAktifPicker({ value, onChange }: HariAktifPickerProps) {
   const selected = value ?? [];
 
-  const toggle = (day: number) => {
-    if (selected.includes(day)) {
-      onChange(selected.filter((d) => d !== day));
-    } else {
+  const handleCheckedChange = (day: number, checked: boolean) => {
+    if (checked) {
       onChange([...selected, day].sort());
+    } else {
+      onChange(selected.filter((d) => d !== day));
     }
   };
 
@@ -131,69 +131,40 @@ function HariAktifPicker({ value, onChange }: HariAktifPickerProps) {
     onChange([...days].sort());
   };
 
-  const jumlahHari = selected.length;
-
   return (
-    <div className="space-y-3 rounded-xl border border-blue-200 bg-blue-50/50 dark:border-blue-800/40 dark:bg-blue-950/20 p-3">
-      {/* Label section */}
+    <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2 text-sm font-medium text-blue-800 dark:text-blue-300">
-          <CalendarDays className="h-4 w-4" />
-          <span>Hari Setoran Aktif</span>
-        </div>
-        {jumlahHari > 0 && (
-          <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">
-            {jumlahHari} hari/pekan dipilih
-          </span>
-        )}
-      </div>
-
-      {/* Toggle chip hari */}
-      <div className="flex flex-wrap gap-1.5">
-        {HARI_CHIPS.map(({ day, label }) => {
-          const isActive = selected.includes(day);
-          return (
-            <button
-              key={day}
-              type="button"
-              onClick={() => toggle(day)}
-              className={[
-                "px-3 py-1.5 rounded-lg text-sm font-semibold border transition-all duration-150 select-none",
-                isActive
-                  ? "bg-blue-600 border-blue-600 text-white shadow-sm"
-                  : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-blue-400 hover:text-blue-600",
-              ].join(" ")}
-            >
-              {label}
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Preset cepat */}
-      <div className="space-y-1">
-        <p className="text-xs text-muted-foreground">Preset cepat:</p>
-        <div className="flex flex-wrap gap-1.5">
+        <label className="text-sm font-medium">Hari Setoran Aktif <span className="text-red-500">*</span></label>
+        <div className="flex gap-1.5">
           {PRESET_HARI.map((preset) => (
             <button
               key={preset.label}
               type="button"
               onClick={() => applyPreset(preset.days)}
-              className="px-2.5 py-1 rounded-md text-xs border border-dashed border-blue-300 dark:border-blue-700 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
+              className="text-[11px] px-2 py-0.5 rounded border border-dashed border-primary/40 text-primary hover:bg-primary/5 transition-colors"
             >
-              {preset.label}
-              <span className="ml-1 text-muted-foreground">({preset.desc})</span>
+              {preset.label} ({preset.desc})
             </button>
           ))}
         </div>
       </div>
-
-      {/* Info: jika tidak ada hari dipilih */}
-      {jumlahHari === 0 && (
-        <p className="text-xs text-amber-600 dark:text-amber-400">
-          ⚠️ Pilih minimal 1 hari, atau biarkan kosong untuk "semua hari aktif"
-        </p>
-      )}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 border rounded-md p-3">
+        {HARI_OPTIONS.map((h) => (
+          <div key={h.value} className="flex items-center space-x-2">
+            <Checkbox
+              id={`hari-${h.value}`}
+              checked={selected.includes(h.value)}
+              onCheckedChange={(checked) => handleCheckedChange(h.value, !!checked)}
+            />
+            <label
+              htmlFor={`hari-${h.value}`}
+              className="font-normal cursor-pointer text-sm select-none"
+            >
+              {h.label}
+            </label>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -415,7 +386,7 @@ export default function TargetSettingsPage() {
         <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {editingTarget ? "Edit Target Setoran" : "Tambah Target Baru"}
+              {editingTarget ? "Edit Target Setoran" : "Tambah Target Setoran"}
             </DialogTitle>
             <DialogDescription>
               Buat target hafalan yang fleksibel sesuai kurikulum sekolah Anda.
@@ -430,7 +401,7 @@ export default function TargetSettingsPage() {
                 name="nama_target"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Nama Target *</FormLabel>
+                    <FormLabel>Nama Target <span className="text-red-500">*</span></FormLabel>
                     <FormControl>
                       <Input placeholder="Contoh: Setoran Harian 1 Halaman" {...field} />
                     </FormControl>
@@ -446,7 +417,7 @@ export default function TargetSettingsPage() {
                   name="tipe"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Periode *</FormLabel>
+                      <FormLabel>Periode <span className="text-red-500">*</span></FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
@@ -456,10 +427,7 @@ export default function TargetSettingsPage() {
                         <SelectContent>
                           {TIPE_OPTIONS.map((opt) => (
                             <SelectItem key={opt.value} value={opt.value}>
-                              <div>
-                                <p className="font-medium">{opt.label}</p>
-                                <p className="text-xs text-muted-foreground">{opt.desc}</p>
-                              </div>
+                              {opt.label}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -474,7 +442,7 @@ export default function TargetSettingsPage() {
                   name="satuan"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Satuan *</FormLabel>
+                      <FormLabel>Satuan <span className="text-red-500">*</span></FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
@@ -484,10 +452,7 @@ export default function TargetSettingsPage() {
                         <SelectContent>
                           {SATUAN_OPTIONS.map((opt) => (
                             <SelectItem key={opt.value} value={opt.value}>
-                              <div>
-                                <p className="font-medium">{opt.label}</p>
-                                <p className="text-xs text-muted-foreground">{opt.hint}</p>
-                              </div>
+                              {opt.label}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -525,7 +490,7 @@ export default function TargetSettingsPage() {
                 name="nilai_target"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Nilai Target *</FormLabel>
+                    <FormLabel>Nilai Target <span className="text-red-500">*</span></FormLabel>
                     <FormControl>
                       <Input
                         type="number"
@@ -564,13 +529,12 @@ export default function TargetSettingsPage() {
                 )}
               />
 
-              <DialogFooter className="gap-2">
-                <Button type="button" variant="outline" onClick={() => setIsFormOpen(false)}>
+              <DialogFooter className="pt-4">
+                <Button type="button" variant="outline" onClick={() => setIsFormOpen(false)} disabled={isPending}>
                   Batal
                 </Button>
                 <Button type="submit" disabled={isPending}>
-                  {isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                  {editingTarget ? "Simpan Perubahan" : "Tambah Target"}
+                  {isPending ? "Menyimpan..." : "Simpan"}
                 </Button>
               </DialogFooter>
             </form>

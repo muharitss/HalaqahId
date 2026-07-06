@@ -63,10 +63,7 @@ export const targetSchema = z
     if (data.tipe === "HARIAN" && data.hari_aktif !== null && data.hari_aktif !== undefined) {
       if (data.hari_aktif.length === 0) {
         ctx.addIssue({
-          code: z.ZodIssueCode.too_small,
-          minimum: 1,
-          inclusive: true,
-          type: "array",
+          code: z.ZodIssueCode.custom,
           path: ["hari_aktif"],
           message: "Pilih minimal 1 hari setoran aktif",
         });
