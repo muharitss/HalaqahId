@@ -211,6 +211,7 @@ export const router = createBrowserRouter([
                   { path: "/muhafidz/setoran/mushaf", element: <MushafPage /> },
                   { path: "/muhafidz/santri", element: <KelolaSantriPage /> },
                   { path: "/muhafidz/progres", element: <ProgresSantriPage /> },
+                  { path: "/muhafidz/laporan", element: <LaporanSetoranPage /> },
                   { path: "/muhafidz/tahfidzai", element: <TahfidzAi /> },
                 ],
               },

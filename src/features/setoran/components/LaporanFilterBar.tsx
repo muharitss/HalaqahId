@@ -45,6 +45,7 @@ interface LaporanFilterBarProps {
   halaqahNames: string[];
   activeHalaqah: string;
   onHalaqahChange: (v: string) => void;
+  showHalaqahSelect?: boolean;
 
   // Santri
   santriNames: string[];
@@ -77,6 +78,7 @@ export function LaporanFilterBar({
   halaqahNames,
   activeHalaqah,
   onHalaqahChange,
+  showHalaqahSelect = true,
   santriNames,
   selectedSantri,
   onSantriChange,
@@ -136,25 +138,27 @@ export function LaporanFilterBar({
 
       <div className="flex flex-wrap gap-2">
         {/* ── HALAQAH ── */}
-        <Select
-          value={activeHalaqah || "all"}
-          onValueChange={(v) => onHalaqahChange(v === "all" ? "all" : v)}
-        >
-          <SelectTrigger className="h-8 text-xs w-auto min-w-36 gap-1.5">
-            <GraduationCap className="h-3.5 w-3.5 text-muted-foreground" />
-            <SelectValue placeholder="Semua Halaqah" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">
-              <span className="text-xs">Semua Halaqah</span>
-            </SelectItem>
-            {halaqahNames.map((h) => (
-              <SelectItem key={h} value={h}>
-                <span className="text-xs">{h}</span>
+        {showHalaqahSelect && (
+          <Select
+            value={activeHalaqah || "all"}
+            onValueChange={(v) => onHalaqahChange(v === "all" ? "all" : v)}
+          >
+            <SelectTrigger className="h-8 text-xs w-auto min-w-36 gap-1.5">
+              <GraduationCap className="h-3.5 w-3.5 text-muted-foreground" />
+              <SelectValue placeholder="Semua Halaqah" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">
+                <span className="text-xs">Semua Halaqah</span>
               </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+              {halaqahNames.map((h) => (
+                <SelectItem key={h} value={h}>
+                  <span className="text-xs">{h}</span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
 
         {/* ── SANTRI ── */}
         <Popover open={santriOpen} onOpenChange={setSantriOpen}>

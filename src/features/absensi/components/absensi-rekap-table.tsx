@@ -1,16 +1,19 @@
 import { useMemo, useCallback, useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { AlertCircle, Loader2 } from "lucide-react";
+import { AlertCircle, Loader2, FileDown } from "lucide-react";
 import { format, getDate, startOfMonth, endOfMonth, eachDayOfInterval } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 import { useAbsensi } from "./absensi-provider";
 import { useAbsensiRekapQuery } from "../hooks/use-absensi-query";
 import { useAbsensiRekapMutation } from "../hooks/use-absensi-mutation";
+import { useAbsensiPdf } from "../hooks/useAbsensiPdf";
 import { type AbsensiStatusType, absensiStatusSchema } from "../types/absensi.schema";
 
 // Status config
@@ -33,6 +36,27 @@ const getStatusConfig = (status?: AbsensiStatusType | null) =>
 
 export function AbsensiRekapTable() {
   const { halaqahId, viewDate, setViewDate, santriList, filteredSesiList, loadingSantri } = useAbsensi();
+  const { generatePdf, isGenerating } = useAbsensiPdf();
+
+  const handleDownloadPdf = async () => {
+    if (santriList.length === 0) {
+      toast.warning("Tidak ada data untuk di-export");
+      return;
+    }
+    try {
+      await generatePdf({
+        santriList,
+        monthlyData,
+        filteredSesiList,
+        viewDate,
+        halaqahId,
+      });
+      toast.success("Laporan PDF berhasil diunduh!");
+    } catch (err) {
+      console.error("PDF generation error:", err);
+      toast.error("Gagal membuat PDF, silakan coba lagi");
+    }
+  };
 
   const month = (viewDate.getMonth() + 1).toString();
   const year = viewDate.getFullYear().toString();
@@ -104,26 +128,46 @@ export function AbsensiRekapTable() {
           <span className="inline-block w-2 h-2 rounded-full bg-primary/60 animate-pulse" />
           Klik sel untuk langsung input absensi
         </p>
-        <Select
-          value={format(viewDate, "yyyy-MM")}
-          onValueChange={(val) => setViewDate(new Date(val + "-01"))}
-        >
-          <SelectTrigger className="w-48 shadow-sm">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {Array.from({ length: 12 }).map((_, i) => {
-              const d = new Date();
-              d.setDate(1);
-              d.setMonth(d.getMonth() - i);
-              return (
-                <SelectItem key={i} value={format(d, "yyyy-MM")}>
-                  {format(d, "MMMM yyyy", { locale: localeId })}
-                </SelectItem>
-              );
-            })}
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleDownloadPdf}
+            disabled={isGenerating || isDataLoading}
+          >
+            {isGenerating ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Membuat PDF...
+              </>
+            ) : (
+              <>
+                <FileDown className="h-4 w-4 mr-2" />
+                Unduh PDF
+              </>
+            )}
+          </Button>
+          <Select
+            value={format(viewDate, "yyyy-MM")}
+            onValueChange={(val) => setViewDate(new Date(val + "-01"))}
+          >
+            <SelectTrigger className="w-48 shadow-sm">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {Array.from({ length: 12 }).map((_, i) => {
+                const d = new Date();
+                d.setDate(1);
+                d.setMonth(d.getMonth() - i);
+                return (
+                  <SelectItem key={i} value={format(d, "yyyy-MM")}>
+                    {format(d, "MMMM yyyy", { locale: localeId })}
+                  </SelectItem>
+                );
+              })}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {/* Table */}
@@ -270,7 +314,7 @@ export function AbsensiRekapTable() {
                                 <button
                                   className="flex h-9 w-full items-center justify-center cursor-pointer disabled:cursor-wait focus:outline-none"
                                   disabled={pending}
-                                  title={`${santri.nama_santri} — ${format(date, "dd MMM")} — ${sesi.nama_sesi}: ${status ?? "Belum Ada"}`}
+                                  title={`${santri.nama_santri} ï¿½ ${format(date, "dd MMM")} ï¿½ ${sesi.nama_sesi}: ${status ?? "Belum Ada"}`}
                                 >
                                   {pending ? (
                                     <Loader2 className="h-3 w-3 animate-spin" />

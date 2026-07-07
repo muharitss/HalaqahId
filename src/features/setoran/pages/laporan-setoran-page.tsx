@@ -2,6 +2,8 @@ import { useEffect, useMemo } from "react";
 import { useLaporanData } from "../hooks/useLaporanData";
 import { useLaporanPdf } from "../hooks/useLaporanPdf";
 import { laporanService } from "../api/laporanService";
+import { useAuth } from "@/features/auth/components/auth-provider";
+import { Role } from "@/types/domain/enums";
 
 import { LaporanSkeleton } from "../components/LaporanSkeleton";
 import { EmptyState } from "../components/EmptyState";
@@ -15,6 +17,9 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 export function LaporanSetoranPage() {
+  const { user } = useAuth();
+  const showHalaqahSelect = user?.role !== Role.MUHAFIZ;
+
   const {
     loading,
     selectedMonth,
@@ -138,6 +143,7 @@ export function LaporanSetoranPage() {
                 halaqahNames={halaqahNames}
                 activeHalaqah={activeHalaqah}
                 onHalaqahChange={setActiveHalaqah}
+                showHalaqahSelect={showHalaqahSelect}
                 santriNames={santriNames}
                 selectedSantri={selectedSantri}
                 onSantriChange={setSelectedSantri}
