@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faUsers, faUserTie } from "@fortawesome/free-solid-svg-icons"; // Import icon tambahan
+import { faUsers, faUserTie, faSearch } from "@fortawesome/free-solid-svg-icons"; // Import icon tambahan
 import { faWhatsapp } from "@fortawesome/free-brands-svg-icons";
 import { MoreVertical, Edit2, Trash2, ArrowRightLeft, UserPlus } from "lucide-react"; 
+import { Input } from "@/components/ui/input";
 import { 
   Accordion, 
   AccordionContent, 
@@ -86,7 +87,7 @@ function HalaqahItem({
               <div className="flex items-center gap-2 mt-1 text-xs md:text-sm text-muted-foreground">
                 <span className="flex items-center gap-1">
                   <FontAwesomeIcon icon={faUserTie} className="text-[10px]" />
-                  {h.muhafiz?.email || "Tanpa Muhafiz"}
+                  {h.muhafiz?.name || "Tanpa Muhafiz"}
                 </span>
                 <span className="flex items-center gap-1">
                   <FontAwesomeIcon icon={faUsers} className="text-[10px]" />
@@ -296,10 +297,11 @@ export function DaftarHalaqah({
 }: DaftarHalaqahProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [showAll, setShowAll] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [halaqahs.length]);
+  }, [halaqahs.length, searchTerm]);
 
   const formatWhatsApp = (phone: string | null | undefined) => {
     if (!phone) return "#"; 
@@ -312,41 +314,64 @@ export function DaftarHalaqah({
 
   if (isLoading) return <HalaqahLoadingSkeleton />;
 
-  const totalPages = Math.ceil(halaqahs.length / 10);
+  const filteredHalaqahs = halaqahs.filter((h) => {
+    const nameMatch = h.name_halaqah.toLowerCase().includes(searchTerm.toLowerCase());
+    const muhafizMatch = (h.muhafiz?.name || "").toLowerCase().includes(searchTerm.toLowerCase());
+    return nameMatch || muhafizMatch;
+  });
+
+  const totalPages = Math.ceil(filteredHalaqahs.length / 10);
   const displayedHalaqahs = showAll
-    ? halaqahs
-    : halaqahs.slice((currentPage - 1) * 10, currentPage * 10);
+    ? filteredHalaqahs
+    : filteredHalaqahs.slice((currentPage - 1) * 10, currentPage * 10);
 
   return (
     <div className="space-y-4">
-      <Accordion type="single" collapsible className="w-full space-y-3">
-        {displayedHalaqahs.map((h) => (
-          <HalaqahItem
-            key={h.id_halaqah}
-            h={h}
-            daftarSantri={santriMap[h.id_halaqah] || []}
-            onAddSantri={onAddSantri}
-            onEdit={onEdit}
-            onDelete={onDelete}
-            onMoveSantri={onMoveSantri}
-            onEditSantri={onEditSantri}
-            onDeleteSantri={onDeleteSantri}
-            formatWhatsApp={formatWhatsApp}
-          />
-        ))}
-      </Accordion>
+      {/* Search Bar */}
+      <div className="relative w-full sm:w-72">
+        <FontAwesomeIcon icon={faSearch} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+        <Input 
+          placeholder="Cari halaqah atau muhafidz..." 
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="pl-9"
+        />
+      </div>
+
+      {displayedHalaqahs.length > 0 ? (
+        <Accordion type="single" collapsible className="w-full space-y-3">
+          {displayedHalaqahs.map((h) => (
+            <HalaqahItem
+              key={h.id_halaqah}
+              h={h}
+              daftarSantri={santriMap[h.id_halaqah] || []}
+              onAddSantri={onAddSantri}
+              onEdit={onEdit}
+              onDelete={onDelete}
+              onMoveSantri={onMoveSantri}
+              onEditSantri={onEditSantri}
+              onDeleteSantri={onDeleteSantri}
+              formatWhatsApp={formatWhatsApp}
+            />
+          ))}
+        </Accordion>
+      ) : (
+        <div className="flex min-h-[200px] flex-col items-center justify-center rounded-xl border border-dashed p-8 text-center bg-card">
+          <p className="text-sm text-muted-foreground">Tidak ada halaqah yang cocok dengan pencarian Anda.</p>
+        </div>
+      )}
 
       {/* Pagination Section untuk Daftar Halaqah */}
-      {halaqahs.length > 10 && (
+      {!isLoading && (filteredHalaqahs.length > 10 || showAll) && (
         <div className="p-4 border rounded-xl flex flex-col sm:flex-row items-center justify-between gap-4 bg-muted/10 shadow-sm">
           <div className="text-xs text-muted-foreground">
             {showAll ? (
-              <span>Menampilkan semua <strong>{halaqahs.length}</strong> halaqah</span>
+              <span>Menampilkan semua <strong>{filteredHalaqahs.length}</strong> halaqah</span>
             ) : (
               <span>
-                Menampilkan <strong>{Math.min((currentPage - 1) * 10 + 1, halaqahs.length)}</strong> -{" "}
-                <strong>{Math.min(currentPage * 10, halaqahs.length)}</strong> dari{" "}
-                <strong>{halaqahs.length}</strong> halaqah
+                Menampilkan <strong>{Math.min((currentPage - 1) * 10 + 1, filteredHalaqahs.length)}</strong> -{" "}
+                <strong>{Math.min(currentPage * 10, filteredHalaqahs.length)}</strong> dari{" "}
+                <strong>{filteredHalaqahs.length}</strong> halaqah
               </span>
             )}
           </div>

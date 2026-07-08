@@ -51,8 +51,9 @@ export function useLaporanPdf() {
               surat: s.surat,
               ayat: s.ayat,
               kategori: kategoriName,
-              taqwim: s.taqwim ?? 0,
+              taqwim: s.taqwim !== undefined ? s.taqwim : null,
               keterangan: s.keterangan ?? undefined,
+              custom_values: s.custom_values || null,
             });
           });
         });

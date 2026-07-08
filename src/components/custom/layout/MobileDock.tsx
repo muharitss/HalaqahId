@@ -23,6 +23,8 @@ export function MobileDock() {
     ? [
         { name: "Dash", path: "/superadmin", icon: faChartPie },
         { name: "Sekolah", path: "/superadmin/sekolah", icon: faBuilding },
+        { name: "Pengguna", path: "/superadmin/users", icon: faUsers },
+        { name: "Audit", path: "/superadmin/audit-logs", icon: faClock },
       ]
     : user && isKepalaRole(user.role)
       ? [

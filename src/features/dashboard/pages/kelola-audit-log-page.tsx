@@ -139,7 +139,7 @@ export default function KelolaAuditLogPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Audit Logs & Aktivitas Sistem</h1>
           <p className="text-muted-foreground">
-            Lacak riwayat tindakan administratif, masuk sistem, dan aktivitas penyamaran secara real-time
+            Lacak riwayat tindakan penghapusan sekolah dan pengguna secara real-time
           </p>
         </div>
       </div>
@@ -168,13 +168,7 @@ export default function KelolaAuditLogPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="ALL">Semua Tindakan</SelectItem>
-              <SelectItem value="LOGIN">LOGIN</SelectItem>
-              <SelectItem value="IMPERSONATE_START">IMPERSONATE START</SelectItem>
-              <SelectItem value="SCHOOL_CREATE">SCHOOL CREATE</SelectItem>
-              <SelectItem value="SCHOOL_UPDATE">SCHOOL UPDATE</SelectItem>
               <SelectItem value="SCHOOL_DELETE">SCHOOL DELETE</SelectItem>
-              <SelectItem value="USER_VERIFY">USER VERIFY</SelectItem>
-              <SelectItem value="USER_RESET_PASSWORD">USER RESET PASSWORD</SelectItem>
               <SelectItem value="USER_DELETE">USER DELETE</SelectItem>
             </SelectContent>
           </Select>

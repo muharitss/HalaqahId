@@ -4,6 +4,7 @@ import { laporanService } from "../api/laporanService";
 import { sekolahService } from "@/features/sekolah/api/sekolahService";
 import { startOfDay, endOfDay, isWithinInterval } from "date-fns";
 import type { GroupedData, GroupedHalaqahItem, GroupedSantriItem, SetoranItem } from "../types";
+import { useAuth } from "@/features/auth/components/auth-provider";
 
 export interface LaporanFilters {
   // Period filters (bulan/tahun — legacy, tetap dipertahankan)
@@ -21,6 +22,7 @@ export interface LaporanFilters {
 }
 
 export const useLaporanData = () => {
+  const { user } = useAuth();
   const [filters, setFilters] = useState<LaporanFilters>({
     selectedMonth: new Date().getMonth(),
     selectedYear: new Date().getFullYear(),
@@ -36,7 +38,7 @@ export const useLaporanData = () => {
     isFetching: loading,
     refetch: fetchData,
   } = useQuery({
-    queryKey: ["laporan-data"],
+    queryKey: ["laporan-data", user?.id_user],
     queryFn: async () => {
       try {
         const [setoranData, halaqahData, santriData, kategoriRes] = await Promise.all([

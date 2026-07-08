@@ -173,6 +173,7 @@ export default function KelolaUserPage() {
           role: res.data.user.role,
           id_sekolah: res.data.user.id_sekolah,
           has_halaqah: !!(res.data.user as any).halaqah,
+          token: res.data.token,
         } as any;
 
         // Trigger impersonate session in provider

@@ -38,6 +38,7 @@ import TrashSection from "@/features/settings/pages/TrashSection";
 import KategoriSettingsPage from "@/features/settings/pages/KategoriSettingsPage";
 import TargetSettingsPage from "@/features/settings/pages/TargetSettingsPage";
 import UjianSettingsPage from "@/features/settings/pages/UjianSettingsPage";
+import FormSetoranSettingsPage from "@/features/settings/pages/FormSetoranSettingsPage";
 
 
 // ── Pages: Santri ──────────────────────────────────────────────────────────
@@ -170,8 +171,10 @@ export const router = createBrowserRouter([
               { path: "/superadmin/users", element: <KelolaUserPage /> },
               { path: "/superadmin/audit-logs", element: <KelolaAuditLogPage /> },
               { path: "/superadmin/settings", element: <SuperadminSettingsPage /> },
+              { path: "/superadmin/settings/trash", element: <TrashSection /> },
             ],
           },
+
 
           // ── KEPALA (SUPERADMIN | ADMIN | KOORDINATOR_TAHFIZ) ──────────────
           {
@@ -193,6 +196,7 @@ export const router = createBrowserRouter([
               { path: "/kepala-muhafidz/settings/kategori", element: <KategoriSettingsPage /> },
               { path: "/kepala-muhafidz/settings/target", element: <TargetSettingsPage /> },
               { path: "/kepala-muhafidz/settings/ujian", element: <UjianSettingsPage /> },
+              { path: "/kepala-muhafidz/settings/form-setoran", element: <FormSetoranSettingsPage /> },
 
               // Kontrol per-halaqah
               { path: "/kepala-muhafidz/halaqah/:halaqahId/absensi", element: <AbsensiPage /> },
@@ -215,7 +219,6 @@ export const router = createBrowserRouter([
                   { path: "/muhafidz/setoran/mushaf", element: <MushafPage /> },
                   { path: "/muhafidz/santri", element: <KelolaSantriPage /> },
                   { path: "/muhafidz/progres", element: <ProgresSantriPage /> },
-                  { path: "/muhafidz/laporan", element: <LaporanSetoranPage /> },
                   { path: "/muhafidz/tahfidzai", element: <TahfidzAi /> },
                 ],
               },

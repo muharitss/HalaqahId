@@ -75,6 +75,7 @@ export interface SetoranPayload {
   end_page?: number;
   end_line?: number;
   total_baris?: number;
+  custom_values?: Record<string, any> | null;
 }
 
 
@@ -111,6 +112,7 @@ export interface SetoranRecord {
   startPage?: number | null;
   endPage?: number | null;
   totalBaris?: number | null;
+  custom_values?: Record<string, any> | null;
 }
 
 export interface SetoranFormFields {
@@ -125,6 +127,7 @@ export interface SetoranFormFields {
   tanggal_setoran: string;
   taqwim?: number;
   keterangan?: string;
+  custom_values?: Record<string, any>;
 }
 
 export interface DateFilter { month: number | null; year: number | null; }
@@ -144,6 +147,7 @@ export interface SetoranItem {
   };
   taqwim?: number | null;
   keterangan?: string | null;
+  custom_values?: Record<string, any> | null;
   created_at?: string;
   updated_at?: string;
   deleted_at?: string | null;

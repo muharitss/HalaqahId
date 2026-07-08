@@ -5,9 +5,11 @@ import { type CreateAbsensiSantriRequest as AbsensiPayload } from "@/types/domai
 import { getErrorMessage } from "@/utils/error";
 import { absensiKeys } from "./use-absensi-query";
 import { type AbsensiStatusType } from "../types/absensi.schema";
+import { useAuth } from "@/features/auth/components/auth-provider";
 
 export const useAbsensiMutation = () => {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   const mutation = useMutation({
     mutationFn: async (payloads: AbsensiPayload[]) => {
@@ -20,10 +22,10 @@ export const useAbsensiMutation = () => {
       if (variables.length > 0) {
         const firstPayload = variables[0];
         queryClient.invalidateQueries({
-          queryKey: absensiKeys.sesi(firstPayload.id_sesi, firstPayload.tanggal),
+          queryKey: absensiKeys.sesi(user?.id_user, firstPayload.id_sesi, firstPayload.tanggal),
         });
         queryClient.invalidateQueries({
-          queryKey: absensiKeys.all,
+          queryKey: absensiKeys.all(user?.id_user),
         });
       }
     },
@@ -51,6 +53,7 @@ export interface RekapCellPayload {
 
 export const useAbsensiRekapMutation = () => {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   const mutation = useMutation({
     mutationFn: async (payload: RekapCellPayload) => {
@@ -63,7 +66,7 @@ export const useAbsensiRekapMutation = () => {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: absensiKeys.all });
+      queryClient.invalidateQueries({ queryKey: absensiKeys.all(user?.id_user) });
       toast.success("Absensi berhasil diperbarui");
     },
     onError: (err) => {

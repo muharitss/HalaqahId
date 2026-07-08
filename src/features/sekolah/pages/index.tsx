@@ -24,6 +24,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { MoreVertical } from "lucide-react";
 
 export default function KelolaSekolahPage() {
   const [sekolahList, setSekolahList] = useState<Sekolah[]>([]);
@@ -233,26 +242,31 @@ export default function KelolaSekolahPage() {
                       <TableCell>{sekolah.alamat || "-"}</TableCell>
                       <TableCell>{sekolah.email || "-"}</TableCell>
                       <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleEditClick(sekolah)}
-                            className="h-8 px-2.5"
-                          >
-                            <FontAwesomeIcon icon={faPen} className="h-3 w-3 mr-1.5" />
-                            Ubah
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDeleteClick(sekolah)}
-                            className="h-8 px-2.5 text-destructive hover:text-destructive hover:bg-destructive/10"
-                          >
-                            <FontAwesomeIcon icon={faTrash} className="h-3 w-3 mr-1.5" />
-                            Hapus
-                          </Button>
-                        </div>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-32">
+                            <DropdownMenuLabel>Aksi</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              onClick={() => handleEditClick(sekolah)}
+                              className="cursor-pointer"
+                            >
+                              <FontAwesomeIcon icon={faPen} className="h-3 w-3 mr-2" />
+                              Ubah
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleDeleteClick(sekolah)}
+                              className="cursor-pointer text-destructive focus:text-destructive"
+                            >
+                              <FontAwesomeIcon icon={faTrash} className="h-3 w-3 mr-2" />
+                              Hapus
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </TableCell>
                     </TableRow>
                   ))

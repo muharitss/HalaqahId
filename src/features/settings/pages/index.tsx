@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Info, Trash2, ChevronLeft, LogOut, ArrowLeft, Bot, Link as LinkIcon, Building2, Layers, Target, GraduationCap } from "lucide-react";
+import { Info, Trash2, ChevronLeft, LogOut, ArrowLeft, Bot, Link as LinkIcon, Building2, Layers, Target, GraduationCap, Sliders } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { SettingItem } from "./SettingItem";
@@ -85,6 +85,12 @@ export default function SettingsPage() {
                   title="Kategori Setoran"
                   description="Kelola kategori kustom setoran Al-Quran"
                   onClick={() => navigate("/kepala-muhafidz/settings/kategori")}
+                />
+                <SettingItem 
+                  icon={<Sliders size={18} className="text-pink-500" />}
+                  title="Form Setoran"
+                  description="Atur kolom kustom untuk form setoran"
+                  onClick={() => navigate("/kepala-muhafidz/settings/form-setoran")}
                 />
                 <SettingItem 
                   icon={<Target size={18} className="text-orange-500" />}

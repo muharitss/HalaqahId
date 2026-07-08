@@ -55,6 +55,7 @@ export interface Sekolah {
   display_token: string;
   slug?: string | null;
   sop_config?: SOPConfig | null;
+  form_setoran_config?: any;
   created_at: string;
   updated_at: string;
   deleted_at?: string | null;
@@ -99,5 +100,6 @@ export interface UpdateSekolahRequest {
   misi?: string;
   slug?: string;
   sop_config?: SOPConfig | null;
+  form_setoran_config?: any;
 }
 

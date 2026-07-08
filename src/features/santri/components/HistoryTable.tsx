@@ -39,11 +39,28 @@ import {
   CalendarDays,
   FileDown,
   Loader2,
+  Edit,
+  Trash2,
+  MoreVertical,
 } from "lucide-react";
 import { type SetoranRecord } from "../../setoran/types";
 import { type ProgresSantri } from "../types";
 import { useSantriHistoryPdf } from "../hooks/useSantriHistoryPdf";
 import { cn } from "@/lib/utils";
+import { EditSetoranModal } from "@/features/setoran/components/EditSetoranModal";
+import { useAuth } from "@/features/auth/components/auth-provider";
+import { Role } from "@/types/domain/enums";
+import { useSetoran } from "../../setoran/hooks/useSetoran";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface HistoryTableProps {
   santri: ProgresSantri;
@@ -79,6 +96,29 @@ const KATEGORI_BADGE_VARIANT: Record<
 
 export function HistoryTable({ santri, history }: HistoryTableProps) {
   const { generateSantriHistoryPdf, isGenerating } = useSantriHistoryPdf();
+  const { user } = useAuth();
+  const { updateSetoran, deleteSetoran } = useSetoran();
+
+  const [editingSetoran, setEditingSetoran] = useState<SetoranRecord | null>(null);
+  const [deletingSetoranId, setDeletingSetoranId] = useState<number | null>(null);
+
+  const isAdmin =
+    user?.role === Role.SUPERADMIN ||
+    user?.role === Role.ADMIN ||
+    user?.role === Role.KOORDINATOR_TAHFIZ;
+
+  const canEditOrDelete = (item: SetoranRecord) => {
+    if (isAdmin) return true;
+
+    // Muhafiz can edit if setoran date is today
+    const setoranDate = new Date(item.tanggal_setoran);
+    const today = new Date();
+    return (
+      setoranDate.getDate() === today.getDate() &&
+      setoranDate.getMonth() === today.getMonth() &&
+      setoranDate.getFullYear() === today.getFullYear()
+    );
+  };
 
   // Local Filter States
   const [selectedKategori, setSelectedKategori] = useState("all");
@@ -442,7 +482,8 @@ export function HistoryTable({ santri, history }: HistoryTableProps) {
                 <TableHead className="w-[80px] text-xs text-center">
                   Taqwim
                 </TableHead>
-                <TableHead className="pr-4 text-xs">Keterangan</TableHead>
+                <TableHead className="text-xs">Keterangan</TableHead>
+                <TableHead className="w-[90px] text-right pr-4 text-xs">Aksi</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -491,8 +532,38 @@ export function HistoryTable({ santri, history }: HistoryTableProps) {
                     <TableCell className="text-center py-3 text-xs font-semibold">
                       {item.taqwim}
                     </TableCell>
-                    <TableCell className="text-xs text-muted-foreground pr-4 py-3 max-w-[200px] truncate">
+                    <TableCell className="text-xs text-muted-foreground py-3 max-w-[120px] truncate">
                       {item.keterangan || "—"}
+                    </TableCell>
+                    <TableCell className="text-right pr-4 py-3">
+                      <div className="flex justify-end">
+                        {canEditOrDelete(item) && (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-muted">
+                                <MoreVertical className="h-4 w-4 text-muted-foreground" />
+                                <span className="sr-only">Menu aksi</span>
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-32">
+                              <DropdownMenuItem
+                                className="cursor-pointer gap-2"
+                                onClick={() => setEditingSetoran(item)}
+                              >
+                                <Edit className="h-4 w-4 text-muted-foreground" />
+                                <span>Edit</span>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                className="cursor-pointer gap-2 text-destructive focus:text-destructive focus:bg-destructive/10"
+                                onClick={() => setDeletingSetoranId(item.id_setoran)}
+                              >
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                                <span>Hapus</span>
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 );
@@ -501,6 +572,43 @@ export function HistoryTable({ santri, history }: HistoryTableProps) {
           </Table>
         )}
       </div>
+
+      {/* Edit Setoran Modal */}
+      <EditSetoranModal
+        isOpen={!!editingSetoran}
+        onClose={() => setEditingSetoran(null)}
+        setoran={editingSetoran}
+        onSubmit={updateSetoran}
+      />
+
+      {/* Delete Confirmation Alert */}
+      <AlertDialog
+        open={deletingSetoranId !== null}
+        onOpenChange={(open) => !open && setDeletingSetoranId(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Hapus Setoran Hafalan</AlertDialogTitle>
+            <AlertDialogDescription>
+              Apakah Anda yakin ingin menghapus data setoran ini? Tindakan ini tidak dapat dibatalkan.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive hover:bg-destructive/90 text-white"
+              onClick={async () => {
+                if (deletingSetoranId !== null) {
+                  await deleteSetoran(deletingSetoranId);
+                  setDeletingSetoranId(null);
+                }
+              }}
+            >
+              Hapus
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

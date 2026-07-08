@@ -15,6 +15,8 @@ import {
   Unlock,
   PlusIcon,
   MinusIcon,
+  BookOpen,
+  ListOrdered,
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -25,7 +27,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { type ExamTemplate, ujianService } from "@/features/setoran/api/ujian-api";
+import { type ExamTemplate, type ExamMode, ujianService } from "@/features/setoran/api/ujian-api";
 import { toast } from "sonner";
 
 interface SchemaField {
@@ -128,7 +130,9 @@ export default function UjianSettingsPage() {
 
   // Form State
   const [namaUjian, setNamaUjian] = useState("");
+  const [examMode, setExamMode] = useState<ExamMode>("MULTI_SOAL");
   const [jumlahSoal, setJumlahSoal] = useState(3);
+  const [nilaiPerKesalahan, setNilaiPerKesalahan] = useState(2);
   const [formulaExpression, setFormulaExpression] = useState("100 - (total_salah_jali * 5) - (total_salah_khafi * 2)");
   const [schemaFields, setSchemaFields] = useState<SchemaField[]>([
     { key: "salah_jali", label: "Salah Jali", type: "COUNTER", min: 0, default: 0, isKeyUnlocked: false },
@@ -180,13 +184,36 @@ export default function UjianSettingsPage() {
 
   const resetForm = () => {
     setNamaUjian("");
+    setExamMode("MULTI_SOAL");
     setJumlahSoal(3);
+    setNilaiPerKesalahan(2);
     setFormulaExpression("100 - (total_salah_jali * 5) - (total_salah_khafi * 2)");
     setSchemaFields([
       { key: "salah_jali", label: "Salah Jali", type: "COUNTER", min: 0, default: 0, isKeyUnlocked: false },
       { key: "salah_khafi", label: "Salah Khafi", type: "COUNTER", min: 0, default: 0, isKeyUnlocked: false },
       { key: "catatan", label: "Catatan Soal", type: "TEXTAREA", isKeyUnlocked: false },
     ]);
+    setSimActiveQuestionIdx(0);
+  };
+
+  // Ketika exam_mode berubah, set ulang default formula dan schema
+  const handleExamModeChange = (mode: ExamMode) => {
+    setExamMode(mode);
+    if (mode === "SINGLE_PASS") {
+      setFormulaExpression("100 - (total_jumlah_kesalahan * nilai_per_kesalahan)");
+      setSchemaFields([
+        { key: "jumlah_kesalahan", label: "Jumlah Kesalahan", type: "COUNTER", min: 0, default: 0, isKeyUnlocked: false },
+      ]);
+      setJumlahSoal(1);
+    } else {
+      setFormulaExpression("100 - (total_salah_jali * 5) - (total_salah_khafi * 2)");
+      setSchemaFields([
+        { key: "salah_jali", label: "Salah Jali", type: "COUNTER", min: 0, default: 0, isKeyUnlocked: false },
+        { key: "salah_khafi", label: "Salah Khafi", type: "COUNTER", min: 0, default: 0, isKeyUnlocked: false },
+        { key: "catatan", label: "Catatan Soal", type: "TEXTAREA", isKeyUnlocked: false },
+      ]);
+      setJumlahSoal(3);
+    }
     setSimActiveQuestionIdx(0);
   };
 
@@ -365,11 +392,18 @@ export default function UjianSettingsPage() {
 
     const payload = {
       nama_ujian: namaUjian,
+      exam_mode: examMode,
       formula_expression: formulaExpression,
-      soal_rules: {
-        jumlah_soal: jumlahSoal,
-        mode: "QURAN_RANGE",
-      },
+      soal_rules: examMode === "SINGLE_PASS"
+        ? {
+            nilai_per_kesalahan: nilaiPerKesalahan,
+            auto_range_from_setoran: true,
+            periode: "BULANAN",
+          }
+        : {
+            jumlah_soal: jumlahSoal,
+            mode: "QURAN_RANGE",
+          },
       input_schema: schemaFields.map(({ key, label, type, min, max, default: def }) => ({
         key,
         label,
@@ -380,7 +414,7 @@ export default function UjianSettingsPage() {
       })),
     };
 
-    createMutation.mutate(payload);
+    createMutation.mutate(payload as any);
   };
 
   const handleDelete = () => {
@@ -425,18 +459,62 @@ export default function UjianSettingsPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2 col-span-2 md:col-span-1">
-                    <Label htmlFor="exam-name" className="text-xs font-semibold">Nama Ujian</Label>
-                    <Input
-                      id="exam-name"
-                      placeholder="Contoh: Ujian Pekanan Baru"
-                      value={namaUjian}
-                      onChange={(e) => setNamaUjian(e.target.value)}
-                      required
-                    />
+                {/* Nama Ujian */}
+                <div className="space-y-2">
+                  <Label htmlFor="exam-name" className="text-xs font-semibold">Nama Ujian</Label>
+                  <Input
+                    id="exam-name"
+                    placeholder="Contoh: Ujian Pekanan Baru"
+                    value={namaUjian}
+                    onChange={(e) => setNamaUjian(e.target.value)}
+                    required
+                  />
+                </div>
+
+                {/* Mode Ujian */}
+                <div className="space-y-2">
+                  <Label className="text-xs font-semibold">Mode Ujian</Label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => handleExamModeChange("MULTI_SOAL")}
+                      className={`flex flex-col gap-1.5 p-3 rounded-lg border-2 text-left transition-all ${
+                        examMode === "MULTI_SOAL"
+                          ? "border-primary bg-primary/5 text-primary"
+                          : "border-border hover:border-muted-foreground/40 text-muted-foreground"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <ListOrdered className="h-4 w-4 shrink-0" />
+                        <span className="text-xs font-bold">Multi Soal</span>
+                      </div>
+                      <span className="text-[10px] leading-relaxed">
+                        Soal diinput per butir. Cocok untuk <strong>Ujian Pekanan</strong>.
+                      </span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleExamModeChange("SINGLE_PASS")}
+                      className={`flex flex-col gap-1.5 p-3 rounded-lg border-2 text-left transition-all ${
+                        examMode === "SINGLE_PASS"
+                          ? "border-emerald-500 bg-emerald-500/5 text-emerald-700 dark:text-emerald-400"
+                          : "border-border hover:border-muted-foreground/40 text-muted-foreground"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <BookOpen className="h-4 w-4 shrink-0" />
+                        <span className="text-xs font-bold">Single Pass</span>
+                      </div>
+                      <span className="text-[10px] leading-relaxed">
+                        Satu penilaian global. Cocok untuk <strong>Ujian Bulanan</strong>.
+                      </span>
+                    </button>
                   </div>
-                  <div className="space-y-2 col-span-2 md:col-span-1">
+                </div>
+
+                {/* Jumlah Soal (MULTI_SOAL) atau Nilai Per Kesalahan (SINGLE_PASS) */}
+                {examMode === "MULTI_SOAL" ? (
+                  <div className="space-y-2">
                     <Label htmlFor="exam-questions" className="text-xs font-semibold">Jumlah Soal</Label>
                     <Input
                       id="exam-questions"
@@ -448,7 +526,26 @@ export default function UjianSettingsPage() {
                       required
                     />
                   </div>
-                </div>
+                ) : (
+                  <div className="space-y-2">
+                    <Label htmlFor="exam-nilai-per-kesalahan" className="text-xs font-semibold">
+                      Pengurangan Nilai per Kesalahan
+                    </Label>
+                    <Input
+                      id="exam-nilai-per-kesalahan"
+                      type="number"
+                      min={0.5}
+                      max={20}
+                      step={0.5}
+                      value={nilaiPerKesalahan}
+                      onChange={(e) => setNilaiPerKesalahan(Number(e.target.value))}
+                      required
+                    />
+                    <p className="text-[10px] text-muted-foreground">
+                      Contoh: nilai 2 → setiap kesalahan kurangi 2 poin dari 100
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -924,7 +1021,7 @@ export default function UjianSettingsPage() {
               <TableHeader className="bg-muted/30">
                 <TableRow>
                   <TableHead className="w-1/4 font-semibold text-xs">Nama Ujian</TableHead>
-                  <TableHead className="w-[80px] font-semibold text-xs text-center">Jumlah Soal</TableHead>
+                  <TableHead className="w-[100px] font-semibold text-xs text-center">Mode</TableHead>
                   <TableHead className="font-semibold text-xs">Kriteria Input</TableHead>
                   <TableHead className="w-[200px] font-semibold text-xs">Rumus Penilaian</TableHead>
                   <TableHead className="w-[100px] font-semibold text-xs text-right pr-6">Aksi</TableHead>
@@ -936,8 +1033,18 @@ export default function UjianSettingsPage() {
                     <TableCell className="font-bold text-sm text-foreground py-3.5">
                       {temp.nama_ujian}
                     </TableCell>
-                    <TableCell className="text-center text-sm font-medium py-3.5">
-                      {temp.soal_rules?.jumlah_soal || 3}
+                    <TableCell className="text-center py-3.5">
+                      {temp.exam_mode === "SINGLE_PASS" ? (
+                        <Badge className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-200 text-[9px] font-bold hover:bg-emerald-500/10">
+                          <BookOpen className="h-2.5 w-2.5 mr-1 inline" />
+                          Single Pass
+                        </Badge>
+                      ) : (
+                        <Badge variant="secondary" className="text-[9px] font-bold">
+                          <ListOrdered className="h-2.5 w-2.5 mr-1 inline" />
+                          {temp.soal_rules?.jumlah_soal || "?"} Soal
+                        </Badge>
+                      )}
                     </TableCell>
                     <TableCell className="py-3.5 flex flex-wrap gap-1 max-w-[250px]">
                       {temp.input_schema?.map((f) => (

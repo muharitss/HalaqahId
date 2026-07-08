@@ -23,7 +23,7 @@ export const useMuhafiz = () => {
 
   // Fetch Muhafiz List & Active IDs & Sesi
   const { data: initData, isFetching: isLoadingInit, refetch: loadMuhafiz } = useQuery({
-    queryKey: ["muhafiz-init"],
+    queryKey: ["muhafiz-init", user?.id_user],
     queryFn: async () => {
       try {
         const [muhafizRes, activeIds, sesiRes] = await Promise.all([
@@ -41,7 +41,8 @@ export const useMuhafiz = () => {
         toast.error("Gagal memuat data muhafiz");
         throw err;
       }
-    }
+    },
+    enabled: !!user?.id_user,
   });
 
   // Derive current active sesi ID from loaded list if not explicitly selected

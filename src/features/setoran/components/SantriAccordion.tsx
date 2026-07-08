@@ -1,5 +1,8 @@
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
+import { useQuery } from "@tanstack/react-query";
+import { useMemo } from "react";
+import { sekolahService } from "@/features/sekolah/api/sekolahService";
 import {
   Table,
   TableBody,
@@ -17,6 +20,23 @@ import {
 import type { SantriAccordionProps, GroupedSantriItem, SetoranItem } from "../types";
 
 export function SantriAccordion({ santriGroup }: SantriAccordionProps) {
+  const { data: profileData } = useQuery({
+    queryKey: ["schoolProfile"],
+    queryFn: () => sekolahService.getProfile(),
+  });
+
+  const customFields = useMemo(() => {
+    return (profileData?.data?.form_setoran_config as any[]) || [];
+  }, [profileData]);
+
+  // Cek jika ada baris setoran yang memiliki taqwim atau custom values
+  const showEvaluasiColumn = useMemo(() => {
+    if (customFields.length > 0) return true;
+    return Object.values(santriGroup).some((s: GroupedSantriItem) =>
+      s.setoran.some((set: SetoranItem) => set.taqwim !== null && set.taqwim !== undefined && set.taqwim !== 0)
+    );
+  }, [santriGroup, customFields]);
+
   return (
     <Accordion type="single" collapsible className="w-full space-y-2">
       {Object.values(santriGroup).map((santri: GroupedSantriItem) => (
@@ -61,7 +81,7 @@ export function SantriAccordion({ santriGroup }: SantriAccordionProps) {
                   <TableHead className="font-bold">Tanggal</TableHead>
                   <TableHead className="font-bold">Materi</TableHead>
                   <TableHead className="font-bold">Kategori</TableHead>
-                  <TableHead className="font-bold">Kesalahan</TableHead>
+                  {showEvaluasiColumn && <TableHead className="font-bold">Evaluasi</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -90,18 +110,48 @@ export function SantriAccordion({ santriGroup }: SantriAccordionProps) {
                         );
                       })()}
                     </TableCell>
-                    <TableCell>
-                      <div className="flex flex-col">
-                        <span className={`text-sm font-bold ${s.taqwim === 0 ? 'text-primary' : 'text-orange-600'}`}>
-                          {s.taqwim}
-                        </span>
-                        {s.keterangan && (
-                          <span className="text-[10px] italic text-muted-foreground truncate max-w-30">
-                            {s.keterangan}
-                          </span>
-                        )}
-                      </div>
-                    </TableCell>
+                    {showEvaluasiColumn && (
+                      <TableCell>
+                        <div className="flex flex-col gap-0.5">
+                          {/* Render custom values */}
+                          {s.custom_values && typeof s.custom_values === "object" && 
+                            Object.entries(s.custom_values).map(([key, val]) => {
+                              const fieldConfig = customFields.find(f => f.id === key);
+                              if (!fieldConfig) return null;
+                              if (val === undefined || val === null || val === "") return null;
+                              
+                              let displayVal = String(val);
+                              if (fieldConfig.type === "boolean") {
+                                displayVal = val ? "Ya" : "Tidak";
+                              }
+                              
+                              return (
+                                <span key={key} className="text-xs leading-tight block">
+                                  <span className="text-muted-foreground">{fieldConfig.label}:</span>{" "}
+                                  <span className="font-semibold">{displayVal}</span>
+                                </span>
+                              );
+                            })
+                          }
+
+                          {/* Fallback to old taqwim column if custom_values is empty or doesn't contain taqwim key */}
+                          {s.taqwim !== null && s.taqwim !== undefined && (
+                            (!s.custom_values || 
+                             !Object.keys(s.custom_values).some(k => k.toLowerCase() === "taqwim" || k.toLowerCase() === "jumlah_salah")) && (
+                              <span className={`text-sm font-bold ${s.taqwim === 0 ? 'text-primary' : 'text-orange-600'}`}>
+                                {s.taqwim}
+                              </span>
+                            )
+                          )}
+                          
+                          {s.keterangan && (
+                            <span className="text-[10px] italic text-muted-foreground truncate max-w-30 block mt-0.5">
+                              {s.keterangan}
+                            </span>
+                          )}
+                        </div>
+                      </TableCell>
+                    )}
                   </TableRow>
                 ))}
               </TableBody>

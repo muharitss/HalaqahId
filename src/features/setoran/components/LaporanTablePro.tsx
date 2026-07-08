@@ -18,22 +18,48 @@ import {
   ArrowDown,
   Filter,
   ChevronRight,
+  Edit,
+  Trash2,
+  MoreVertical,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import type { GroupedData, GroupedSantriItem, SetoranItem } from "@/features/setoran/types";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import type { GroupedData, GroupedSantriItem, SetoranItem, SetoranRecord } from "@/features/setoran/types";
 import { cn } from "@/lib/utils";
+import { EditSetoranModal } from "./EditSetoranModal";
+import { useSetoran } from "../hooks/useSetoran";
+import { useQuery } from "@tanstack/react-query";
+import { sekolahService } from "@/features/sekolah/api/sekolahService";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface SetoranRow {
   id_setoran: number;
+  id_santri: number;
   tanggal_setoran: string;
   nama_santri: string;
   nama_halaqah: string;
   juz: number;
   surat: string;
   ayat: string;
+  id_kategori: number;
   kategori: string;
-  taqwim: number;
+  taqwim: number | null;
   keterangan?: string;
+  custom_values?: Record<string, any> | null;
 }
 
 interface LaporanTableProProps {
@@ -53,6 +79,20 @@ export function LaporanTablePro({ groupedData, activeHalaqah, filterComponent, i
   const [showFilter, setShowFilter] = useState(false);
   const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
 
+  const { updateSetoran, deleteSetoran } = useSetoran();
+  const [editingSetoran, setEditingSetoran] = useState<SetoranRecord | null>(null);
+  const [deletingSetoranId, setDeletingSetoranId] = useState<number | null>(null);
+
+  // Load school config for custom fields
+  const { data: profileData } = useQuery({
+    queryKey: ["schoolProfile"],
+    queryFn: () => sekolahService.getProfile(),
+  });
+
+  const customFields = useMemo(() => {
+    return (profileData?.data?.form_setoran_config as any[]) || [];
+  }, [profileData]);
+
   const toggleGroup = (groupName: string) => {
     setCollapsedGroups((prev) => ({
       ...prev,
@@ -70,21 +110,31 @@ export function LaporanTablePro({ groupedData, activeHalaqah, filterComponent, i
           const kategoriName = s.kategori?.nama_kategori || "HAFALAN";
           rows.push({
             id_setoran: s.id_setoran,
+            id_santri: s.id_santri,
             tanggal_setoran: s.tanggal_setoran,
             nama_santri: santri.nama,
             nama_halaqah: halaqahName,
             juz: s.juz,
             surat: s.surat,
             ayat: s.ayat,
+            id_kategori: s.id_kategori,
             kategori: kategoriName,
-            taqwim: s.taqwim ?? 0,
+            taqwim: s.taqwim !== undefined ? s.taqwim : null,
             keterangan: s.keterangan || undefined,
+            custom_values: s.custom_values || null,
           });
         });
       });
     });
     return rows;
   }, [groupedData, activeHalaqah]);
+
+  // Cek apakah ada data historis taqwim di rows
+  const hasHistoricalTaqwim = useMemo(() => {
+    return allRows.some((row) => row.taqwim !== null && row.taqwim !== undefined && row.taqwim !== 0);
+  }, [allRows]);
+
+  const showEvaluasiColumn = customFields.length > 0 || hasHistoricalTaqwim;
 
   const filteredRows = useMemo(() => {
     const q = search.toLowerCase();
@@ -100,8 +150,8 @@ export function LaporanTablePro({ groupedData, activeHalaqah, filterComponent, i
 
   const sortedRows = useMemo(() => {
     return [...filteredRows].sort((a, b) => {
-      let av: string | number = a[sortKey];
-      let bv: string | number = b[sortKey];
+      let av: string | number = a[sortKey] ?? "";
+      let bv: string | number = b[sortKey] ?? "";
       if (sortKey === "tanggal_setoran") {
         av = new Date(av as string).getTime();
         bv = new Date(bv as string).getTime();
@@ -227,21 +277,24 @@ export function LaporanTablePro({ groupedData, activeHalaqah, filterComponent, i
                     Kategori {renderSortIcon("kategori")}
                   </Button>
                 </TableHead>
-                <TableHead className="text-right pr-6">
-                  <Button
-                    variant="ghost"
-                    onClick={() => toggleSort("taqwim")}
-                    className="hover:bg-transparent -ml-4 -mr-4 ml-auto"
-                  >
-                    Taqwim {renderSortIcon("taqwim")}
-                  </Button>
-                </TableHead>
+                {showEvaluasiColumn && (
+                  <TableHead className="text-right">
+                    <Button
+                      variant="ghost"
+                      onClick={() => toggleSort("taqwim")}
+                      className="hover:bg-transparent -ml-4 -mr-4 ml-auto"
+                    >
+                      Evaluasi {renderSortIcon("taqwim")}
+                    </Button>
+                  </TableHead>
+                )}
+                <TableHead className="text-right pr-6 w-[100px]">Aksi</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {sortedRows.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-16 text-muted-foreground text-xs font-semibold">
+                  <TableCell colSpan={showEvaluasiColumn ? 7 : 6} className="text-center py-16 text-muted-foreground text-xs font-semibold">
                     {search ? `Tidak ada hasil untuk "${search}"` : "Tidak ada data setoran"}
                   </TableCell>
                 </TableRow>
@@ -255,7 +308,7 @@ export function LaporanTablePro({ groupedData, activeHalaqah, filterComponent, i
                         className="bg-muted/20 hover:bg-muted/30 cursor-pointer select-none border-y"
                         onClick={() => toggleGroup(groupName)}
                       >
-                        <TableCell colSpan={6} className="pl-6 py-2.5 font-semibold text-sm">
+                        <TableCell colSpan={showEvaluasiColumn ? 7 : 6} className="pl-6 py-2.5 font-semibold text-sm">
                           <div className="flex items-center gap-2">
                             <ChevronRight className={cn(
                               "h-4 w-4 text-muted-foreground transition-transform duration-200",
@@ -303,13 +356,95 @@ export function LaporanTablePro({ groupedData, activeHalaqah, filterComponent, i
                                 {row.kategori}
                               </Badge>
                             </TableCell>
-                            <TableCell className="py-3 text-right pr-6">
-                              <div className="font-semibold">{row.taqwim}</div>
-                              {row.keterangan && (
-                                <div className="text-xs text-muted-foreground mt-0.5" title={row.keterangan}>
-                                  {row.keterangan}
+                            {showEvaluasiColumn && (
+                              <TableCell className="py-3 text-right">
+                                <div className="flex flex-col items-end gap-0.5">
+                                  {/* Render custom values */}
+                                  {row.custom_values && typeof row.custom_values === "object" && 
+                                    Object.entries(row.custom_values).map(([key, val]) => {
+                                      const fieldConfig = customFields.find(f => f.id === key);
+                                      if (!fieldConfig) return null;
+                                      
+                                      // Skip empty values
+                                      if (val === undefined || val === null || val === "") return null;
+                                      
+                                      let displayVal = String(val);
+                                      if (fieldConfig.type === "boolean") {
+                                        displayVal = val ? "Ya" : "Tidak";
+                                      }
+                                      
+                                      return (
+                                        <div key={key} className="text-[11px] leading-tight">
+                                          <span className="text-muted-foreground">{fieldConfig.label}:</span>{" "}
+                                          <span className="font-semibold">{displayVal}</span>
+                                        </div>
+                                      );
+                                    })
+                                  }
+
+                                  {/* Fallback to old taqwim column if custom_values is empty or doesn't contain taqwim key */}
+                                  {row.taqwim !== null && row.taqwim !== undefined && (
+                                    (!row.custom_values || 
+                                     !Object.keys(row.custom_values).some(k => k.toLowerCase() === "taqwim" || k.toLowerCase() === "jumlah_salah")) && (
+                                      <div className="text-[11px] leading-tight">
+                                        <span className="text-muted-foreground">Taqwim:</span>{" "}
+                                        <span className="font-semibold">{row.taqwim}</span>
+                                      </div>
+                                    )
+                                  )}
+                                  
+                                  {row.keterangan && (
+                                    <div className="text-[10px] text-muted-foreground mt-0.5 max-w-[150px] truncate" title={row.keterangan}>
+                                      {row.keterangan}
+                                    </div>
+                                  )}
                                 </div>
-                              )}
+                              </TableCell>
+                            )}
+                            <TableCell className="py-3 text-right pr-6">
+                              <div className="flex justify-end">
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-muted">
+                                      <MoreVertical className="h-4 w-4 text-muted-foreground" />
+                                      <span className="sr-only">Menu aksi</span>
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end" className="w-32">
+                                    <DropdownMenuItem
+                                      className="cursor-pointer gap-2"
+                                      onClick={() => {
+                                        const record: SetoranRecord = {
+                                          id_setoran: row.id_setoran,
+                                          id_santri: row.id_santri,
+                                          tanggal_setoran: row.tanggal_setoran,
+                                          juz: row.juz,
+                                          surat: row.surat,
+                                          ayat: row.ayat,
+                                          id_kategori: row.id_kategori,
+                                          taqwim: row.taqwim ?? 0,
+                                          keterangan: row.keterangan || "",
+                                          nilai: 0,
+                                          santri: {
+                                            nama_santri: row.nama_santri,
+                                          }
+                                        };
+                                        setEditingSetoran(record);
+                                      }}
+                                    >
+                                      <Edit className="h-4 w-4 text-muted-foreground" />
+                                      <span>Edit</span>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                      className="cursor-pointer gap-2 text-destructive focus:text-destructive focus:bg-destructive/10"
+                                      onClick={() => setDeletingSetoranId(row.id_setoran)}
+                                    >
+                                      <Trash2 className="h-4 w-4 text-destructive" />
+                                      <span>Hapus</span>
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              </div>
                             </TableCell>
                           </TableRow>
                         ))}
@@ -319,6 +454,43 @@ export function LaporanTablePro({ groupedData, activeHalaqah, filterComponent, i
               )}
             </TableBody>
           </Table>
+
+          {/* Edit Setoran Modal */}
+          <EditSetoranModal
+            isOpen={!!editingSetoran}
+            onClose={() => setEditingSetoran(null)}
+            setoran={editingSetoran}
+            onSubmit={updateSetoran}
+          />
+
+          {/* Delete Confirmation Alert */}
+          <AlertDialog
+            open={deletingSetoranId !== null}
+            onOpenChange={(open) => !open && setDeletingSetoranId(null)}
+          >
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Hapus Setoran Hafalan</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Apakah Anda yakin ingin menghapus data setoran ini? Tindakan ini tidak dapat dibatalkan.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Batal</AlertDialogCancel>
+                <AlertDialogAction
+                  className="bg-destructive hover:bg-destructive/90 text-white"
+                  onClick={async () => {
+                    if (deletingSetoranId !== null) {
+                      await deleteSetoran(deletingSetoranId);
+                      setDeletingSetoranId(null);
+                    }
+                  }}
+                >
+                  Hapus
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
         {sortedRows.length > 0 && (
           <div className="px-6 py-3 border-t bg-muted/10 flex items-center justify-between">

@@ -37,6 +37,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   // NEW: Function untuk impersonate
   const impersonate = async (impersonatedUser: AuthUser, originalUser: AuthUser) => {
+    // Bersihkan cache agar data admin tidak bocor ke sesi muhafiz
+    queryClient.clear();
+
     const userData: AuthUser = {
       ...impersonatedUser,
       isImpersonating: true,
@@ -70,6 +73,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     
     if (superadminSession) {
       try {
+        // Bersihkan cache muhafiz agar tidak bocor ke sesi admin
+        queryClient.clear();
+
         const sessionData = JSON.parse(superadminSession);
         
         const originalRole = sessionData.role || user?.originalUser?.role || Role.SUPERADMIN;
@@ -185,6 +191,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     if (!response.success) {
       throw new Error(response.message || "Login gagal");
     }
+    
+    // Bersihkan cache React Query dari sesi sebelumnya
+    // agar data user lain tidak bocor ke user yang baru login
+    queryClient.clear();
     
     const userData: AuthUser = {
       ...response.data.user,
