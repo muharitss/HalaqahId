@@ -1,9 +1,10 @@
+import { useState, useEffect } from "react";
 import { useAuth } from "@/features/auth/components/auth-provider";
 import { CardContent } from "@/components/ui/card";
 import { MuhafizManagement } from "@/components/custom/typed-text";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faUsers, faCalendarCheck, faClipboardList } from "@fortawesome/free-solid-svg-icons";
+import { faUsers, faCalendarCheck, faClipboardList, faSearch } from "@fortawesome/free-solid-svg-icons";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
@@ -12,6 +13,7 @@ import { format } from "date-fns";
 import { id } from "date-fns/locale";
 import { CalendarIcon } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 
 // Hooks & Components
 import { useMuhafiz } from "../hooks/useMuhafiz";
@@ -57,12 +59,31 @@ export default function KelolaMuhafizPage() {
     handleAbsenMuhafiz,
   } = useMuhafiz();
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const [showAll, setShowAll] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  // Reset page when search term changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
   if (!user || !isKepalaRole(user.role)) return <AccessDenied />;
 
   const filteredMuhafizList = muhafizList.filter((m) => {
     if (!selectedSesi) return true;
     return m.halaqah?.sesi_halaqahs?.some((s) => s.id_sesi === selectedSesi) ?? false;
   });
+
+  const filteredMuhafiz = muhafizList.filter((m) =>
+    m.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    m.email.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const totalPages = Math.ceil(filteredMuhafiz.length / 10);
+  const displayedMuhafiz = showAll
+    ? filteredMuhafiz
+    : filteredMuhafiz.slice((currentPage - 1) * 10, currentPage * 10);
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
@@ -95,9 +116,21 @@ export default function KelolaMuhafizPage() {
 
         {/* TAB 1: DAFTAR AKUN */}
         <TabsContent value="daftar" className="mt-0 outline-none">
-          <CardContent className="p-0 border rounded-xl overflow-hidden bg-card shadow-sm">
+          <div className="border rounded-xl overflow-hidden bg-card shadow-sm">
+            <div className="p-6 border-b flex flex-col sm:flex-row justify-between items-center gap-4">
+              <div className="relative w-full sm:w-72">
+                <FontAwesomeIcon icon={faSearch} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                <Input 
+                  placeholder="Cari nama atau email..." 
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+            </div>
+            
             <DaftarAkun
-              muhafizList={muhafizList}
+              muhafizList={displayedMuhafiz}
               activeMuhafizIds={activeMuhafizIds}
               isLoading={isLoading}
               onEditClick={openEditModal}
@@ -106,7 +139,63 @@ export default function KelolaMuhafizPage() {
               onAbsenMuhafiz={handleAbsenMuhafiz} 
               onCreateClick={handleCreateSuccess}
             />
-          </CardContent>
+
+            {/* Pagination Section */}
+            {!isLoading && (filteredMuhafiz.length > 10 || showAll) && (
+              <div className="p-4 border-t flex flex-col sm:flex-row items-center justify-between gap-4 bg-muted/10">
+                <div className="text-xs text-muted-foreground">
+                  {showAll ? (
+                    <span>Menampilkan semua <strong>{filteredMuhafiz.length}</strong> muhafidz</span>
+                  ) : (
+                    <span>
+                      Menampilkan <strong>{Math.min((currentPage - 1) * 10 + 1, filteredMuhafiz.length)}</strong> -{" "}
+                      <strong>{Math.min(currentPage * 10, filteredMuhafiz.length)}</strong> dari{" "}
+                      <strong>{filteredMuhafiz.length}</strong> muhafidz
+                    </span>
+                  )}
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-xs h-8 px-3"
+                    onClick={() => {
+                      setShowAll(!showAll);
+                      setCurrentPage(1);
+                    }}
+                  >
+                    {showAll ? "Batasi 10 per Halaman" : "Tampilkan Semua"}
+                  </Button>
+                  
+                  {!showAll && totalPages > 1 && (
+                    <div className="flex items-center gap-2 ml-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-8 px-3"
+                        disabled={currentPage === 1}
+                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                      >
+                        Sebelumnya
+                      </Button>
+                      <span className="text-xs text-muted-foreground min-w-[45px] text-center">
+                        {currentPage} / {totalPages}
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-8 px-3"
+                        disabled={currentPage === totalPages}
+                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                      >
+                        Selanjutnya
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
         </TabsContent>
 
         {/* TAB 2: INPUT ABSENSI (100% IDENTIK LAYOUTNYA) */}

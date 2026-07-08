@@ -93,22 +93,41 @@ const findJuzBySurahAndAyah = (surahName: string, ayahNum: number): number => {
   return 1;
 };
 
+const numericRequired = (msg: string) =>
+  z.preprocess((val) => {
+    if (val === "" || val === undefined || val === null) return undefined;
+    const n = Number(val);
+    return isNaN(n) ? undefined : n;
+  }, z.number({ message: msg }).min(1, msg));
+
+const numericOptional = () =>
+  z.preprocess((val) => {
+    if (val === "" || val === undefined || val === null) return undefined;
+    const n = Number(val);
+    return isNaN(n) ? undefined : n;
+  }, z.number().optional());
+
 const setoranSchema = z
   .object({
-    id_santri: z.coerce.number().min(1, "Pilih santri"),
-    id_sesi: z.coerce.number().min(1, "Pilih sesi halaqah"),
-    juz: z.coerce.number().min(1).max(30),
+    id_santri: numericRequired("Pilih santri"),
+    id_sesi: numericRequired("Pilih sesi halaqah"),
+    juz: z.preprocess((val) => {
+      if (val === "" || val === undefined || val === null) return undefined;
+      const n = Number(val);
+      return isNaN(n) ? undefined : n;
+    }, z.number({ message: "Pilih juz" }).min(1).max(30)),
     surat_mulai: z.string().min(1, "Pilih surah mulai"),
-    ayat_mulai: z.coerce.number().min(1, "Ayat mulai minimal 1"),
+    ayat_mulai: numericRequired("Ayat mulai minimal 1"),
     surat_selesai: z.string().min(1, "Pilih surah selesai"),
-    ayat_selesai: z.coerce.number().min(1, "Ayat selesai minimal 1"),
-    id_kategori: z.coerce.number().min(1, "Pilih kategori setoran"),
+    ayat_selesai: numericRequired("Ayat selesai minimal 1"),
+    id_kategori: numericRequired("Pilih kategori setoran"),
     tanggal_setoran: z.string().min(1, "Pilih tanggal setoran"),
-    taqwim: z.coerce.number().optional(),
+    taqwim: numericOptional(),
     keterangan: z.string().optional(),
   })
   .refine(
     (data) => {
+      if (!data.surat_mulai || !data.ayat_mulai || !data.surat_selesai || !data.ayat_selesai) return true;
       const startId = getGlobalAyahId(data.surat_mulai, data.ayat_mulai);
       const endId = getGlobalAyahId(data.surat_selesai, data.ayat_selesai);
       return endId >= startId;
@@ -120,6 +139,7 @@ const setoranSchema = z
   )
   .refine(
     (data) => {
+      if (!data.surat_mulai || !data.ayat_mulai) return true;
       const maxAyatMulai = getSurahTotalAyat(data.surat_mulai);
       return data.ayat_mulai <= maxAyatMulai;
     },
@@ -130,6 +150,7 @@ const setoranSchema = z
   )
   .refine(
     (data) => {
+      if (!data.surat_selesai || !data.ayat_selesai) return true;
       const maxAyatSelesai = getSurahTotalAyat(data.surat_selesai);
       return data.ayat_selesai <= maxAyatSelesai;
     },
@@ -234,18 +255,19 @@ export function SetoranForm({
     if (stored) {
       try {
         const { selection, juzNumber } = JSON.parse(stored);
-        sessionStorage.removeItem("mushaf_selection_pending");
+        setTimeout(() => sessionStorage.removeItem("mushaf_selection_pending"), 0);
         if (selection) {
           setMushafSelection(selection);
           form.setValue("surat_mulai", selection.startSurahName);
           form.setValue("surat_selesai", selection.endSurahName);
           form.setValue("ayat_mulai", selection.startAyah);
           form.setValue("ayat_selesai", selection.endAyah);
-          if (juzNumber) form.setValue("juz", juzNumber);
+          const calculatedJuz = juzNumber || findJuzBySurahAndAyah(selection.startSurahName, selection.startAyah);
+          form.setValue("juz", calculatedJuz);
           form.trigger(["juz", "surat_mulai", "surat_selesai", "ayat_mulai", "ayat_selesai"]);
         }
       } catch {
-        sessionStorage.removeItem("mushaf_selection_pending");
+        setTimeout(() => sessionStorage.removeItem("mushaf_selection_pending"), 0);
       }
     }
   }, [form]);
@@ -268,12 +290,24 @@ export function SetoranForm({
       } catch (err) {
         console.error("Gagal memulihkan draf form:", err);
       }
-      sessionStorage.removeItem("setoran_form_draft");
+      setTimeout(() => sessionStorage.removeItem("setoran_form_draft"), 0);
     }
 
     // 2. Baca seleksi ayat dari mushaf
     readMushafSelectionFromStorage();
   }, [location, readMushafSelectionFromStorage, form]);
+
+  // Sinkronisasi Juz secara otomatis di UI ketika posisi surat/ayat berubah secara manual
+  const watchSuratMulai = form.watch("surat_mulai");
+  const watchAyatMulai = form.watch("ayat_mulai");
+  useEffect(() => {
+    if (watchSuratMulai && typeof watchAyatMulai === "number" && watchAyatMulai > 0) {
+      const calculatedJuz = findJuzBySurahAndAyah(watchSuratMulai, watchAyatMulai);
+      if (calculatedJuz !== form.getValues("juz")) {
+        form.setValue("juz", calculatedJuz);
+      }
+    }
+  }, [watchSuratMulai, watchAyatMulai, form]);
 
   const selectedSantriId = form.watch("id_santri");
   const { data: studentHistory = [] } = useQuery({
@@ -597,7 +631,7 @@ export function SetoranForm({
                         }
                         setMushafSelection(null);
                       }}
-                      value={field.value.toString()}
+                      value={field.value?.toString() || ""}
                     >
                       <FormControl>
                         <SelectTrigger>

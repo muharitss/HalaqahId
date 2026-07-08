@@ -120,7 +120,7 @@ export function AkunForm({ onSuccess }: AkunFormProps) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="nomor_telepon">Nomor Telepon (Opsional)</Label>
+        <Label htmlFor="nomor_telepon">Nomor Telepon</Label>
         <Input
           id="nomor_telepon"
           {...register("nomor_telepon")}

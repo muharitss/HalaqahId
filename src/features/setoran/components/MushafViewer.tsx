@@ -299,7 +299,63 @@ export function MushafViewer({
   // Prefetch 5 halaman sebelum & sesudah untuk navigasi instan
   usePrefetchMushafPages(currentPage);
 
-  const linesPerPage = 15; // Selalu 15 baris
+  // Gesture swipe untuk navigasi halaman di perangkat handphone (mobile)
+  const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    touchStartX.current = touch.clientX;
+    touchStartY.current = touch.clientY;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null || touchStartY.current === null) return;
+
+    const touch = e.changedTouches[0];
+    const deltaX = touch.clientX - touchStartX.current;
+    const deltaY = touch.clientY - touchStartY.current;
+
+    // Reset touch coordinates
+    touchStartX.current = null;
+    touchStartY.current = null;
+
+    // Menghindari swipe diagonal atau scroll vertikal tidak sengaja
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
+      if (deltaX > 0) {
+        // Swipe ke kanan (Drag dari kiri ke kanan) -> Halaman berikutnya (halaman bertambah)
+        if (currentPage < (page?.total_pages ?? 604)) {
+          onPageChange(currentPage + 1);
+        }
+      } else {
+        // Swipe ke kiri (Drag dari kanan ke kiri) -> Halaman sebelumnya (halaman berkurang)
+        if (currentPage > 1) {
+          onPageChange(currentPage - 1);
+        }
+      }
+    }
+  };
+
+  const [animationClass, setAnimationClass] = useState("");
+  const prevPageRef = useRef(currentPage);
+
+  useEffect(() => {
+    if (currentPage !== prevPageRef.current) {
+      const direction = currentPage > prevPageRef.current ? "next" : "prev";
+      prevPageRef.current = currentPage;
+
+      const anim = direction === "next" ? "animate-mushaf-next" : "animate-mushaf-prev";
+      setAnimationClass(anim);
+
+      const timer = setTimeout(() => {
+        setAnimationClass("");
+      }, 350);
+
+      return () => clearTimeout(timer);
+    }
+  }, [currentPage]);
+
+  const linesPerPage = 15; // // Selalu 15 baris
 
   const lineGroups = useMemo(() => {
     if (!page) return new Map<number, MushafWord[]>();
@@ -426,6 +482,34 @@ export function MushafViewer({
 
   return (
     <div className="flex flex-col flex-1 min-h-0 bg-background overflow-hidden" style={{ height: "100%" }}>
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes mushafSlideInNext {
+          from {
+            opacity: 0.3;
+            transform: translateX(-24px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+        @keyframes mushafSlideInPrev {
+          from {
+            opacity: 0.3;
+            transform: translateX(24px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+        .animate-mushaf-next {
+          animation: mushafSlideInNext 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .animate-mushaf-prev {
+          animation: mushafSlideInPrev 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+      `}} />
       {/* ── Header: Navigasi + Info + Action ── */}
       <div className="border-b bg-muted/20 shrink-0 w-full">
         <div className="max-w-3xl mx-auto flex items-center justify-between gap-1.5 px-3 py-1.5 flex-wrap">
@@ -492,13 +576,18 @@ export function MushafViewer({
       {/* ── Mushaf Content (RTL) — flex column tanpa scroll agar fix 15 baris ── */}
       {page && !isLoading && (
         <div
-          className="flex-1 min-h-0 overflow-hidden select-none px-0.5 max-w-3xl mx-auto w-full"
+          className={cn(
+            "flex-1 min-h-0 overflow-hidden select-none px-0.5 max-w-3xl mx-auto w-full",
+            animationClass
+          )}
           dir="rtl"
           style={{
             fontFamily: "'Scheherazade New', 'Amiri', serif",
             display: "flex",
             flexDirection: "column",
           }}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
         >
           {Array.from({ length: linesPerPage }, (_, i) => i + 1).map((lineNum) => {
             const specialLine = specialLines.get(lineNum);

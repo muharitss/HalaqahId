@@ -14,9 +14,10 @@ export interface DailyAbsensiMuhafizItem {
 
 export const muhafizService = {
   // Get all muhafiz
-  getAllMuhafiz: async (): Promise<Muhafiz[]> => {
+  getAllMuhafiz: async (params?: { page?: number; limit?: number }): Promise<Muhafiz[]> => {
     try {
-      const response = await axiosClient.get<GlobalResponse<Muhafiz[]>>("/halaqah/auth/muhafiz");
+      const finalParams = { limit: 1000, ...params };
+      const response = await axiosClient.get<GlobalResponse<Muhafiz[]>>("/halaqah/auth/muhafiz", { params: finalParams });
       
       const resData = response.data;
 
