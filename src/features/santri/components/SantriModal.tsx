@@ -30,7 +30,7 @@ interface SantriModalProps {
   onClose: () => void;
   onSave: (data: {
     nama_santri: string;
-    nomor_telepon: string;
+    nomor_telepon?: string | null;
     id_target: number | null;
     id_halaqah: number | undefined;
   }) => void;
@@ -120,13 +120,15 @@ export function SantriModal({
 
             {/* Nomor Telepon */}
             <div className="grid gap-2">
-              <Label htmlFor="nomor_telepon">Nomor Telepon *</Label>
+              <Label htmlFor="nomor_telepon">
+                Nomor Telepon
+                <span className="ml-1 text-xs text-muted-foreground font-normal">(opsional)</span>
+              </Label>
               <Input
                 id="nomor_telepon"
                 name="nomor_telepon"
                 value={nomorTelepon}
                 onChange={(e) => setNomorTelepon(e.target.value)}
-                required
                 type="tel"
                 placeholder="Contoh: 08123456789"
               />
