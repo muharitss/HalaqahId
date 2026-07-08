@@ -62,13 +62,13 @@ export function useHalaqahManagement() {
   const saveSantriMutation = useMutation({
     mutationFn: async (data: {
       nama_santri: string | FormDataEntryValue | null;
-      nomor_telepon: string | FormDataEntryValue | null;
+      nomor_telepon?: string | FormDataEntryValue | null;
       id_target: number | null;
       id_halaqah: number | undefined;
     }) => {
       const payload = {
         nama_santri: String(data.nama_santri),
-        nomor_telepon: String(data.nomor_telepon),
+        nomor_telepon: data.nomor_telepon ? String(data.nomor_telepon) : "",
         id_target: data.id_target,
         id_halaqah: data.id_halaqah || selectedHalaqah?.id_halaqah || 0,
       };
@@ -129,7 +129,7 @@ export function useHalaqahManagement() {
   const handleSaveSantri = useCallback(
     async (data: {
       nama_santri: string;
-      nomor_telepon: string;
+      nomor_telepon?: string | null;
       id_target: number | null;
       id_halaqah: number | undefined;
     }) => {

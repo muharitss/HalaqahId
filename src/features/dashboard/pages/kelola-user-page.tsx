@@ -12,6 +12,7 @@ import {
   User,
   LogIn,
   Check,
+  Phone,
 } from "lucide-react";
 import { authService } from "@/features/auth/api/authService";
 import { sekolahService } from "@/features/sekolah/api/sekolahService";
@@ -52,10 +53,20 @@ interface GlobalUser {
   role: string;
   is_verified: boolean;
   id_sekolah: number | null;
+  nomor_telepon?: string | null;
   sekolah: {
     nama_sekolah: string;
   } | null;
 }
+
+const formatWhatsApp = (phone: string | null | undefined) => {
+  if (!phone) return "#";
+  let cleaned = phone.replace(/\D/g, "");
+  if (cleaned.startsWith("0")) {
+    cleaned = "62" + cleaned.substring(1);
+  }
+  return `https://wa.me/${cleaned}`;
+};
 
 const PAGE_SIZE = 10;
 
@@ -310,6 +321,7 @@ export default function KelolaUserPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Nama & Email</TableHead>
+                <TableHead>Nomor Telepon</TableHead>
                 <TableHead>Peran</TableHead>
                 <TableHead>Lembaga / Sekolah</TableHead>
                 <TableHead>Status Email</TableHead>
@@ -319,13 +331,13 @@ export default function KelolaUserPage() {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-10 text-muted-foreground">
+                  <TableCell colSpan={6} className="text-center py-10 text-muted-foreground">
                     Memuat data pengguna...
                   </TableCell>
                 </TableRow>
               ) : users.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-10 text-muted-foreground">
+                  <TableCell colSpan={6} className="text-center py-10 text-muted-foreground">
                     Tidak ditemukan data pengguna yang cocok
                   </TableCell>
                 </TableRow>
@@ -335,6 +347,21 @@ export default function KelolaUserPage() {
                     <TableCell>
                       <div className="font-semibold">{u.name}</div>
                       <div className="text-xs text-muted-foreground">{u.email}</div>
+                    </TableCell>
+                    <TableCell>
+                      {u.nomor_telepon ? (
+                        <a
+                          href={formatWhatsApp(u.nomor_telepon)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline hover:text-primary/80 transition-colors"
+                        >
+                          <Phone className="h-3.5 w-3.5 text-emerald-500" />
+                          <span>{u.nomor_telepon}</span>
+                        </a>
+                      ) : (
+                        <span className="text-xs text-muted-foreground italic">-</span>
+                      )}
                     </TableCell>
                     <TableCell>
                       <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${

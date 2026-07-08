@@ -27,13 +27,22 @@ import {
   faPlus,
   faSignInAlt,
   faEllipsisH,
-  faPhone,
 } from "@fortawesome/free-solid-svg-icons";
+import { faWhatsapp } from "@fortawesome/free-brands-svg-icons";
 import type { MuhafizTableProps, AbsensiStatus } from "../types";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { authService } from "@/features/auth/api/authService";
 import { getErrorMessage } from "@/utils/error";
+
+const formatWhatsApp = (phone: string | null | undefined) => {
+  if (!phone) return "#";
+  let cleaned = phone.replace(/\D/g, "");
+  if (cleaned.startsWith("0")) {
+    cleaned = "62" + cleaned.substring(1);
+  }
+  return `https://wa.me/${cleaned}`;
+};
 
 export function DaftarAkun({ 
   muhafizList, 
@@ -62,6 +71,7 @@ export function DaftarAkun({
           <TableHeader>
             <TableRow className="bg-muted/50">
               <TableHead className="w-20">Muhafiz</TableHead>
+              <TableHead>Nomor Telepon</TableHead>
               <TableHead>Halaqah</TableHead>
               <TableHead className="text-right">Aksi</TableHead>
             </TableRow>
@@ -70,6 +80,7 @@ export function DaftarAkun({
             {[1, 2, 3, 4, 5].map((i) => (
               <TableRow key={i}>
                 <TableCell><Skeleton className="h-5 w-48" /></TableCell>
+                <TableCell><Skeleton className="h-5 w-32" /></TableCell>
                 <TableCell><Skeleton className="h-5 w-20" /></TableCell>
                 <TableCell className="text-right"><Skeleton className="h-8 w-8 ml-auto rounded-md" /></TableCell>
               </TableRow>
@@ -104,6 +115,7 @@ export function DaftarAkun({
         <TableHeader>
           <TableRow className="bg-muted/30 hover:bg-muted/30">
             <TableHead className="font-bold text-xs md:text-sm py-4">Informasi Muhafidz</TableHead>
+            <TableHead className="font-bold text-xs md:text-sm py-4">Nomor Telepon</TableHead>
             <TableHead className="text-right font-bold text-xs md:text-sm py-4 pr-10">Halaqah</TableHead>
             <TableHead className="text-right font-bold text-xs md:text-sm py-4 pr-4">Aksi</TableHead>
           </TableRow>
@@ -128,13 +140,22 @@ export function DaftarAkun({
                       <FontAwesomeIcon icon={faEnvelope} className="text-[10px] opacity-70" />
                       <span>{muhafiz.email}</span>
                     </div>
-                    {muhafiz.nomor_telepon && (
-                      <div className="flex items-center gap-1.5 text-xs md:text-sm text-muted-foreground">
-                        <FontAwesomeIcon icon={faPhone} className="text-[10px] opacity-70" />
-                        <span>{muhafiz.nomor_telepon}</span>
-                      </div>
-                    )}
                   </div>
+                </TableCell>
+                <TableCell className="py-5">
+                  {muhafiz.nomor_telepon ? (
+                    <a
+                      href={formatWhatsApp(muhafiz.nomor_telepon)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 text-primary hover:text-primary-dark hover:underline transition-all text-xs md:text-sm"
+                    >
+                      <FontAwesomeIcon icon={faWhatsapp} className="text-emerald-500 text-sm" />
+                      {muhafiz.nomor_telepon}
+                    </a>
+                  ) : (
+                    <span className="text-xs md:text-sm text-muted-foreground italic">-</span>
+                  )}
                 </TableCell>
                 <TableCell className="text-right py-5">
                   <div className="flex flex-col items-end pr-4">

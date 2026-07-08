@@ -57,13 +57,13 @@ export function KelolaSantriPage() {
 
   const handleSave = async (data: {
     nama_santri: string;
-    nomor_telepon: string;
+    nomor_telepon?: string | null;
     id_target: number | null;
     id_halaqah: number | undefined;
   }) => {
     const payload = {
       nama_santri: data.nama_santri,
-      nomor_telepon: data.nomor_telepon,
+      nomor_telepon: data.nomor_telepon || "",
       id_target: data.id_target,
       id_halaqah: data.id_halaqah || 0,
     };
