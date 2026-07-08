@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Info, Trash2, ChevronLeft, LogOut, ArrowLeft, Bot, Link as LinkIcon, Building2, Layers, Target } from "lucide-react";
+import { Info, Trash2, ChevronLeft, LogOut, ArrowLeft, Bot, Link as LinkIcon, Building2, Layers, Target, GraduationCap } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { SettingItem } from "./SettingItem";
@@ -92,6 +92,13 @@ export default function SettingsPage() {
                   description="Atur target hafalan fleksibel untuk santri"
                   onClick={() => navigate("/kepala-muhafidz/settings/target")}
                 />
+                <SettingItem 
+                  icon={<GraduationCap size={18} className="text-emerald-500" />}
+                  title="Pengaturan Ujian"
+                  description="Kelola kriteria dan rumus kelulusan ujian"
+                  onClick={() => navigate("/kepala-muhafidz/settings/ujian")}
+                />
+
               </>
             )}
           </Card>

@@ -252,8 +252,28 @@ export function SetoranForm({
 
   // Jalankan setiap kali location berubah (setelah navigate(-1) dari mushaf)
   useEffect(() => {
+    // 1. Pulihkan draf form (nama, kategori, tanggal, dll.) jika ada sebelum membaca mushaf
+    const storedDraft = sessionStorage.getItem("setoran_form_draft");
+    if (storedDraft) {
+      try {
+        const draft = JSON.parse(storedDraft);
+        if (draft) {
+          Object.entries(draft).forEach(([key, val]) => {
+            if (val !== undefined && val !== null) {
+              form.setValue(key as keyof SetoranFormFields, val as any);
+            }
+          });
+          form.trigger(); // Trigger validasi untuk semua field yang dipulihkan
+        }
+      } catch (err) {
+        console.error("Gagal memulihkan draf form:", err);
+      }
+      sessionStorage.removeItem("setoran_form_draft");
+    }
+
+    // 2. Baca seleksi ayat dari mushaf
     readMushafSelectionFromStorage();
-  }, [location, readMushafSelectionFromStorage]);
+  }, [location, readMushafSelectionFromStorage, form]);
 
   const selectedSantriId = form.watch("id_santri");
   const { data: studentHistory = [] } = useQuery({
@@ -301,6 +321,10 @@ export function SetoranForm({
 
   // Fungsi untuk buka halaman mushaf
   const handleOpenMushaf = () => {
+    // Simpan nilai form saat ini ke sessionStorage agar tidak hilang ketika kembali
+    const currentValues = form.getValues();
+    sessionStorage.setItem("setoran_form_draft", JSON.stringify(currentValues));
+
     const currentSurat = form.getValues("surat_mulai");
     const surahNum = currentSurat ? surahNameToNumber(currentSurat) : undefined;
     const initialPage = surahNum ? (SURAH_PAGE_START[surahNum] ?? 1) : 1;

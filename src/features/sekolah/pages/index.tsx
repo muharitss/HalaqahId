@@ -215,8 +215,16 @@ export default function KelolaSekolahPage() {
                     <TableRow key={sekolah.id_sekolah}>
                       <TableCell className="font-medium">
                         <div className="flex items-center gap-2">
-                          <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                            <FontAwesomeIcon icon={faBuilding} className="text-primary" />
+                          <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden border border-border">
+                            {sekolah.logo_url ? (
+                              <img
+                                src={sekolah.logo_url}
+                                alt={sekolah.nama_sekolah}
+                                className="h-full w-full object-contain bg-white p-0.5"
+                              />
+                            ) : (
+                              <FontAwesomeIcon icon={faBuilding} className="text-primary" />
+                            )}
                           </div>
                           {sekolah.nama_sekolah}
                         </div>

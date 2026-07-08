@@ -15,8 +15,7 @@ import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { ArrowLeft, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MushafViewer } from "../components/MushafViewer";
-import { SURAH_PAGE_START } from "@/utils/mushafUtils";
-import { surahNameToNumber } from "@/utils/mushafUtils";
+import { SURAH_PAGE_START, surahNameToNumber, adjustStartLine } from "@/utils/mushafUtils";
 import { pemetaanJuz } from "@/utils/daftarSurah";
 import type { MushafSelection } from "../types";
 
@@ -72,9 +71,16 @@ export function MushafPage() {
     }
 
     if (selection) {
+      const surahNum = surahNameToNumber(selection.startSurahName) || 1;
+      const adjustedStartLine = adjustStartLine(surahNum, selection.startAyah, selection.startLine);
+      const adjustedSelection = {
+        ...selection,
+        startLine: adjustedStartLine,
+      };
+
       sessionStorage.setItem(
         "mushaf_selection_pending",
-        JSON.stringify({ selection, juzNumber })
+        JSON.stringify({ selection: adjustedSelection, juzNumber })
       );
     }
     navigate(-1);

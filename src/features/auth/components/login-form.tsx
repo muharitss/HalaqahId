@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import { loginSchema, type LoginFormValues } from "@/features/auth/types/auth.schema";
 import { useAuth } from "@/features/auth/components/auth-provider";
 import { getErrorMessage } from "@/utils/error";
@@ -39,6 +39,7 @@ import {
   faEyeSlash,
   faTriangleExclamation 
 } from "@fortawesome/free-solid-svg-icons";
+import { CheckCircle2 } from "lucide-react";
 
 export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
@@ -48,6 +49,10 @@ export function LoginForm() {
   const [isResending, setIsResending] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const [successMessage, setSuccessMessage] = useState<string>(
+    location.state?.successMessage || ""
+  );
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -59,6 +64,7 @@ export function LoginForm() {
 
   async function onSubmit(values: LoginFormValues) {
     setBackendError("");
+    setSuccessMessage("");
     setShowResend(false);
     setIsSubmitting(true);
     try {
@@ -102,6 +108,13 @@ export function LoginForm() {
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            {successMessage && (
+              <Alert className="animate-in fade-in zoom-in duration-300 bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-900/30 text-green-800 dark:text-green-300">
+                <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
+                <AlertDescription>{successMessage}</AlertDescription>
+              </Alert>
+            )}
+
             {backendError && (
               <div className="space-y-2">
                 <Alert variant={backendError.includes("telah dikirim ulang") ? "default" : "destructive"} className={`animate-in fade-in zoom-in duration-300 ${backendError.includes("telah dikirim ulang") ? "bg-green-50 border-green-200 text-green-800" : ""}`}>
@@ -152,6 +165,7 @@ export function LoginForm() {
                         onChange={(e) => {
                           field.onChange(e);
                           if (backendError) setBackendError("");
+                          if (successMessage) setSuccessMessage("");
                         }}
                       />
                     </div>
@@ -183,6 +197,7 @@ export function LoginForm() {
                         onChange={(e) => {
                           field.onChange(e);
                           if (backendError) setBackendError("");
+                          if (successMessage) setSuccessMessage("");
                         }}
                       />
                       <Button

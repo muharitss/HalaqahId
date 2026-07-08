@@ -53,6 +53,7 @@ import {
   surahNumberToName,
   hitungTotalBaris,
   SURAH_PAGE_START,
+  adjustStartLine,
 } from "@/utils/mushafUtils";
 import type { MushafWord, MushafSelection } from "../types";
 import { cn } from "@/lib/utils";
@@ -342,18 +343,25 @@ export function MushafViewer({
     const surahName = surahNumberToName(word.surah_number);
 
     if (selectionMode === "start") {
+      const adjustedLine = adjustStartLine(word.surah_number, word.ayah_number, word.line_number);
       const newSel: MushafSelection = {
         startSurahNumber: word.surah_number,
         startSurahName: surahName,
         startAyah: word.ayah_number,
         startPage: currentPage,
-        startLine: word.line_number,
+        startLine: word.line_number, // Simpan original line agar swap tidak terganggu
         endSurahNumber: word.surah_number,
         endSurahName: surahName,
         endAyah: word.ayah_number,
         endPage: currentPage,
         endLine: word.line_number,
-        totalBaris: 1,
+        totalBaris: hitungTotalBaris(
+          currentPage,
+          adjustedLine,
+          currentPage,
+          word.line_number,
+          linesPerPage,
+        ),
       };
       onSelectionChange(newSel);
       onSelectionModeChange("end");
@@ -364,6 +372,8 @@ export function MushafViewer({
       const endId = word.surah_number * 10000 + word.ayah_number;
 
       if (endId < startId) {
+        // Swap selection: clicked word is new start, selection.start becomes end
+        const adjustedStartLine = adjustStartLine(word.surah_number, word.ayah_number, word.line_number);
         onSelectionChange({
           startSurahNumber: word.surah_number,
           startSurahName: surahName,
@@ -377,13 +387,18 @@ export function MushafViewer({
           endLine: selection.startLine,
           totalBaris: hitungTotalBaris(
             currentPage,
-            word.line_number,
+            adjustedStartLine,
             selection.startPage,
             selection.startLine,
             linesPerPage,
           ),
         });
       } else {
+        const adjustedStartLine = adjustStartLine(
+          selection.startSurahNumber,
+          selection.startAyah,
+          selection.startLine,
+        );
         onSelectionChange({
           ...selection,
           endSurahNumber: word.surah_number,
@@ -393,7 +408,7 @@ export function MushafViewer({
           endLine: word.line_number,
           totalBaris: hitungTotalBaris(
             selection.startPage,
-            selection.startLine,
+            adjustedStartLine,
             currentPage,
             word.line_number,
             linesPerPage,

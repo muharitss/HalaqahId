@@ -1,4 +1,4 @@
-﻿import { type Role } from './enums';
+import { type Role } from './enums';
 import { type LoginFormValues } from '@/features/auth/types/auth.schema';
 
 export interface User {
@@ -12,6 +12,7 @@ export interface User {
   deleted_at?: string | null;
   has_halaqah?: boolean;
   id_halaqah?: number | null;
+  nomor_telepon?: string | null;
   halaqah?: {
     id_halaqah: number;
     name_halaqah: string;
@@ -28,6 +29,7 @@ export interface UserProfile {
   has_halaqah: boolean;
   id_halaqah: number | null;
   is_verified: boolean;
+  nomor_telepon?: string | null;
 }
 
 export interface LoginRequest {
@@ -46,6 +48,7 @@ export interface RegisterMuhafizRequest {
   password: string;
   role?: 'MUHAFIZ' | 'KOORDINATOR_TAHFIZ';
   id_sekolah?: number;
+  nomor_telepon?: string;
 }
 
 export interface RegisterAdminRequest {

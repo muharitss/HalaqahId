@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { muhafizService } from "../api/muhafizService";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,7 +13,8 @@ import type { EditAkunProps } from "../types";
 export function EditAkun({ muhafiz, isOpen, onClose, onSuccess }: EditAkunProps) {
   const [formData, setFormData] = useState({
     name: "",
-    email: ""
+    email: "",
+    nomor_telepon: ""
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -23,7 +24,8 @@ export function EditAkun({ muhafiz, isOpen, onClose, onSuccess }: EditAkunProps)
     if (muhafiz) {
       setFormData({
         name: muhafiz.name || "",
-        email: muhafiz.email
+        email: muhafiz.email,
+        nomor_telepon: muhafiz.nomor_telepon || ""
       });
     }
   }, [muhafiz]);
@@ -37,7 +39,11 @@ export function EditAkun({ muhafiz, isOpen, onClose, onSuccess }: EditAkunProps)
     setSuccess("");
 
     try {
-      const response = await muhafizService.updateMuhafiz(muhafiz.id_user, formData);
+      const response = await muhafizService.updateMuhafiz(muhafiz.id_user, {
+        name: formData.name,
+        email: formData.email,
+        nomor_telepon: formData.nomor_telepon || null,
+      });
       
       if (response.success) {
         setSuccess("Data muhafidz berhasil diperbarui!");
@@ -56,7 +62,7 @@ export function EditAkun({ muhafiz, isOpen, onClose, onSuccess }: EditAkunProps)
   };
 
   const handleClose = () => {
-    setFormData({ name: "", email: "" });
+    setFormData({ name: "", email: "", nomor_telepon: "" });
     setError("");
     setSuccess("");
     onClose();
@@ -111,6 +117,17 @@ export function EditAkun({ muhafiz, isOpen, onClose, onSuccess }: EditAkunProps)
               onChange={(e) => setFormData({...formData, email: e.target.value})}
               placeholder="Masukkan email"
               required
+              disabled={isLoading}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="nomor_telepon">Nomor Telepon</Label>
+            <Input
+              id="nomor_telepon"
+              value={formData.nomor_telepon}
+              onChange={(e) => setFormData({...formData, nomor_telepon: e.target.value})}
+              placeholder="Masukkan nomor telepon (contoh: 081234567890)"
               disabled={isLoading}
             />
           </div>

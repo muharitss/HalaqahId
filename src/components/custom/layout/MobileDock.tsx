@@ -37,6 +37,7 @@ export function MobileDock() {
           { name: "Absen", path: "/muhafidz/absensi", icon: faClipboardCheck },
           { name: "Setoran", path: "/muhafidz/setoran", icon: faBookOpen },
           { name: "Santri", path: "/muhafidz/santri", icon: faUsers },
+          { name: "Laporan", path: "/muhafidz/laporan", icon: faClipboardCheck },
         ];
 
   return (

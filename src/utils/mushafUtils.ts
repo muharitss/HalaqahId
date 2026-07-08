@@ -132,3 +132,25 @@ export const SURAH_PAGE_START: Record<number, number> = {
   107: 602, 108: 602, 109: 603, 110: 603, 111: 603, 112: 604, 113: 604,
   114: 604,
 };
+
+/**
+ * Sesuaikan baris awal setoran jika dimulai dari ayat 1.
+ * Jika dimulai dari ayat 1, baris nama surah dan basmalah di atasnya ikut dihitung.
+ */
+export function adjustStartLine(
+  surahNum: number,
+  ayahNum: number,
+  originalLine: number,
+): number {
+  if (ayahNum === 1) {
+    if (surahNum === 1) {
+      return 1; // Al-Fatihah header is line 1, verse 1 is line 2
+    } else if (surahNum === 9) {
+      return Math.max(1, originalLine - 1); // At-Taubah header is startLine - 1, no basmalah
+    } else {
+      return Math.max(1, originalLine - 2); // Header is startLine - 2, basmalah is startLine - 1
+    }
+  }
+  return originalLine;
+}
+
