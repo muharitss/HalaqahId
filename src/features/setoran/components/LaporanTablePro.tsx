@@ -20,8 +20,15 @@ import {
   ChevronRight,
   Edit,
   Trash2,
+  MoreVertical,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import type { GroupedData, GroupedSantriItem, SetoranItem, SetoranRecord } from "@/features/setoran/types";
 import { cn } from "@/lib/utils";
 import { EditSetoranModal } from "./EditSetoranModal";
@@ -335,42 +342,48 @@ export function LaporanTablePro({ groupedData, activeHalaqah, filterComponent, i
                               )}
                             </TableCell>
                             <TableCell className="py-3 text-right pr-6">
-                              <div className="flex justify-end gap-1">
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                                  onClick={() => {
-                                    const record: SetoranRecord = {
-                                      id_setoran: row.id_setoran,
-                                      id_santri: row.id_santri,
-                                      tanggal_setoran: row.tanggal_setoran,
-                                      juz: row.juz,
-                                      surat: row.surat,
-                                      ayat: row.ayat,
-                                      id_kategori: row.id_kategori,
-                                      taqwim: row.taqwim,
-                                      keterangan: row.keterangan || "",
-                                      nilai: 0,
-                                      santri: {
-                                        nama_santri: row.nama_santri,
-                                      }
-                                    };
-                                    setEditingSetoran(record);
-                                  }}
-                                  title="Edit setoran"
-                                >
-                                  <Edit className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-8 w-8 text-destructive hover:text-destructive/80"
-                                  onClick={() => setDeletingSetoranId(row.id_setoran)}
-                                  title="Hapus setoran"
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
+                              <div className="flex justify-end">
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-muted">
+                                      <MoreVertical className="h-4 w-4 text-muted-foreground" />
+                                      <span className="sr-only">Menu aksi</span>
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end" className="w-32">
+                                    <DropdownMenuItem
+                                      className="cursor-pointer gap-2"
+                                      onClick={() => {
+                                        const record: SetoranRecord = {
+                                          id_setoran: row.id_setoran,
+                                          id_santri: row.id_santri,
+                                          tanggal_setoran: row.tanggal_setoran,
+                                          juz: row.juz,
+                                          surat: row.surat,
+                                          ayat: row.ayat,
+                                          id_kategori: row.id_kategori,
+                                          taqwim: row.taqwim,
+                                          keterangan: row.keterangan || "",
+                                          nilai: 0,
+                                          santri: {
+                                            nama_santri: row.nama_santri,
+                                          }
+                                        };
+                                        setEditingSetoran(record);
+                                      }}
+                                    >
+                                      <Edit className="h-4 w-4 text-muted-foreground" />
+                                      <span>Edit</span>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                      className="cursor-pointer gap-2 text-destructive focus:text-destructive focus:bg-destructive/10"
+                                      onClick={() => setDeletingSetoranId(row.id_setoran)}
+                                    >
+                                      <Trash2 className="h-4 w-4 text-destructive" />
+                                      <span>Hapus</span>
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
                               </div>
                             </TableCell>
                           </TableRow>

@@ -41,6 +41,7 @@ import {
   Loader2,
   Edit,
   Trash2,
+  MoreVertical,
 } from "lucide-react";
 import { type SetoranRecord } from "../../setoran/types";
 import { type ProgresSantri } from "../types";
@@ -535,28 +536,32 @@ export function HistoryTable({ santri, history }: HistoryTableProps) {
                       {item.keterangan || "—"}
                     </TableCell>
                     <TableCell className="text-right pr-4 py-3">
-                      <div className="flex justify-end gap-1">
+                      <div className="flex justify-end">
                         {canEditOrDelete(item) && (
-                          <>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                              onClick={() => setEditingSetoran(item)}
-                              title="Edit setoran"
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 text-destructive hover:text-destructive/80"
-                              onClick={() => setDeletingSetoranId(item.id_setoran)}
-                              title="Hapus setoran"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-muted">
+                                <MoreVertical className="h-4 w-4 text-muted-foreground" />
+                                <span className="sr-only">Menu aksi</span>
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-32">
+                              <DropdownMenuItem
+                                className="cursor-pointer gap-2"
+                                onClick={() => setEditingSetoran(item)}
+                              >
+                                <Edit className="h-4 w-4 text-muted-foreground" />
+                                <span>Edit</span>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                className="cursor-pointer gap-2 text-destructive focus:text-destructive focus:bg-destructive/10"
+                                onClick={() => setDeletingSetoranId(item.id_setoran)}
+                              >
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                                <span>Hapus</span>
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         )}
                       </div>
                     </TableCell>
