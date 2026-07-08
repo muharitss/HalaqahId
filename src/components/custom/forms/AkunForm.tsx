@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -23,6 +23,13 @@ import { getErrorMessage } from "@/utils/error";
 const akunSchema = z.object({
   name: z.string().min(3, "Nama minimal 3 karakter"),
   email: z.string().email("Email tidak valid"),
+  nomor_telepon: z
+    .string()
+    .min(10, "Nomor telepon minimal 10 digit")
+    .max(15, "Nomor telepon maksimal 15 digit")
+    .regex(/^[0-9]+$/, "Nomor telepon hanya boleh berisi angka")
+    .optional()
+    .or(z.literal("")),
   password: z.string().min(6, "Password minimal 6 karakter"),
 });
 
@@ -47,6 +54,7 @@ export function AkunForm({ onSuccess }: AkunFormProps) {
     defaultValues: {
       name: "",
       email: "",
+      nomor_telepon: "",
       password: "",
     },
   });
@@ -60,6 +68,7 @@ export function AkunForm({ onSuccess }: AkunFormProps) {
         name: data.name,
         email: data.email,
         password: data.password,
+        nomor_telepon: data.nomor_telepon || undefined,
       });
       
       if (response.success) {
@@ -106,6 +115,19 @@ export function AkunForm({ onSuccess }: AkunFormProps) {
         />
         {errors.email && (
           <p className="text-sm text-destructive">{errors.email.message}</p>
+        )}
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="nomor_telepon">Nomor Telepon (Opsional)</Label>
+        <Input
+          id="nomor_telepon"
+          {...register("nomor_telepon")}
+          placeholder="Masukkan nomor telepon (contoh: 081234567890)"
+          disabled={isLoading}
+        />
+        {errors.nomor_telepon && (
+          <p className="text-sm text-destructive">{errors.nomor_telepon.message}</p>
         )}
       </div>
 

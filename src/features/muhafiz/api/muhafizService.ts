@@ -73,7 +73,7 @@ export const muhafizService = {
   },
 
   // Create new muhafiz - Register
-  createMuhafiz: async (data: { name: string; email: string; password: string }) => {
+  createMuhafiz: async (data: { name: string; email: string; password: string; nomor_telepon?: string }) => {
     try {
       const response = await axiosClient.post<GlobalResponse<{ user: Muhafiz }>>("/halaqah/auth/register", data);
       return response.data;
@@ -92,7 +92,7 @@ export const muhafizService = {
   },
 
   // Update muhafiz
-  updateMuhafiz: async (userId: number, data: { name?: string; email?: string }) => {
+  updateMuhafiz: async (userId: number, data: { name?: string; email?: string; nomor_telepon?: string | null }) => {
     try {
       const response = await axiosClient.patch<GlobalResponse<Muhafiz>>(`/halaqah/auth/muhafiz/${userId}`, data);
       return response.data;

@@ -27,6 +27,7 @@ import {
   faPlus,
   faSignInAlt,
   faEllipsisH,
+  faPhone,
 } from "@fortawesome/free-solid-svg-icons";
 import type { MuhafizTableProps, AbsensiStatus } from "../types";
 import { Badge } from "@/components/ui/badge";
@@ -127,6 +128,12 @@ export function DaftarAkun({
                       <FontAwesomeIcon icon={faEnvelope} className="text-[10px] opacity-70" />
                       <span>{muhafiz.email}</span>
                     </div>
+                    {muhafiz.nomor_telepon && (
+                      <div className="flex items-center gap-1.5 text-xs md:text-sm text-muted-foreground">
+                        <FontAwesomeIcon icon={faPhone} className="text-[10px] opacity-70" />
+                        <span>{muhafiz.nomor_telepon}</span>
+                      </div>
+                    )}
                   </div>
                 </TableCell>
                 <TableCell className="text-right py-5">
