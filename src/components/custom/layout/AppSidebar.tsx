@@ -123,11 +123,6 @@ export function AppSidebar() {
             path: "/muhafidz/progres",
             icon: faChartPie,
           },
-          {
-            name: "Lihat Laporan",
-            path: "/muhafidz/laporan",
-            icon: faClipboardCheck,
-          },
         ];
 
   return (
