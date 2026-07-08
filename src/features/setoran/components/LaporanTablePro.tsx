@@ -150,8 +150,8 @@ export function LaporanTablePro({ groupedData, activeHalaqah, filterComponent, i
 
   const sortedRows = useMemo(() => {
     return [...filteredRows].sort((a, b) => {
-      let av: string | number = a[sortKey];
-      let bv: string | number = b[sortKey];
+      let av: string | number = a[sortKey] ?? "";
+      let bv: string | number = b[sortKey] ?? "";
       if (sortKey === "tanggal_setoran") {
         av = new Date(av as string).getTime();
         bv = new Date(bv as string).getTime();
@@ -422,7 +422,7 @@ export function LaporanTablePro({ groupedData, activeHalaqah, filterComponent, i
                                           surat: row.surat,
                                           ayat: row.ayat,
                                           id_kategori: row.id_kategori,
-                                          taqwim: row.taqwim,
+                                          taqwim: row.taqwim ?? 0,
                                           keterangan: row.keterangan || "",
                                           nilai: 0,
                                           santri: {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import { useForm, type Resolver } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useQuery } from "@tanstack/react-query";
@@ -160,7 +160,9 @@ const editSchema = z
     }
   );
 
-type EditFormFields = z.infer<typeof editSchema>;
+type EditFormFields = z.infer<typeof editSchema> & {
+  custom_values?: Record<string, any>;
+};
 
 interface EditSetoranModalProps {
   isOpen: boolean;
@@ -246,7 +248,7 @@ export function EditSetoranModal({
   }, [customFields]);
 
   const form = useForm<EditFormFields>({
-    resolver: zodResolver(dynamicSchema) as Resolver<EditFormFields>,
+    resolver: zodResolver(dynamicSchema) as any,
     defaultValues: {
       juz: 1,
       surat_mulai: "",
