@@ -5,9 +5,11 @@ import { type SetoranPayload } from "../types";
 import { getErrorMessage } from "@/utils/error";
 import { toast } from "sonner";
 import { sesiService } from "@/features/halaqah/api/sesiService";
+import { useAuth } from "@/features/auth/components/auth-provider";
 
 export const useSetoran = () => {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   const [selectedSantriId, setSelectedSantriId] = useState<number | null>(null);
 
   // Santri & Sesi (Manual Fetching initially)
@@ -16,7 +18,7 @@ export const useSetoran = () => {
     isFetching: loadingSantri, 
     refetch: fetchSantri 
   } = useQuery({
-    queryKey: ["santri-sesi"],
+    queryKey: ["santri-sesi", user?.id_user],
     queryFn: async () => {
       try {
         const resSantri = await setoranService.getSantriList();

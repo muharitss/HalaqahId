@@ -21,11 +21,12 @@ export const useMuhafizDashboard = () => {
 
   // 1. Fetch Santri List (Auto-filtered by backend for Muhafiz own halaqah)
   const { data: santriList = [], isFetching: loadingSantri } = useQuery({
-    queryKey: ["muhafiz-dashboard-santri"],
+    queryKey: ["muhafiz-dashboard-santri", user?.id_user],
     queryFn: async () => {
       const res = await santriService.getAll();
       return res || [];
     },
+    enabled: !!user?.id_user,
   });
 
   // Halaqah Name derived from student records
@@ -38,11 +39,12 @@ export const useMuhafizDashboard = () => {
 
   // 2. Fetch Progress List (Auto-filtered by backend)
   const { data: progresData = [], isFetching: loadingProgres } = useQuery({
-    queryKey: ["muhafiz-dashboard-progres"],
+    queryKey: ["muhafiz-dashboard-progres", user?.id_user],
     queryFn: async () => {
       const res = await progresService.getAllProgres();
       return res.data || [];
     },
+    enabled: !!user?.id_user,
   });
 
   // 3. Fetch Today's Attendance for own halaqah
@@ -130,9 +132,12 @@ export const useMuhafizDashboard = () => {
     return { stats, total };
   }, [monthlyAbsensi, absensiView]);
 
+  // Santri IDs sebagai stable key (menghindari referensi array baru tiap render)
+  const santriIds = useMemo(() => santriList.map((s) => s.id_santri).sort((a, b) => a - b), [santriList]);
+
   // 5. Fetch Setoran records for all students in the halaqah in parallel
   const { data: setoranHistory = [], isFetching: loadingSetoran } = useQuery({
-    queryKey: ["muhafiz-dashboard-setoran", santriList],
+    queryKey: ["muhafiz-dashboard-setoran", user?.id_user, santriIds],
     queryFn: async () => {
       if (!santriList || santriList.length === 0) return [];
       
@@ -158,7 +163,7 @@ export const useMuhafizDashboard = () => {
         (a, b) => new Date(b.tanggal_setoran).getTime() - new Date(a.tanggal_setoran).getTime()
       );
     },
-    enabled: santriList.length > 0,
+    enabled: !!user?.id_user && santriList.length > 0,
   });
 
   // Calculate stats from setoran data
