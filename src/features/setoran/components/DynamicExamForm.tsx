@@ -2,6 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { type ExamTemplate, ujianService } from "../api/ujian-api";
+import { surahNumberToName } from "@/utils/mushafUtils";
+
+const ALL_SURAHS = Array.from({ length: 114 }, (_, i) => {
+  const num = i + 1;
+  return { number: num, name: surahNumberToName(num) };
+});
+
 import { type Santri } from "@/features/santri/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,6 +40,10 @@ export function DynamicExamForm({ template, santriList, sesiList, onSuccess }: D
   const [questionsData, setQuestionsData] = useState<Array<{
     nomor_soal: number;
     materi_soal: string;
+    start_surat_id?: number;
+    start_ayat?: number;
+    end_surat_id?: number;
+    end_ayat?: number;
     input_values: Record<string, any>;
   }>>([]);
 
@@ -43,9 +54,16 @@ export function DynamicExamForm({ template, santriList, sesiList, onSuccess }: D
       template.input_schema.forEach((field) => {
         initialInputs[field.key] = field.default !== undefined ? field.default : (field.type === "COUNTER" || field.type === "NUMBER" || field.type === "SLIDER" ? 0 : "");
       });
+      
+      const isQuranMode = template.soal_rules?.mode === "QURAN_RANGE";
+      
       return {
         nomor_soal: i + 1,
-        materi_soal: "",
+        materi_soal: isQuranMode ? "Al-Fatihah Ayat 1 - 7" : "",
+        start_surat_id: isQuranMode ? 1 : undefined,
+        start_ayat: isQuranMode ? 1 : undefined,
+        end_surat_id: isQuranMode ? 1 : undefined,
+        end_ayat: isQuranMode ? 7 : undefined,
         input_values: initialInputs,
       };
     });
@@ -89,6 +107,10 @@ export function DynamicExamForm({ template, santriList, sesiList, onSuccess }: D
         questions: questionsData.map((q) => ({
           nomor_soal: q.nomor_soal,
           deskripsi_soal: q.materi_soal,
+          start_surat_id: q.start_surat_id,
+          start_ayat: q.start_ayat,
+          end_surat_id: q.end_surat_id,
+          end_ayat: q.end_ayat,
           input_data: q.input_values,
         })),
       };
@@ -237,22 +259,121 @@ export function DynamicExamForm({ template, santriList, sesiList, onSuccess }: D
           </div>
           <CardContent className="p-6 space-y-6">
             {/* Input Deskripsi Ayat / Soal */}
-            <div className="space-y-2">
-              <Label className="font-bold text-sm text-foreground">Materi Uji (Surah / Ayat)</Label>
-              <Input
-                placeholder="Contoh: Surat Al-Baqarah ayat 1-10 atau Soal Sambung Ayat"
-                value={activeQuestion.materi_soal}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  setQuestionsData(prev => {
-                    const updated = [...prev];
-                    updated[activeQuestionIndex].materi_soal = val;
-                    return updated;
-                  });
-                }}
-                className="h-11"
-              />
-            </div>
+            {template.soal_rules?.mode === "QURAN_RANGE" ? (
+              <div className="space-y-4 bg-muted/10 p-4 rounded-xl border border-dashed animate-in fade-in duration-300">
+                <Label className="text-xs font-black uppercase tracking-wider text-primary">
+                  Materi Uji Al-Quran (Ruang Lingkup Soal)
+                </Label>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-xs font-bold text-muted-foreground">Pilih Surah</Label>
+                    <Select
+                      value={activeQuestion.start_surat_id?.toString() || "1"}
+                      onValueChange={(val) => {
+                        const surahNum = Number(val);
+                        const surahName = surahNumberToName(surahNum);
+                        setQuestionsData((prev) => {
+                          const updated = [...prev];
+                          const startAyat = updated[activeQuestionIndex].start_ayat || 1;
+                          const endAyat = updated[activeQuestionIndex].end_ayat || 10;
+                          updated[activeQuestionIndex] = {
+                            ...updated[activeQuestionIndex],
+                            start_surat_id: surahNum,
+                            end_surat_id: surahNum,
+                            materi_soal: `${surahName} Ayat ${startAyat} - ${endAyat}`,
+                          };
+                          return updated;
+                        });
+                      }}
+                    >
+                      <SelectTrigger className="bg-background">
+                        <SelectValue placeholder="Pilih Surah" />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-[300px]">
+                        {ALL_SURAHS.map((s) => (
+                          <SelectItem key={s.number} value={s.number.toString()}>
+                            {s.number}. {s.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-xs font-bold text-muted-foreground">Ayat Mulai</Label>
+                    <Input
+                      type="number"
+                      min={1}
+                      value={activeQuestion.start_ayat ?? 1}
+                      onChange={(e) => {
+                        const val = Number(e.target.value) || 1;
+                        const surahName = surahNumberToName(activeQuestion.start_surat_id || 1);
+                        setQuestionsData((prev) => {
+                          const updated = [...prev];
+                          const endAyat = updated[activeQuestionIndex].end_ayat || 10;
+                          updated[activeQuestionIndex] = {
+                            ...updated[activeQuestionIndex],
+                            start_ayat: val,
+                            materi_soal: `${surahName} Ayat ${val} - ${endAyat}`,
+                          };
+                          return updated;
+                        });
+                      }}
+                      className="bg-background font-bold text-center h-10"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-xs font-bold text-muted-foreground">Ayat Selesai</Label>
+                    <Input
+                      type="number"
+                      min={1}
+                      value={activeQuestion.end_ayat ?? 10}
+                      onChange={(e) => {
+                        const val = Number(e.target.value) || 1;
+                        const surahName = surahNumberToName(activeQuestion.start_surat_id || 1);
+                        setQuestionsData((prev) => {
+                          const updated = [...prev];
+                          const startAyat = updated[activeQuestionIndex].start_ayat || 1;
+                          updated[activeQuestionIndex] = {
+                            ...updated[activeQuestionIndex],
+                            end_ayat: val,
+                            materi_soal: `${surahName} Ayat ${startAyat} - ${val}`,
+                          };
+                          return updated;
+                        });
+                      }}
+                      className="bg-background font-bold text-center h-10"
+                    />
+                  </div>
+                </div>
+
+                <div className="text-[10px] text-muted-foreground font-semibold flex items-center gap-1.5 pt-1.5 border-t border-dashed">
+                  <span>Hasil deskripsi otomatis:</span>
+                  <code className="bg-background border px-2 py-0.5 rounded font-mono text-primary font-bold">
+                    {activeQuestion.materi_soal}
+                  </code>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <Label className="font-bold text-sm text-foreground">Materi Uji (Surah / Ayat)</Label>
+                <Input
+                  placeholder="Contoh: Surat Al-Baqarah ayat 1-10 atau Soal Sambung Ayat"
+                  value={activeQuestion.materi_soal}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setQuestionsData(prev => {
+                      const updated = [...prev];
+                      updated[activeQuestionIndex].materi_soal = val;
+                      return updated;
+                    });
+                  }}
+                  className="h-11"
+                />
+              </div>
+            )}
 
             {/* Dynamic Inputs from Schema */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
@@ -288,7 +409,7 @@ export function DynamicExamForm({ template, santriList, sesiList, onSuccess }: D
                   );
                 }
 
-                if (field.type === "SLIDER" || field.type === "NUMBER") {
+                if (field.type === "SLIDER") {
                   return (
                     <div key={field.key} className="space-y-2 bg-muted/20 p-4 rounded-xl border flex flex-col justify-between">
                       <Label className="font-bold text-xs text-muted-foreground uppercase tracking-wide" htmlFor={`field-${field.key}`}>
@@ -313,6 +434,25 @@ export function DynamicExamForm({ template, santriList, sesiList, onSuccess }: D
                           max={field.max ?? 100}
                         />
                       </div>
+                    </div>
+                  );
+                }
+
+                if (field.type === "NUMBER") {
+                  return (
+                    <div key={field.key} className="space-y-2 bg-muted/20 p-4 rounded-xl border flex flex-col justify-between">
+                      <Label className="font-bold text-xs text-muted-foreground uppercase tracking-wide" htmlFor={`field-${field.key}`}>
+                        {field.label}
+                      </Label>
+                      <Input
+                        id={`field-${field.key}`}
+                        type="number"
+                        min={field.min ?? 0}
+                        max={field.max ?? 100}
+                        value={value ?? 0}
+                        onChange={(e) => handleInputChange(activeQuestionIndex, field.key, Number(e.target.value))}
+                        className="h-10 mt-2 font-bold text-center bg-background"
+                      />
                     </div>
                   );
                 }

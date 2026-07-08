@@ -1,4 +1,4 @@
-﻿import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
@@ -29,6 +29,10 @@ import {
   faEllipsisH,
 } from "@fortawesome/free-solid-svg-icons";
 import type { MuhafizTableProps, AbsensiStatus } from "../types";
+import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
+import { authService } from "@/features/auth/api/authService";
+import { getErrorMessage } from "@/utils/error";
 
 export function DaftarAkun({ 
   muhafizList, 
@@ -42,6 +46,14 @@ export function DaftarAkun({
   onAbsenMuhafiz: (userId: number, status: AbsensiStatus) => void;
 }) {
   
+  const handleResendVerification = (email: string) => {
+    toast.promise(authService.resendVerification(email), {
+      loading: 'Mengirim email verifikasi...',
+      success: 'Email verifikasi berhasil dikirim ulang!',
+      error: (err) => getErrorMessage(err, 'Gagal mengirim ulang email verifikasi.'),
+    });
+  };
+
   if (isLoading) {
     return (
       <div className="rounded-md border overflow-hidden">
@@ -100,10 +112,17 @@ export function DaftarAkun({
             return (
               <TableRow key={muhafiz.id_user} className="hover:bg-muted/10 transition-colors group">
                 <TableCell className="py-5">
-                  <div className="flex flex-col gap-1">
-                    <span className="font-bold text-sm md:text-base tracking-tight leading-none">
-                      {muhafiz.name}
-                    </span>
+                  <div className="flex flex-col gap-1.5">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-bold text-sm md:text-base tracking-tight leading-none">
+                        {muhafiz.name}
+                      </span>
+                      {!muhafiz.is_verified && (
+                        <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/20 dark:text-amber-400 dark:border-amber-900/30 text-[10px] font-semibold px-1.5 py-0 h-4 rounded">
+                          Belum Verifikasi
+                        </Badge>
+                      )}
+                    </div>
                     <div className="flex items-center gap-1.5 text-xs md:text-sm text-muted-foreground">
                       <FontAwesomeIcon icon={faEnvelope} className="text-[10px] opacity-70" />
                       <span>{muhafiz.email}</span>
@@ -144,6 +163,12 @@ export function DaftarAkun({
                           <FontAwesomeIcon icon={faSignInAlt} className="mr-3 h-3.5 w-3.5 text-primary" />
                           <span className="text-sm">Login Sebagai</span>
                         </DropdownMenuItem>
+                        {!muhafiz.is_verified && (
+                          <DropdownMenuItem onClick={() => handleResendVerification(muhafiz.email)} className="cursor-pointer">
+                            <FontAwesomeIcon icon={faEnvelope} className="mr-3 h-3.5 w-3.5 text-primary" />
+                            <span className="text-sm">Kirim Ulang Verifikasi</span>
+                          </DropdownMenuItem>
+                        )}
                         <DropdownMenuItem onClick={() => onEditClick(muhafiz)} className="cursor-pointer">
                           <FontAwesomeIcon icon={faEdit} className="mr-3 h-3.5 w-3.5 text-primary" />
                           <span className="text-sm">Edit Profil</span>

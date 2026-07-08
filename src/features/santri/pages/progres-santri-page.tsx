@@ -36,6 +36,14 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
+import { ExamHistoryTable } from "../components/ExamHistoryTable";
+
+import {
   Search,
   Filter,
   FilterX,
@@ -644,20 +652,34 @@ export function ProgresSantriPage() {
           </DialogHeader>
 
           <div className="py-4">
-            {loadingHistory ? (
-              <div className="py-12 text-center text-muted-foreground flex flex-col items-center justify-center gap-2">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <span>Mengambil riwayat...</span>
-              </div>
-            ) : (
-              selectedSantriForHistory && (
-                <HistoryTable
-                  santri={selectedSantriForHistory}
-                  history={history}
-                />
-              )
+            {selectedSantriForHistory && (
+              <Tabs defaultValue="setoran" className="w-full">
+                <TabsList className="grid w-full grid-cols-2 max-w-[400px] mb-6">
+                  <TabsTrigger value="setoran">Riwayat Setoran</TabsTrigger>
+                  <TabsTrigger value="ujian">Riwayat Ujian</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="setoran">
+                  {loadingHistory ? (
+                    <div className="py-12 text-center text-muted-foreground flex flex-col items-center justify-center gap-2">
+                      <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                      <span>Mengambil riwayat setoran...</span>
+                    </div>
+                  ) : (
+                    <HistoryTable
+                      santri={selectedSantriForHistory}
+                      history={history}
+                    />
+                  )}
+                </TabsContent>
+                
+                <TabsContent value="ujian">
+                  <ExamHistoryTable santri={selectedSantriForHistory} />
+                </TabsContent>
+              </Tabs>
             )}
           </div>
+
         </DialogContent>
       </Dialog>
     </div>
