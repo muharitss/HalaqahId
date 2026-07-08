@@ -171,8 +171,10 @@ export const router = createBrowserRouter([
               { path: "/superadmin/users", element: <KelolaUserPage /> },
               { path: "/superadmin/audit-logs", element: <KelolaAuditLogPage /> },
               { path: "/superadmin/settings", element: <SuperadminSettingsPage /> },
+              { path: "/superadmin/settings/trash", element: <TrashSection /> },
             ],
           },
+
 
           // ── KEPALA (SUPERADMIN | ADMIN | KOORDINATOR_TAHFIZ) ──────────────
           {

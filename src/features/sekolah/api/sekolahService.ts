@@ -155,5 +155,28 @@ export const sekolahService = {
     } catch (error: unknown) {
       throw new Error(getErrorMessage(error, "Gagal mengambil data kesehatan sistem"));
     }
+  },
+
+  getDeletedSchools: async (params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+  }): Promise<ApiResponse<Sekolah[]>> => {
+    try {
+      const res = await axiosClient.get<ApiResponse<Sekolah[]>>("/sekolah/deleted/all", { params });
+      return res.data;
+    } catch (error: unknown) {
+      throw new Error(getErrorMessage(error, "Gagal mengambil daftar sekolah terhapus"));
+    }
+  },
+
+  restoreSekolah: async (id: number): Promise<ApiResponse<Sekolah>> => {
+    try {
+      const res = await axiosClient.patch<ApiResponse<Sekolah>>(`/sekolah/${id}/restore`);
+      return res.data;
+    } catch (error: unknown) {
+      throw new Error(getErrorMessage(error, "Gagal memulihkan sekolah"));
+    }
   }
 };
+

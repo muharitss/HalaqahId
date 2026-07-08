@@ -87,6 +87,12 @@ export function KelolaSantriPage() {
         <div className="space-y-1">
           <KelolaSantri />
         </div>
+        <div className="shrink-0">
+          <Button onClick={() => setIsModalOpen(true)}>
+            <FontAwesomeIcon icon={faPlus} className="mr-2" />
+            Tambah Santri
+          </Button>
+        </div>
       </div>
 
       <div className="rounded-xl border bg-card shadow-sm overflow-hidden">
@@ -100,10 +106,6 @@ export function KelolaSantriPage() {
               className="pl-9"
             />
           </div>
-          <Button onClick={() => setIsModalOpen(true)}>
-            <FontAwesomeIcon icon={faPlus} className="mr-2" />
-            Tambah Santri
-          </Button>
         </div>
 
         <SantriTable 

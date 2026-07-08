@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft, Save, Loader2, Shield, Settings, Database, Bot, Eye, EyeOff } from "lucide-react";
+import { ChevronLeft, Save, Loader2, Shield, Settings, Database, Bot, Eye, EyeOff, Trash2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -110,14 +110,26 @@ export default function SuperadminSettingsPage() {
           </div>
         </div>
 
-        <Button type="submit" disabled={saving} className="flex items-center gap-2">
-          {saving ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <Save className="h-4 w-4" />
-          )}
-          <span>{saving ? "Menyimpan..." : "Simpan Perubahan"}</span>
-        </Button>
+        <div className="flex items-center gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => navigate("/superadmin/settings/trash")}
+            className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+          >
+            <Trash2 className="h-4 w-4" />
+            <span>Tempat Sampah</span>
+          </Button>
+
+          <Button type="submit" disabled={saving} className="flex items-center gap-2">
+            {saving ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Save className="h-4 w-4" />
+            )}
+            <span>{saving ? "Menyimpan..." : "Simpan Perubahan"}</span>
+          </Button>
+        </div>
       </div>
 
       {/* TABS CONTAINER */}

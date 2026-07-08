@@ -6,9 +6,23 @@ import type { GlobalResponse } from "@/types/api/global-response";
 
 export const halaqahManagementService = {
   // Get all halaqah
-  getAllHalaqah: async (): Promise<Halaqah[]> => {
-    const response = await axiosClient.get<HalaqahResponse>("/halaqah");
-    return response.data.data; 
+  getAllHalaqah: async (params?: { page?: number; limit?: number }): Promise<Halaqah[]> => {
+    const finalParams = { limit: 1000, ...params };
+    const response = await axiosClient.get<any>("/halaqah", { params: finalParams });
+    const resData = response.data;
+
+    if (resData?.data) {
+      if (Array.isArray(resData.data)) {
+        return resData.data;
+      }
+      if (resData.data.data && Array.isArray(resData.data.data)) {
+        return resData.data.data;
+      }
+    }
+    if (Array.isArray(resData)) {
+      return resData;
+    }
+    return [];
   },
 
   // Get all santri
