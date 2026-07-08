@@ -25,8 +25,9 @@ export interface LaporanPdfRow {
   surat: string;
   ayat: string;
   kategori: string;
-  taqwim: number;
+  taqwim: number | null;
   keterangan?: string;
+  custom_values?: Record<string, any> | null;
 }
 
 export interface LaporanPdfStats {
@@ -292,7 +293,8 @@ function KategoriBadge({ kategori }: { kategori: string }) {
   );
 }
 
-function TaqwimBadge({ taqwim }: { taqwim: number }) {
+function TaqwimBadge({ taqwim }: { taqwim: number | null }) {
+  if (taqwim === null || taqwim === undefined) return null;
   const isLancar = taqwim === 0;
   const color = isLancar ? "#059669" : taqwim <= 2 ? "#d97706" : "#dc2626";
   const label = TAQWIM_LABEL[taqwim] ?? `${taqwim} Salah`;
@@ -604,7 +606,28 @@ export function LaporanPdfTemplate({
                       <KategoriBadge kategori={row.kategori} />
                     </View>
                     <View style={styles.colTaqwim}>
-                      <TaqwimBadge taqwim={row.taqwim ?? 0} />
+                      {row.custom_values && typeof row.custom_values === "object" && Object.keys(row.custom_values).length > 0 ? (
+                        Object.entries(row.custom_values).map(([key, val]) => {
+                          const config = (sekolah?.form_setoran_config as any[]) || [];
+                          const fieldConfig = config.find(f => f.id === key);
+                          if (!fieldConfig) return null;
+                          if (val === undefined || val === null || val === "") return null;
+                          
+                          let displayVal = String(val);
+                          if (fieldConfig.type === "boolean") {
+                            displayVal = val ? "Ya" : "Tidak";
+                          }
+                          return (
+                            <Text key={key} style={{ fontSize: 6, color: "#1e293b", marginBottom: 1 }}>
+                              {fieldConfig.label}: {displayVal}
+                            </Text>
+                          );
+                        })
+                      ) : (
+                        row.taqwim !== null && row.taqwim !== undefined ? (
+                          <TaqwimBadge taqwim={row.taqwim} />
+                        ) : null
+                      )}
                     </View>
                   </View>
                 );

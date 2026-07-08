@@ -44,6 +44,7 @@ import { type Santri } from "@/features/santri/types";
 import { type SetoranFormFields, type SetoranPayload, type MushafSelection } from "../types";
 import { sekolahService, type KategoriSetoranResponse } from "@/features/sekolah/api/sekolahService";
 import { setoranService } from "../api/setoranService";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -231,8 +232,59 @@ export function SetoranForm({
   const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
   const [pendingValues, setPendingValues] = useState<SetoranFormFields | null>(null);
 
+  // Load konfigurasi form dinamis sekolah
+  const { data: profileData } = useQuery({
+    queryKey: ["schoolProfile"],
+    queryFn: () => sekolahService.getProfile(),
+  });
+
+  const customFields = useMemo(() => {
+    return (profileData?.data?.form_setoran_config as any[]) || [];
+  }, [profileData]);
+
+  // Build schema dinamis menggabungkan field core + kustom
+  const dynamicSchema = useMemo(() => {
+    const customFieldsSchema: Record<string, z.ZodTypeAny> = {};
+    customFields.forEach((field) => {
+      let fieldSchema: z.ZodTypeAny = z.any();
+      if (field.type === "text") {
+        fieldSchema = z.string();
+        if (field.required) {
+          fieldSchema = (fieldSchema as z.ZodString).min(1, `Field "${field.label}" wajib diisi`);
+        } else {
+          fieldSchema = fieldSchema.optional().nullable();
+        }
+      } else if (field.type === "number") {
+        fieldSchema = z.preprocess((val) => {
+          if (val === "" || val === undefined || val === null) return undefined;
+          const n = Number(val);
+          return isNaN(n) ? undefined : n;
+        }, field.required ? z.number({ message: `Field "${field.label}" wajib diisi angka` }) : z.number().optional().nullable());
+      } else if (field.type === "select") {
+        fieldSchema = z.string();
+        if (field.required) {
+          fieldSchema = (fieldSchema as z.ZodString).min(1, `Field "${field.label}" wajib dipilih`);
+        } else {
+          fieldSchema = fieldSchema.optional().nullable();
+        }
+      } else if (field.type === "boolean") {
+        fieldSchema = z.boolean();
+        if (field.required) {
+          fieldSchema = fieldSchema.refine(val => val === true, { message: `Field "${field.label}" wajib dicentang` });
+        } else {
+          fieldSchema = fieldSchema.optional().nullable();
+        }
+      }
+      customFieldsSchema[field.id] = fieldSchema;
+    });
+
+    return setoranSchema.extend({
+      custom_values: z.object(customFieldsSchema).optional(),
+    });
+  }, [customFields]);
+
   const form = useForm<SetoranFormFields>({
-    resolver: zodResolver(setoranSchema) as Resolver<SetoranFormFields>,
+    resolver: zodResolver(dynamicSchema) as Resolver<SetoranFormFields>,
     defaultValues: {
       id_santri: undefined,
       id_sesi: undefined,
@@ -243,10 +295,25 @@ export function SetoranForm({
       surat_selesai: "",
       ayat_selesai: undefined,
       tanggal_setoran: getTodayString(),
-      taqwim: 0,
+      taqwim: undefined,
       keterangan: "",
+      custom_values: {},
     },
   });
+
+  // Sinkronkan default values kustom ketika config sekolah berhasil di-load
+  useEffect(() => {
+    if (customFields.length > 0) {
+      const currentValues = form.getValues("custom_values") || {};
+      const newCustomValues = { ...currentValues };
+      customFields.forEach((field) => {
+        if (newCustomValues[field.id] === undefined) {
+          newCustomValues[field.id] = field.defaultValue !== undefined ? field.defaultValue : (field.type === "boolean" ? false : "");
+        }
+      });
+      form.setValue("custom_values", newCustomValues);
+    }
+  }, [customFields, form]);
 
   // Baca selection yang dikembalikan dari halaman mushaf via sessionStorage
   // Harus di-define SETELAH useForm agar 'form' sudah diinisialisasi
@@ -380,6 +447,20 @@ export function SetoranForm({
 
     const calculatedJuz = findJuzBySurahAndAyah(values.surat_mulai, values.ayat_mulai);
 
+    // Cari jika ada field kustom bernama 'taqwim' atau 'jumlah_salah'
+    let taqwimValue: number | undefined = undefined;
+    if (values.custom_values) {
+      const customTaqwimKey = Object.keys(values.custom_values).find(
+        (key) => key.toLowerCase() === "taqwim" || key.toLowerCase() === "jumlah_salah"
+      );
+      if (customTaqwimKey) {
+        const val = values.custom_values[customTaqwimKey];
+        if (val !== undefined && val !== null && val !== "") {
+          taqwimValue = Number(val);
+        }
+      }
+    }
+
     const payload: SetoranPayload = {
       id_santri: values.id_santri,
       id_sesi: values.id_sesi,
@@ -390,8 +471,9 @@ export function SetoranForm({
       ayat: `${values.ayat_mulai}-${values.ayat_selesai}`,
       id_kategori: values.id_kategori,
       tanggal_setoran: values.tanggal_setoran,
-      taqwim: values.taqwim || 0,
+      taqwim: taqwimValue,
       keterangan: values.keterangan,
+      custom_values: values.custom_values || null,
       start_surat_id: startSuratId,
       start_ayat: values.ayat_mulai,
       end_surat_id: endSuratId,
@@ -841,27 +923,78 @@ export function SetoranForm({
               </div>
             </div>
 
-            {/* Taqwim & Keterangan */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <FormField
-                control={form.control}
-                name="taqwim"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Taqwim</FormLabel>
-                    <FormControl>
-                      <Input type="number" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            {/* Dynamic Custom Fields */}
+            {customFields.length > 0 && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {customFields.map((field) => (
+                  <FormField
+                    key={field.id}
+                    control={form.control}
+                    name={`custom_values.${field.id}` as any}
+                    render={({ field: formField }) => (
+                      <FormItem>
+                        <FormLabel>{field.label}</FormLabel>
+                        <FormControl>
+                          {field.type === "text" && (
+                            <Input placeholder={`Masukkan ${field.label}...`} {...formField} value={formField.value ?? ""} />
+                          )}
+                          {field.type === "number" && (
+                            <Input
+                              type="number"
+                              placeholder="0"
+                              {...formField}
+                              value={formField.value ?? ""}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                formField.onChange(val === "" ? "" : Number(val));
+                              }}
+                            />
+                          )}
+                          {field.type === "select" && (
+                            <Select
+                              onValueChange={formField.onChange}
+                              value={formField.value ?? ""}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Pilih..." />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {field.options?.map((opt: string) => (
+                                  <SelectItem key={opt} value={opt}>
+                                    {opt}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          )}
+                          {field.type === "boolean" && (
+                            <div className="flex items-center space-x-2 pt-2">
+                              <Checkbox
+                                id={field.id}
+                                checked={formField.value === true}
+                                onCheckedChange={formField.onChange}
+                              />
+                              <label htmlFor={field.id} className="text-xs font-normal text-muted-foreground cursor-pointer select-none">
+                                Ya / Tidak
+                              </label>
+                            </div>
+                          )}
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                ))}
+              </div>
+            )}
 
+            {/* Keterangan */}
+            <div className="grid grid-cols-1 gap-4">
               <FormField
                 control={form.control}
                 name="keterangan"
                 render={({ field }) => (
-                  <FormItem className="md:col-span-2">
+                  <FormItem>
                     <FormLabel>Keterangan</FormLabel>
                     <FormControl>
                       <Input placeholder="Catatan tambahan (opsional)" {...field} />
