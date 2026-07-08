@@ -1,15 +1,17 @@
-﻿import { useCallback } from "react";
+import { useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { santriService } from "../api/santriService";
 import { type Santri, type CreateSantriData, type UpdateSantriData } from "../types";
 import { getErrorMessage } from "@/utils/error";
 import { useParams } from "react-router-dom";
+import { useAuth } from "@/features/auth/components/auth-provider";
 
 export const useSantri = () => {
   const { halaqahId } = useParams();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
-  const queryKey = ["santri", halaqahId];
+  const queryKey = ["santri", halaqahId, user?.id_user];
 
   const { data: santriList = [], isFetching: isLoadingSantri, error, refetch: loadSantri } = useQuery({
     queryKey,
