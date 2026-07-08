@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft, Save, Loader2, Shield, Settings, Database, Bot } from "lucide-react";
+import { ChevronLeft, Save, Loader2, Shield, Settings, Database, Bot, Eye, EyeOff } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +16,9 @@ export default function SuperadminSettingsPage() {
   const [descriptions, setDescriptions] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [showOpenaiKey, setShowOpenaiKey] = useState(false);
+  const [showWaKey, setShowWaKey] = useState(false);
+  const [showSmtpPassword, setShowSmtpPassword] = useState(false);
 
   useEffect(() => {
     fetchSettings();
@@ -218,13 +221,29 @@ export default function SuperadminSettingsPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div className="space-y-2 md:col-span-2">
                   <Label htmlFor="openai_api_key">OpenAI API Key</Label>
-                  <Input
-                    id="openai_api_key"
-                    type="password"
-                    value={formData.openai_api_key || ""}
-                    onChange={(e) => handleInputChange("openai_api_key", e.target.value)}
-                    placeholder="Masukkan sk-..."
-                  />
+                  <div className="relative">
+                    <Input
+                      id="openai_api_key"
+                      type={showOpenaiKey ? "text" : "password"}
+                      value={formData.openai_api_key || ""}
+                      onChange={(e) => handleInputChange("openai_api_key", e.target.value)}
+                      placeholder="Masukkan sk-..."
+                      className="pr-10"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="absolute right-0 top-0 h-full w-10 hover:bg-transparent"
+                      onClick={() => setShowOpenaiKey(!showOpenaiKey)}
+                    >
+                      {showOpenaiKey ? (
+                        <EyeOff className="h-4 w-4 text-muted-foreground" />
+                      ) : (
+                        <Eye className="h-4 w-4 text-muted-foreground" />
+                      )}
+                    </Button>
+                  </div>
                   <p className="text-xs text-muted-foreground">{descriptions.openai_api_key}</p>
                 </div>
 
@@ -295,13 +314,29 @@ export default function SuperadminSettingsPage() {
                 {/* WhatsApp Key */}
                 <div className="space-y-2">
                   <Label htmlFor="wa_gateway_key">WhatsApp API Key</Label>
-                  <Input
-                    id="wa_gateway_key"
-                    type="password"
-                    value={formData.wa_gateway_key || ""}
-                    onChange={(e) => handleInputChange("wa_gateway_key", e.target.value)}
-                    placeholder="Masukkan token API WA"
-                  />
+                  <div className="relative">
+                    <Input
+                      id="wa_gateway_key"
+                      type={showWaKey ? "text" : "password"}
+                      value={formData.wa_gateway_key || ""}
+                      onChange={(e) => handleInputChange("wa_gateway_key", e.target.value)}
+                      placeholder="Masukkan token API WA"
+                      className="pr-10"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="absolute right-0 top-0 h-full w-10 hover:bg-transparent"
+                      onClick={() => setShowWaKey(!showWaKey)}
+                    >
+                      {showWaKey ? (
+                        <EyeOff className="h-4 w-4 text-muted-foreground" />
+                      ) : (
+                        <Eye className="h-4 w-4 text-muted-foreground" />
+                      )}
+                    </Button>
+                  </div>
                   <p className="text-xs text-muted-foreground">{descriptions.wa_gateway_key}</p>
                 </div>
 
@@ -344,13 +379,29 @@ export default function SuperadminSettingsPage() {
                 {/* SMTP Password */}
                 <div className="space-y-2">
                   <Label htmlFor="smtp_password">SMTP Password</Label>
-                  <Input
-                    id="smtp_password"
-                    type="password"
-                    value={formData.smtp_password || ""}
-                    onChange={(e) => handleInputChange("smtp_password", e.target.value)}
-                    placeholder="Masukkan password email"
-                  />
+                  <div className="relative">
+                    <Input
+                      id="smtp_password"
+                      type={showSmtpPassword ? "text" : "password"}
+                      value={formData.smtp_password || ""}
+                      onChange={(e) => handleInputChange("smtp_password", e.target.value)}
+                      placeholder="Masukkan password email"
+                      className="pr-10"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="absolute right-0 top-0 h-full w-10 hover:bg-transparent"
+                      onClick={() => setShowSmtpPassword(!showSmtpPassword)}
+                    >
+                      {showSmtpPassword ? (
+                        <EyeOff className="h-4 w-4 text-muted-foreground" />
+                      ) : (
+                        <Eye className="h-4 w-4 text-muted-foreground" />
+                      )}
+                    </Button>
+                  </div>
                   <p className="text-xs text-muted-foreground">{descriptions.smtp_password}</p>
                 </div>
               </div>

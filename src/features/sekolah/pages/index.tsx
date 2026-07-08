@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPlus, faBuilding, faPen, faTrash } from "@fortawesome/free-solid-svg-icons";
+import { faPlus, faBuilding, faPen, faTrash, faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 import { sekolahService } from "@/features/sekolah/api/sekolahService";
 import { type Sekolah } from "@/types/domain/sekolah";
 import { toast } from "sonner";
@@ -32,6 +32,7 @@ export default function KelolaSekolahPage() {
   // Modal Add State
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     nama_sekolah: "",
     jenis_lembaga: "",
@@ -343,15 +344,30 @@ export default function KelolaSekolahPage() {
 
               <div className="grid gap-2">
                 <Label htmlFor="admin_password">Password Admin <span className="text-destructive">*</span></Label>
-                <Input
-                  id="admin_password"
-                  type="password"
-                  required
-                  minLength={6}
-                  placeholder="Minimal 6 karakter"
-                  value={formData.admin_password}
-                  onChange={(e) => setFormData({ ...formData, admin_password: e.target.value })}
-                />
+                <div className="relative">
+                  <Input
+                    id="admin_password"
+                    type={showPassword ? "text" : "password"}
+                    required
+                    minLength={6}
+                    placeholder="Minimal 6 karakter"
+                    value={formData.admin_password}
+                    onChange={(e) => setFormData({ ...formData, admin_password: e.target.value })}
+                    className="pr-10"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-0 top-0 h-full w-10 hover:bg-transparent"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    <FontAwesomeIcon 
+                      icon={showPassword ? faEyeSlash : faEye} 
+                      className="h-4 w-4 text-muted-foreground" 
+                    />
+                  </Button>
+                </div>
               </div>
             </div>
 

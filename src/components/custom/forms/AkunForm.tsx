@@ -16,7 +16,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faUserPlus, faSpinner, faExclamationCircle } from "@fortawesome/free-solid-svg-icons";
+import { faUserPlus, faSpinner, faExclamationCircle, faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 import { muhafizService } from "@/features/muhafiz/api/muhafizService"; // Langsung import dari feature
 import { getErrorMessage } from "@/utils/error";
 
@@ -43,6 +43,7 @@ export function AkunForm({ onSuccess }: AkunFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
@@ -133,13 +134,29 @@ export function AkunForm({ onSuccess }: AkunFormProps) {
 
       <div className="space-y-2">
         <Label htmlFor="password">Password</Label>
-        <Input
-          id="password"
-          type="password"
-          {...register("password")}
-          placeholder="Minimal 6 karakter"
-          disabled={isLoading}
-        />
+        <div className="relative">
+          <Input
+            id="password"
+            type={showPassword ? "text" : "password"}
+            {...register("password")}
+            placeholder="Minimal 6 karakter"
+            disabled={isLoading}
+            className="pr-10"
+          />
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="absolute right-0 top-0 h-full w-10 hover:bg-transparent"
+            onClick={() => setShowPassword(!showPassword)}
+            disabled={isLoading}
+          >
+            <FontAwesomeIcon
+              icon={showPassword ? faEyeSlash : faEye}
+              className="h-4 w-4 text-muted-foreground"
+            />
+          </Button>
+        </div>
         {errors.password && (
           <p className="text-sm text-destructive">{errors.password.message}</p>
         )}

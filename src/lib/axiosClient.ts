@@ -87,15 +87,20 @@ axiosClient.interceptors.response.use(
           // Redirect ke halaman login dengan pesan
           window.location.href = "/login?reason=session_expired";
         } catch (error) {
-          // Jika gagal, logout semua
-          localStorage.clear();
+          // Jika gagal, logout semua secara aman
+          localStorage.removeItem("user");
+          localStorage.removeItem("superadmin_session");
+          localStorage.removeItem("token");
+          sessionStorage.clear();
           window.location.href = "/login";
           console.error("Gagal restore session:", error);
         }
       } else {
-        // Tidak ada superadmin session, logout biasa
+        // Tidak ada superadmin session, logout biasa secara aman
         localStorage.removeItem("user");
+        localStorage.removeItem("superadmin_session");
         localStorage.removeItem("token");
+        sessionStorage.clear();
         window.location.href = "/login";
       }
     }

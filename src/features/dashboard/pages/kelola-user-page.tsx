@@ -13,6 +13,8 @@ import {
   LogIn,
   Check,
   Phone,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { authService } from "@/features/auth/api/authService";
 import { sekolahService } from "@/features/sekolah/api/sekolahService";
@@ -94,6 +96,7 @@ export default function KelolaUserPage() {
   const [selectedUser, setSelectedUser] = useState<GlobalUser | null>(null);
   const [newPassword, setNewPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<GlobalUser | null>(null);
@@ -506,15 +509,31 @@ export default function KelolaUserPage() {
           <form onSubmit={handleResetPassword} className="space-y-4 py-2">
             <div className="grid gap-2">
               <Label htmlFor="new_password">Password Baru <span className="text-destructive">*</span></Label>
-              <Input
-                id="new_password"
-                type="password"
-                required
-                minLength={6}
-                placeholder="Minimal 6 karakter"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-              />
+              <div className="relative">
+                <Input
+                  id="new_password"
+                  type={showPassword ? "text" : "password"}
+                  required
+                  minLength={6}
+                  placeholder="Minimal 6 karakter"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="pr-10"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-0 top-0 h-full w-10 hover:bg-transparent"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4 text-muted-foreground" />
+                  ) : (
+                    <Eye className="h-4 w-4 text-muted-foreground" />
+                  )}
+                </Button>
+              </div>
             </div>
 
             <DialogFooter className="pt-4 border-t">
