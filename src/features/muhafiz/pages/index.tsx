@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/features/auth/components/auth-provider";
-import { CardContent } from "@/components/ui/card";
 import { MuhafizManagement } from "@/components/custom/typed-text";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
