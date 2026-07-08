@@ -55,6 +55,7 @@ export default function FormSetoranSettingsPage() {
     onSuccess: () => {
       toast.success("Pengaturan form setoran berhasil disimpan!");
       queryClient.invalidateQueries({ queryKey: ["schoolProfile"] });
+      queryClient.invalidateQueries({ queryKey: ["profil-sekolah"] });
     },
     onError: (err: any) => {
       toast.error(`Gagal menyimpan pengaturan: ${err.message || "Terjadi kesalahan"}`);

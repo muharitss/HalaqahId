@@ -626,50 +626,59 @@ export function EditSetoranModal({
                       <FormItem>
                         <FormLabel>{field.label}</FormLabel>
                         <FormControl>
-                          {field.type === "text" && (
-                            <Input placeholder={`Masukkan ${field.label}...`} {...formField} value={formField.value ?? ""} />
-                          )}
-                          {field.type === "number" && (
-                            <Input
-                              type="number"
-                              placeholder="0"
-                              {...formField}
-                              value={formField.value ?? ""}
-                              onChange={(e) => {
-                                const val = e.target.value;
-                                formField.onChange(val === "" ? "" : Number(val));
-                              }}
-                            />
-                          )}
-                          {field.type === "select" && (
-                            <Select
-                              onValueChange={formField.onChange}
-                              value={formField.value ?? ""}
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder="Pilih..." />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {field.options?.map((opt: string) => (
-                                  <SelectItem key={opt} value={opt}>
-                                    {opt}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          )}
-                          {field.type === "boolean" && (
-                            <div className="flex items-center space-x-2 pt-2">
-                              <Checkbox
-                                id={field.id}
-                                checked={formField.value === true}
-                                onCheckedChange={formField.onChange}
-                              />
-                              <label htmlFor={field.id} className="text-xs font-normal text-muted-foreground cursor-pointer select-none">
-                                Ya / Tidak
-                              </label>
-                            </div>
-                          )}
+                          {(() => {
+                            if (field.type === "text") {
+                              return <Input placeholder={`Masukkan ${field.label}...`} {...formField} value={formField.value ?? ""} />;
+                            }
+                            if (field.type === "number") {
+                              return (
+                                <Input
+                                  type="number"
+                                  placeholder="0"
+                                  {...formField}
+                                  value={formField.value ?? ""}
+                                  onChange={(e) => {
+                                    const val = e.target.value;
+                                    formField.onChange(val === "" ? "" : Number(val));
+                                  }}
+                                />
+                              );
+                            }
+                            if (field.type === "select") {
+                              return (
+                                <Select
+                                  onValueChange={formField.onChange}
+                                  value={formField.value ?? ""}
+                                >
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Pilih..." />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {field.options?.map((opt: string) => (
+                                      <SelectItem key={opt} value={opt}>
+                                        {opt}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              );
+                            }
+                            if (field.type === "boolean") {
+                              return (
+                                <div className="flex items-center space-x-2 pt-2">
+                                  <Checkbox
+                                    id={field.id}
+                                    checked={formField.value === true}
+                                    onCheckedChange={formField.onChange}
+                                  />
+                                  <label htmlFor={field.id} className="text-xs font-normal text-muted-foreground cursor-pointer select-none">
+                                    Ya / Tidak
+                                  </label>
+                                </div>
+                              );
+                            }
+                            return null;
+                          })()}
                         </FormControl>
                         <FormMessage />
                       </FormItem>
