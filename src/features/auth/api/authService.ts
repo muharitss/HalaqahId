@@ -20,6 +20,9 @@ export const authService = {
 
   logout: () => {
     localStorage.removeItem("user");
+    localStorage.removeItem("superadmin_session");
+    localStorage.removeItem("token");
+    sessionStorage.clear();
   },
 
   verifyEmail: async (token: string) => {

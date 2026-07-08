@@ -114,10 +114,10 @@ export function DaftarAkun({
       <Table>
         <TableHeader>
           <TableRow className="bg-muted/30 hover:bg-muted/30">
-            <TableHead className="font-bold text-xs md:text-sm py-4">Informasi Muhafidz</TableHead>
-            <TableHead className="font-bold text-xs md:text-sm py-4">Nomor Telepon</TableHead>
-            <TableHead className="text-right font-bold text-xs md:text-sm py-4 pr-10">Halaqah</TableHead>
-            <TableHead className="text-right font-bold text-xs md:text-sm py-4 pr-4">Aksi</TableHead>
+            <TableHead className="font-bold text-xs md:text-sm py-4 w-[35%] min-w-[150px]">Informasi Muhafidz</TableHead>
+            <TableHead className="font-bold text-xs md:text-sm py-4 w-[25%] min-w-[140px]">Nomor Telepon</TableHead>
+            <TableHead className="text-right font-bold text-xs md:text-sm py-4 pr-10 w-[30%] min-w-[120px]">Halaqah</TableHead>
+            <TableHead className="text-right font-bold text-xs md:text-sm py-4 pr-4 w-[10%] min-w-[80px]">Aksi</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -150,7 +150,7 @@ export function DaftarAkun({
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-2 text-primary hover:text-primary-dark hover:underline transition-all text-xs md:text-sm"
                     >
-                      <FontAwesomeIcon icon={faWhatsapp} className="text-emerald-500 text-sm" />
+                      <FontAwesomeIcon icon={faWhatsapp} />
                       {muhafiz.nomor_telepon}
                     </a>
                   ) : (

@@ -58,14 +58,16 @@ export function MushafPage() {
   const handleApply = () => {
     let juzNumber: number | undefined;
     if (selection) {
-      const surahNum = surahNameToNumber(selection.startSurahName);
-      if (surahNum) {
-        for (const [juzNum, surahs] of Object.entries(pemetaanJuz)) {
-          const match = surahs.find((s) => s.nama === selection.startSurahName);
-          if (match) {
-            juzNumber = Number(juzNum);
-            break;
-          }
+      for (const [juzNumStr, surahs] of Object.entries(pemetaanJuz)) {
+        const match = surahs.find(
+          (s) =>
+            s.nama.toLowerCase() === selection.startSurahName.toLowerCase() &&
+            selection.startAyah >= s.ayatMulai &&
+            selection.startAyah <= s.ayatSelesai
+        );
+        if (match) {
+          juzNumber = Number(juzNumStr);
+          break;
         }
       }
     }

@@ -75,17 +75,17 @@ export function SantriTable({
     <Table>
       <TableHeader>
         <TableRow className="bg-muted/50 hover:bg-muted/50">
-          <TableHead className="w-20 font-bold text-foreground">
+          <TableHead className="font-bold text-foreground w-[30%] min-w-[150px]">
             Nama Santri
           </TableHead>
-          <TableHead className="font-bold text-foreground">
+          <TableHead className="font-bold text-foreground w-[20%] min-w-[140px]">
             Nomor Telepon
           </TableHead>
-          <TableHead className="font-bold text-foreground">Target</TableHead>
+          <TableHead className="font-bold text-foreground w-[20%] min-w-[120px]">Target</TableHead>
           {isAdmin && (
-            <TableHead className="font-bold text-foreground">Halaqah</TableHead>
+            <TableHead className="font-bold text-foreground w-[20%] min-w-[120px]">Halaqah</TableHead>
           )}
-          <TableHead className="text-right font-bold text-foreground">
+          <TableHead className="text-right font-bold text-foreground w-[10%] min-w-[80px]">
             Aksi
           </TableHead>
         </TableRow>
@@ -117,15 +117,19 @@ export function SantriTable({
                 {santri.nama_santri}
               </TableCell>
               <TableCell>
-                <a
-                  href={formatWhatsApp(santri.nomor_telepon)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 text-primary hover:text-primary-dark hover:underline transition-all"
-                >
-                  <FontAwesomeIcon icon={faWhatsapp} />
-                  {santri.nomor_telepon}
-                </a>
+                {santri.nomor_telepon ? (
+                  <a
+                    href={formatWhatsApp(santri.nomor_telepon)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 text-primary hover:text-primary-dark hover:underline transition-all text-xs md:text-sm"
+                  >
+                    <FontAwesomeIcon icon={faWhatsapp} />
+                    {santri.nomor_telepon}
+                  </a>
+                ) : (
+                  <span className="text-xs md:text-sm text-muted-foreground italic">-</span>
+                )}
               </TableCell>
               <TableCell>{renderTargetBadge(santri.target)}</TableCell>
               {isAdmin && (

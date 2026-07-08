@@ -12,8 +12,11 @@ import {
   User,
   LogIn,
   Check,
-  Phone,
+  Eye,
+  EyeOff,
 } from "lucide-react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faWhatsapp } from "@fortawesome/free-brands-svg-icons";
 import { authService } from "@/features/auth/api/authService";
 import { sekolahService } from "@/features/sekolah/api/sekolahService";
 import { useAuth } from "@/features/auth/components/auth-provider";
@@ -87,6 +90,7 @@ export default function KelolaUserPage() {
   // Pagination
   const [page, setPage] = useState(1);
   const [totalUsers, setTotalUsers] = useState(0);
+  const [showAll, setShowAll] = useState(false);
   const totalPages = Math.max(1, Math.ceil(totalUsers / PAGE_SIZE));
 
   // Dialog States
@@ -94,6 +98,7 @@ export default function KelolaUserPage() {
   const [selectedUser, setSelectedUser] = useState<GlobalUser | null>(null);
   const [newPassword, setNewPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<GlobalUser | null>(null);
@@ -109,7 +114,7 @@ export default function KelolaUserPage() {
 
   useEffect(() => {
     fetchUsers();
-  }, [page, search, roleFilter, schoolFilter]);
+  }, [page, search, roleFilter, schoolFilter, showAll]);
 
   const fetchSchools = async () => {
     try {
@@ -126,8 +131,8 @@ export default function KelolaUserPage() {
     setIsLoading(true);
     try {
       const params: any = {
-        page,
-        limit: PAGE_SIZE,
+        page: showAll ? 1 : page,
+        limit: showAll ? 1000 : PAGE_SIZE,
         search: search.trim() || undefined,
         role: roleFilter !== "ALL" ? roleFilter : undefined,
         id_sekolah: schoolFilter !== "ALL" ? parseInt(schoolFilter) : undefined,
@@ -320,12 +325,12 @@ export default function KelolaUserPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Nama & Email</TableHead>
-                <TableHead>Nomor Telepon</TableHead>
-                <TableHead>Peran</TableHead>
-                <TableHead>Lembaga / Sekolah</TableHead>
-                <TableHead>Status Email</TableHead>
-                <TableHead className="text-right">Aksi</TableHead>
+                <TableHead className="w-[25%] min-w-[150px]">Nama & Email</TableHead>
+                <TableHead className="w-[18%] min-w-[140px]">Nomor Telepon</TableHead>
+                <TableHead className="w-[17%] min-w-[120px]">Peran</TableHead>
+                <TableHead className="w-[20%] min-w-[140px]">Lembaga / Sekolah</TableHead>
+                <TableHead className="w-[10%] min-w-[100px]">Status Email</TableHead>
+                <TableHead className="text-right w-[10%] min-w-[80px]">Aksi</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -354,9 +359,9 @@ export default function KelolaUserPage() {
                           href={formatWhatsApp(u.nomor_telepon)}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline hover:text-primary/80 transition-colors"
+                          className="inline-flex items-center gap-1.5 text-primary hover:underline hover:text-primary/80 transition-colors text-xs md:text-sm"
                         >
-                          <Phone className="h-3.5 w-3.5 text-emerald-500" />
+                          <FontAwesomeIcon icon={faWhatsapp} />
                           <span>{u.nomor_telepon}</span>
                         </a>
                       ) : (
@@ -465,28 +470,57 @@ export default function KelolaUserPage() {
           </Table>
 
           {/* PAGINATION */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between pt-6 border-t mt-4">
+          {(totalUsers > PAGE_SIZE || showAll) && (
+            <div className="p-4 border-t flex flex-col sm:flex-row items-center justify-between gap-4 bg-muted/10 mt-4 rounded-xl">
               <div className="text-xs text-muted-foreground">
-                Halaman {page} dari {totalPages}
+                {showAll ? (
+                  <span>Menampilkan semua <strong>{totalUsers}</strong> pengguna</span>
+                ) : (
+                  <span>
+                    Menampilkan <strong>{Math.min((page - 1) * PAGE_SIZE + 1, totalUsers)}</strong> -{" "}
+                    <strong>{Math.min(page * PAGE_SIZE, totalUsers)}</strong> dari{" "}
+                    <strong>{totalUsers}</strong> pengguna
+                  </span>
+                )}
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   size="sm"
-                  disabled={page === 1}
-                  onClick={() => setPage(page - 1)}
+                  className="text-xs h-8 px-3"
+                  onClick={() => {
+                    setShowAll(!showAll);
+                    setPage(1);
+                  }}
                 >
-                  Sebelumnya
+                  {showAll ? "Batasi 10 per Halaman" : "Tampilkan Semua"}
                 </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={page === totalPages}
-                  onClick={() => setPage(page + 1)}
-                >
-                  Selanjutnya
-                </Button>
+                
+                {!showAll && totalPages > 1 && (
+                  <div className="flex items-center gap-2 ml-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 px-3"
+                      disabled={page === 1}
+                      onClick={() => setPage(prev => Math.max(prev - 1, 1))}
+                    >
+                      Sebelumnya
+                    </Button>
+                    <span className="text-xs text-muted-foreground min-w-[45px] text-center">
+                      {page} / {totalPages}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 px-3"
+                      disabled={page === totalPages}
+                      onClick={() => setPage(prev => Math.min(prev + 1, totalPages))}
+                    >
+                      Selanjutnya
+                    </Button>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -506,15 +540,31 @@ export default function KelolaUserPage() {
           <form onSubmit={handleResetPassword} className="space-y-4 py-2">
             <div className="grid gap-2">
               <Label htmlFor="new_password">Password Baru <span className="text-destructive">*</span></Label>
-              <Input
-                id="new_password"
-                type="password"
-                required
-                minLength={6}
-                placeholder="Minimal 6 karakter"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-              />
+              <div className="relative">
+                <Input
+                  id="new_password"
+                  type={showPassword ? "text" : "password"}
+                  required
+                  minLength={6}
+                  placeholder="Minimal 6 karakter"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="pr-10"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-0 top-0 h-full w-10 hover:bg-transparent"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4 text-muted-foreground" />
+                  ) : (
+                    <Eye className="h-4 w-4 text-muted-foreground" />
+                  )}
+                </Button>
+              </div>
             </div>
 
             <DialogFooter className="pt-4 border-t">

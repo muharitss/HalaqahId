@@ -4,6 +4,7 @@ import { type LoginFormValues } from "@/features/auth/types/auth.schema";
 import { authService } from "@/features/auth/api/authService";
 import { Role, isKepalaRole } from "@/types/domain/enums";
 import { type AuthUser, type AuthContextType } from "@/types/domain/auth";
+import { queryClient } from "@/lib/react-query";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -202,11 +203,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   
   const logout = () => {
-    // Hapus semua session
+    // Hapus semua session dan data yang tersimpan di browser
     setUser(null);
     setIsLoading(false);
     localStorage.removeItem("user");
     localStorage.removeItem("superadmin_session");
+    localStorage.removeItem("token");
+    sessionStorage.clear();
+    queryClient.clear();
   };
 
   const toggleDarkMode = () => {
