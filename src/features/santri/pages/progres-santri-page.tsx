@@ -75,9 +75,10 @@ type SortKey = "nama_santri" | "nama_halaqah" | "target" | "persentase";
 type SortDir = "asc" | "desc";
 
 export function ProgresSantriPage() {
+  const [scope, setScope] = useState<string>("target");
   const { user } = useAuth();
   const { halaqahId } = useParams<{ halaqahId?: string }>();
-  const { progresData, loading: loadingProgres, fetchProgres } = useProgres();
+  const { progresData, loading: loadingProgres, fetchProgres } = useProgres(scope);
   const {
     fetchSetoranBySantri,
     history,
@@ -91,7 +92,6 @@ export function ProgresSantriPage() {
     user?.role === Role.KOORDINATOR_TAHFIZ;
 
   // Filter States
-  const [scope, setScope] = useState<string>("target");
   const [search, setSearch] = useState("");
   const [activeHalaqah, setActiveHalaqah] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");

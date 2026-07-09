@@ -283,13 +283,34 @@ export function SetoranForm({
     });
   }, [customFields]);
 
+  // Ambil data dari localStorage secara sinkron untuk defaultValues
+  const tempDefaults = useMemo(() => {
+    try {
+      const stored = localStorage.getItem("setoran_form_temp");
+      if (stored) {
+        const data = JSON.parse(stored);
+        const expiryMs = 10 * 60 * 1000; // 10 menit
+        if (data && Date.now() - data.timestamp < expiryMs) {
+          return {
+            id_santri: data.id_santri || undefined,
+            id_sesi: data.id_sesi || undefined,
+            id_kategori: data.id_kategori || undefined,
+          };
+        }
+      }
+    } catch (err) {
+      console.error("Gagal memuat default values dari localStorage:", err);
+    }
+    return {};
+  }, []);
+
   const form = useForm<SetoranFormFields>({
     resolver: zodResolver(dynamicSchema) as Resolver<SetoranFormFields>,
     defaultValues: {
-      id_santri: undefined,
-      id_sesi: undefined,
+      id_santri: tempDefaults.id_santri,
+      id_sesi: tempDefaults.id_sesi,
       juz: 1,
-      id_kategori: undefined,
+      id_kategori: tempDefaults.id_kategori,
       surat_mulai: "",
       ayat_mulai: undefined,
       surat_selesai: "",
@@ -377,6 +398,31 @@ export function SetoranForm({
   }, [watchSuratMulai, watchAyatMulai, form]);
 
   const selectedSantriId = form.watch("id_santri");
+  const selectedSesiId = form.watch("id_sesi");
+  const selectedKategoriId = form.watch("id_kategori");
+
+  // Auto-save input santri, sesi, dan kategori ke localStorage (sementara)
+  useEffect(() => {
+    if (selectedSantriId || selectedSesiId || selectedKategoriId) {
+      const dataToSave = {
+        id_santri: selectedSantriId,
+        id_sesi: selectedSesiId,
+        id_kategori: selectedKategoriId,
+        timestamp: Date.now(),
+      };
+      localStorage.setItem("setoran_form_temp", JSON.stringify(dataToSave));
+    } else {
+      localStorage.removeItem("setoran_form_temp");
+    }
+  }, [selectedSantriId, selectedSesiId, selectedKategoriId]);
+
+  // Trigger validasi awal jika data dipulihkan dari defaultValues
+  useEffect(() => {
+    if (tempDefaults.id_santri || tempDefaults.id_sesi || tempDefaults.id_kategori) {
+      form.trigger(["id_santri", "id_sesi", "id_kategori"]);
+    }
+  }, [form, tempDefaults]);
+
   const { data: studentHistory = [] } = useQuery({
     queryKey: ["setoran-history-local", selectedSantriId],
     queryFn: async () => {
@@ -395,8 +441,8 @@ export function SetoranForm({
       return res.data || [];
     }
   });
-  const selectedSesiId = form.watch("id_sesi");
   const selectedSesiObj = sesiList.find((s) => s.id_sesi === selectedSesiId);
+
 
   const selectedTanggal = form.watch("tanggal_setoran");
 

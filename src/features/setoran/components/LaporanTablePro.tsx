@@ -78,6 +78,8 @@ export function LaporanTablePro({ groupedData, activeHalaqah, filterComponent, i
   const [sortDir, setSortDir] = useState<SortDir>("desc");
   const [showFilter, setShowFilter] = useState(false);
   const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
+  const [currentPage, setCurrentPage] = useState(1);
+  const [showAll, setShowAll] = useState(false);
 
   const { updateSetoran, deleteSetoran } = useSetoran();
   const [editingSetoran, setEditingSetoran] = useState<SetoranRecord | null>(null);
@@ -165,12 +167,23 @@ export function LaporanTablePro({ groupedData, activeHalaqah, filterComponent, i
     });
   }, [filteredRows, sortKey, sortDir]);
 
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [sortedRows.length]);
+
+  const totalPages = Math.ceil(sortedRows.length / 10);
+  const displayedRows = useMemo(() => {
+    return showAll
+      ? sortedRows
+      : sortedRows.slice((currentPage - 1) * 10, currentPage * 10);
+  }, [sortedRows, showAll, currentPage]);
+
   const toggleSort = (key: SortKey) => {
     if (sortKey === key) {
       setSortDir((d) => (d === "asc" ? "desc" : "asc"));
     } else {
       setSortKey(key);
-      setSortDir("asc");s
+      setSortDir("asc");
     }
   };
 
@@ -183,10 +196,10 @@ export function LaporanTablePro({ groupedData, activeHalaqah, filterComponent, i
     );
   };
 
-  // Group sortedRows by Halaqah name
+  // Group displayedRows by Halaqah name
   const groupedRows = useMemo(() => {
     const groups: Record<string, SetoranRow[]> = {};
-    sortedRows.forEach((row) => {
+    displayedRows.forEach((row) => {
       const gName = row.nama_halaqah || "Tanpa Halaqah";
       if (!groups[gName]) {
         groups[gName] = [];
@@ -194,7 +207,7 @@ export function LaporanTablePro({ groupedData, activeHalaqah, filterComponent, i
       groups[gName].push(row);
     });
     return groups;
-  }, [sortedRows]);
+  }, [displayedRows]);
 
   return (
     <div className="rounded-xl border bg-card shadow-sm overflow-hidden">
@@ -492,12 +505,58 @@ export function LaporanTablePro({ groupedData, activeHalaqah, filterComponent, i
             </AlertDialogContent>
           </AlertDialog>
         </div>
-        {sortedRows.length > 0 && (
-          <div className="px-6 py-3 border-t bg-muted/10 flex items-center justify-between">
-            <p className="text-xs text-muted-foreground">
-              Menampilkan <span className="font-semibold text-foreground">{sortedRows.length}</span> dari{" "}
-              <span className="font-semibold text-foreground">{allRows.length}</span> catatan setoran
-            </p>
+        {(sortedRows.length > 10 || showAll) && (
+          <div className="p-4 border-t flex flex-col sm:flex-row items-center justify-between gap-4 bg-muted/10 shadow-sm">
+            <div className="text-xs text-muted-foreground">
+              {showAll ? (
+                <span>Menampilkan semua <strong>{sortedRows.length}</strong> setoran</span>
+              ) : (
+                <span>
+                  Menampilkan <strong>{Math.min((currentPage - 1) * 10 + 1, sortedRows.length)}</strong> -{" "}
+                  <strong>{Math.min(currentPage * 10, sortedRows.length)}</strong> dari{" "}
+                  <strong>{sortedRows.length}</strong> setoran
+                </span>
+              )}
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-xs h-8 px-3"
+                onClick={() => {
+                  setShowAll(!showAll);
+                  setCurrentPage(1);
+                }}
+              >
+                {showAll ? "Batasi 10 per Halaman" : "Tampilkan Semua"}
+              </Button>
+              
+              {!showAll && totalPages > 1 && (
+                <div className="flex items-center gap-2 ml-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 px-3"
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  >
+                    Sebelumnya
+                  </Button>
+                  <span className="text-xs text-muted-foreground min-w-[45px] text-center">
+                    {currentPage} / {totalPages}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 px-3"
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  >
+                    Selanjutnya
+                  </Button>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
