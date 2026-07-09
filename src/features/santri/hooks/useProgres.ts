@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { progresService } from "../api/progresService";
 import { useAuth } from "@/features/auth/components/auth-provider";
 
-export const useProgres = () => {
+export const useProgres = (scope: string = "target") => {
   const { user } = useAuth();
 
   const { 
@@ -11,9 +11,9 @@ export const useProgres = () => {
     error,
     refetch: fetchProgres 
   } = useQuery({
-    queryKey: ["progres", user?.id_user],
+    queryKey: ["progres", user?.id_user, scope],
     queryFn: async () => {
-      const response = await progresService.getAllProgres();
+      const response = await progresService.getAllProgres(scope);
       return response.data || [];
     },
     enabled: !!user?.id_user,

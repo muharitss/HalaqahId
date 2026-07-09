@@ -170,7 +170,7 @@ export function LaporanTablePro({ groupedData, activeHalaqah, filterComponent, i
       setSortDir((d) => (d === "asc" ? "desc" : "asc"));
     } else {
       setSortKey(key);
-      setSortDir("asc");
+      setSortDir("asc");s
     }
   };
 
