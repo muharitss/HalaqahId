@@ -132,38 +132,23 @@ export const useMuhafizDashboard = () => {
     return { stats, total };
   }, [monthlyAbsensi, absensiView]);
 
-  // Santri IDs sebagai stable key (menghindari referensi array baru tiap render)
-  const santriIds = useMemo(() => santriList.map((s) => s.id_santri).sort((a, b) => a - b), [santriList]);
-
-  // 5. Fetch Setoran records for all students in the halaqah in parallel
+  // 5. Fetch Setoran records for all students in the halaqah via bulk query
   const { data: setoranHistory = [], isFetching: loadingSetoran } = useQuery({
-    queryKey: ["muhafiz-dashboard-setoran", user?.id_user, santriIds],
+    queryKey: ["muhafiz-dashboard-setoran", user?.id_user],
     queryFn: async () => {
-      if (!santriList || santriList.length === 0) return [];
-      
-      const promises = santriList.map(async (s) => {
-        try {
-          const res = await setoranService.getSetoranBySantri(s.id_santri);
-          return (res.data || []).map((item) => ({
-            ...item,
-            id_setoran: item.id_setoran || Math.random(),
-            santriName: s.nama_santri,
-          }));
-        } catch (err) {
-          console.error(`Gagal mengambil setoran untuk santri ${s.id_santri}:`, err);
-          return [];
-        }
-      });
-
-      const results = await Promise.all(promises);
-      const flattened = results.flat();
-      
-      // Sort newest first
-      return flattened.sort(
-        (a, b) => new Date(b.tanggal_setoran).getTime() - new Date(a.tanggal_setoran).getTime()
-      );
+      try {
+        const res = await setoranService.getAllSetoran(1, 1000);
+        return (res.data || []).map((item: any) => ({
+          ...item,
+          id_setoran: item.id_setoran,
+          santriName: item.santri?.nama_santri,
+        }));
+      } catch (err) {
+        console.error("Gagal mengambil data setoran massal:", err);
+        return [];
+      }
     },
-    enabled: !!user?.id_user && santriList.length > 0,
+    enabled: !!user?.id_user,
   });
 
   // Calculate stats from setoran data

@@ -1,4 +1,4 @@
-﻿import type { Halaqah as DomainHalaqah, Santri as DomainSantri, User as DomainUser } from '@/types';
+import type { Halaqah as DomainHalaqah, Santri as DomainSantri, User as DomainUser } from '@/types';
 import type { StatusKehadiran } from '@/types/domain/enums';
 
 export type Halaqah = DomainHalaqah;
@@ -54,3 +54,11 @@ export interface DashboardStats {
 }
 
 export type ViewType = 'pekan' | 'bulan';
+
+export interface AlfaStudent {
+  id_santri: number;
+  nama_santri: string;
+  name_halaqah: string;
+  alfaCount: number;
+  dates: string[];
+}
