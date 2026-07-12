@@ -52,6 +52,7 @@ interface SetoranRow {
   tanggal_setoran: string;
   nama_santri: string;
   nama_halaqah: string;
+  nama_muhafiz?: string;
   juz: number;
   surat: string;
   ayat: string;
@@ -109,13 +110,14 @@ export function LaporanTablePro({ groupedData, activeHalaqah, filterComponent, i
       if (activeHalaqah !== "all" && activeHalaqah !== "" && halaqahName !== activeHalaqah) return;
       Object.values(group.santriGroup).forEach((santri: GroupedSantriItem) => {
         santri.setoran.forEach((s: SetoranItem) => {
-          const kategoriName = s.kategori?.nama_kategori || "HAFALAN";
+          const kategoriName = s.kategori?.nama_kategori || (typeof s.kategori === "string" ? s.kategori : "Setoran");
           rows.push({
             id_setoran: s.id_setoran,
             id_santri: s.id_santri,
             tanggal_setoran: s.tanggal_setoran,
             nama_santri: santri.nama,
             nama_halaqah: halaqahName,
+            nama_muhafiz: group.muhafizName,
             juz: s.juz,
             surat: s.surat,
             ayat: s.ayat,
@@ -269,9 +271,7 @@ export function LaporanTablePro({ groupedData, activeHalaqah, filterComponent, i
                     Santri {renderSortIcon("nama_santri")}
                   </Button>
                 </TableHead>
-                <TableHead className="hidden md:table-cell">
-                  Halaqah
-                </TableHead>
+
                 <TableHead>
                   <Button
                     variant="ghost"
@@ -307,7 +307,7 @@ export function LaporanTablePro({ groupedData, activeHalaqah, filterComponent, i
             <TableBody>
               {sortedRows.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={showEvaluasiColumn ? 7 : 6} className="text-center py-16 text-muted-foreground text-xs font-semibold">
+                  <TableCell colSpan={showEvaluasiColumn ? 6 : 5} className="text-center py-16 text-muted-foreground text-xs font-semibold">
                     {search ? `Tidak ada hasil untuk "${search}"` : "Tidak ada data setoran"}
                   </TableCell>
                 </TableRow>
@@ -321,13 +321,15 @@ export function LaporanTablePro({ groupedData, activeHalaqah, filterComponent, i
                         className="bg-muted/20 hover:bg-muted/30 cursor-pointer select-none border-y"
                         onClick={() => toggleGroup(groupName)}
                       >
-                        <TableCell colSpan={showEvaluasiColumn ? 7 : 6} className="pl-6 py-2.5 font-semibold text-sm">
+                        <TableCell colSpan={showEvaluasiColumn ? 6 : 5} className="pl-6 py-2.5 font-semibold text-sm">
                           <div className="flex items-center gap-2">
                             <ChevronRight className={cn(
                               "h-4 w-4 text-muted-foreground transition-transform duration-200",
                               !isCollapsed && "rotate-90 text-primary"
                             )} />
-                            <span className="font-bold">{groupName}</span>
+                            <span className="font-bold">
+                              {groupName}
+                            </span>
                             <Badge variant="secondary">
                               {rows.length} setoran
                             </Badge>
@@ -353,9 +355,7 @@ export function LaporanTablePro({ groupedData, activeHalaqah, filterComponent, i
                             <TableCell className="py-3">
                               <div className="font-semibold">{row.nama_santri}</div>
                             </TableCell>
-                            <TableCell className="py-3 hidden md:table-cell text-muted-foreground">
-                              {row.nama_halaqah}
-                            </TableCell>
+
                             <TableCell className="py-3">
                               <div className="font-semibold">
                                 Juz {row.juz} — {row.surat}

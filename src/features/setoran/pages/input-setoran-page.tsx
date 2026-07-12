@@ -7,31 +7,16 @@ import { SetoranForm } from "../components/SetoranForm";
 import { Setoran } from "@/components/custom/typed-text";
 import { AlertCircle, FileText, ClipboardList } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ujianService, type ExamTemplate } from "../api/ujian-api";
 import { DynamicExamForm } from "../components/DynamicExamForm";
 
 export function InputSetoranPage({ hideHeader = false }: { hideHeader?: boolean }) {
   const { santriList, sesiList, loading, fetchSantri, addSetoran } = useSetoran();
   const [isFormValid, setIsFormValid] = useState(true);
-  const [templates, setTemplates] = useState<ExamTemplate[]>([]);
-  const [activeTab, setActiveTab] = useState<string>("setoran"); // "setoran" atau ID templat ujian
+  const [activeTab, setActiveTab] = useState<"setoran" | "ujian">("setoran");
 
   useEffect(() => {
     fetchSantri();
-    
-    // Fetch templat ujian kustom dari sekolah admin
-    ujianService.getExamTemplates()
-      .then((res) => {
-        if (res.success && res.data) {
-          setTemplates(res.data);
-        }
-      })
-      .catch((err) => {
-        console.error("Gagal memuat templat ujian:", err);
-      });
   }, [fetchSantri]);
-
-  const activeTemplate = templates.find(t => t.id_template.toString() === activeTab);
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
@@ -43,30 +28,25 @@ export function InputSetoranPage({ hideHeader = false }: { hideHeader?: boolean 
         </div>
       )}
 
-      {/* Navigasi Tab Ujian Dinamis */}
-      {templates.length > 0 && (
-        <div className="flex flex-wrap gap-2 border-b pb-4">
-          <Button
-            variant={activeTab === "setoran" ? "default" : "outline"}
-            onClick={() => setActiveTab("setoran")}
-            className="font-bold flex items-center gap-2 h-10 shadow-sm"
-          >
-            <ClipboardList className="h-4 w-4" />
-            Setoran Harian
-          </Button>
-          {templates.map((temp) => (
-            <Button
-              key={temp.id_template}
-              variant={activeTab === temp.id_template.toString() ? "default" : "outline"}
-              onClick={() => setActiveTab(temp.id_template.toString())}
-              className="font-bold flex items-center gap-2 h-10 shadow-sm"
-            >
-              <FileText className="h-4 w-4" />
-              {temp.nama_ujian}
-            </Button>
-          ))}
-        </div>
-      )}
+      {/* Navigasi Tab */}
+      <div className="flex flex-wrap gap-2 border-b pb-4">
+        <Button
+          variant={activeTab === "setoran" ? "default" : "outline"}
+          onClick={() => setActiveTab("setoran")}
+          className="font-bold flex items-center gap-2 h-10 shadow-sm"
+        >
+          <ClipboardList className="h-4 w-4" />
+          Setoran Harian
+        </Button>
+        <Button
+          variant={activeTab === "ujian" ? "default" : "outline"}
+          onClick={() => setActiveTab("ujian")}
+          className="font-bold flex items-center gap-2 h-10 shadow-sm"
+        >
+          <FileText className="h-4 w-4" />
+          Ujian Tahfiz
+        </Button>
+      </div>
 
       <div className="grid gap-6 md:grid-cols-1">
         {activeTab === "setoran" ? (
@@ -110,30 +90,26 @@ export function InputSetoranPage({ hideHeader = false }: { hideHeader?: boolean 
             </div>
           </>
         ) : (
-          activeTemplate && (
-            <Card>
-              <CardHeader>
-                <CardTitle>{activeTemplate.nama_ujian}</CardTitle>
-                <CardDescription>
-                  Form input ujian kustom berdasarkan kriteria penilaian sekolah.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <DynamicExamForm
-                  template={activeTemplate}
-                  santriList={santriList}
-                  sesiList={sesiList}
-                  onSuccess={() => {
-                    setActiveTab("setoran");
-                    fetchSantri();
-                  }}
-                />
-              </CardContent>
-            </Card>
-          )
+          <Card>
+            <CardHeader>
+              <CardTitle>Evaluasi & Ujian Tahfiz</CardTitle>
+              <CardDescription>
+                Form penilaian ujian santri tahfiz berdasarkan jadwal pelaksanaan aktif.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <DynamicExamForm
+                santriList={santriList}
+                sesiList={sesiList}
+                onSuccess={() => {
+                  setActiveTab("setoran");
+                  fetchSantri();
+                }}
+              />
+            </CardContent>
+          </Card>
         )}
       </div>
     </div>
   );
 }
-

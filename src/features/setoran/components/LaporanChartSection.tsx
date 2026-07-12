@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { BarChart, Bar, CartesianGrid, XAxis, YAxis, PieChart, Pie, Cell } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart2, PieChart as PieIcon } from "lucide-react";
@@ -23,25 +24,29 @@ const halaqahChartConfig = {
   },
 } satisfies ChartConfig;
 
-const kategoriChartConfig = {
-  HAFALAN: { label: "Hafalan", color: "#10b981" },
-  MURAJAAH: { label: "Murajaah", color: "#3b82f6" },
-  ZIYADAH: { label: "Ziyadah", color: "#8b5cf6" },
-  INTENS: { label: "Intensif", color: "#f59e0b" },
-  BACAAN: { label: "Bacaan", color: "#f43f5e" },
-} satisfies ChartConfig;
-
 export function LaporanChartSection({
   distribusiKategori,
   distribusiHalaqah,
   onHalaqahClick,
 }: LaporanChartSectionProps) {
+  const kategoriChartConfig = useMemo(() => {
+    const config: ChartConfig = {};
+    const PRESET_COLORS = ["#10b981", "#3b82f6", "#8b5cf6", "#f59e0b", "#f43f5e", "#06b6d4", "#ec4899", "#14b8a6"];
+    Object.keys(distribusiKategori).forEach((key, index) => {
+      config[key] = {
+        label: key.charAt(0).toUpperCase() + key.slice(1).toLowerCase(),
+        color: PRESET_COLORS[index % PRESET_COLORS.length],
+      };
+    });
+    return config;
+  }, [distribusiKategori]);
+
   const kategoriData = Object.entries(distribusiKategori)
     .filter(([, val]) => val > 0)
     .map(([key, val]) => ({
       name: key,
       value: val,
-      fill: kategoriChartConfig[key as keyof typeof kategoriChartConfig]?.color || "#94a3b8",
+      fill: kategoriChartConfig[key]?.color || "#94a3b8",
     }));
 
   const halaqahData = Object.entries(distribusiHalaqah)

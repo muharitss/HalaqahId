@@ -26,7 +26,7 @@ export const useLaporanData = () => {
   const [filters, setFilters] = useState<LaporanFilters>({
     selectedMonth: new Date().getMonth(),
     selectedYear: new Date().getFullYear(),
-    activeHalaqah: "",
+    activeHalaqah: "all",
     selectedSantri: "",
     dateFrom: null,
     dateTo: null,
@@ -64,6 +64,41 @@ export const useLaporanData = () => {
     return kategoriList.map((k) => k.nama_kategori);
   }, [kategoriList]);
 
+  // Enrich setoran items with muhafiz name from listHalaqah before grouping
+  const enrichedSetoran = useMemo(() => {
+    return allSetoran.map((item: SetoranItem) => {
+      if (!item.santri?.halaqah) return item;
+      const halaqahId = item.santri.halaqah.id_halaqah;
+      const rawName = item.santri.halaqah.name_halaqah || "Tanpa Halaqah";
+      
+      const match = listHalaqah.find((h: any) => {
+        if (halaqahId !== undefined && halaqahId !== null && halaqahId !== 0) {
+          return h.id_halaqah === halaqahId;
+        }
+        return h.santri?.some((s: any) => s.id_santri === item.id_santri);
+      });
+      
+      const muhafizName = match?.muhafiz?.name || "";
+      const displayHalaqahName = muhafizName
+        ? `${rawName} - ${muhafizName}`
+        : rawName;
+
+      return {
+        ...item,
+        santri: {
+          ...item.santri,
+          halaqah: {
+            ...item.santri.halaqah,
+            name_halaqah: displayHalaqahName,
+            user: {
+              name: muhafizName,
+            },
+          },
+        },
+      };
+    });
+  }, [allSetoran, listHalaqah]);
+
   // ─── Grouped data (bulan/tahun filter untuk transformSetoranData) ──────────
   const groupedDataRaw = useMemo(() => {
     // Jika ada date range aktif, skip filter bulan/tahun
@@ -72,8 +107,8 @@ export const useLaporanData = () => {
         ? { month: null, year: null }
         : { month: filters.selectedMonth, year: filters.selectedYear };
 
-    return laporanService.transformSetoranData(allSetoran, dateFilter);
-  }, [allSetoran, filters.selectedMonth, filters.selectedYear, filters.dateFrom, filters.dateTo]);
+    return laporanService.transformSetoranData(enrichedSetoran, dateFilter);
+  }, [enrichedSetoran, filters.selectedMonth, filters.selectedYear, filters.dateFrom, filters.dateTo]);
 
   // ─── Derived data ──────────────────────────────────────────────────────────
   const halaqahNames = useMemo(
@@ -81,11 +116,21 @@ export const useLaporanData = () => {
     [groupedDataRaw]
   );
 
+  const halaqahMuhafizMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    Object.entries(groupedDataRaw).forEach(([name, group]) => {
+      if (group.muhafizName) {
+        map[name] = group.muhafizName;
+      }
+    });
+    return map;
+  }, [groupedDataRaw]);
+
   // Computed effective active halaqah to prevent syncing via useEffect
   const effectiveActiveHalaqah = useMemo(() => {
-    if (filters.activeHalaqah === "all") return "all";
+    if (filters.activeHalaqah === "all" || filters.activeHalaqah === "") return "all";
     if (halaqahNames.length > 0 && !halaqahNames.includes(filters.activeHalaqah)) {
-      return halaqahNames[0];
+      return "all";
     }
     return filters.activeHalaqah;
   }, [filters.activeHalaqah, halaqahNames]);
@@ -135,7 +180,7 @@ export const useLaporanData = () => {
             if (tgl > endOfDay(filters.dateTo)) return false;
           }
 
-          const kategoriName = s.kategori?.nama_kategori || "HAFALAN";
+          const kategoriName = s.kategori?.nama_kategori || (typeof s.kategori === "string" ? s.kategori : "Setoran");
           if (
             filters.selectedKategori !== "" && 
             kategoriName.toUpperCase() !== filters.selectedKategori.toUpperCase()
@@ -153,7 +198,7 @@ export const useLaporanData = () => {
             // Recalculate stats
             stats: filteredSetoran.reduce(
               (acc: Record<string, number>, s: SetoranItem) => {
-                const kName = s.kategori?.nama_kategori || "HAFALAN";
+                const kName = s.kategori?.nama_kategori || (typeof s.kategori === "string" ? s.kategori : "Setoran");
                 const key = kName.toUpperCase();
                 acc[key] = (acc[key] ?? 0) + 1;
                 return acc;
@@ -253,13 +298,13 @@ export const useLaporanData = () => {
     setFilters({
       selectedMonth: new Date().getMonth(),
       selectedYear: new Date().getFullYear(),
-      activeHalaqah: halaqahNames[0] ?? "",
+      activeHalaqah: "all",
       selectedSantri: "",
       dateFrom: null,
       dateTo: null,
       selectedKategori: "",
     });
-  }, [halaqahNames]);
+  }, []);
 
   const isFilterActive =
     filters.selectedSantri !== "" ||
@@ -289,6 +334,7 @@ export const useLaporanData = () => {
     // Derived
     groupedData,
     halaqahNames,
+    halaqahMuhafizMap,
     santriNames,
     activeHalaqahId,
     santriForAbsensi,

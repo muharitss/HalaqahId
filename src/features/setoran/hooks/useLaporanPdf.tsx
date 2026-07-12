@@ -41,7 +41,7 @@ export function useLaporanPdf() {
               new Date(b.tanggal_setoran).getTime() - new Date(a.tanggal_setoran).getTime()
           );
           sorted.forEach((s: SetoranItem) => {
-            const kategoriName = s.kategori?.nama_kategori || "HAFALAN";
+            const kategoriName = s.kategori?.nama_kategori || (typeof s.kategori === "string" ? s.kategori : "Setoran");
             rows.push({
               no: counter++,
               tanggal: s.tanggal_setoran,
