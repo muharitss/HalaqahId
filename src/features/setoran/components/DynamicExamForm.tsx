@@ -194,6 +194,17 @@ export function DynamicExamForm({ santriList, sesiList: _sesiList, onSuccess }: 
     return schedules.find((schedule) => schedule.id_jadwal === selectedJadwalId) || null;
   }, [schedules, selectedJadwalId]);
 
+  const isExamToday = useMemo(() => {
+    if (!selectedSchedule) return true;
+    try {
+      const todayStr = format(new Date(), "yyyy-MM-dd");
+      const examDateStr = format(parseISO(selectedSchedule.tanggal_ujian), "yyyy-MM-dd");
+      return todayStr === examDateStr;
+    } catch {
+      return true;
+    }
+  }, [selectedSchedule]);
+
   const template = useMemo(() => toTemplateFromSchedule(selectedSchedule || undefined), [selectedSchedule]);
 
   useEffect(() => {
@@ -418,7 +429,8 @@ export function DynamicExamForm({ santriList, sesiList: _sesiList, onSuccess }: 
         <div className="space-y-1.5">
           <Label className="text-xs font-bold text-foreground">1. Pilih Halaqah</Label>
           <Select
-            value={selectedHalaqahId?.toString()}
+            key={`halaqah-${halaqahList.length}`}
+            value={selectedHalaqahId?.toString() || undefined}
             onValueChange={(val) => {
               setSelectedHalaqahId(Number(val));
               setSelectedSantriId(null);
@@ -439,7 +451,8 @@ export function DynamicExamForm({ santriList, sesiList: _sesiList, onSuccess }: 
         <div className="space-y-1.5">
           <Label className="text-xs font-bold text-foreground">2. Pilih Santri</Label>
           <Select
-            value={selectedSantriId?.toString()}
+            key={`santri-${selectedHalaqahId || 'none'}`}
+            value={selectedSantriId?.toString() || undefined}
             onValueChange={(val) => {
               setSelectedSantriId(Number(val));
               setSelectedJadwalId(null);
@@ -460,7 +473,8 @@ export function DynamicExamForm({ santriList, sesiList: _sesiList, onSuccess }: 
         <div className="space-y-1.5">
           <Label className="text-xs font-bold text-foreground">3. Pilih Jadwal Ujian</Label>
           <Select
-            value={selectedJadwalId?.toString()}
+            key={`jadwal-${selectedSantriId || 'none'}`}
+            value={selectedJadwalId?.toString() || undefined}
             onValueChange={(val) => setSelectedJadwalId(Number(val))}
             disabled={!selectedSantriId || loadingSchedules}
           >
@@ -468,9 +482,14 @@ export function DynamicExamForm({ santriList, sesiList: _sesiList, onSuccess }: 
               <SelectValue placeholder={selectedSantriId ? "Pilih Jadwal Ujian" : "Pilih santri dahulu"} />
             </SelectTrigger>
             <SelectContent>
-              {schedules.map((s) => (
-                <SelectItem key={s.id_jadwal} value={s.id_jadwal.toString()}>{s.judul_jadwal}</SelectItem>
-              ))}
+              {schedules.map((s) => {
+                const examDateStr = s.tanggal_ujian ? format(parseISO(s.tanggal_ujian), "dd/MM/yyyy") : "";
+                return (
+                  <SelectItem key={s.id_jadwal} value={s.id_jadwal.toString()}>
+                    {s.judul_jadwal} {examDateStr ? `(${examDateStr})` : ""}
+                  </SelectItem>
+                );
+              })}
             </SelectContent>
           </Select>
         </div>
@@ -478,39 +497,52 @@ export function DynamicExamForm({ santriList, sesiList: _sesiList, onSuccess }: 
 
       {/* ── SCHEDULE DETAILS SUMMARY ── */}
       {selectedSchedule && (
-        <Card className="bg-muted/15 border shadow-sm">
-          <CardContent className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-            <div className="space-y-2">
-              <h3 className="font-extrabold text-foreground text-sm flex items-center gap-1.5">
-                <Calendar className="h-4 w-4 text-primary" /> Detail Jadwal Ujian
-              </h3>
-              <div className="grid grid-cols-3 gap-2">
-                <span className="text-muted-foreground font-semibold">Ujian:</span>
-                <span className="col-span-2 font-bold text-foreground">{selectedSchedule.judul_jadwal}</span>
-                <span className="text-muted-foreground font-semibold">Tanggal:</span>
-                <span className="col-span-2 font-bold text-foreground">
-                  {format(parseISO(selectedSchedule.tanggal_ujian), "d MMMM yyyy", { locale: idLocale })}
-                </span>
+        <div className="space-y-4">
+          {!isExamToday && (
+            <div className="bg-amber-50 border border-amber-200 text-amber-700 p-4 rounded-xl flex items-start gap-3 text-xs">
+              <AlertCircle className="h-5 w-5 shrink-0 text-amber-500 mt-0.5" />
+              <div>
+                <p className="font-bold text-sm">Perhatian: Tanggal Pelaksanaan Ujian Berbeda</p>
+                <p className="text-amber-600 mt-1">
+                  Jadwal ujian ini dibuat untuk tanggal <strong>{format(parseISO(selectedSchedule.tanggal_ujian), "d MMMM yyyy", { locale: idLocale })}</strong>, sedangkan hari ini adalah tanggal <strong>{format(new Date(), "d MMMM yyyy", { locale: idLocale })}</strong>. Pastikan Anda menilai jadwal ujian yang tepat.
+                </p>
               </div>
             </div>
+          )}
+          <Card className="bg-muted/15 border shadow-sm">
+            <CardContent className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+              <div className="space-y-2">
+                <h3 className="font-extrabold text-foreground text-sm flex items-center gap-1.5">
+                  <Calendar className="h-4 w-4 text-primary" /> Detail Jadwal Ujian
+                </h3>
+                <div className="grid grid-cols-3 gap-2">
+                  <span className="text-muted-foreground font-semibold">Ujian:</span>
+                  <span className="col-span-2 font-bold text-foreground">{selectedSchedule.judul_jadwal}</span>
+                  <span className="text-muted-foreground font-semibold">Tanggal:</span>
+                  <span className="col-span-2 font-bold text-foreground">
+                    {format(parseISO(selectedSchedule.tanggal_ujian), "d MMMM yyyy", { locale: idLocale })}
+                  </span>
+                </div>
+              </div>
 
-            <div className="space-y-2">
-              <h3 className="font-extrabold text-foreground text-sm flex items-center gap-1.5">
-                <Clock className="h-4 w-4 text-primary" /> Periode Setoran Diuji
-              </h3>
-              <div className="grid grid-cols-3 gap-2">
-                <span className="text-muted-foreground font-semibold">Mulai:</span>
-                <span className="col-span-2 font-bold text-foreground">
-                  {format(parseISO(selectedSchedule.periode_start), "d MMMM yyyy", { locale: idLocale })}
-                </span>
-                <span className="text-muted-foreground font-semibold">Selesai:</span>
-                <span className="col-span-2 font-bold text-foreground">
-                  {format(parseISO(selectedSchedule.periode_end), "d MMMM yyyy", { locale: idLocale })}
-                </span>
+              <div className="space-y-2">
+                <h3 className="font-extrabold text-foreground text-sm flex items-center gap-1.5">
+                  <Clock className="h-4 w-4 text-primary" /> Periode Setoran Diuji
+                </h3>
+                <div className="grid grid-cols-3 gap-2">
+                  <span className="text-muted-foreground font-semibold">Mulai:</span>
+                  <span className="col-span-2 font-bold text-foreground">
+                    {format(parseISO(selectedSchedule.periode_start), "d MMMM yyyy", { locale: idLocale })}
+                  </span>
+                  <span className="text-muted-foreground font-semibold">Selesai:</span>
+                  <span className="col-span-2 font-bold text-foreground">
+                    {format(parseISO(selectedSchedule.periode_end), "d MMMM yyyy", { locale: idLocale })}
+                  </span>
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
       )}
 
       {/* ── AUTOCALCULATION RANGE DISPLAY ── */}

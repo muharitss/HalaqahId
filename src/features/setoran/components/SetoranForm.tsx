@@ -45,6 +45,7 @@ import { type SetoranFormFields, type SetoranPayload, type MushafSelection } fro
 import { sekolahService, type KategoriSetoranResponse } from "@/features/sekolah/api/sekolahService";
 import { setoranService } from "../api/setoranService";
 import { Checkbox } from "@/components/ui/checkbox";
+import { toast } from "sonner";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -111,7 +112,7 @@ const numericOptional = () =>
 const setoranSchema = z
   .object({
     id_santri: numericRequired("Pilih santri"),
-    id_sesi: numericRequired("Pilih sesi halaqah"),
+    id_sesi: numericOptional(),
     juz: z.preprocess((val) => {
       if (val === "" || val === undefined || val === null) return undefined;
       const n = Number(val);
@@ -454,7 +455,12 @@ export function SetoranForm({
     )
       return true;
 
-    const targetDate = selectedTanggal ? new Date(selectedTanggal) : new Date();
+    const targetDate = selectedTanggal
+      ? (() => {
+          const [year, month, day] = selectedTanggal.split("-").map(Number);
+          return new Date(year, month - 1, day);
+        })()
+      : new Date();
     const jsDay = targetDate.getDay();
     const mappedDay = jsDay === 0 ? 7 : jsDay;
     return selectedSesiObj.hari.includes(mappedDay);
@@ -550,7 +556,10 @@ export function SetoranForm({
   };
 
   const onFormSubmit = async (values: SetoranFormFields) => {
-    if (!isTodayValidForSesi) return;
+    if (!isTodayValidForSesi) {
+      toast.error(`Sesi ${selectedSesiObj?.nama_sesi || ""} tidak dijadwalkan pada hari ini.`);
+      return;
+    }
 
     const selectedCategory = kategoriList.find(
       (k: KategoriSetoranResponse) => k.id_kategori === values.id_kategori

@@ -29,6 +29,7 @@ import { SetoranPage, LaporanSetoranPage } from "@/features/setoran";
 import { MushafPage } from "@/features/setoran/pages/mushaf-page";
 import { TahfidzAi } from "@/features/tahfidz-ai/components/TahfidzAi";
 import { ProfilSekolahPage } from "@/features/sekolah";
+import ProfilMuhafizPage from "@/features/profil/pages";
 
 // ── Pages: Settings ────────────────────────────────────────────────────────
 import SettingsPage from "@/features/settings/pages";
@@ -190,6 +191,7 @@ export const router = createBrowserRouter([
               { path: "/kepala-muhafidz/laporan", element: <LaporanSetoranPage /> },
               { path: "/kepala-muhafidz/tahfidzai", element: <TahfidzAi /> },
               { path: "/kepala-muhafidz/profil-sekolah", element: <ProfilSekolahPage /> },
+              { path: "/kepala-muhafidz/profil", element: <ProfilMuhafizPage /> },
               { path: "/kepala-muhafidz/settings", element: <SettingsPage /> },
               { path: "/kepala-muhafidz/settings/info", element: <InfoSection /> },
               { path: "/kepala-muhafidz/settings/trash", element: <TrashSection /> },
@@ -222,9 +224,10 @@ export const router = createBrowserRouter([
                   { path: "/muhafidz/tahfidzai", element: <TahfidzAi /> },
                 ],
               },
-              // Settings selalu bisa diakses meski belum punya halaqah
+              // Settings & Profil selalu bisa diakses meski belum punya halaqah
               { path: "/muhafidz/settings", element: <SettingsPage /> },
               { path: "/muhafidz/settings/info", element: <InfoSection /> },
+              { path: "/muhafidz/profil", element: <ProfilMuhafizPage /> },
             ],
           },
         ],

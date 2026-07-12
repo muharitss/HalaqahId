@@ -116,6 +116,12 @@ export interface AuthUser {
   token?: string;
   avatarUrl?: string;
   isImpersonating?: boolean;
+  nomor_telepon?: string | null;
+  halaqah?: {
+    id_halaqah: number;
+    name_halaqah: string;
+    id_muhafiz?: number;
+  } | null;
   originalUser?: {
     id_user: number;
     role: Role;

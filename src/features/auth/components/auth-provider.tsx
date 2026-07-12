@@ -30,7 +30,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         token: superadminData.token,
         name: superadminData.name,
         email: superadminData.email,
-        role: superadminData.role
+        role: superadminData.role,
+        is_verified: superadminData.is_verified
       }));
     }
   };
@@ -56,13 +57,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     
     // Simpan session superadmin di storage terpisah
     if (isKepalaRole(originalUser.role)) {
-      localStorage.setItem("superadmin_session", JSON.stringify({
-        id_user: originalUser.id_user,
-        token: originalUser.token,
-        name: originalUser.name,
-        email: originalUser.email,
-        role: originalUser.role
-      }));
+      saveSuperadminSession(originalUser);
     }
   };
 
@@ -103,9 +98,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         // Refresh token untuk memastikan valid
         try {
           const response = await authService.getCurrentUser();
+          const userData = response.data?.user || response.data;
           const updatedUser = {
             ...superadminUser,
-            ...response.data.user
+            ...userData
           };
           
           setUser(updatedUser);
@@ -146,16 +142,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       const parsedData = JSON.parse(savedData) as AuthUser;
       
-      // Jika sedang impersonate, langsung set user dari localStorage
-      if (parsedData.isImpersonating) {
-        setUser(parsedData);
-        setIsLoading(false);
-        return;
-      }
+      // Set initial user state from localStorage immediately to prevent layout thrashing
+      setUser(parsedData);
       
       try {
         const response = await authService.getCurrentUser();
+        console.log("DEBUG auth-provider response:", response);
         const userData = response.data?.user || response.data;
+        console.log("DEBUG auth-provider userData:", userData);
         
         if (!userData) {
           throw new Error("No user data received from API");
@@ -164,7 +158,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         const fullUser: AuthUser = {
           ...userData,
           token: parsedData.token,
-          name: userData.name || "User"
+          name: userData.name || "User",
+          isImpersonating: parsedData.isImpersonating,
+          originalUser: parsedData.originalUser
         };  
 
         setUser(fullUser);
@@ -175,7 +171,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
       } catch (error) {
         console.error("Failed to fetch user from API:", error);
-        setUser(parsedData);
       }
     } catch (error) {
       console.error("Failed to parse user data:", error);

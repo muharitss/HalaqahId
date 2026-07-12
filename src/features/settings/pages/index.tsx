@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Info, Trash2, ChevronLeft, LogOut, ArrowLeft, Bot, Link as LinkIcon, Building2, Layers, Target, GraduationCap, Sliders } from "lucide-react";
+import { Info, Trash2, ChevronLeft, LogOut, ArrowLeft, Bot, Link as LinkIcon, Building2, Layers, Target, GraduationCap, Sliders, UserCircle } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { SettingItem } from "./SettingItem";
@@ -62,6 +62,19 @@ export default function SettingsPage() {
       </div>
 
       <div className="space-y-6">
+        {/* GRUP 0: AKUN */}
+        <section className="space-y-3">
+          <h3 className="text-xs font-bold uppercase text-muted-foreground ml-1">Akun</h3>
+          <Card>
+            <SettingItem
+              icon={<UserCircle size={18} className="text-primary" />}
+              title="Profil Saya"
+              description="Lihat dan perbarui informasi pribadi Anda"
+              onClick={() => navigate(isKepala ? "/kepala-muhafidz/profil" : "/muhafidz/profil")}
+            />
+          </Card>
+        </section>
+
         {/* GRUP 1: PROFIL & AI */}
         <section className="space-y-3">
           <h3 className="text-xs font-bold uppercase text-muted-foreground ml-1">Fitur Tambahan</h3>

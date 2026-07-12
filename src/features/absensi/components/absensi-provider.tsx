@@ -94,15 +94,33 @@ export function AbsensiProvider({ children }: { children: ReactNode }) {
   // Handle otomatisasi pilihan Sesi
   useEffect(() => {
     if (filteredSesiList.length > 0) {
-      const isSelectedValid = filteredSesiList.some(s => s.id_sesi === urlState.selectedSesi);
-      if (!isSelectedValid) {
-        urlState.setSelectedSesi(filteredSesiList[0].id_sesi);
+      const currentSelectedSesiObj = filteredSesiList.find(s => s.id_sesi === urlState.selectedSesi);
+      const jsDay = urlState.selectedDate.getDay();
+      const mappedDay = jsDay === 0 ? 7 : jsDay;
+      const isCurrentSesiValidForDate = currentSelectedSesiObj && (
+        !currentSelectedSesiObj.hari || 
+        currentSelectedSesiObj.hari.length === 0 || 
+        currentSelectedSesiObj.hari.includes(mappedDay)
+      );
+
+      if (!currentSelectedSesiObj || !isCurrentSesiValidForDate) {
+        // Cari sesi yang valid untuk hari terpilih terlebih dahulu
+        const validSesi = filteredSesiList.find(s => 
+          !s.hari || 
+          s.hari.length === 0 || 
+          s.hari.includes(mappedDay)
+        );
+        if (validSesi) {
+          urlState.setSelectedSesi(validSesi.id_sesi);
+        } else if (!currentSelectedSesiObj) {
+          urlState.setSelectedSesi(filteredSesiList[0].id_sesi);
+        }
       }
     } else if (sesiList.length > 0 && uniqueHalaqahIds.length > 0) {
       urlState.setSelectedSesi(null);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filteredSesiList, sesiList.length, uniqueHalaqahIds.length]);
+  }, [filteredSesiList, sesiList.length, uniqueHalaqahIds.length, urlState.selectedDate]);
 
   // Sync Submitted Attendance
   const submittedAttendance = useMemo(() => {
