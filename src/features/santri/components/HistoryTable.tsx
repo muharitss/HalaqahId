@@ -1,4 +1,6 @@
 import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { sekolahService } from "@/features/sekolah/api/sekolahService";
 import { format, subDays, startOfMonth, endOfMonth } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
 import { toast } from "sonner";
@@ -67,14 +69,6 @@ interface HistoryTableProps {
   history: SetoranRecord[];
 }
 
-const KATEGORI_OPTIONS = [
-  { value: "all", label: "Semua Kategori" },
-  { value: "HAFALAN", label: "Hafalan" },
-  { value: "MURAJAAH", label: "Muraja'ah" },
-  { value: "ZIYADAH", label: "Ziyadah" },
-  { value: "INTENS", label: "Intensif" },
-  { value: "BACAAN", label: "Bacaan" },
-];
 
 const DATE_FILTER_OPTIONS = [
   { value: "all", label: "Semua Waktu" },
@@ -98,6 +92,37 @@ export function HistoryTable({ santri, history }: HistoryTableProps) {
   const { generateSantriHistoryPdf, isGenerating } = useSantriHistoryPdf();
   const { user } = useAuth();
   const { updateSetoran, deleteSetoran } = useSetoran();
+
+  // Fetch Kategori Data
+  const { data: kategoriList = [] } = useQuery({
+    queryKey: ["kategori-setoran-history"],
+    queryFn: async () => {
+      const res = await sekolahService.getKategori();
+      return res.data || [];
+    },
+  });
+
+  const categoryOptions = useMemo(() => {
+    const options = [{ value: "all", label: "Semua Kategori" }];
+    kategoriList.forEach((c: any) => {
+      options.push({
+        value: c.nama_kategori.toUpperCase(),
+        label: c.nama_kategori,
+      });
+    });
+    // Fallback if loading or empty
+    if (options.length === 1) {
+      return [
+        { value: "all", label: "Semua Kategori" },
+        { value: "HAFALAN", label: "Hafalan" },
+        { value: "MURAJAAH", label: "Muraja'ah" },
+        { value: "ZIYADAH", label: "Ziyadah" },
+        { value: "INTENS", label: "Intensif" },
+        { value: "BACAAN", label: "Bacaan" },
+      ];
+    }
+    return options;
+  }, [kategoriList]);
 
   const [editingSetoran, setEditingSetoran] = useState<SetoranRecord | null>(null);
   const [deletingSetoranId, setDeletingSetoranId] = useState<number | null>(null);
@@ -301,7 +326,7 @@ export function HistoryTable({ santri, history }: HistoryTableProps) {
               <SelectValue placeholder="Pilih Kategori" />
             </SelectTrigger>
             <SelectContent>
-              {KATEGORI_OPTIONS.map((opt) => (
+              {categoryOptions.map((opt) => (
                 <SelectItem key={opt.value} value={opt.value}>
                   {opt.label}
                 </SelectItem>

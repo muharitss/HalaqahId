@@ -75,6 +75,7 @@ export const transformSetoranData = (
   interface AccType {
     [key: string]: {
       name: string;
+      muhafizName?: string;
       totalHafalan: number;
       totalMurajaah: number;
       totalZiyadah: number;
@@ -90,6 +91,7 @@ export const transformSetoranData = (
 
   return (filteredData as unknown as SetoranItem[]).reduce((acc: AccType, item: SetoranItem) => {
     const halaqahName = item.santri?.halaqah?.name_halaqah || "Tanpa Halaqah";
+    const muhafizName = item.santri?.halaqah?.user?.name || "";
     const santriId = item.id_santri || 0;
     const santriName = item.santri?.nama_santri || "Nama Tidak Diketahui";
     
@@ -103,6 +105,7 @@ export const transformSetoranData = (
     if (!acc[halaqahName]) {
       acc[halaqahName] = {
         name: halaqahName,
+        muhafizName,
         totalHafalan: 0,
         totalMurajaah: 0,
         totalZiyadah: 0,

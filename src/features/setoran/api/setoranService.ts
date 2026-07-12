@@ -26,9 +26,11 @@ export const setoranService = {
   },
 
   // GET /setoran/all
-  getAllSetoran: async (): Promise<ApiResponse<SetoranRecord[]>> => {
+  getAllSetoran: async (page = 1, limit = 1000): Promise<ApiResponse<SetoranRecord[]>> => {
     try {
-      const response = await axiosClient.get<ApiResponse<SetoranRecord[]>>("/setoran/all");
+      const response = await axiosClient.get<ApiResponse<SetoranRecord[]>>("/setoran/all", {
+        params: { page, limit }
+      });
       return response.data;
     } catch (error: unknown) {
       throw new Error(getErrorMessage(error, "Gagal mengambil data setoran"));

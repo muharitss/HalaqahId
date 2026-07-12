@@ -12,7 +12,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Command,
   CommandEmpty,
@@ -35,12 +39,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ExamHistoryTable } from "../components/ExamHistoryTable";
 
 import {
@@ -66,17 +65,25 @@ import { useProgresPdf } from "../hooks/useProgresPdf";
 import { HistoryTable } from "../components/HistoryTable";
 import { useAuth } from "@/features/auth/components/auth-provider";
 import { Role } from "@/types/domain/enums";
-import { SATUAN_TARGET_LABELS, TIPE_TARGET_LABELS } from "@/types/domain/target";
+import {
+  SATUAN_TARGET_LABELS,
+  TIPE_TARGET_LABELS,
+} from "@/types/domain/target";
 import type { ProgresSantri } from "../types";
 
-type SortKey = "nama_santri" | "nama_halaqah" | "target" | "persentase" | "status";
+type SortKey = "nama_santri" | "nama_halaqah" | "target" | "persentase";
 type SortDir = "asc" | "desc";
 
 export function ProgresSantriPage() {
+  const [scope, setScope] = useState<string>("target");
   const { user } = useAuth();
   const { halaqahId } = useParams<{ halaqahId?: string }>();
-  const { progresData, loading: loadingProgres, fetchProgres } = useProgres();
-  const { fetchSetoranBySantri, history, loading: loadingHistory } = useSetoran();
+  const { progresData, loading: loadingProgres, fetchProgres } = useProgres(scope);
+  const {
+    fetchSetoranBySantri,
+    history,
+    loading: loadingHistory,
+  } = useSetoran();
   const { generatePdf, isGenerating } = useProgresPdf();
 
   const isAdmin =
@@ -96,7 +103,8 @@ export function ProgresSantriPage() {
   const [sortDir, setSortDir] = useState<SortDir>("asc");
 
   // Modal Detail State
-  const [selectedSantriForHistory, setSelectedSantriForHistory] = useState<ProgresSantri | null>(null);
+  const [selectedSantriForHistory, setSelectedSantriForHistory] =
+    useState<ProgresSantri | null>(null);
 
   // Derived list of unique Halaqahs
   const halaqahNames = useMemo(() => {
@@ -113,7 +121,9 @@ export function ProgresSantriPage() {
       return activeHalaqah;
     }
     if (halaqahId && progresData.length > 0) {
-      const match = progresData.find((s) => s.id_halaqah.toString() === halaqahId);
+      const match = progresData.find(
+        (s) => s.id_halaqah.toString() === halaqahId,
+      );
       if (match) return match.nama_halaqah;
     }
     return "all";
@@ -136,14 +146,25 @@ export function ProgresSantriPage() {
 
   const handleResetFilters = () => {
     setSearch("");
-    setActiveHalaqah(halaqahId && progresData.length > 0 ? (progresData.find(s => s.id_halaqah.toString() === halaqahId)?.nama_halaqah || "all") : "all");
+    setActiveHalaqah(
+      halaqahId && progresData.length > 0
+        ? progresData.find((s) => s.id_halaqah.toString() === halaqahId)
+            ?.nama_halaqah || "all"
+        : "all",
+    );
     setSelectedStatus("all");
+    setScope("target");
   };
 
   const isFilterActive =
     search !== "" ||
+    scope !== "target" ||
     (activeHalaqah !== "" && activeHalaqah !== "all") ||
     selectedStatus !== "all";
+
+  const handleScopeChange = (value: string) => {
+    setScope(value);
+  };
 
   // Filter progress data based on active search & selections
   const filteredProgresData = useMemo(() => {
@@ -183,7 +204,12 @@ export function ProgresSantriPage() {
         av = a.target?.nilai_target ?? 0;
         bv = b.target?.nilai_target ?? 0;
       } else if (sortKey === "status") {
-        const order = { TERCAPAI: 0, DALAM_PROSES: 1, BELUM_MULAI: 2, BEBAS: 3 };
+        const order = {
+          TERCAPAI: 0,
+          DALAM_PROSES: 1,
+          BELUM_MULAI: 2,
+          BEBAS: 3,
+        };
         av = order[a.progres.status] ?? 4;
         bv = order[b.progres.status] ?? 4;
       }
@@ -206,10 +232,18 @@ export function ProgresSantriPage() {
       return true;
     });
     const total = dataForStats.length;
-    const tercapai = dataForStats.filter((s) => s.progres.status === "TERCAPAI").length;
-    const dalamProses = dataForStats.filter((s) => s.progres.status === "DALAM_PROSES").length;
-    const belumMulai = dataForStats.filter((s) => s.progres.status === "BELUM_MULAI").length;
-    const bebas = dataForStats.filter((s) => s.progres.status === "BEBAS").length;
+    const tercapai = dataForStats.filter(
+      (s) => s.progres.status === "TERCAPAI",
+    ).length;
+    const dalamProses = dataForStats.filter(
+      (s) => s.progres.status === "DALAM_PROSES",
+    ).length;
+    const belumMulai = dataForStats.filter(
+      (s) => s.progres.status === "BELUM_MULAI",
+    ).length;
+    const bebas = dataForStats.filter(
+      (s) => s.progres.status === "BEBAS",
+    ).length;
 
     const butuhPerhatian = dataForStats.filter((s) => {
       const lastDateStr = s.progres.tanggal_setoran_terakhir;
@@ -217,7 +251,9 @@ export function ProgresSantriPage() {
         return s.target ? true : false;
       }
       const lastDate = new Date(lastDateStr);
-      const diffDays = Math.floor((new Date().getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24));
+      const diffDays = Math.floor(
+        (new Date().getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24),
+      );
       return diffDays >= 3;
     }).length;
 
@@ -279,7 +315,8 @@ export function ProgresSantriPage() {
   };
 
   const renderSortIcon = (col: SortKey) => {
-    if (sortKey !== col) return <ArrowUpDown className="h-3 w-3 ml-1.5 opacity-30" />;
+    if (sortKey !== col)
+      return <ArrowUpDown className="h-3 w-3 ml-1.5 opacity-30" />;
     return sortDir === "asc" ? (
       <ArrowUp className="h-3 w-3 ml-1.5 text-primary" />
     ) : (
@@ -291,18 +328,18 @@ export function ProgresSantriPage() {
     ? `${selectedSantriForHistory.target.nilai_target} ${SATUAN_TARGET_LABELS[selectedSantriForHistory.target.satuan as keyof typeof SATUAN_TARGET_LABELS] ?? selectedSantriForHistory.target.satuan} / ${TIPE_TARGET_LABELS[selectedSantriForHistory.target.tipe as keyof typeof TIPE_TARGET_LABELS]?.toLowerCase() ?? selectedSantriForHistory.target.tipe.toLowerCase()}`
     : "Tanpa Target";
 
-  const getStatusBadgeVariant = (status: string) => {
-    switch (status) {
-      case "TERCAPAI":
-        return "default";
-      case "DALAM_PROSES":
-        return "secondary";
-      case "BELUM_MULAI":
-        return "destructive";
-      default:
-        return "outline";
-    }
-  };
+  // const getStatusBadgeVariant = (status: string) => {
+  //   switch (status) {
+  //     case "TERCAPAI":
+  //       return "default";
+  //     case "DALAM_PROSES":
+  //       return "secondary";
+  //     case "BELUM_MULAI":
+  //       return "destructive";
+  //     default:
+  //       return "outline";
+  //   }
+  // };
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
@@ -324,14 +361,18 @@ export function ProgresSantriPage() {
             onClick={() => fetchProgres()}
             disabled={loadingProgres}
           >
-            <RefreshCw className={cn("h-4 w-4 mr-2", loadingProgres && "animate-spin")} />
+            <RefreshCw
+              className={cn("h-4 w-4 mr-2", loadingProgres && "animate-spin")}
+            />
             Refresh
           </Button>
-          
+
           <Button
             size="sm"
             onClick={handleDownloadPdf}
-            disabled={isGenerating || loadingProgres || filteredProgresData.length === 0}
+            disabled={
+              isGenerating || loadingProgres || filteredProgresData.length === 0
+            }
           >
             {isGenerating ? (
               <>
@@ -360,7 +401,9 @@ export function ProgresSantriPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{card.value}</div>
-                <p className="text-xs text-muted-foreground mt-1">{card.subtitle}</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {card.subtitle}
+                </p>
               </CardContent>
             </Card>
           ))}
@@ -420,21 +463,38 @@ export function ProgresSantriPage() {
             </div>
 
             <div className="flex flex-wrap gap-2">
+              <Select value={scope} onValueChange={handleScopeChange}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Cakupan Data" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="target">Periode Target Aktif</SelectItem>
+                  <SelectItem value="all">Semua Riwayat</SelectItem>
+                </SelectContent>
+              </Select>
               {isAdmin && (
-                <Select value={effectiveActiveHalaqah} onValueChange={setActiveHalaqah}>
+                <Select
+                  value={effectiveActiveHalaqah}
+                  onValueChange={setActiveHalaqah}
+                >
                   <SelectTrigger className="h-9 w-[180px]">
                     <SelectValue placeholder="Semua Halaqah" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Semua Halaqah</SelectItem>
                     {halaqahNames.map((name) => (
-                      <SelectItem key={name} value={name}>{name}</SelectItem>
+                      <SelectItem key={name} value={name}>
+                        {name}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               )}
 
-              <Popover open={santriSearchOpen} onOpenChange={setSantriSearchOpen}>
+              <Popover
+                open={santriSearchOpen}
+                onOpenChange={setSantriSearchOpen}
+              >
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
@@ -456,7 +516,12 @@ export function ProgresSantriPage() {
                           setSantriSearchOpen(false);
                         }}
                       >
-                        <Check className={cn("mr-2 h-4 w-4", search === "" ? "opacity-100" : "opacity-0")} />
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            search === "" ? "opacity-100" : "opacity-0",
+                          )}
+                        />
                         Semua Santri
                       </CommandItem>
                       {santriNames.map((s) => (
@@ -468,7 +533,12 @@ export function ProgresSantriPage() {
                             setSantriSearchOpen(false);
                           }}
                         >
-                          <Check className={cn("mr-2 h-4 w-4", search === s ? "opacity-100" : "opacity-0")} />
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              search === s ? "opacity-100" : "opacity-0",
+                            )}
+                          />
                           {s}
                         </CommandItem>
                       ))}
@@ -489,7 +559,6 @@ export function ProgresSantriPage() {
                   <SelectItem value="BEBAS">Tanpa Target</SelectItem>
                 </SelectContent>
               </Select>
-
             </div>
           </div>
         )}
@@ -545,15 +614,6 @@ export function ProgresSantriPage() {
                       Capaian {renderSortIcon("persentase")}
                     </Button>
                   </TableHead>
-                  <TableHead>
-                    <Button
-                      variant="ghost"
-                      onClick={() => toggleSortHandler("status")}
-                      className="hover:bg-transparent -ml-4"
-                    >
-                      Status {renderSortIcon("status")}
-                    </Button>
-                  </TableHead>
                   <TableHead className="text-right pr-6">Aksi</TableHead>
                 </TableRow>
               </TableHeader>
@@ -571,7 +631,10 @@ export function ProgresSantriPage() {
                     }
                   } else {
                     const lastDate = new Date(lastDateStr);
-                    const diffDays = Math.floor((new Date().getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24));
+                    const diffDays = Math.floor(
+                      (new Date().getTime() - lastDate.getTime()) /
+                        (1000 * 60 * 60 * 24),
+                    );
                     if (diffDays >= 3) {
                       ewsLabel = `Pasif ${diffDays} Hari`;
                     }
@@ -581,10 +644,15 @@ export function ProgresSantriPage() {
                     <TableRow key={row.id_santri}>
                       <TableCell className="pl-6 py-4">
                         <div className="font-semibold">{row.nama_santri}</div>
-                        <div className="text-xs text-muted-foreground md:hidden mt-0.5">{row.nama_halaqah}</div>
+                        <div className="text-xs text-muted-foreground md:hidden mt-0.5">
+                          {row.nama_halaqah}
+                        </div>
                         {ewsLabel && (
                           <div className="mt-1">
-                            <Badge variant="destructive" className="text-[10px] px-1.5 py-0">
+                            <Badge
+                              variant="destructive"
+                              className="text-[10px] px-1.5 py-0"
+                            >
                               {ewsLabel}
                             </Badge>
                           </div>
@@ -600,19 +668,21 @@ export function ProgresSantriPage() {
                         {row.target ? (
                           <div className="flex flex-col gap-1 w-28">
                             <div className="flex justify-between items-center text-[10px] text-muted-foreground">
-                              <span>{row.progres.capaian}/{row.target.nilai_target}</span>
+                              <span>
+                                {row.progres.capaian}/{row.target.nilai_target}
+                              </span>
                               <span>{row.progres.persentase}%</span>
                             </div>
-                            <Progress value={row.progres.persentase} className="h-1.5" />
+                            <Progress
+                              value={row.progres.persentase}
+                              className="h-1.5"
+                            />
                           </div>
                         ) : (
-                          <span className="text-xs text-muted-foreground">{row.progres.jumlah_setoran} setoran</span>
+                          <span className="text-xs text-muted-foreground">
+                            {row.progres.jumlah_setoran} setoran
+                          </span>
                         )}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={getStatusBadgeVariant(row.progres.status)}>
-                          {row.progres.status}
-                        </Badge>
                       </TableCell>
                       <TableCell className="text-right pr-6">
                         <Button
@@ -647,7 +717,8 @@ export function ProgresSantriPage() {
               Riwayat Setoran — {selectedSantriForHistory?.nama_santri}
             </DialogTitle>
             <DialogDescription className="text-xs text-muted-foreground mt-1">
-              {selectedSantriForHistory?.nama_halaqah} · Target: {activeTargetLabel}
+              {selectedSantriForHistory?.nama_halaqah} · Target:{" "}
+              {activeTargetLabel}
             </DialogDescription>
           </DialogHeader>
 
@@ -658,7 +729,7 @@ export function ProgresSantriPage() {
                   <TabsTrigger value="setoran">Riwayat Setoran</TabsTrigger>
                   <TabsTrigger value="ujian">Riwayat Ujian</TabsTrigger>
                 </TabsList>
-                
+
                 <TabsContent value="setoran">
                   {loadingHistory ? (
                     <div className="py-12 text-center text-muted-foreground flex flex-col items-center justify-center gap-2">
@@ -672,14 +743,13 @@ export function ProgresSantriPage() {
                     />
                   )}
                 </TabsContent>
-                
+
                 <TabsContent value="ujian">
                   <ExamHistoryTable santri={selectedSantriForHistory} />
                 </TabsContent>
               </Tabs>
             )}
           </div>
-
         </DialogContent>
       </Dialog>
     </div>

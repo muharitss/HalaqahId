@@ -58,7 +58,10 @@ export const laporanService = {
     halaqahList: Halaqah[],
     halaqahName: string,
   ): number | undefined => {
-    return halaqahList.find((h) => h.name_halaqah === halaqahName)?.id_halaqah;
+    return halaqahList.find((h) => {
+      const combined = h.muhafiz?.name ? `${h.name_halaqah} - ${h.muhafiz.name}` : h.name_halaqah;
+      return combined === halaqahName || h.name_halaqah === halaqahName;
+    })?.id_halaqah;
   },
 
   // Filter santri by halaqah ID

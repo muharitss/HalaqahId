@@ -13,9 +13,11 @@ export const progresService = {
    * Ambil ringkasan progres hafalan semua santri dari backend.
    * Data adalah kalkulasi real berdasarkan setoran aktual vs target yang ditetapkan.
    */
-  getAllProgres: async (): Promise<ApiResponse<ProgresSantri[]>> => {
+  getAllProgres: async (scope: string = "target"): Promise<ApiResponse<ProgresSantri[]>> => {
     try {
-      const response = await axiosClient.get<ApiResponse<ProgresSantri[]>>("/santri/progress");
+      const response = await axiosClient.get<ApiResponse<ProgresSantri[]>>("/santri/progress", {
+        params: {scope}
+      });
       return response.data;
     } catch (error: unknown) {
       throw new Error(getErrorMessage(error, "Gagal mengambil data progres"));

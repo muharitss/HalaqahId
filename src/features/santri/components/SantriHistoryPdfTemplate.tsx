@@ -20,12 +20,14 @@ interface SantriHistoryPdfTemplateProps {
   generatedAt: string;
 }
 
-const KATEGORI_COLOR: Record<string, string> = {
-  HAFALAN: "#059669",
-  MURAJAAH: "#2563eb",
-  ZIYADAH: "#7c3aed",
-  INTENS: "#d97706",
-  BACAAN: "#e11d48",
+const getKategoriColor = (kategori: string): string => {
+  const normalized = (kategori || "").toUpperCase();
+  if (normalized.includes("ZIYADAH") || normalized.includes("SETORAN")) return "#7c3aed";
+  if (normalized.includes("MURAJAAH")) return "#2563eb";
+  if (normalized.includes("HAFALAN")) return "#059669";
+  if (normalized.includes("INTENS")) return "#d97706";
+  if (normalized.includes("BACAAN")) return "#e11d48";
+  return "#64748b"; // Fallback color
 };
 
 const styles = StyleSheet.create({
@@ -242,7 +244,7 @@ const styles = StyleSheet.create({
 });
 
 function KategoriPill({ kategori }: { kategori: string }) {
-  const color = KATEGORI_COLOR[kategori.toUpperCase()] ?? "#64748b";
+  const color = getKategoriColor(kategori);
   return (
     <View style={[styles.kategoriBadge, { backgroundColor: color + "20" }]}>
       <Text style={[styles.kategoriBadgeText, { color }]}>{kategori}</Text>

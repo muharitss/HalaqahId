@@ -46,13 +46,21 @@ export function AbsensiInputTable() {
   }
 
   if (!isDateValidForSesi) {
+    const hariNames = ["", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"];
+    const jadwalHari = currentSesiObj?.hari && currentSesiObj.hari.length > 0
+      ? currentSesiObj.hari.map(h => hariNames[h]).join(", ")
+      : "Tidak ada jadwal hari";
+
     return (
       <div className="bg-card rounded-xl border shadow-sm p-12 text-center">
         <AlertCircle className="mx-auto h-10 w-10 text-amber-500 mb-4" />
         <p className="text-amber-600 font-medium text-lg">
           Sesi {currentSesiObj?.nama_sesi} tidak dijadwalkan pada hari ini.
         </p>
-        <p className="text-sm text-amber-500 mt-2">
+        <p className="text-sm text-amber-600 mt-1">
+          Jadwal sesi ini: <span className="font-bold">{jadwalHari}</span>
+        </p>
+        <p className="text-xs text-amber-500 mt-3">
           Silakan pilih sesi yang sesuai atau ubah tanggal.
         </p>
       </div>

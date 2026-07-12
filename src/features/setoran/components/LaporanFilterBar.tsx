@@ -35,8 +35,6 @@ const MONTHS = [
   "Juli", "Agustus", "September", "Oktober", "November", "Desember",
 ];
 
-const DEFAULT_KATEGORI_LIST = ["HAFALAN", "MURAJAAH", "ZIYADAH", "INTENS", "BACAAN"];
-
 const currentYear = new Date().getFullYear();
 const YEARS = Array.from({ length: 5 }, (_, i) => currentYear - i);
 
@@ -341,7 +339,7 @@ export function LaporanFilterBar({
             <SelectItem value="__all__">
               <span className="text-xs">Semua Kategori</span>
             </SelectItem>
-            {(kategoriNames.length > 0 ? kategoriNames : DEFAULT_KATEGORI_LIST).map((k) => (
+            {kategoriNames.map((k) => (
               <SelectItem key={k} value={k}>
                 <span className="text-xs">{k}</span>
               </SelectItem>

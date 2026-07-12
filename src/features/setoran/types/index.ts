@@ -157,6 +157,9 @@ export interface SetoranItem {
     halaqah?: {
       id_halaqah: number;
       name_halaqah: string;
+      user?: {
+        name: string;
+      } | null;
     } | null;
   } | null;
   is_valid_sequence?: boolean;
@@ -175,6 +178,7 @@ export interface GroupedSantriItem {
 
 export interface GroupedHalaqahItem {
   name: string;
+  muhafizName?: string;
   totalHafalan: number;
   totalMurajaah: number;
   totalZiyadah?: number;
