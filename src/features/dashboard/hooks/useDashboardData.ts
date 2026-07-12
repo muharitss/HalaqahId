@@ -7,6 +7,7 @@ import type { ViewType } from "../types";
 export const useDashboardData = () => {
   const [chartView, setChartView] = useState<ViewType>("pekan");
   const [absensiView, setAbsensiView] = useState<ViewType>("pekan");
+  const [alfaView, setAlfaView] = useState<ViewType>("pekan");
 
   const { data: initialData, isFetching: loadingInitial } = useQuery({
     queryKey: ["dashboard-initial"],
@@ -37,6 +38,19 @@ export const useDashboardData = () => {
     }
   });
 
+  const { data: alfaData, isFetching: loadingAlfa } = useQuery({
+    queryKey: ["dashboard-alfa", alfaView],
+    queryFn: async () => {
+      try {
+        const { alfaStudents } = await dashboardService.getAttendanceStats(alfaView);
+        return { alfaStudents };
+      } catch (error) {
+        console.error("Error loading alfa data:", error);
+        throw error;
+      }
+    }
+  });
+
   const setoranData = useMemo(() => initialData?.setoran || [], [initialData?.setoran]);
   
   const weeklyData = useMemo(() => dashboardService.getWeeklyChartData(setoranData), [setoranData]);
@@ -52,17 +66,21 @@ export const useDashboardData = () => {
     loading: {
       setoran: loadingInitial,
       absensi: loadingAbsensi,
-      muhafiz: loadingInitial
+      muhafiz: loadingInitial,
+      alfa: loadingAlfa
     },
     chartView,
     setChartView,
     absensiView,
     setAbsensiView,
+    alfaView,
+    setAlfaView,
     weeklyData,
     monthlyData,
     categoryData,
     absensiStats: absensiData?.stats || [],
     totalAbsensi: absensiData?.total || 0,
+    alfaStudents: alfaData?.alfaStudents || [],
     muhafizList: initialData?.muhafiz || [],
     stats,
   };

@@ -1,8 +1,8 @@
-﻿import { absensiService } from "@/features/absensi/api/absensiService";
+import { absensiService } from "@/features/absensi/api/absensiService";
 import { setoranService } from "@/features/setoran/api/setoranService";
 import { santriService } from "@/features/santri/api/santriService";
 import { sanitizeDashboardData } from "@/lib/dataTransformer";
-import { startOfWeek, startOfMonth, eachDayOfInterval, format } from "date-fns";
+import { startOfWeek, startOfMonth, format } from "date-fns";
 import { akunService, halaqahService } from "@/features/shared/api";
 
 import type { 
@@ -13,8 +13,7 @@ import type {
   DashboardStats,
   Muhafiz,
   SetoranData,
-  Halaqah,
-  AbsensiData
+  AlfaStudent
 } from "../types";
 
 export const dashboardService = {
@@ -44,40 +43,50 @@ export const dashboardService = {
   },
 
   // Get aggregated attendance data
-  getAttendanceStats: async (view: "pekan" | "bulan"): Promise<{ stats: AbsensiStat[]; total: number }> => {
+  getAttendanceStats: async (view: "pekan" | "bulan"): Promise<{ stats: AbsensiStat[]; total: number; alfaStudents: AlfaStudent[] }> => {
     try {
       const now = new Date();
       const start = view === "pekan" 
         ? startOfWeek(now, { weekStartsOn: 1 }) 
         : startOfMonth(now);
       
-      const dates = eachDayOfInterval({ start, end: now }).map(d => format(d, "yyyy-MM-dd"));
-      const resHalaqah = await halaqahService.getAllHalaqah();
-      // Cast ke tipe Halaqah dashboard agar properti 'id_halaqah' bisa diakses
-      const allHalaqah = (resHalaqah || []) as unknown as Halaqah[];
+      const startDateStr = format(start, "yyyy-MM-dd");
+      const endDateStr = format(now, "yyyy-MM-dd");
 
-      const promises = dates.flatMap(date => 
-        allHalaqah.map((h) => 
-          absensiService.getRekapHalaqah(h.id_halaqah, date)
-            .then(res => {
-              // Gunakan unknown sebagai jembatan untuk konversi tipe yang tidak overlap
-              return (res.data || []) as unknown as AbsensiData[];
-            })
-            .catch(() => [] as AbsensiData[])
-        )
+      const response = await absensiService.getAllRekapSantri(
+        undefined,
+        undefined,
+        startDateStr,
+        endDateStr
       );
 
-      const results = await Promise.all(promises);
-      // Memastikan hasil flat adalah array AbsensiData murni
-      const rawData = results.flat() as AbsensiData[];
-
-      const cleanData = sanitizeDashboardData<AbsensiData>(rawData);
+      const rawData = (response.data || []) as any[];
 
       const counts = { HADIR: 0, IZIN: 0, SAKIT: 0, ALFA: 0, TERLAMBAT: 0 };
-      cleanData.forEach((item) => {
-        const status = item.status as keyof typeof counts;
-        if (status in counts) {
-          counts[status]++;
+      const studentAlfaMap: Record<number, { nama_santri: string; name_halaqah: string; dates: string[] }> = {};
+
+      rawData.forEach((day: any) => {
+        const dateStr = day.tanggal;
+        if (Array.isArray(day.data)) {
+          day.data.forEach((item: any) => {
+            const status = item.status as keyof typeof counts;
+            if (status in counts) {
+              counts[status]++;
+            }
+            if (status === "ALFA") {
+              const idSantri = item.id_santri;
+              if (idSantri) {
+                if (!studentAlfaMap[idSantri]) {
+                  studentAlfaMap[idSantri] = {
+                    nama_santri: item.nama_santri || "Santri",
+                    name_halaqah: item.name_halaqah || "Tanpa Halaqah",
+                    dates: []
+                  };
+                }
+                studentAlfaMap[idSantri].dates.push(dateStr);
+              }
+            }
+          });
         }
       });
 
@@ -89,10 +98,20 @@ export const dashboardService = {
         { status: "ALFA", count: counts.ALFA, fill: "#ef4444" },
       ];
 
-      return { stats, total: cleanData.length };
+      const total = Object.values(counts).reduce((sum, val) => sum + val, 0);
+
+      const alfaStudents: AlfaStudent[] = Object.entries(studentAlfaMap).map(([idStr, val]) => ({
+        id_santri: Number(idStr),
+        nama_santri: val.nama_santri,
+        name_halaqah: val.name_halaqah,
+        alfaCount: val.dates.length,
+        dates: val.dates.sort()
+      })).sort((a, b) => b.alfaCount - a.alfaCount);
+
+      return { stats, total, alfaStudents };
     } catch (error) {
       console.error("Gagal agregasi absensi:", error);
-      return { stats: [], total: 0 };
+      return { stats: [], total: 0, alfaStudents: [] };
     }
   },
 

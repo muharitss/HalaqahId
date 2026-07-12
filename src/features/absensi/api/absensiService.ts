@@ -1,4 +1,4 @@
-﻿import axiosClient from "@/lib/axiosClient";
+import axiosClient from "@/lib/axiosClient";
 import { getErrorMessage } from "@/utils/error";
 import { type ApiResponse } from "@/features/halaqah/api/halaqahService";
 import { 
@@ -70,12 +70,20 @@ export const absensiService = {
   },
 
   getAllRekapSantri: async (
-    month: string,
-    year: string
+    month?: string,
+    year?: string,
+    startDate?: string,
+    endDate?: string
   ): Promise<ApiResponse<MonthlyAbsensiData[]>> => {
     try {
+      const params = new URLSearchParams();
+      if (month) params.append("month", month);
+      if (year) params.append("year", year);
+      if (startDate) params.append("startDate", startDate);
+      if (endDate) params.append("endDate", endDate);
+
       const res = await axiosClient.get<ApiResponse<MonthlyAbsensiData[]>>(
-        `/absensi/rekap-santri?month=${month}&year=${year}`
+        `/absensi/rekap-santri?${params.toString()}`
       );
       return res.data;
     } catch (error: unknown) {
