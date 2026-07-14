@@ -24,6 +24,12 @@ export type SatuanTarget = (typeof SatuanTarget)[keyof typeof SatuanTarget];
 export interface TargetSekolah {
   id_target: number;
   id_sekolah: number;
+  id_kategori?: number | null;
+  kategori?: {
+    id_kategori: number;
+    nama_kategori: string;
+    jenis_kategori: string;
+  } | null;
   nama_target: string;
   tipe: TipeTarget;
   nilai_target: number;
@@ -35,6 +41,10 @@ export interface TargetSekolah {
    * Hanya relevan untuk tipe HARIAN.
    */
   hari_aktif?: string | null;
+  start_juz?: number | null;
+  end_juz?: number | null;
+  daftar_surat?: string | null;
+  arah?: "MAJU" | "MUNDUR" | "BEBAS" | null;
   created_at: string;
   updated_at: string;
   deleted_at?: string | null;
@@ -42,22 +52,32 @@ export interface TargetSekolah {
 
 export interface CreateTargetRequest {
   nama_target: string;
+  id_kategori: number;
   tipe: TipeTarget;
   nilai_target: number;
   satuan: SatuanTarget;
   deskripsi?: string | null;
   /** Array hari aktif (0=Minggu…6=Sabtu), hanya untuk tipe HARIAN */
   hari_aktif?: number[] | null;
+  start_juz?: number | null;
+  end_juz?: number | null;
+  daftar_surat?: string | null;
+  arah?: "MAJU" | "MUNDUR" | "BEBAS" | null;
 }
 
 export interface UpdateTargetRequest {
   nama_target?: string;
+  id_kategori?: number;
   tipe?: TipeTarget;
   nilai_target?: number;
   satuan?: SatuanTarget;
   deskripsi?: string | null;
   /** Array hari aktif (0=Minggu…6=Sabtu), hanya untuk tipe HARIAN */
   hari_aktif?: number[] | null;
+  start_juz?: number | null;
+  end_juz?: number | null;
+  daftar_surat?: string | null;
+  arah?: "MAJU" | "MUNDUR" | "BEBAS" | null;
 }
 
 /** Label ramah user untuk setiap tipe periode target */

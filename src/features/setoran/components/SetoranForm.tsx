@@ -46,16 +46,8 @@ import { sekolahService, type KategoriSetoranResponse } from "@/features/sekolah
 import { setoranService } from "../api/setoranService";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { useSmartSetoranMode } from "../hooks/useSmartSetoranMode";
+import { EditModeBanner, CheckErrorBanner, CheckingIndicator } from "./SetoranModeBanner";
 
 // ─────────────────────────────────────────────
 // Schema validasi
@@ -169,46 +161,13 @@ interface SetoranFormProps {
   sesiList: SesiHalaqah[];
   onSubmit: (data: SetoranPayload) => Promise<{ success: boolean }>;
   onValidationChange?: (isValid: boolean) => void;
+  /** Callback dipanggil setiap kali mode berubah (idle / create / edit) */
+  onModeChange?: (mode: import("../hooks/useSmartSetoranMode").FormMode) => void;
+  /** Callback dipanggil setiap kali status pengecekan berubah */
+  onCheckingChange?: (isChecking: boolean) => void;
 }
 
-const parseAyatRange = (ayatStr: string) => {
-  if (!ayatStr) return { start: 1, end: 1 };
-  const parts = ayatStr.split("-");
-  const start = parseInt(parts[0]) || 1;
-  const end = parseInt(parts[1]) || start;
-  return { start, end };
-};
 
-const checkDuplicateSetoran = (
-  history: any[],
-  startSurahName: string,
-  startAyat: number,
-  endSurahName: string,
-  endAyat: number,
-  kategoriId: number
-) => {
-  const newStartId = getGlobalAyahId(startSurahName, startAyat);
-  const newEndId = getGlobalAyahId(endSurahName, endAyat);
-
-  return history.some((item) => {
-    if (item.id_kategori !== kategoriId) return false;
-
-    const startSurahId = item.start_surat_id || SURAH_IDS[item.surat] || 1;
-    const endSurahId = item.end_surat_id || startSurahId;
-    
-    const itemStartAyat = item.start_ayat !== null && item.start_ayat !== undefined 
-      ? item.start_ayat 
-      : parseAyatRange(item.ayat).start;
-    const itemEndAyat = item.end_ayat !== null && item.end_ayat !== undefined 
-      ? item.end_ayat 
-      : parseAyatRange(item.ayat).end;
-      
-    const itemStartId = startSurahId * 10000 + itemStartAyat;
-    const itemEndId = endSurahId * 10000 + itemEndAyat;
-
-    return newStartId <= itemEndId && itemStartId <= newEndId;
-  });
-};
 
 const ALL_SURAHS = Array.from({ length: 114 }, (_, i) => {
   const num = i + 1;
@@ -221,19 +180,19 @@ export function SetoranForm({
   sesiList,
   onSubmit,
   onValidationChange,
+  onModeChange,
+  onCheckingChange,
 }: SetoranFormProps) {
   const [openMulai, setOpenMulai] = useState(false);
   const [openSelesai, setOpenSelesai] = useState(false);
+  const [bannerDismissed, setBannerDismissed] = useState(false);
 
-  // ── State Mushaf ──
   const navigate = useNavigate();
   const location = useLocation();
   const [mushafSelection, setMushafSelection] = useState<MushafSelection | null>(null);
 
-  const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
-  const [pendingValues, setPendingValues] = useState<SetoranFormFields | null>(null);
+  const smartMode = useSmartSetoranMode();
 
-  // Load konfigurasi form dinamis sekolah
   const { data: profileData } = useQuery({
     queryKey: ["schoolProfile"],
     queryFn: () => sekolahService.getProfile(),
@@ -243,7 +202,6 @@ export function SetoranForm({
     return (profileData?.data?.form_setoran_config as any[]) || [];
   }, [profileData]);
 
-  // Build schema dinamis menggabungkan field core + kustom
   const dynamicSchema = useMemo(() => {
     const customFieldsSchema: Record<string, z.ZodTypeAny> = {};
     customFields.forEach((field) => {
@@ -284,13 +242,12 @@ export function SetoranForm({
     });
   }, [customFields]);
 
-  // Ambil data dari localStorage secara sinkron untuk defaultValues
   const tempDefaults = useMemo(() => {
     try {
       const stored = localStorage.getItem("setoran_form_temp");
       if (stored) {
         const data = JSON.parse(stored);
-        const expiryMs = 10 * 60 * 1000; // 10 menit
+        const expiryMs = 10 * 60 * 1000;
         if (data && Date.now() - data.timestamp < expiryMs) {
           return {
             id_santri: data.id_santri || undefined,
@@ -323,7 +280,6 @@ export function SetoranForm({
     },
   });
 
-  // Sinkronkan default values kustom ketika config sekolah berhasil di-load
   useEffect(() => {
     if (customFields.length > 0) {
       const currentValues = form.getValues("custom_values") || {};
@@ -337,8 +293,6 @@ export function SetoranForm({
     }
   }, [customFields, form]);
 
-  // Baca selection yang dikembalikan dari halaman mushaf via sessionStorage
-  // Harus di-define SETELAH useForm agar 'form' sudah diinisialisasi
   const readMushafSelectionFromStorage = useCallback(() => {
     const stored = sessionStorage.getItem("mushaf_selection_pending");
     if (stored) {
@@ -361,9 +315,7 @@ export function SetoranForm({
     }
   }, [form]);
 
-  // Jalankan setiap kali location berubah (setelah navigate(-1) dari mushaf)
   useEffect(() => {
-    // 1. Pulihkan draf form (nama, kategori, tanggal, dll.) jika ada sebelum membaca mushaf
     const storedDraft = sessionStorage.getItem("setoran_form_draft");
     if (storedDraft) {
       try {
@@ -374,19 +326,16 @@ export function SetoranForm({
               form.setValue(key as keyof SetoranFormFields, val as any);
             }
           });
-          form.trigger(); // Trigger validasi untuk semua field yang dipulihkan
+          form.trigger();
         }
       } catch (err) {
         console.error("Gagal memulihkan draf form:", err);
       }
       setTimeout(() => sessionStorage.removeItem("setoran_form_draft"), 0);
     }
-
-    // 2. Baca seleksi ayat dari mushaf
     readMushafSelectionFromStorage();
   }, [location, readMushafSelectionFromStorage, form]);
 
-  // Sinkronisasi Juz secara otomatis di UI ketika posisi surat/ayat berubah secara manual
   const watchSuratMulai = form.watch("surat_mulai");
   const watchAyatMulai = form.watch("ayat_mulai");
   useEffect(() => {
@@ -402,7 +351,62 @@ export function SetoranForm({
   const selectedSesiId = form.watch("id_sesi");
   const selectedKategoriId = form.watch("id_kategori");
 
-  // Auto-save input santri, sesi, dan kategori ke localStorage (sementara)
+  useEffect(() => {
+    smartMode.setSelectedSantriId(selectedSantriId ?? null);
+  }, [selectedSantriId]);
+
+  useEffect(() => {
+    smartMode.setSelectedSesiId(selectedSesiId ?? null);
+  }, [selectedSesiId]);
+
+  // Propagate state ke parent
+  useEffect(() => {
+    onModeChange?.(smartMode.mode);
+  }, [smartMode.mode, onModeChange]);
+
+  useEffect(() => {
+    onCheckingChange?.(smartMode.isChecking);
+  }, [smartMode.isChecking, onCheckingChange]);
+
+  useEffect(() => {
+    setBannerDismissed(false);
+  }, [smartMode.mode]);
+
+  useEffect(() => {
+    if (smartMode.mode === "edit" && smartMode.existingData) {
+      const data = smartMode.existingData;
+      const suratParts = (data.surat || "").split(" - ");
+      const suratMulai = suratParts[0]?.trim() || "";
+      const suratSelesai = suratParts[1]?.trim() || suratMulai;
+      const ayatParts = (data.ayat || "1-1").split("-");
+      const ayatMulai = parseInt(ayatParts[0]) || 1;
+      const ayatSelesai = parseInt(ayatParts[1]) || ayatMulai;
+
+      form.setValue("id_kategori", data.id_kategori);
+      form.setValue("juz", data.juz || 1);
+      form.setValue("surat_mulai", suratMulai);
+      form.setValue("surat_selesai", suratSelesai);
+      form.setValue("ayat_mulai", data.start_ayat || ayatMulai);
+      form.setValue("ayat_selesai", data.end_ayat || ayatSelesai);
+      form.setValue("taqwim", data.taqwim || undefined);
+      form.setValue("keterangan", data.keterangan || "");
+      if (data.custom_values) {
+        form.setValue("custom_values", data.custom_values as any);
+      }
+      form.trigger();
+    } else if (smartMode.mode === "create") {
+      form.setValue("id_kategori", tempDefaults.id_kategori || (undefined as any));
+      form.setValue("juz", 1);
+      form.setValue("surat_mulai", "");
+      form.setValue("surat_selesai", "");
+      form.setValue("ayat_mulai", undefined as any);
+      form.setValue("ayat_selesai", undefined as any);
+      form.setValue("taqwim", undefined);
+      form.setValue("keterangan", "");
+      setMushafSelection(null);
+    }
+  }, [smartMode.mode, smartMode.existingData]);
+
   useEffect(() => {
     if (selectedSantriId || selectedSesiId || selectedKategoriId) {
       const dataToSave = {
@@ -417,24 +421,12 @@ export function SetoranForm({
     }
   }, [selectedSantriId, selectedSesiId, selectedKategoriId]);
 
-  // Trigger validasi awal jika data dipulihkan dari defaultValues
   useEffect(() => {
     if (tempDefaults.id_santri || tempDefaults.id_sesi || tempDefaults.id_kategori) {
       form.trigger(["id_santri", "id_sesi", "id_kategori"]);
     }
   }, [form, tempDefaults]);
 
-  const { data: studentHistory = [] } = useQuery({
-    queryKey: ["setoran-history-local", selectedSantriId],
-    queryFn: async () => {
-      if (!selectedSantriId) return [];
-      const res = await setoranService.getSetoranBySantri(selectedSantriId);
-      return res.data || [];
-    },
-    enabled: !!selectedSantriId,
-  });
-
-  // Fetch Kategori Data dinamis dari backend
   const { data: kategoriList = [] } = useQuery({
     queryKey: ["kategori-setoran"],
     queryFn: async () => {
@@ -442,19 +434,15 @@ export function SetoranForm({
       return res.data || [];
     }
   });
-  const selectedSesiObj = sesiList.find((s) => s.id_sesi === selectedSesiId);
-
 
   const selectedTanggal = form.watch("tanggal_setoran");
+  useEffect(() => {
+    smartMode.setSelectedTanggal(selectedTanggal || null);
+  }, [selectedTanggal]);
 
+  const selectedSesiObj = sesiList.find((s) => s.id_sesi === selectedSesiId);
   const isTodayValidForSesi = useMemo(() => {
-    if (
-      !selectedSesiObj ||
-      !selectedSesiObj.hari ||
-      selectedSesiObj.hari.length === 0
-    )
-      return true;
-
+    if (!selectedSesiObj || !selectedSesiObj.hari || selectedSesiObj.hari.length === 0) return true;
     const targetDate = selectedTanggal
       ? (() => {
           const [year, month, day] = selectedTanggal.split("-").map(Number);
@@ -472,19 +460,13 @@ export function SetoranForm({
     }
   }, [isTodayValidForSesi, onValidationChange]);
 
-  // Fungsi untuk buka halaman mushaf
   const handleOpenMushaf = () => {
-    // Simpan nilai form saat ini ke sessionStorage agar tidak hilang ketika kembali
     const currentValues = form.getValues();
     sessionStorage.setItem("setoran_form_draft", JSON.stringify(currentValues));
-
     const currentSurat = form.getValues("surat_mulai");
     const surahNum = currentSurat ? surahNameToNumber(currentSurat) : undefined;
     const initialPage = surahNum ? (SURAH_PAGE_START[surahNum] ?? 1) : 1;
-    // Deteksi prefix route (muhafidz atau kepala-muhafidz) dari URL aktif
-    const basePath = location.pathname.startsWith("/kepala-muhafidz")
-      ? "/kepala-muhafidz"
-      : "/muhafidz";
+    const basePath = location.pathname.startsWith("/kepala-muhafidz") ? "/kepala-muhafidz" : "/muhafidz";
     navigate(`${basePath}/setoran/mushaf?page=${initialPage}`, {
       state: {
         initialSurahNumber: surahNum,
@@ -496,41 +478,22 @@ export function SetoranForm({
   const proceedSubmit = async (values: SetoranFormFields) => {
     const startSuratId = SURAH_IDS[values.surat_mulai] || 1;
     const endSuratId = SURAH_IDS[values.surat_selesai] || startSuratId;
-
     const calculatedJuz = findJuzBySurahAndAyah(values.surat_mulai, values.ayat_mulai);
-
-    // Cari jika ada field kustom bernama 'taqwim' atau 'jumlah_salah'
-    let taqwimValue: number | undefined = undefined;
-    if (values.custom_values) {
-      const customTaqwimKey = Object.keys(values.custom_values).find(
-        (key) => key.toLowerCase() === "taqwim" || key.toLowerCase() === "jumlah_salah"
-      );
-      if (customTaqwimKey) {
-        const val = values.custom_values[customTaqwimKey];
-        if (val !== undefined && val !== null && val !== "") {
-          taqwimValue = Number(val);
-        }
-      }
-    }
-
     const payload: SetoranPayload = {
       id_santri: values.id_santri,
       id_sesi: values.id_sesi,
       juz: calculatedJuz,
-      surat: values.surat_mulai === values.surat_selesai
-        ? values.surat_mulai
-        : `${values.surat_mulai} - ${values.surat_selesai}`,
+      surat: values.surat_mulai === values.surat_selesai ? values.surat_mulai : `${values.surat_mulai} - ${values.surat_selesai}`,
       ayat: `${values.ayat_mulai}-${values.ayat_selesai}`,
       id_kategori: values.id_kategori,
       tanggal_setoran: values.tanggal_setoran,
-      taqwim: taqwimValue,
+      taqwim: values.taqwim,
       keterangan: values.keterangan,
       custom_values: values.custom_values || null,
       start_surat_id: startSuratId,
       start_ayat: values.ayat_mulai,
       end_surat_id: endSuratId,
       end_ayat: values.ayat_selesai,
-      // Field mushaf (jika ada seleksi via mushaf)
       ...(mushafSelection && {
         start_page: mushafSelection.startPage,
         start_line: mushafSelection.startLine,
@@ -539,19 +502,31 @@ export function SetoranForm({
         total_baris: mushafSelection.totalBaris,
       }),
     };
-
+    if (smartMode.mode === "edit" && smartMode.recordId) {
+      try {
+        await setoranService.updateSetoran(smartMode.recordId, payload);
+        toast.success("Setoran berhasil diperbarui ✓");
+        smartMode.retryCheck();
+      } catch (err: any) {
+        const msg = err?.response?.data?.message || err?.message || "Gagal memperbarui setoran";
+        toast.error(msg);
+      }
+      return;
+    }
     const result = await onSubmit(payload);
     if (result.success) {
       form.reset({
         ...form.getValues(),
-        id_santri: undefined,
         surat_mulai: "",
         surat_selesai: "",
-        ayat_mulai: 1,
-        ayat_selesai: 1,
-        tanggal_setoran: getTodayString(),
+        ayat_mulai: undefined as any,
+        ayat_selesai: undefined as any,
+        taqwim: undefined,
+        keterangan: "",
+        custom_values: {},
       });
       setMushafSelection(null);
+      smartMode.retryCheck();
     }
   };
 
@@ -560,29 +535,13 @@ export function SetoranForm({
       toast.error(`Sesi ${selectedSesiObj?.nama_sesi || ""} tidak dijadwalkan pada hari ini.`);
       return;
     }
-
-    const selectedCategory = kategoriList.find(
-      (k: KategoriSetoranResponse) => k.id_kategori === values.id_kategori
-    );
-    const hasOverlap =
-      selectedCategory?.perlu_validasi_urutan &&
-      checkDuplicateSetoran(
-        studentHistory,
-        values.surat_mulai,
-        values.ayat_mulai,
-        values.surat_selesai,
-        values.ayat_selesai,
-        values.id_kategori
-      );
-
-    if (hasOverlap) {
-      setPendingValues(values);
-      setShowDuplicateDialog(true);
-      return;
-    }
-
     await proceedSubmit(values);
   };
+
+
+
+  const selectedSantriName = santriList.find((s) => s.id_santri === selectedSantriId)?.nama_santri;
+  const selectedSesiName = sesiList.find((s) => s.id_sesi === selectedSesiId)?.nama_sesi;
 
   return (
     <Form {...form}>
@@ -590,6 +549,7 @@ export function SetoranForm({
         id="setoran-form"
         onSubmit={form.handleSubmit(onFormSubmit)}
         className="space-y-4"
+        aria-busy={smartMode.isChecking}
       >
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <FormField
@@ -696,6 +656,27 @@ export function SetoranForm({
             )}
           />
         </div>
+
+        {/* ── Checking Indicator & Smart Mode Banners ───────────────────── */}
+        {smartMode.isChecking && (
+          <CheckingIndicator />
+        )}
+
+        {!smartMode.isChecking && smartMode.checkError && (
+          <CheckErrorBanner
+            message={smartMode.checkError}
+            onRetry={smartMode.retryCheck}
+          />
+        )}
+
+        {!smartMode.isChecking && !smartMode.checkError && smartMode.mode === "edit" && !bannerDismissed && (
+          <EditModeBanner
+            santriName={selectedSantriName}
+            tanggal={selectedTanggal}
+            sesiName={selectedSesiName}
+            onDismiss={() => setBannerDismissed(true)}
+          />
+        )}
 
         {/* Tombol Pilih dari Mushaf */}
         <div className="flex items-center justify-between gap-3 p-3 bg-muted/30 border border-muted/50 rounded-2xl">
@@ -1086,53 +1067,6 @@ export function SetoranForm({
           </>
         )}
       </form>
-
-      <AlertDialog open={showDuplicateDialog} onOpenChange={setShowDuplicateDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2 text-amber-600">
-              <AlertCircle className="h-5 w-5" />
-              Peringatan Setoran Duplikat
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-foreground">
-              Ayat ini sudah disetorkan sebelumnya. Apakah Anda ingin tetap menyetorkannya kembali, mengganti kategori, atau membatalkannya?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="flex flex-col sm:flex-row gap-2 mt-4">
-            <AlertDialogCancel
-              onClick={() => {
-                setShowDuplicateDialog(false);
-                setPendingValues(null);
-              }}
-              className="w-full sm:w-auto"
-            >
-              Batal
-            </AlertDialogCancel>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setShowDuplicateDialog(false);
-                setPendingValues(null);
-              }}
-              className="w-full sm:w-auto border-amber-300 text-amber-700 hover:bg-amber-50"
-            >
-              Ganti Kategori
-            </Button>
-            <AlertDialogAction
-              onClick={() => {
-                if (pendingValues) {
-                  proceedSubmit(pendingValues);
-                }
-                setShowDuplicateDialog(false);
-                setPendingValues(null);
-              }}
-              className="w-full sm:w-auto bg-amber-600 hover:bg-amber-700 text-white"
-            >
-              Tetap Input
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </Form>
   );
 }

@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useForm, useWatch, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Plus, Pencil, Trash2, Target, ChevronLeft, Loader2, CalendarDays } from "lucide-react";
+import { Plus, Pencil, Trash2, Target, ChevronLeft, Loader2, CalendarDays, Compass } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,6 +44,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
+import { sekolahService, type KategoriSetoranResponse } from "@/features/sekolah/api/sekolahService";
 import {
   useTargetList,
   useCreateTarget,
@@ -76,6 +78,12 @@ const SATUAN_OPTIONS = [
   { value: "BARIS", label: "Baris", hint: "Jumlah baris mushaf (1 hal = 15 baris)" },
   { value: "AYAT", label: "Ayat", hint: "Jumlah ayat Al-Quran" },
   { value: "JUZ", label: "Juz", hint: "1 Juz ≈ 20 halaman / 304 ayat" },
+] as const;
+
+const ARAH_OPTIONS = [
+  { value: "BEBAS", label: "Bebas", desc: "Santri dapat menyetor bagian mana saja secara acak" },
+  { value: "MAJU", label: "Maju", desc: "Santri harus menyetor berurutan maju (surah awal ke surah akhir)" },
+  { value: "MUNDUR", label: "Mundur", desc: "Santri harus menyetor berurutan mundur (surah akhir ke surah awal)" },
 ] as const;
 
 const STATUS_COLORS: Record<string, string> = {
@@ -184,15 +192,29 @@ export default function TargetSettingsPage() {
   const [editingTarget, setEditingTarget] = useState<TargetSekolah | null>(null);
   const [deletingTarget, setDeletingTarget] = useState<TargetSekolah | null>(null);
 
+  // Fetch Kategori Data
+  const { data: kategoriList = [], isLoading: isLoadingKategori } = useQuery<KategoriSetoranResponse[]>({
+    queryKey: ["kategori-setoran"],
+    queryFn: async () => {
+      const res = await sekolahService.getKategori();
+      return (res.data || []) as KategoriSetoranResponse[];
+    }
+  });
+
   const form = useForm<TargetFormValues>({
     resolver: zodResolver(targetSchema) as Resolver<TargetFormValues>,
     defaultValues: {
       nama_target: "",
+      id_kategori: undefined,
       tipe: "HARIAN",
       nilai_target: 1,
       satuan: "HALAMAN",
       deskripsi: "",
       hari_aktif: [1, 2, 3, 4, 5], // default: Senin–Jumat
+      start_juz: null as any,
+      end_juz: null as any,
+      daftar_surat: "",
+      arah: "BEBAS",
     },
   });
 
@@ -204,11 +226,16 @@ export default function TargetSettingsPage() {
     setEditingTarget(null);
     form.reset({
       nama_target: "",
+      id_kategori: undefined,
       tipe: "HARIAN",
       nilai_target: 1,
       satuan: "HALAMAN",
       deskripsi: "",
       hari_aktif: [1, 2, 3, 4, 5],
+      start_juz: null as any,
+      end_juz: null as any,
+      daftar_surat: "",
+      arah: "BEBAS",
     });
     setIsFormOpen(true);
   };
@@ -218,12 +245,17 @@ export default function TargetSettingsPage() {
     const hariParsed = parseHariAktif(target.hari_aktif);
     form.reset({
       nama_target: target.nama_target,
+      id_kategori: target.id_kategori ?? undefined,
       tipe: target.tipe,
       nilai_target: target.nilai_target,
       satuan: target.satuan,
       deskripsi: target.deskripsi ?? "",
       // Jika tidak ada hari_aktif (target lama), default ke Senin-Jumat agar user tahu
       hari_aktif: hariParsed ?? [1, 2, 3, 4, 5],
+      start_juz: target.start_juz ?? (null as any),
+      end_juz: target.end_juz ?? (null as any),
+      daftar_surat: target.daftar_surat ?? "",
+      arah: target.arah ?? "BEBAS",
     });
     setIsFormOpen(true);
   };
@@ -234,6 +266,10 @@ export default function TargetSettingsPage() {
       deskripsi: values.deskripsi || null,
       // Hanya kirim hari_aktif jika tipe HARIAN
       hari_aktif: values.tipe === "HARIAN" ? (values.hari_aktif ?? null) : null,
+      start_juz: values.start_juz ? Number(values.start_juz) : null,
+      end_juz: values.end_juz ? Number(values.end_juz) : null,
+      daftar_surat: values.daftar_surat?.trim() || null,
+      arah: values.arah || "BEBAS",
     };
 
     if (editingTarget) {
@@ -314,6 +350,11 @@ export default function TargetSettingsPage() {
                         >
                           {TIPE_TARGET_LABELS[target.tipe]}
                         </span>
+                        {target.kategori && (
+                          <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                            {target.kategori.nama_kategori}
+                          </span>
+                        )}
                       </div>
                       <div className="flex items-center gap-3 text-sm text-muted-foreground">
                         <span className="font-mono font-semibold text-foreground text-lg">
@@ -322,6 +363,27 @@ export default function TargetSettingsPage() {
                         <span>{SATUAN_TARGET_LABELS[target.satuan]}</span>
                         <span className="text-xs">per {TIPE_TARGET_LABELS[target.tipe].toLowerCase()}</span>
                       </div>
+
+                      {/* Tampilan kustomisasi arah & batasan juz/surat */}
+                      {((target.arah && target.arah !== "BEBAS") || target.start_juz || target.daftar_surat) && (
+                        <div className="flex flex-wrap gap-1.5 text-xs py-1">
+                          {target.arah && target.arah !== "BEBAS" && (
+                            <span className="px-2 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/20 dark:text-amber-400 dark:border-amber-900/30">
+                              Arah: {target.arah === "MAJU" ? "Maju" : "Mundur"}
+                            </span>
+                          )}
+                          {target.start_juz !== null && target.start_juz !== undefined && target.end_juz !== null && target.end_juz !== undefined && (
+                            <span className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/20 dark:text-emerald-400 dark:border-emerald-900/30">
+                              Rentang: Juz {target.start_juz} s.d {target.end_juz}
+                            </span>
+                          )}
+                          {target.daftar_surat && (
+                            <span className="px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200 dark:bg-indigo-950/20 dark:text-indigo-400 dark:border-indigo-900/30">
+                              Surah: Pilihan
+                            </span>
+                          )}
+                        </div>
+                      )}
 
                       {/* Tampilan hari aktif untuk target HARIAN */}
                       {target.tipe === "HARIAN" && (
@@ -405,6 +467,46 @@ export default function TargetSettingsPage() {
                     <FormControl>
                       <Input placeholder="Contoh: Setoran Harian 1 Halaman" {...field} />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Kategori Setoran */}
+              <FormField
+                control={form.control}
+                name="id_kategori"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Kategori Setoran <span className="text-red-500">*</span></FormLabel>
+                    <Select
+                      onValueChange={(val) => field.onChange(parseInt(val, 10))}
+                      value={field.value?.toString()}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Pilih kategori setoran" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {isLoadingKategori ? (
+                          <div className="flex items-center justify-center p-2 text-xs text-muted-foreground">
+                            <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                            Memuat kategori...
+                          </div>
+                        ) : kategoriList.length === 0 ? (
+                          <div className="p-2 text-xs text-muted-foreground">
+                            Belum ada kategori setoran. Buat kategori terlebih dahulu.
+                          </div>
+                        ) : (
+                          kategoriList.map((kat) => (
+                            <SelectItem key={kat.id_kategori} value={kat.id_kategori.toString()}>
+                              {kat.nama_kategori}
+                            </SelectItem>
+                          ))
+                        )}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -528,6 +630,119 @@ export default function TargetSettingsPage() {
                   </FormItem>
                 )}
               />
+
+              {/* Kustomisasi Kurikulum & Batasan */}
+              <div className="border-t pt-4 space-y-4">
+                <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+                  <Compass className="h-4 w-4 text-primary" />
+                  Kustomisasi Kurikulum & Batasan (Opsional)
+                </h3>
+                <p className="text-xs text-muted-foreground">
+                  Gunakan bagian ini untuk membatasi setoran santri pada rentang tertentu atau mengatur alur/arah setoran.
+                </p>
+
+                {/* Arah Setoran */}
+                <FormField
+                  control={form.control}
+                  name="arah"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Arah Setoran</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Pilih arah" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {ARAH_OPTIONS.map((opt) => (
+                            <SelectItem key={opt.value} value={opt.value}>
+                              <div className="flex flex-col text-left">
+                                <span className="font-medium text-xs sm:text-sm">{opt.label}</span>
+                                <span className="text-[10px] sm:text-xs text-muted-foreground">{opt.desc}</span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Batasan Juz */}
+                <div className="grid grid-cols-2 gap-3">
+                  <FormField
+                    control={form.control}
+                    name="start_juz"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Mulai Juz</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            min="1"
+                            max="30"
+                            placeholder="Contoh: 1"
+                            value={field.value ?? ""}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              field.onChange(val === "" ? null : parseInt(val, 10));
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="end_juz"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Selesai Juz</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            min="1"
+                            max="30"
+                            placeholder="Contoh: 30"
+                            value={field.value ?? ""}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              field.onChange(val === "" ? null : parseInt(val, 10));
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                {/* Daftar Surah Pilihan */}
+                <FormField
+                  control={form.control}
+                  name="daftar_surat"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Daftar Surah Pilihan (ID dipisah koma)</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Contoh: 18,36,56,67"
+                          value={field.value ?? ""}
+                          onChange={field.onChange}
+                        />
+                      </FormControl>
+                      <p className="text-[11px] text-muted-foreground">
+                        Batasi setoran santri hanya untuk surah-surah ini. Masukkan nomor surah (ID) dipisahkan koma.
+                      </p>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
               <DialogFooter className="pt-4">
                 <Button type="button" variant="outline" onClick={() => setIsFormOpen(false)} disabled={isPending}>
