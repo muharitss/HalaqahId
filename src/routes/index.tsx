@@ -2,6 +2,17 @@
 import { createBrowserRouter, Navigate, Outlet } from "react-router-dom";
 import React from "react";
 
+// ── Pages: Landing & Public SEO ────────────────────────────────────────────
+import LandingPage from "@/features/landing/pages/LandingPage";
+import AboutPage from "@/features/landing/pages/AboutPage";
+import FeaturesPage from "@/features/landing/pages/FeaturesPage";
+import ContactPage from "@/features/landing/pages/ContactPage";
+import FaqPage from "@/features/landing/pages/FaqPage";
+import BlogListPage from "@/features/blog/pages/BlogListPage";
+import BlogDetailPage from "@/features/blog/pages/BlogDetailPage";
+import NotFoundPage from "@/features/landing/pages/NotFoundPage";
+import KelolaBlogPage from "@/features/dashboard/pages/kelola-blog-page";
+
 import { useAuth } from "@/features/auth/components/auth-provider";
 import { Role, isKepalaRole } from "@/types/domain/enums";
 import { Spinner } from "@/components/ui/spinner";
@@ -139,6 +150,25 @@ export const router = createBrowserRouter([
     ),
   },
 
+  // ── Public: Landing & SEO Pages (tidak butuh login) ──────────────────────
+  { path: "/", element: <LandingPage /> },
+  { path: "/about", element: <AboutPage /> },
+  { path: "/features", element: <FeaturesPage /> },
+  { path: "/contact", element: <ContactPage /> },
+  { path: "/faq", element: <FaqPage /> },
+  { path: "/blog", element: <BlogListPage /> },
+  { path: "/blog/:slug", element: <BlogDetailPage /> },
+
+  // Keyword Landings
+  { path: "/aplikasi-halaqah", element: <LandingPage /> },
+  { path: "/aplikasi-tahfidz", element: <LandingPage /> },
+  { path: "/aplikasi-rumah-tahfidz", element: <LandingPage /> },
+  { path: "/aplikasi-pondok-pesantren", element: <LandingPage /> },
+  { path: "/aplikasi-tpq", element: <LandingPage /> },
+  { path: "/aplikasi-setoran-hafalan", element: <LandingPage /> },
+  { path: "/administrasi-tahfidz", element: <LandingPage /> },
+  { path: "/monitoring-hafalan-santri", element: <LandingPage /> },
+
   // ── Public: Auth Pages ────────────────────────────────────────────────────
   {
     path: "/login",
@@ -162,6 +192,7 @@ export const router = createBrowserRouter([
         children: [
           // Index: redirect berdasarkan role
           { index: true, element: <RoleRedirect /> },
+          { path: "/dashboard", element: <RoleRedirect /> },
 
           // ── SUPERADMIN ─────────────────────────────────────────────────────
           {
@@ -173,6 +204,7 @@ export const router = createBrowserRouter([
               { path: "/superadmin/audit-logs", element: <KelolaAuditLogPage /> },
               { path: "/superadmin/settings", element: <SuperadminSettingsPage /> },
               { path: "/superadmin/settings/trash", element: <TrashSection /> },
+              { path: "/superadmin/blog", element: <KelolaBlogPage /> },
             ],
           },
 
@@ -236,5 +268,5 @@ export const router = createBrowserRouter([
   },
 
   // ── 404 Fallback ──────────────────────────────────────────────────────────
-  { path: "*", element: <Navigate to="/" replace /> },
+  { path: "*", element: <NotFoundPage /> },
 ]);

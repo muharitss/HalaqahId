@@ -80,6 +80,11 @@ export function AppSidebar() {
           path: "/superadmin/audit-logs",
           icon: faClock,
         },
+        {
+          name: "Kelola Blog",
+          path: "/superadmin/blog",
+          icon: faBook,
+        },
       ]
     : user && isKepalaRole(user.role)
       ? [
