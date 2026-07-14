@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { dashboardService } from "../api/dashboardService";
 import { laporanService } from "@/features/setoran/api/laporanService";
+import { sekolahService } from "@/features/sekolah/api/sekolahService";
 import type { ViewType } from "../types";
 
 export const useDashboardData = () => {
@@ -51,6 +52,19 @@ export const useDashboardData = () => {
     }
   });
 
+  const { data: juzDistributionData, isFetching: loadingJuz } = useQuery({
+    queryKey: ["dashboard-juz-distribution"],
+    queryFn: async () => {
+      try {
+        const res = await sekolahService.getJuzDistribution();
+        return res.data;
+      } catch (error) {
+        console.error("Error loading juz distribution data:", error);
+        throw error;
+      }
+    }
+  });
+
   const setoranData = useMemo(() => initialData?.setoran || [], [initialData?.setoran]);
   
   const weeklyData = useMemo(() => dashboardService.getWeeklyChartData(setoranData), [setoranData]);
@@ -67,7 +81,8 @@ export const useDashboardData = () => {
       setoran: loadingInitial,
       absensi: loadingAbsensi,
       muhafiz: loadingInitial,
-      alfa: loadingAlfa
+      alfa: loadingAlfa,
+      juz: loadingJuz
     },
     chartView,
     setChartView,
@@ -83,6 +98,8 @@ export const useDashboardData = () => {
     alfaStudents: alfaData?.alfaStudents || [],
     muhafizList: initialData?.muhafiz || [],
     stats,
+    juzDistribution: juzDistributionData || { distribution: [], belum_setoran: 0, total_santri: 0 }
   };
 };
+
 
