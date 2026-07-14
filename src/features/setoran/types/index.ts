@@ -104,6 +104,10 @@ export interface SetoranRecord {
     };
   };
   is_valid_sequence?: boolean;
+  start_surat_id?: number | null;
+  start_ayat?: number | null;
+  end_surat_id?: number | null;
+  end_ayat?: number | null;
   start_page?: number | null;
   start_line?: number | null;
   end_page?: number | null;

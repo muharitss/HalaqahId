@@ -1,5 +1,6 @@
 import { ActivityChart } from "../components/ActivityChart";
 import { AttendanceDonutChart } from "../components/AttendanceDonutChart";
+import { JuzDistributionChart } from "../components/JuzDistributionChart";
 import { LaporanChartSection } from "@/features/setoran/components/LaporanChartSection";
 import { useDashboardData } from "../hooks/useDashboardData";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -22,6 +23,7 @@ export function KepalaMuhafidzDashboard() {
     totalAbsensi,
     alfaStudents,
     stats,
+    juzDistribution,
   } = useDashboardData();
 
   return (
@@ -48,7 +50,14 @@ export function KepalaMuhafidzDashboard() {
           view={absensiView}
           onViewChange={setAbsensiView}
         />
+        <JuzDistributionChart
+          distribution={juzDistribution.distribution}
+          belumSetoran={juzDistribution.belum_setoran}
+          totalSantri={juzDistribution.total_santri}
+          loading={loading.juz}
+        />
       </div>
+
 
       {!loading.setoran && stats && (
         <LaporanChartSection

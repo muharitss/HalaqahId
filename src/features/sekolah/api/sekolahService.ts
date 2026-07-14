@@ -177,6 +177,19 @@ export const sekolahService = {
     } catch (error: unknown) {
       throw new Error(getErrorMessage(error, "Gagal memulihkan sekolah"));
     }
+  },
+
+  getJuzDistribution: async (): Promise<ApiResponse<{
+    distribution: { juz: number; total_santri: number }[];
+    belum_setoran: number;
+    total_santri: number;
+  }>> => {
+    try {
+      const res = await axiosClient.get<ApiResponse<any>>("/sekolah/dashboard/juz-distribution");
+      return res.data;
+    } catch (error: unknown) {
+      throw new Error(getErrorMessage(error, "Gagal mengambil data distribusi juz"));
+    }
   }
 };
 

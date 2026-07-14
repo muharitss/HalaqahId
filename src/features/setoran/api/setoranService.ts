@@ -4,7 +4,34 @@ import { type ApiResponse } from "@/features/halaqah/api/halaqahService";
 import { type SetoranPayload, type SetoranRecord, type LaporanHafalanData } from "../types";
 import { type Santri } from "@/features/santri/types";
 
+export interface SetoranCheckParams {
+  id_santri: number;
+  tanggal: string;  // format: YYYY-MM-DD
+  id_sesi: number;
+}
+
+export interface SetoranCheckResult {
+  exists: boolean;
+  setoran: SetoranRecord | null;
+}
+
 export const setoranService = {
+  // GET /setoran/check
+  checkSetoran: async (
+    params: SetoranCheckParams,
+    signal?: AbortSignal,
+  ): Promise<ApiResponse<SetoranCheckResult>> => {
+    try {
+      const response = await axiosClient.get<ApiResponse<SetoranCheckResult>>(
+        "/setoran/check",
+        { params, signal },
+      );
+      return response.data;
+    } catch (error: unknown) {
+      throw error; // Re-throw raw — AbortError dihandle di hook
+    }
+  },
+
   // POST /setoran
   createSetoran: async (data: SetoranPayload): Promise<ApiResponse<SetoranRecord>> => {
     try {

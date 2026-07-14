@@ -1,6 +1,14 @@
 {
   "rewrites": [
     {
+      "source": "/sitemap.xml",
+      "destination": "https://halaqahid-be.vercel.app/sitemap.xml"
+    },
+    {
+      "source": "/robots.txt",
+      "destination": "https://halaqahid-be.vercel.app/robots.txt"
+    },
+    {
       "source": "/api/:path*",
       "destination": "https://halaqahid-be.vercel.app/api/:path*"
     },
