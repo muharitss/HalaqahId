@@ -1,21 +1,38 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useSetoran } from "../hooks/useSetoran";
-import { SetoranForm } from "../components/SetoranForm";
-import { Setoran } from "@/components/custom/typed-text";
-import { AlertCircle, FileText, ClipboardList, Save, RefreshCw } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { AlertCircle, FileText, ClipboardList, Save, RefreshCw } from "lucide-react";
+
+import { useSetoran } from "../hooks/useSetoran";
+import { SetoranForm } from "../modules/form/components/SetoranForm";
 import { DynamicExamForm } from "../components/DynamicExamForm";
+import { Setoran } from "@/components/custom/typed-text";
 import { type FormMode } from "../hooks/useSmartSetoranMode";
 import { ModeBadge } from "../components/SetoranModeBanner";
 
-export function InputSetoranPage({ hideHeader = false }: { hideHeader?: boolean }) {
-  const { santriList, sesiList, loading, fetchSantri, addSetoran } = useSetoran();
+export function InputSetoranPage({
+  hideHeader = false,
+}: {
+  hideHeader?: boolean;
+}) {
+  const {
+    santriList,
+    sesiList,
+    loading,
+    fetchSantri,
+    addSetoran,
+  } = useSetoran();
+
   const [isFormValid, setIsFormValid] = useState(true);
   const [activeTab, setActiveTab] = useState<"setoran" | "ujian">("setoran");
-  // Track mode dari SetoranForm agar tombol submit di luar bisa reflect mode
   const [formMode, setFormMode] = useState<FormMode>("idle");
   const [isFormChecking, setIsFormChecking] = useState(false);
 
@@ -78,8 +95,11 @@ export function InputSetoranPage({ hideHeader = false }: { hideHeader?: boolean 
                     ? "Data setoran yang sudah ada telah dimuat. Lakukan perubahan yang diperlukan, lalu klik Perbarui."
                     : <>
                         Masukkan detail hafalan santri terbaru. Gunakan tombol{" "}
-                        <span className="font-medium text-foreground">Pilih dari Mushaf</span>{" "}
-                        untuk memilih ayat langsung dari tampilan mushaf interaktif.
+                        <span className="font-medium text-foreground">
+                          Pilih dari Mushaf
+                        </span>{" "}
+                        untuk memilih ayat langsung dari tampilan mushaf
+                        interaktif.
                       </>
                   }
                 </CardDescription>
@@ -108,7 +128,13 @@ export function InputSetoranPage({ hideHeader = false }: { hideHeader?: boolean 
               <Button
                 type="submit"
                 form="setoran-form"
-                disabled={loading || isFormChecking || santriList.length === 0 || !isFormValid || isIdle}
+                disabled={
+                  loading ||
+                  isFormChecking ||
+                  santriList.length === 0 ||
+                  !isFormValid ||
+                  isIdle
+                }
                 className={[
                   "w-full md:w-auto px-12 h-11 font-bold shadow-lg gap-2",
                   isEditMode ? "shadow-amber-500/20" : "shadow-primary/20",
@@ -125,7 +151,8 @@ export function InputSetoranPage({ hideHeader = false }: { hideHeader?: boolean 
             <CardHeader>
               <CardTitle>Evaluasi &amp; Ujian Tahfiz</CardTitle>
               <CardDescription>
-                Form penilaian ujian santri tahfiz berdasarkan jadwal pelaksanaan aktif.
+                Form penilaian ujian santri tahfiz berdasarkan jadwal
+                pelaksanaan aktif.
               </CardDescription>
             </CardHeader>
             <CardContent>

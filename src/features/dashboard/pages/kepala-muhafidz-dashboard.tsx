@@ -1,7 +1,7 @@
 import { ActivityChart } from "../components/ActivityChart";
 import { AttendanceDonutChart } from "../components/AttendanceDonutChart";
 import { JuzDistributionChart } from "../components/JuzDistributionChart";
-import { LaporanChartSection } from "@/features/setoran/components/LaporanChartSection";
+import { LaporanChartSection } from "@/features/setoran/modules/laporan";
 import { useDashboardData } from "../hooks/useDashboardData";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";

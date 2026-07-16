@@ -2,7 +2,8 @@ import { useState, useCallback } from "react";
 import { pdf } from "@react-pdf/renderer";
 import { format } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
-import { LaporanPdfTemplate, type LaporanPdfStats, type LaporanPdfRow } from "../components/LaporanPdfTemplate";
+import { LaporanPdfTemplate } from "../modules/laporan";
+import type { LaporanPdfStats, LaporanPdfRow } from "../modules/laporan/components/LaporanPdfTemplate";
 import type { GroupedData, GroupedSantriItem, SetoranItem } from "../types";
 import { useProfilSekolah } from "@/features/sekolah/hooks/useProfilSekolah";
 

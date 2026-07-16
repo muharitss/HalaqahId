@@ -1,88 +1,61 @@
-import { useState, useMemo, useCallback } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMemo } from "react";
+import { useLaporanDataQuery } from "../api/queries";
+import {
+  useLaporanFilter,
+  useLaporanGrouping,
+  useLaporanStats,
+} from "../modules/laporan/hooks";
 import { laporanService } from "../api/laporanService";
-import { sekolahService } from "@/features/sekolah/api/sekolahService";
-import { startOfDay, endOfDay, isWithinInterval } from "date-fns";
-import type { GroupedData, GroupedHalaqahItem, GroupedSantriItem, SetoranItem } from "../types";
-import { useAuth } from "@/features/auth/components/auth-provider";
 
-export interface LaporanFilters {
-  // Period filters (bulan/tahun — legacy, tetap dipertahankan)
-  selectedMonth: number | null;
-  selectedYear: number | null;
-  // Halaqah filter
-  activeHalaqah: string;
-  // Santri filter (nama)
-  selectedSantri: string; // "" = semua
-  // Date range filter (lebih spesifik dari bulan/tahun)
-  dateFrom: Date | null;
-  dateTo: Date | null;
-  // Kategori filter
-  selectedKategori: string; // "" = semua
-}
-
-export const useLaporanData = () => {
-  const { user } = useAuth();
-  const [filters, setFilters] = useState<LaporanFilters>({
-    selectedMonth: new Date().getMonth(),
-    selectedYear: new Date().getFullYear(),
-    activeHalaqah: "all",
-    selectedSantri: "",
-    dateFrom: null,
-    dateTo: null,
-    selectedKategori: "",
-  });
+export function useLaporanData() {
+  const { data, isFetching: loading, refetch: refreshData } = useLaporanDataQuery();
+  const {
+    filters,
+    selectedMonth,
+    selectedYear,
+    activeHalaqah: rawActiveHalaqah,
+    selectedSantri,
+    dateFrom,
+    dateTo,
+    selectedKategori,
+    setSelectedMonth,
+    setSelectedYear,
+    setActiveHalaqah,
+    setSelectedSantri,
+    setDateFrom,
+    setDateTo,
+    setSelectedKategori,
+    resetFilters,
+  } = useLaporanFilter();
 
   const {
-    data: { allSetoran = [], listHalaqah = [], masterSantri = [], kategoriList = [] } = {},
-    isFetching: loading,
-    refetch: fetchData,
-  } = useQuery({
-    queryKey: ["laporan-data", user?.id_user],
-    queryFn: async () => {
-      try {
-        const [setoranData, halaqahData, santriData, kategoriRes] = await Promise.all([
-          laporanService.getAllSetoran(),
-          laporanService.getAllHalaqah(),
-          laporanService.getAllSantri(),
-          sekolahService.getKategori(),
-        ]);
-        return {
-          allSetoran: setoranData,
-          listHalaqah: halaqahData,
-          masterSantri: santriData,
-          kategoriList: kategoriRes.data || [],
-        };
-      } catch (error) {
-        console.error("Gagal mengambil data laporan:", error);
-        throw error;
-      }
-    },
-  });
+    allSetoran = [],
+    listHalaqah = [],
+    masterSantri = [],
+    kategoriList = [],
+  } = data || {};
 
   const kategoriNames = useMemo(() => {
     return kategoriList.map((k) => k.nama_kategori);
   }, [kategoriList]);
 
-  // Enrich setoran items with muhafiz name from listHalaqah before grouping
-  const enrichedSetoran = useMemo(() => {
-    return allSetoran.map((item: SetoranItem) => {
+  const halaqahNamesFromGrouping = useMemo(() => {
+    // We need a temporary way to get halaqah names for effectiveActiveHalaqah
+    // before useLaporanGrouping is called
+    const enrichedSetoran = allSetoran.map((item) => {
       if (!item.santri?.halaqah) return item;
       const halaqahId = item.santri.halaqah.id_halaqah;
       const rawName = item.santri.halaqah.name_halaqah || "Tanpa Halaqah";
-      
-      const match = listHalaqah.find((h: any) => {
+      const match = listHalaqah.find((h) => {
         if (halaqahId !== undefined && halaqahId !== null && halaqahId !== 0) {
           return h.id_halaqah === halaqahId;
         }
         return h.santri?.some((s: any) => s.id_santri === item.id_santri);
       });
-      
       const muhafizName = match?.muhafiz?.name || "";
       const displayHalaqahName = muhafizName
         ? `${rawName} - ${muhafizName}`
         : rawName;
-
       return {
         ...item,
         santri: {
@@ -90,228 +63,56 @@ export const useLaporanData = () => {
           halaqah: {
             ...item.santri.halaqah,
             name_halaqah: displayHalaqahName,
-            user: {
-              name: muhafizName,
-            },
+            user: { name: muhafizName },
           },
         },
       };
     });
-  }, [allSetoran, listHalaqah]);
-
-  // ─── Grouped data (bulan/tahun filter untuk transformSetoranData) ──────────
-  const groupedDataRaw = useMemo(() => {
-    // Jika ada date range aktif, skip filter bulan/tahun
     const dateFilter =
       filters.dateFrom || filters.dateTo
         ? { month: null, year: null }
         : { month: filters.selectedMonth, year: filters.selectedYear };
+    const groupedDataRaw = laporanService.transformSetoranData(
+      enrichedSetoran,
+      dateFilter
+    );
+    return laporanService.getHalaqahNames(groupedDataRaw);
+  }, [allSetoran, listHalaqah, filters]);
 
-    return laporanService.transformSetoranData(enrichedSetoran, dateFilter);
-  }, [enrichedSetoran, filters.selectedMonth, filters.selectedYear, filters.dateFrom, filters.dateTo]);
-
-  // ─── Derived data ──────────────────────────────────────────────────────────
-  const halaqahNames = useMemo(
-    () => laporanService.getHalaqahNames(groupedDataRaw),
-    [groupedDataRaw]
-  );
-
-  const halaqahMuhafizMap = useMemo(() => {
-    const map: Record<string, string> = {};
-    Object.entries(groupedDataRaw).forEach(([name, group]) => {
-      if (group.muhafizName) {
-        map[name] = group.muhafizName;
-      }
-    });
-    return map;
-  }, [groupedDataRaw]);
-
-  // Computed effective active halaqah to prevent syncing via useEffect
   const effectiveActiveHalaqah = useMemo(() => {
-    if (filters.activeHalaqah === "all" || filters.activeHalaqah === "") return "all";
-    if (halaqahNames.length > 0 && !halaqahNames.includes(filters.activeHalaqah)) {
+    if (rawActiveHalaqah === "all" || rawActiveHalaqah === "") return "all";
+    if (
+      halaqahNamesFromGrouping.length > 0 &&
+      !halaqahNamesFromGrouping.includes(rawActiveHalaqah)
+    ) {
       return "all";
     }
-    return filters.activeHalaqah;
-  }, [filters.activeHalaqah, halaqahNames]);
+    return rawActiveHalaqah;
+  }, [rawActiveHalaqah, halaqahNamesFromGrouping]);
 
-  // ─── Apply additional client-side filters ──────────────────────────────────
-  const groupedData = useMemo(() => {
-    const result: GroupedData = {};
+  const {
+    groupedDataRaw,
+    halaqahNames,
+    halaqahMuhafizMap,
+    santriNames,
+    activeHalaqahId,
+  } = useLaporanGrouping({
+    allSetoran,
+    listHalaqah,
+    filters,
+    effectiveActiveHalaqah,
+  });
 
-    Object.entries(groupedDataRaw).forEach(([halaqahName, group]: [string, GroupedHalaqahItem]) => {
-      // Filter halaqah
-      if (
-        effectiveActiveHalaqah !== "all" &&
-        effectiveActiveHalaqah !== "" &&
-        halaqahName !== effectiveActiveHalaqah
-      ) {
-        return;
-      }
-
-      const filteredSantriGroup: Record<number, GroupedSantriItem> = {};
-
-      Object.entries(group.santriGroup).forEach(([santriKey, santri]: [string, GroupedSantriItem]) => {
-        // Filter santri by name
-        if (
-          filters.selectedSantri !== "" &&
-          !santri.nama.toLowerCase().includes(filters.selectedSantri.toLowerCase())
-        ) {
-          return;
-        }
-
-        // Filter individual setoran by date range & kategori
-        const filteredSetoran = santri.setoran.filter((s: SetoranItem) => {
-          const tgl = new Date(s.tanggal_setoran);
-
-          // Date range filter
-          if (filters.dateFrom && filters.dateTo) {
-            if (
-              !isWithinInterval(tgl, {
-                start: startOfDay(filters.dateFrom),
-                end: endOfDay(filters.dateTo),
-              })
-            ) {
-              return false;
-            }
-          } else if (filters.dateFrom) {
-            if (tgl < startOfDay(filters.dateFrom)) return false;
-          } else if (filters.dateTo) {
-            if (tgl > endOfDay(filters.dateTo)) return false;
-          }
-
-          const kategoriName = s.kategori?.nama_kategori || (typeof s.kategori === "string" ? s.kategori : "Setoran");
-          if (
-            filters.selectedKategori !== "" && 
-            kategoriName.toUpperCase() !== filters.selectedKategori.toUpperCase()
-          ) {
-            return false;
-          }
-
-          return true;
-        });
-
-        if (filteredSetoran.length > 0) {
-          filteredSantriGroup[Number(santriKey)] = {
-            ...santri,
-            setoran: filteredSetoran,
-            // Recalculate stats
-            stats: filteredSetoran.reduce(
-              (acc: Record<string, number>, s: SetoranItem) => {
-                const kName = s.kategori?.nama_kategori || (typeof s.kategori === "string" ? s.kategori : "Setoran");
-                const key = kName.toUpperCase();
-                acc[key] = (acc[key] ?? 0) + 1;
-                return acc;
-              },
-              {}
-            ),
-          };
-        }
-      });
-
-      if (Object.keys(filteredSantriGroup).length > 0) {
-        result[halaqahName] = { ...group, santriGroup: filteredSantriGroup };
-      }
-    });
-
-    return result;
-  }, [groupedDataRaw, filters, effectiveActiveHalaqah]);
-
-  // List santri unik dari grouped raw (semua halaqah yg relevan)
-  const santriNames = useMemo(() => {
-    const names = new Set<string>();
-    Object.entries(groupedDataRaw).forEach(([halaqahName, group]: [string, GroupedHalaqahItem]) => {
-      if (
-        effectiveActiveHalaqah !== "all" &&
-        effectiveActiveHalaqah !== "" &&
-        halaqahName !== effectiveActiveHalaqah
-      ) return;
-      Object.values(group.santriGroup).forEach((santri: GroupedSantriItem) => {
-        names.add(santri.nama);
-      });
-    });
-    return Array.from(names).sort();
-  }, [groupedDataRaw, effectiveActiveHalaqah]);
-
-  const activeHalaqahId = useMemo(() => {
-    if (effectiveActiveHalaqah === "all") return null;
-    return laporanService.getHalaqahIdByName(listHalaqah, effectiveActiveHalaqah);
-  }, [listHalaqah, effectiveActiveHalaqah]);
+  const { groupedData, periodLabel, isFilterActive } = useLaporanStats({
+    groupedDataRaw,
+    filters,
+    effectiveActiveHalaqah,
+  });
 
   const santriForAbsensi = useMemo(() => {
     if (!activeHalaqahId) return [];
     return laporanService.getSantriByHalaqahId(masterSantri, activeHalaqahId);
   }, [masterSantri, activeHalaqahId]);
-
-  // ─── Period label ──────────────────────────────────────────────────────────
-  const periodLabel = useMemo(() => {
-    const { dateFrom, dateTo, selectedMonth, selectedYear } = filters;
-
-    if (dateFrom || dateTo) {
-      const fmt = (d: Date) =>
-        d.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
-      if (dateFrom && dateTo) return `${fmt(dateFrom)} – ${fmt(dateTo)}`;
-      if (dateFrom) return `Sejak ${fmt(dateFrom)}`;
-      return `Hingga ${fmt(dateTo!)}`;
-    }
-
-    if (selectedMonth === null || selectedYear === null) return "Semua Periode";
-
-    return new Date(selectedYear, selectedMonth).toLocaleDateString("id-ID", {
-      month: "long",
-      year: "numeric",
-    });
-  }, [filters]);
-
-  // ─── Setters ───────────────────────────────────────────────────────────────
-  const setSelectedMonth = useCallback(
-    (v: number | null) => setFilters((f) => ({ ...f, selectedMonth: v, dateFrom: null, dateTo: null })),
-    []
-  );
-  const setSelectedYear = useCallback(
-    (v: number | null) => setFilters((f) => ({ ...f, selectedYear: v, dateFrom: null, dateTo: null })),
-    []
-  );
-  const setActiveHalaqah = useCallback(
-    (v: string) => setFilters((f) => ({ ...f, activeHalaqah: v, selectedSantri: "" })),
-    []
-  );
-  const setSelectedSantri = useCallback(
-    (v: string) => setFilters((f) => ({ ...f, selectedSantri: v })),
-    []
-  );
-  const setDateFrom = useCallback(
-    (v: Date | null) =>
-      setFilters((f) => ({ ...f, dateFrom: v, selectedMonth: null, selectedYear: null })),
-    []
-  );
-  const setDateTo = useCallback(
-    (v: Date | null) =>
-      setFilters((f) => ({ ...f, dateTo: v, selectedMonth: null, selectedYear: null })),
-    []
-  );
-  const setSelectedKategori = useCallback(
-    (v: string) => setFilters((f) => ({ ...f, selectedKategori: v })),
-    []
-  );
-  const resetFilters = useCallback(() => {
-    setFilters({
-      selectedMonth: new Date().getMonth(),
-      selectedYear: new Date().getFullYear(),
-      activeHalaqah: "all",
-      selectedSantri: "",
-      dateFrom: null,
-      dateTo: null,
-      selectedKategori: "",
-    });
-  }, []);
-
-  const isFilterActive =
-    filters.selectedSantri !== "" ||
-    filters.dateFrom !== null ||
-    filters.dateTo !== null ||
-    filters.selectedKategori !== "" ||
-    (effectiveActiveHalaqah !== "" && effectiveActiveHalaqah !== "all");
 
   return {
     // Raw data
@@ -323,13 +124,13 @@ export const useLaporanData = () => {
 
     // Filter state
     filters,
-    selectedMonth: filters.selectedMonth,
-    selectedYear: filters.selectedYear,
+    selectedMonth,
+    selectedYear,
     activeHalaqah: effectiveActiveHalaqah,
-    selectedSantri: filters.selectedSantri,
-    dateFrom: filters.dateFrom,
-    dateTo: filters.dateTo,
-    selectedKategori: filters.selectedKategori,
+    selectedSantri,
+    dateFrom,
+    dateTo,
+    selectedKategori,
 
     // Derived
     groupedData,
@@ -352,6 +153,6 @@ export const useLaporanData = () => {
     resetFilters,
 
     // Actions
-    refreshData: fetchData,
+    refreshData,
   };
-};
+}

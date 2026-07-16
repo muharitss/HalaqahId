@@ -4,7 +4,7 @@ import { useAuth } from "@/features/auth/components/auth-provider";
 import { santriService } from "@/features/santri/api/santriService";
 import { progresService } from "@/features/santri/api/progresService";
 import { absensiService } from "@/features/absensi/api/absensiService";
-import { setoranService } from "@/features/setoran/api/setoranService";
+import { setoranService } from "@/features/setoran/api/services/setoranService";
 import { dashboardService } from "@/features/dashboard/api/dashboardService";
 import { format, startOfWeek, startOfMonth } from "date-fns";
 
@@ -48,66 +48,82 @@ export const useMuhafizDashboard = () => {
   });
 
   // 3. Fetch Today's Attendance for own halaqah
-  const { data: todayAbsensi = [], isFetching: loadingTodayAbsensi } = useQuery({
-    queryKey: ["muhafiz-dashboard-today-absensi", user?.id_halaqah, todayStr],
-    queryFn: async () => {
-      if (!user?.id_halaqah) return [];
-      try {
-        const res = await absensiService.getDailyHalaqah(user.id_halaqah, todayStr);
-        return res.data || [];
-      } catch (err) {
-        console.error("Gagal memuat absensi hari ini:", err);
-        return [];
-      }
+  const { data: todayAbsensi = [], isFetching: loadingTodayAbsensi } = useQuery(
+    {
+      queryKey: ["muhafiz-dashboard-today-absensi", user?.id_halaqah, todayStr],
+      queryFn: async () => {
+        if (!user?.id_halaqah) return [];
+        try {
+          const res = await absensiService.getDailyHalaqah(
+            user.id_halaqah,
+            todayStr,
+          );
+          return res.data || [];
+        } catch (err) {
+          console.error("Gagal memuat absensi hari ini:", err);
+          return [];
+        }
+      },
+      enabled: !!user?.id_halaqah,
     },
-    enabled: !!user?.id_halaqah,
-  });
+  );
 
   // Today's attendance metrics
   const todayAttendanceStats = useMemo(() => {
     const present = todayAbsensi.filter(
-      (a) => a.status === "HADIR" || a.status === "TERLAMBAT"
+      (a) => a.status === "HADIR" || a.status === "TERLAMBAT",
     ).length;
     return {
       present,
       total: todayAbsensi.length,
-      percentage: todayAbsensi.length > 0 ? Math.round((present / todayAbsensi.length) * 100) : 0,
+      percentage:
+        todayAbsensi.length > 0
+          ? Math.round((present / todayAbsensi.length) * 100)
+          : 0,
     };
   }, [todayAbsensi]);
 
   // 4. Fetch Monthly Attendance Rekap
-  const { data: monthlyAbsensi = [], isFetching: loadingMonthlyAbsensi } = useQuery({
-    queryKey: ["muhafiz-dashboard-monthly-absensi", user?.id_halaqah, currentMonth, currentYear],
-    queryFn: async () => {
-      if (!user?.id_halaqah) return [];
-      try {
-        const res = await absensiService.getRekapHalaqah(
-          user.id_halaqah,
-          undefined,
-          currentMonth,
-          currentYear
-        );
-        return (res.data as any[]) || [];
-      } catch (err) {
-        console.error("Gagal memuat rekap bulanan absensi:", err);
-        return [];
-      }
-    },
-    enabled: !!user?.id_halaqah,
-  });
+  const { data: monthlyAbsensi = [], isFetching: loadingMonthlyAbsensi } =
+    useQuery({
+      queryKey: [
+        "muhafiz-dashboard-monthly-absensi",
+        user?.id_halaqah,
+        currentMonth,
+        currentYear,
+      ],
+      queryFn: async () => {
+        if (!user?.id_halaqah) return [];
+        try {
+          const res = await absensiService.getRekapHalaqah(
+            user.id_halaqah,
+            undefined,
+            currentMonth,
+            currentYear,
+          );
+          return (res.data as any[]) || [];
+        } catch (err) {
+          console.error("Gagal memuat rekap bulanan absensi:", err);
+          return [];
+        }
+      },
+      enabled: !!user?.id_halaqah,
+    });
 
   // Parse and calculate attendance stats based on selected view (pekan / bulan)
   const parsedAbsensiStats = useMemo(() => {
     const counts = { HADIR: 0, IZIN: 0, SAKIT: 0, TERLAMBAT: 0, ALFA: 0 };
     const now = new Date();
 
-    const rangeStart = absensiView === "pekan"
-      ? startOfWeek(now, { weekStartsOn: 1 })
-      : startOfMonth(now);
+    const rangeStart =
+      absensiView === "pekan"
+        ? startOfWeek(now, { weekStartsOn: 1 })
+        : startOfMonth(now);
 
     monthlyAbsensi.forEach((day: any) => {
       const dayDate = new Date(day.tanggal);
-      const inRange = absensiView === "bulan" || (dayDate >= rangeStart && dayDate <= now);
+      const inRange =
+        absensiView === "bulan" || (dayDate >= rangeStart && dayDate <= now);
 
       if (inRange && Array.isArray(day.data)) {
         day.data.forEach((record: any) => {
@@ -123,7 +139,11 @@ export const useMuhafizDashboard = () => {
       { status: "HADIR" as const, count: counts.HADIR, fill: "#22c55e" },
       { status: "IZIN" as const, count: counts.IZIN, fill: "#3b82f6" },
       { status: "SAKIT" as const, count: counts.SAKIT, fill: "#eab308" },
-      { status: "TERLAMBAT" as const, count: counts.TERLAMBAT, fill: "#f97316" },
+      {
+        status: "TERLAMBAT" as const,
+        count: counts.TERLAMBAT,
+        fill: "#f97316",
+      },
       { status: "ALFA" as const, count: counts.ALFA, fill: "#ef4444" },
     ];
 
@@ -157,7 +177,7 @@ export const useMuhafizDashboard = () => {
     const startOfCurrentWeek = startOfWeek(now, { weekStartsOn: 1 });
 
     const weeklyCount = setoranHistory.filter(
-      (s) => new Date(s.tanggal_setoran) >= startOfCurrentWeek
+      (s) => new Date(s.tanggal_setoran) >= startOfCurrentWeek,
     ).length;
 
     // Adapt setoranHistory structure to match SetoranData needed by dashboardService chart methods
@@ -172,8 +192,10 @@ export const useMuhafizDashboard = () => {
       },
     })) as any;
 
-    const weeklyChartData = dashboardService.getWeeklyChartData(chartDataFormat);
-    const monthlyChartData = dashboardService.getMonthlyChartData(chartDataFormat);
+    const weeklyChartData =
+      dashboardService.getWeeklyChartData(chartDataFormat);
+    const monthlyChartData =
+      dashboardService.getMonthlyChartData(chartDataFormat);
 
     return {
       weeklyCount,

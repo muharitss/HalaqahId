@@ -1,12 +1,16 @@
 import axiosClient from "@/lib/axiosClient";
 import { getErrorMessage } from "@/utils/error";
 import { type ApiResponse } from "@/features/halaqah/api/halaqahService";
-import { type SetoranPayload, type SetoranRecord, type LaporanHafalanData } from "../types";
+import {
+  type SetoranPayload,
+  type SetoranRecord,
+  type LaporanHafalanData,
+} from "../../types";
 import { type Santri } from "@/features/santri/types";
 
 export interface SetoranCheckParams {
   id_santri: number;
-  tanggal: string;  // format: YYYY-MM-DD
+  tanggal: string; // format: YYYY-MM-DD
   id_sesi: number;
 }
 
@@ -28,21 +32,26 @@ export const setoranService = {
       );
       return response.data;
     } catch (error: unknown) {
-      throw error; // Re-throw raw — AbortError dihandle di hook
+      throw error;
     }
   },
 
   // POST /setoran
-  createSetoran: async (data: SetoranPayload): Promise<ApiResponse<SetoranRecord>> => {
+  createSetoran: async (
+    data: SetoranPayload,
+  ): Promise<ApiResponse<SetoranRecord>> => {
     try {
-      const response = await axiosClient.post<ApiResponse<SetoranRecord>>("/setoran", data);
+      const response = await axiosClient.post<ApiResponse<SetoranRecord>>(
+        "/setoran",
+        data,
+      );
       return response.data;
     } catch (error: unknown) {
       throw new Error(getErrorMessage(error, "Gagal membuat setoran"));
     }
   },
 
-  // GET /santri 
+  // GET /santri
   getSantriList: async (): Promise<ApiResponse<Santri[]>> => {
     try {
       const response = await axiosClient.get<ApiResponse<Santri[]>>("/santri");
@@ -53,11 +62,17 @@ export const setoranService = {
   },
 
   // GET /setoran/all
-  getAllSetoran: async (page = 1, limit = 1000): Promise<ApiResponse<SetoranRecord[]>> => {
+  getAllSetoran: async (
+    page = 1,
+    limit = 1000,
+  ): Promise<ApiResponse<SetoranRecord[]>> => {
     try {
-      const response = await axiosClient.get<ApiResponse<SetoranRecord[]>>("/setoran/all", {
-        params: { page, limit }
-      });
+      const response = await axiosClient.get<ApiResponse<SetoranRecord[]>>(
+        "/setoran/all",
+        {
+          params: { page, limit },
+        },
+      );
       return response.data;
     } catch (error: unknown) {
       throw new Error(getErrorMessage(error, "Gagal mengambil data setoran"));
@@ -65,29 +80,47 @@ export const setoranService = {
   },
 
   // GET /setoran/santri/:id
-  getSetoranBySantri: async (santriId: number): Promise<ApiResponse<SetoranRecord[]>> => {
+  getSetoranBySantri: async (
+    santriId: number,
+  ): Promise<ApiResponse<SetoranRecord[]>> => {
     try {
-      const response = await axiosClient.get<ApiResponse<SetoranRecord[]>>(`/setoran/santri/${santriId}`);
+      const response = await axiosClient.get<ApiResponse<SetoranRecord[]>>(
+        `/setoran/santri/${santriId}`,
+      );
       return response.data;
     } catch (error: unknown) {
-      throw new Error(getErrorMessage(error, "Gagal mengambil data setoran santri"));
+      throw new Error(
+        getErrorMessage(error, "Gagal mengambil data setoran santri"),
+      );
     }
   },
 
   // GET /setoran/santri/:id/laporan
-  getLaporanHafalan: async (santriId: number): Promise<ApiResponse<LaporanHafalanData>> => {
+  getLaporanHafalan: async (
+    santriId: number,
+  ): Promise<ApiResponse<LaporanHafalanData>> => {
     try {
-      const response = await axiosClient.get<ApiResponse<LaporanHafalanData>>(`/setoran/santri/${santriId}/laporan`);
+      const response = await axiosClient.get<ApiResponse<LaporanHafalanData>>(
+        `/setoran/santri/${santriId}/laporan`,
+      );
       return response.data;
     } catch (error: unknown) {
-      throw new Error(getErrorMessage(error, "Gagal mengambil laporan hafalan konsolidasi"));
+      throw new Error(
+        getErrorMessage(error, "Gagal mengambil laporan hafalan konsolidasi"),
+      );
     }
   },
 
   // PATCH /setoran/:id
-  updateSetoran: async (id: number, data: Partial<SetoranPayload>): Promise<ApiResponse<SetoranRecord>> => {
+  updateSetoran: async (
+    id: number,
+    data: Partial<SetoranPayload>,
+  ): Promise<ApiResponse<SetoranRecord>> => {
     try {
-      const response = await axiosClient.patch<ApiResponse<SetoranRecord>>(`/setoran/${id}`, data);
+      const response = await axiosClient.patch<ApiResponse<SetoranRecord>>(
+        `/setoran/${id}`,
+        data,
+      );
       return response.data;
     } catch (error: unknown) {
       throw new Error(getErrorMessage(error, "Gagal memperbarui setoran"));
@@ -95,9 +128,13 @@ export const setoranService = {
   },
 
   // DELETE /setoran/:id
-  deleteSetoran: async (id: number): Promise<ApiResponse<{ id_setoran: number }>> => {
+  deleteSetoran: async (
+    id: number,
+  ): Promise<ApiResponse<{ id_setoran: number }>> => {
     try {
-      const response = await axiosClient.delete<ApiResponse<{ id_setoran: number }>>(`/setoran/${id}`);
+      const response = await axiosClient.delete<
+        ApiResponse<{ id_setoran: number }>
+      >(`/setoran/${id}`);
       return response.data;
     } catch (error: unknown) {
       throw new Error(getErrorMessage(error, "Gagal menghapus setoran"));
@@ -105,9 +142,13 @@ export const setoranService = {
   },
 
   // PATCH /setoran/:id/restore
-  restoreSetoran: async (id: number): Promise<ApiResponse<{ id_setoran: number }>> => {
+  restoreSetoran: async (
+    id: number,
+  ): Promise<ApiResponse<{ id_setoran: number }>> => {
     try {
-      const response = await axiosClient.patch<ApiResponse<{ id_setoran: number }>>(`/setoran/${id}/restore`);
+      const response = await axiosClient.patch<
+        ApiResponse<{ id_setoran: number }>
+      >(`/setoran/${id}/restore`);
       return response.data;
     } catch (error: unknown) {
       throw new Error(getErrorMessage(error, "Gagal mengembalikan setoran"));

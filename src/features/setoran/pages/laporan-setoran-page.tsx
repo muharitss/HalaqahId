@@ -5,11 +5,13 @@ import { laporanService } from "../api/laporanService";
 import { useAuth } from "@/features/auth/components/auth-provider";
 import { Role } from "@/types/domain/enums";
 
-import { LaporanSkeleton } from "../components/LaporanSkeleton";
-import { EmptyState } from "../components/EmptyState";
-import { LaporanTablePro } from "../components/LaporanTablePro";
-import { LaporanFilterBar } from "../components/LaporanFilterBar";
-import { LaporanStatsCard } from "../components/LaporanStatsCard";
+import {
+  LaporanSkeleton,
+  EmptyState,
+  LaporanTablePro,
+  LaporanFilterBar,
+  LaporanStatsCard,
+} from "../modules/laporan";
 
 import { Button } from "@/components/ui/button";
 import { FileDown, Loader2, RefreshCw } from "lucide-react";

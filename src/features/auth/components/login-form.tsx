@@ -73,7 +73,10 @@ export function LoginForm() {
     } catch (error: unknown) {
       const errorMessage = getErrorMessage(error, "Terjadi kesalahan saat login");
       setBackendError(errorMessage);
-      if (errorMessage.toLowerCase().includes("verifikasi email")) {
+      if (
+        errorMessage.toLowerCase().includes("verifikasi") || 
+        errorMessage.toLowerCase().includes("verify")
+      ) {
         setShowResend(true);
       }
       form.setValue("password", "");
@@ -117,29 +120,41 @@ export function LoginForm() {
 
             {backendError && (
               <div className="space-y-2">
-                <Alert variant={backendError.includes("telah dikirim ulang") ? "default" : "destructive"} className={`animate-in fade-in zoom-in duration-300 ${backendError.includes("telah dikirim ulang") ? "bg-green-50 border-green-200 text-green-800" : ""}`}>
-                  <FontAwesomeIcon icon={faTriangleExclamation} className="h-4 w-4" />
-                  <AlertDescription>{backendError}</AlertDescription>
-                </Alert>
-                
-                {showResend && (
-                  <div className="flex flex-col items-center p-3 bg-muted/50 rounded-md border text-sm">
-                    <p className="mb-2 text-muted-foreground">Belum menerima email verifikasi?</p>
+                {backendError.includes("telah dikirim ulang") ? (
+                  <Alert className="animate-in fade-in zoom-in duration-300 bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-900/30 text-green-800 dark:text-green-300">
+                    <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
+                    <AlertDescription>{backendError}</AlertDescription>
+                  </Alert>
+                ) : showResend ? (
+                  <div className="space-y-3 animate-in fade-in zoom-in duration-300">
+                    <Alert className="bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900/30 text-amber-900 dark:text-amber-200">
+                      <FontAwesomeIcon icon={faTriangleExclamation} className="h-4 w-4 text-amber-600 dark:text-amber-400 mt-0.5" />
+                      <AlertDescription className="text-amber-800 dark:text-amber-300">
+                        <span className="font-semibold block mb-1">Akun Belum Terverifikasi</span>
+                        Login gagal karena email Anda belum diverifikasi. Silakan lakukan verifikasi ulang terlebih dahulu.
+                      </AlertDescription>
+                    </Alert>
+                    
                     <Button 
                       type="button" 
                       variant="outline" 
                       size="sm" 
                       onClick={handleResend}
                       disabled={isResending}
-                      className="w-full sm:w-auto"
+                      className="w-full border-amber-300 hover:bg-amber-50 text-amber-900 dark:text-amber-200 dark:border-amber-900/50 dark:hover:bg-amber-950/30 transition-all font-semibold flex items-center justify-center gap-2"
                     >
                       {isResending ? (
-                        <><Spinner className="mr-2 h-3 w-3" /> Mengirim...</>
+                        <><Spinner className="h-4 w-4" /> Mengirim...</>
                       ) : (
-                        "Kirim Ulang Email Verifikasi"
+                        "Verifikasi Ulang"
                       )}
                     </Button>
                   </div>
+                ) : (
+                  <Alert variant="destructive" className="animate-in fade-in zoom-in duration-300">
+                    <FontAwesomeIcon icon={faTriangleExclamation} className="h-4 w-4" />
+                    <AlertDescription>{backendError}</AlertDescription>
+                  </Alert>
                 )}
               </div>
             )}
@@ -164,7 +179,10 @@ export function LoginForm() {
                         disabled={isSubmitting}
                         onChange={(e) => {
                           field.onChange(e);
-                          if (backendError) setBackendError("");
+                          if (backendError) {
+                            setBackendError("");
+                            setShowResend(false);
+                          }
                           if (successMessage) setSuccessMessage("");
                         }}
                       />
@@ -196,7 +214,10 @@ export function LoginForm() {
                         disabled={isSubmitting}
                         onChange={(e) => {
                           field.onChange(e);
-                          if (backendError) setBackendError("");
+                          if (backendError) {
+                            setBackendError("");
+                            setShowResend(false);
+                          }
                           if (successMessage) setSuccessMessage("");
                         }}
                       />

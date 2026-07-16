@@ -49,7 +49,7 @@ import { type SetoranRecord } from "../../setoran/types";
 import { type ProgresSantri } from "../types";
 import { useSantriHistoryPdf } from "../hooks/useSantriHistoryPdf";
 import { cn } from "@/lib/utils";
-import { EditSetoranModal } from "@/features/setoran/components/EditSetoranModal";
+import { EditSetoranModal } from "@/features/setoran";
 import { useAuth } from "@/features/auth/components/auth-provider";
 import { Role } from "@/types/domain/enums";
 import { useSetoran } from "../../setoran/hooks/useSetoran";
