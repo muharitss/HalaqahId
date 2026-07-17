@@ -10,8 +10,10 @@ import {
   faBookOpen,
   faBuilding,
   faClock,
+  faChartLine,
 } from "@fortawesome/free-solid-svg-icons";
 import { isKepalaRole, Role } from "@/types/domain/enums";
+import { cn } from "@/lib/utils";
 
 export function MobileDock() {
   const { user } = useAuth();
@@ -39,11 +41,11 @@ export function MobileDock() {
           { name: "Absen", path: "/muhafidz/absensi", icon: faClipboardCheck },
           { name: "Setoran", path: "/muhafidz/setoran", icon: faBookOpen },
           { name: "Santri", path: "/muhafidz/santri", icon: faUsers },
-          { name: "Laporan", path: "/muhafidz/laporan", icon: faClipboardCheck },
+          { name: "Progres", path: "/muhafidz/progres", icon: faChartLine },
         ];
 
   return (
-    <div className="dock fixed bottom-0 left-0 right-0 z-50 bg-background border-t pb-safe">
+    <div className="dock fixed bottom-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-md border-t border-border/50 shadow-[0_-4px_16px_rgba(0,0,0,0.06)] pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-2">
       {menuItems.map((item) => {
         const isDashboard = [
           "/superadmin",
@@ -58,10 +60,13 @@ export function MobileDock() {
           <Link
             key={item.name}
             to={item.path}
-            className={`${isActive ? "dock-active text-primary" : "text-muted-foreground"}`}
+            className={cn(
+              "transition-all duration-200 ease-in-out",
+              isActive ? "dock-active text-primary scale-105" : "text-muted-foreground/80 hover:text-foreground"
+            )}
           >
-            <FontAwesomeIcon icon={item.icon} className="size-5" />
-            <span className="dock-label text-[10px]">{item.name}</span>
+            <FontAwesomeIcon icon={item.icon} className={cn("size-5 transition-transform duration-200", isActive && "scale-110")} />
+            <span className="dock-label text-[10px] tracking-tight">{item.name}</span>
           </Link>
         );
       })}

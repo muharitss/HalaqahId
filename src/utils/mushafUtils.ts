@@ -154,3 +154,71 @@ export function adjustStartLine(
   return originalLine;
 }
 
+/**
+ * Hitung total baris setoran secara presisi berdasarkan posisi kata (word-by-word)
+ * jika dalam satu halaman, atau fallback ke hitung total baris biasa jika lintas halaman.
+ */
+export function hitungTotalBarisPresisi(
+  selection: {
+    startPage: number;
+    startLine: number;
+    endPage: number;
+    endLine: number;
+    startWordPosition?: number;
+    endWordPosition?: number;
+    startSurahNumber: number;
+    startAyah: number;
+    endSurahNumber: number;
+    endAyah: number;
+    isPartialAyah?: boolean;
+  },
+  currentPageWords: {
+    line_number: number;
+    char_type_name: string;
+    position: number;
+    surah_number: number;
+    ayah_number: number;
+  }[]
+): number {
+  const { startPage, endPage, startLine, endLine } = selection;
+
+  if (startPage === endPage && currentPageWords && currentPageWords.length > 0) {
+    let totalFraction = 0;
+    const lines = Array.from(new Set(currentPageWords.map(w => w.line_number)));
+
+    const getWordVal = (sNum: number, aNum: number, pos: number) => {
+      return sNum * 10000000 + aNum * 1000 + pos;
+    };
+
+    const startVal = getWordVal(selection.startSurahNumber, selection.startAyah, selection.startWordPosition ?? 1);
+    const endVal = getWordVal(selection.endSurahNumber, selection.endAyah, selection.endWordPosition ?? 1);
+
+    for (const line of lines) {
+      const lineWords = currentPageWords.filter(w => w.line_number === line && w.char_type_name === "word");
+      if (lineWords.length === 0) continue;
+
+      const selectedLineWords = lineWords.filter(w => {
+        const val = getWordVal(w.surah_number, w.ayah_number, w.position);
+        return val >= startVal && val <= endVal;
+      });
+
+      if (selectedLineWords.length > 0) {
+        totalFraction += selectedLineWords.length / lineWords.length;
+      }
+    }
+
+    return Math.max(1, Math.round(totalFraction));
+  }
+
+  if (startPage === endPage) {
+    return Math.max(1, endLine - startLine + 1);
+  }
+
+  const barisDiHalamanPertama = 15 - startLine + 1;
+  const halamanPenuhDiTengah = Math.max(0, endPage - startPage - 1) * 15;
+  const barisDiHalamanTerakhir = endLine;
+
+  return Math.max(1, barisDiHalamanPertama + halamanPenuhDiTengah + barisDiHalamanTerakhir);
+}
+
+

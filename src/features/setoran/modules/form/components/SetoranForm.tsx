@@ -280,15 +280,25 @@ export function SetoranForm({
 
         {/* Mushaf Selection Info */}
         {mushafSelection && (
-          <div className="flex items-center gap-1.5 text-xs text-primary bg-primary/10 border border-primary/20 px-2.5 py-1.5 rounded-lg w-fit">
-            <span className="font-semibold">
-              Terisi otomatis dari Mushaf: {mushafSelection.totalBaris} baris
-            </span>
-            <span>
-              Hal. {mushafSelection.startPage}
-              {mushafSelection.startPage !== mushafSelection.endPage &&
-                `–${mushafSelection.endPage}`}
-            </span>
+          <div className="flex flex-col gap-1 text-xs text-primary bg-primary/10 border border-primary/20 px-3 py-2 rounded-lg w-fit">
+            <div className="flex items-center gap-1.5">
+              <span className="font-semibold">
+                Terisi otomatis dari Mushaf: {mushafSelection.totalBaris} baris
+              </span>
+              <span>
+                Hal. {mushafSelection.startPage}
+                {mushafSelection.startPage !== mushafSelection.endPage &&
+                  `–${mushafSelection.endPage}`}
+              </span>
+            </div>
+            {mushafSelection.isPartialAyah && mushafSelection.startWordText && (
+              <div className="text-[10px] text-muted-foreground border-t border-primary/10 pt-1 flex flex-col gap-0.5" dir="ltr">
+                <span className="font-medium text-primary/80">Sebagian Ayat (Word range):</span>
+                <span className="italic font-serif text-right text-xs" dir="rtl">
+                  Dari "{mushafSelection.startWordText}" s.d. "{mushafSelection.endWordText}"
+                </span>
+              </div>
+            )}
           </div>
         )}
       </form>

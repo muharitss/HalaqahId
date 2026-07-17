@@ -16,7 +16,7 @@
  * - ✅ Prefetch: 5 halaman sebelum & sesudah di-prefetch otomatis
  */
 
-import { useMemo, useState, useRef, useEffect } from "react";
+import { useMemo, useState, useRef, useEffect, useCallback } from "react";
 import {
   ChevronLeft,
   ChevronRight,
@@ -52,10 +52,11 @@ import { useMushafPage, usePrefetchMushafPages } from "../hooks/useMushafPage";
 import {
   surahNumberToName,
   hitungTotalBaris,
+  hitungTotalBarisPresisi,
   SURAH_PAGE_START,
   adjustStartLine,
 } from "@/utils/mushafUtils";
-import type { MushafWord, MushafSelection } from "../types";
+import type { MushafWord, MushafSelection, SetoranRecord } from "../types";
 import { cn } from "@/lib/utils";
 
 // ─────────────────────────────────────────────
@@ -252,19 +253,37 @@ function groupWordsByLine(words: MushafWord[]): Map<number, MushafWord[]> {
   return lines;
 }
 
-/** Cek apakah suatu ayat berada dalam range seleksi */
-function isAyahInRange(
-  surahNum: number,
-  ayahNum: number,
+/** Cek apakah suatu kata berada dalam range seleksi */
+function isWordInRange(
+  word: MushafWord,
   selection: MushafSelection | null,
 ): boolean {
   if (!selection) return false;
 
-  const globalId = surahNum * 10000 + ayahNum;
-  const startId = selection.startSurahNumber * 10000 + selection.startAyah;
-  const endId = selection.endSurahNumber * 10000 + selection.endAyah;
+  if (!selection.isPartialAyah) {
+    const globalId = word.surah_number * 10000 + word.ayah_number;
+    const startId = selection.startSurahNumber * 10000 + selection.startAyah;
+    const endId = selection.endSurahNumber * 10000 + selection.endAyah;
+    return globalId >= startId && globalId <= endId;
+  }
 
-  return globalId >= startId && globalId <= endId;
+  const getWordVal = (sNum: number, aNum: number, pos: number) => {
+    return sNum * 10000000 + aNum * 1000 + pos;
+  };
+
+  const currentVal = getWordVal(word.surah_number, word.ayah_number, word.position);
+  const startVal = getWordVal(
+    selection.startSurahNumber,
+    selection.startAyah,
+    selection.startWordPosition ?? 1
+  );
+  const endVal = getWordVal(
+    selection.endSurahNumber,
+    selection.endAyah,
+    selection.endWordPosition ?? 1
+  );
+
+  return currentVal >= startVal && currentVal <= endVal;
 }
 
 // ─────────────────────────────────────────────
@@ -280,6 +299,7 @@ interface MushafViewerProps {
   onSelectionModeChange: (mode: "start" | "end") => void;
   /** Callback tambahan untuk tombol aksi di atas (misal "Terapkan Ayat") */
   headerAction?: React.ReactNode;
+  completedRanges?: SetoranRecord[];
 }
 
 // ─────────────────────────────────────────────
@@ -293,11 +313,59 @@ export function MushafViewer({
   selectionMode,
   onSelectionModeChange,
   headerAction,
+  completedRanges = [],
 }: MushafViewerProps) {
   const { page, isLoading, isError } = useMushafPage(currentPage);
 
+  const [selectGranularity, setSelectGranularity] = useState<"ayah" | "word">(() => {
+    return selection?.isPartialAyah ? "word" : "ayah";
+  });
+
+  useEffect(() => {
+    if (selection?.isPartialAyah) {
+      setSelectGranularity("word");
+    }
+  }, [selection?.isPartialAyah]);
+
   // Prefetch 5 halaman sebelum & sesudah untuk navigasi instan
   usePrefetchMushafPages(currentPage);
+
+  const isWordCompleted = useCallback(
+    (word: MushafWord): boolean => {
+      if (!completedRanges || completedRanges.length === 0) return false;
+
+      const getWordVal = (sNum: number, aNum: number, pos: number) => {
+        return sNum * 10000000 + aNum * 1000 + pos;
+      };
+      const currentWordVal = getWordVal(word.surah_number, word.ayah_number, word.position);
+
+      return completedRanges.some((record) => {
+        const startSurat = record.start_surat_id ?? 1;
+        const startAyat = record.start_ayat ?? 1;
+        const endSurat = record.end_surat_id ?? startSurat;
+        const endAyat = record.end_ayat ?? startAyat;
+
+        const customValues = record.custom_values as any;
+        const isPartial = customValues?.is_partial_ayah;
+
+        if (!isPartial) {
+          const currentAyahVal = word.surah_number * 10000 + word.ayah_number;
+          const recordStartAyahVal = startSurat * 10000 + startAyat;
+          const recordEndAyahVal = endSurat * 10000 + endAyat;
+          return currentAyahVal >= recordStartAyahVal && currentAyahVal <= recordEndAyahVal;
+        } else {
+          const recordStartWordPos = customValues.start_word_pos ?? 1;
+          const recordEndWordPos = customValues.end_word_pos ?? 1;
+
+          const recordStartVal = getWordVal(startSurat, startAyat, recordStartWordPos);
+          const recordEndVal = getWordVal(endSurat, endAyat, recordEndWordPos);
+
+          return currentWordVal >= recordStartVal && currentWordVal <= recordEndVal;
+        }
+      });
+    },
+    [completedRanges]
+  );
 
   // Gesture swipe untuk navigasi halaman di perangkat handphone (mobile)
   const touchStartX = useRef<number | null>(null);
@@ -393,9 +461,7 @@ export function MushafViewer({
     return map;
   }, [page]);
 
-  const handleWordClick = (word: MushafWord) => {
-    if (word.char_type_name === "end") return; // Abaikan klik nomor ayat
-
+  const handleAyahClick = (word: MushafWord) => {
     const surahName = surahNumberToName(word.surah_number);
 
     if (selectionMode === "start") {
@@ -418,6 +484,7 @@ export function MushafViewer({
           word.line_number,
           linesPerPage,
         ),
+        isPartialAyah: false,
       };
       onSelectionChange(newSel);
       onSelectionModeChange("end");
@@ -448,6 +515,7 @@ export function MushafViewer({
             selection.startLine,
             linesPerPage,
           ),
+          isPartialAyah: false,
         });
       } else {
         const adjustedStartLine = adjustStartLine(
@@ -469,7 +537,96 @@ export function MushafViewer({
             word.line_number,
             linesPerPage,
           ),
+          isPartialAyah: false,
         });
+      }
+      onSelectionModeChange("start");
+    }
+  };
+
+  const handleWordClick = (word: MushafWord) => {
+    if (word.char_type_name === "end") {
+      handleAyahClick(word);
+      return;
+    }
+
+    if (selectGranularity === "ayah") {
+      handleAyahClick(word);
+      return;
+    }
+
+    const surahName = surahNumberToName(word.surah_number);
+
+    if (selectionMode === "start") {
+      const newSel: MushafSelection = {
+        startSurahNumber: word.surah_number,
+        startSurahName: surahName,
+        startAyah: word.ayah_number,
+        startPage: currentPage,
+        startLine: word.line_number,
+        endSurahNumber: word.surah_number,
+        endSurahName: surahName,
+        endAyah: word.ayah_number,
+        endPage: currentPage,
+        endLine: word.line_number,
+        totalBaris: 1, // Akan dihitung presisi
+        isPartialAyah: true,
+        startWordPosition: word.position,
+        endWordPosition: word.position,
+        startWordText: word.text_uthmani,
+        endWordText: word.text_uthmani,
+      };
+      newSel.totalBaris = hitungTotalBarisPresisi(newSel, page?.words || []);
+      onSelectionChange(newSel);
+      onSelectionModeChange("end");
+    } else {
+      if (!selection) return;
+
+      const getWordVal = (sNum: number, aNum: number, pos: number) => {
+        return sNum * 10000000 + aNum * 1000 + pos;
+      };
+
+      const startWordPos = selection.startWordPosition ?? 1;
+      const startVal = getWordVal(selection.startSurahNumber, selection.startAyah, startWordPos);
+      const currentVal = getWordVal(word.surah_number, word.ayah_number, word.position);
+
+      if (currentVal < startVal) {
+        // Swap selection: clicked word is new start
+        const updatedSel: MushafSelection = {
+          startSurahNumber: word.surah_number,
+          startSurahName: surahName,
+          startAyah: word.ayah_number,
+          startPage: currentPage,
+          startLine: word.line_number,
+          endSurahNumber: selection.startSurahNumber,
+          endSurahName: selection.startSurahName,
+          endAyah: selection.startAyah,
+          endPage: selection.startPage,
+          endLine: selection.startLine,
+          totalBaris: 1,
+          isPartialAyah: true,
+          startWordPosition: word.position,
+          endWordPosition: startWordPos,
+          startWordText: word.text_uthmani,
+          endWordText: selection.startWordText,
+        };
+        updatedSel.totalBaris = hitungTotalBarisPresisi(updatedSel, page?.words || []);
+        onSelectionChange(updatedSel);
+      } else {
+        const updatedSel: MushafSelection = {
+          ...selection,
+          endSurahNumber: word.surah_number,
+          endSurahName: surahName,
+          endAyah: word.ayah_number,
+          endPage: currentPage,
+          endLine: word.line_number,
+          totalBaris: 1,
+          isPartialAyah: true,
+          endWordPosition: word.position,
+          endWordText: word.text_uthmani,
+        };
+        updatedSel.totalBaris = hitungTotalBarisPresisi(updatedSel, page?.words || []);
+        onSelectionChange(updatedSel);
       }
       onSelectionModeChange("start");
     }
@@ -546,6 +703,18 @@ export function MushafViewer({
 
           {/* Kanan: badge mode + headerAction (tombol Terapkan Ayat dsb) */}
           <div className="flex items-center gap-1.5 shrink-0">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-7 text-xs px-2 py-0 border-primary/20 hover:border-primary/40 text-primary hover:bg-primary/5 shrink-0 transition-colors"
+              onClick={() => {
+                setSelectGranularity((prev) => (prev === "ayah" ? "word" : "ayah"));
+                handleClearSelection();
+              }}
+            >
+              {selectGranularity === "ayah" ? "Pilih: Ayat" : "Pilih: Kata"}
+            </Button>
             <Badge
               variant={selectionMode === "start" ? "secondary" : "default"}
               className="text-[10px] h-5 px-1.5 shrink-0"
@@ -633,27 +802,45 @@ export function MushafViewer({
                 className="flex flex-1 flex-nowrap justify-center items-center gap-x-0.5 border-b border-dashed border-border/20 last:border-0 overflow-hidden whitespace-nowrap"
               >
                 {lineWords.map((word, idx) => {
-                  const isSelected = isAyahInRange(
-                    word.surah_number,
-                    word.ayah_number,
+                  const isSelected = isWordInRange(
+                    word,
                     selection,
                   );
                   const isStart =
                     selection !== null &&
                     word.surah_number === selection.startSurahNumber &&
-                    word.ayah_number === selection.startAyah;
+                    word.ayah_number === selection.startAyah &&
+                    (!selection.isPartialAyah || word.position === selection.startWordPosition);
                   const isEnd =
                     selection !== null &&
                     word.surah_number === selection.endSurahNumber &&
-                    word.ayah_number === selection.endAyah;
+                    word.ayah_number === selection.endAyah &&
+                    (!selection.isPartialAyah || word.position === selection.endWordPosition);
                   const isEndChar = word.char_type_name === "end";
 
                   if (isEndChar) {
+                    const isEndCompleted = completedRanges.some(record => {
+                      const startSurat = record.start_surat_id ?? 1;
+                      const startAyat = record.start_ayat ?? 1;
+                      const endSurat = record.end_surat_id ?? startSurat;
+                      const endAyat = record.end_ayat ?? startAyat;
+                      const currentAyahVal = word.surah_number * 10000 + word.ayah_number;
+                      const recordStartAyahVal = startSurat * 10000 + startAyat;
+                      const recordEndAyahVal = endSurat * 10000 + endAyat;
+                      return currentAyahVal >= recordStartAyahVal && currentAyahVal <= recordEndAyahVal;
+                    });
+
                     return (
                       <span
                         key={`${word.verse_key}-${word.position}-${idx}`}
-                        className="inline-flex items-center justify-center border border-primary/75 rounded-full w-[clamp(12px,3.5vw,18px)] h-[clamp(12px,3.5vw,18px)] mx-0.5 text-[clamp(6px,2vw,10px)] font-sans font-bold text-primary bg-primary/5 shadow-sm align-middle select-none shrink-0"
-                        title={`Ayat ${word.ayah_number}`}
+                        onClick={() => handleAyahClick(word)}
+                        className={cn(
+                          "inline-flex items-center justify-center border rounded-full w-[clamp(12px,3.5vw,18px)] h-[clamp(12px,3.5vw,18px)] mx-0.5 text-[clamp(6px,2vw,10px)] font-sans font-bold align-middle select-none shrink-0 cursor-pointer transition-all duration-100",
+                          isEndCompleted 
+                            ? "border-muted-foreground/30 text-muted-foreground/40 bg-muted/10 opacity-50 hover:bg-muted/20"
+                            : "border-primary/75 text-primary bg-primary/5 shadow-sm hover:bg-primary/20 hover:scale-110"
+                        )}
+                        title={`Klik untuk pilih seluruh Ayat ${word.ayah_number}`}
                       >
                         {word.ayah_number}
                       </span>
@@ -669,6 +856,8 @@ export function MushafViewer({
                     roundedClass = "rounded-l-md";
                   }
 
+                  const isCompleted = isWordCompleted(word);
+
                   return (
                     <span
                       key={`${word.verse_key}-${word.position}-${idx}`}
@@ -683,7 +872,8 @@ export function MushafViewer({
                         isSelected && roundedClass,
                         (isStart || isEnd) &&
                           "bg-primary/30 font-semibold",
-                        !isSelected && "hover:bg-primary/10 rounded-sm",
+                        !isSelected && isCompleted && "opacity-45 text-muted-foreground bg-muted/10 rounded-sm hover:opacity-80",
+                        !isSelected && !isCompleted && "hover:bg-primary/10 rounded-sm",
                       )}
                     >
                       {word.text_uthmani}
@@ -704,9 +894,15 @@ export function MushafViewer({
             {selection ? (
               <div className="flex items-center gap-1.5 min-w-0 flex-1">
                 <div className="text-xs text-muted-foreground leading-tight truncate">
-                  <span className="font-medium text-foreground">{selection.startSurahName} {selection.startAyah}</span>
+                  <span className="font-medium text-foreground">
+                    {selection.startSurahName} {selection.startAyah}
+                    {selection.isPartialAyah && ` (K.${selection.startWordPosition})`}
+                  </span>
                   {" → "}
-                  <span className="font-medium text-foreground">{selection.endSurahName} {selection.endAyah}</span>
+                  <span className="font-medium text-foreground">
+                    {selection.endSurahName} {selection.endAyah}
+                    {selection.isPartialAyah && ` (K.${selection.endWordPosition})`}
+                  </span>
                   <span className="ml-1 text-primary font-semibold">
                     ({selection.totalBaris} baris)
                   </span>

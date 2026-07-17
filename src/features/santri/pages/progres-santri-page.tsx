@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
+import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -25,6 +26,12 @@ import {
   CommandItem,
 } from "@/components/ui/command";
 import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import {
   Table,
   TableBody,
   TableCell,
@@ -32,14 +39,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 // Components & hooks will be imported from sub-modules below
 
 import {
@@ -51,16 +51,12 @@ import {
   Loader2,
   ChevronDown,
   Check,
-  ArrowUpDown,
-  ArrowUp,
-  ArrowDown,
-  History,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
-import { useProgres, useProgresPdf, HistoryTable, ExamHistoryTable } from "../modules";
-import { useSetoran } from "@/features/setoran";
+import { useProgres, useProgresPdf } from "../modules";
+import { useSetoranHistory } from "@/features/setoran";
 import { useAuth } from "@/features/auth/components/auth-provider";
 import { PdfPreviewDialog } from "@/components/custom/pdf-preview-dialog";
 import { Role } from "@/types/domain/enums";
@@ -70,19 +66,120 @@ import {
 } from "@/types/domain/target";
 import type { ProgresSantri } from "../types";
 
-type SortKey = "nama_santri" | "nama_halaqah" | "target" | "persentase";
+type SortKey = "nama_santri" | "nama_halaqah" | "target" | "persentase" | "status";
 type SortDir = "asc" | "desc";
+
+interface SantriProgresCollapsibleDetailProps {
+  santri: ProgresSantri;
+}
+
+function SantriProgresCollapsibleDetail({ santri }: SantriProgresCollapsibleDetailProps) {
+  const { data: history = [], isFetching: loadingHistory } = useSetoranHistory(santri.id_santri);
+
+  const getKategoriName = (item: any) => {
+    if (typeof item.kategori === "object" && item.kategori) {
+      return item.kategori.nama_kategori;
+    }
+    return item.kategori || "HAFALAN";
+  };
+
+  const getKategoriBadgeVariant = (kategoriName: string) => {
+    switch (kategoriName.toUpperCase()) {
+      case "HAFALAN":
+        return "default";
+      case "MURAJAAH":
+        return "secondary";
+      case "ZIYADAH":
+        return "outline";
+      default:
+        return "outline";
+    }
+  };
+
+  return (
+    <div className="bg-muted/5 dark:bg-muted/10">
+      {loadingHistory ? (
+        <div className="py-8 text-center text-muted-foreground flex flex-col items-center justify-center gap-2">
+          <Loader2 className="h-5 w-5 animate-spin text-primary" />
+          <span className="text-xs">Mengambil riwayat setoran...</span>
+        </div>
+      ) : history.length === 0 ? (
+        <div className="py-8 text-center text-xs text-muted-foreground italic">
+          Belum ada riwayat setoran.
+        </div>
+      ) : (
+        <div className="overflow-x-auto border-t">
+          <Table>
+            <TableHeader className="bg-muted/30">
+              <TableRow>
+                <TableHead className="font-bold text-xs pl-6">Tanggal</TableHead>
+                <TableHead className="font-bold text-xs">Materi</TableHead>
+                <TableHead className="font-bold text-xs">Kategori</TableHead>
+                <TableHead className="font-bold text-xs pr-6">Evaluasi / Keterangan</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {history.map((item: any) => {
+                const date = new Date(item.tanggal_setoran);
+                const dateLabel = format(date, "dd/MM/yyyy");
+                const timeLabel = format(date, "HH:mm");
+                const catName = getKategoriName(item);
+                const startPage = item.start_page ?? item.startPage;
+                const endPage = item.end_page ?? item.endPage;
+                const totalBaris = item.total_baris ?? item.totalBaris;
+
+                return (
+                  <TableRow key={item.id_setoran}>
+                    <TableCell className="text-xs pl-6 py-3">
+                      <div className="font-semibold text-foreground">{dateLabel}</div>
+                      <div className="text-muted-foreground font-light text-[10px]">{timeLabel} WIB</div>
+                    </TableCell>
+                    <TableCell className="py-3">
+                      <span className="font-semibold text-xs text-foreground">Juz {item.juz}: {item.surat}</span>
+                      <div className="text-[10px] text-muted-foreground mt-0.5">
+                        Ayat {item.ayat}
+                        {startPage && ` · Hal ${startPage === endPage ? startPage : `${startPage}-${endPage}`} (${totalBaris} baris)`}
+                      </div>
+                    </TableCell>
+                    <TableCell className="py-3">
+                      <Badge
+                        variant={getKategoriBadgeVariant(catName)}
+                        className="text-[10px] font-normal"
+                      >
+                        {catName}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-xs pr-6 py-3">
+                      <div className="flex flex-col gap-0.5">
+                        {item.taqwim !== null && item.taqwim !== undefined && (
+                          <span className={cn("font-bold text-xs", item.taqwim === 0 ? "text-primary" : "text-orange-600")}>
+                            Taqwim: {item.taqwim}
+                          </span>
+                        )}
+                        {item.keterangan && (
+                          <span className="italic text-[10px] text-muted-foreground leading-normal">
+                            {item.keterangan}
+                          </span>
+                        )}
+                        {item.taqwim === null && !item.keterangan && <span className="text-muted-foreground">—</span>}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export function ProgresSantriPage() {
   const [scope, setScope] = useState<string>("target");
   const { user } = useAuth();
   const { halaqahId } = useParams<{ halaqahId?: string }>();
   const { progresData, loading: loadingProgres, fetchProgres } = useProgres(scope);
-  const {
-    fetchSetoranBySantri,
-    history,
-    loading: loadingHistory,
-  } = useSetoran();
   const { getPdfDocument } = useProgresPdf();
   const [previewOpen, setPreviewOpen] = useState(false);
   const [pdfDocInfo, setPdfDocInfo] = useState<{
@@ -107,9 +204,6 @@ export function ProgresSantriPage() {
   const [sortKey, setSortKey] = useState<SortKey>("nama_santri");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
 
-  // Modal Detail State
-  const [selectedSantriForHistory, setSelectedSantriForHistory] =
-    useState<ProgresSantri | null>(null);
 
   // Derived list of unique Halaqahs
   const halaqahNames = useMemo(() => {
@@ -311,28 +405,8 @@ export function ProgresSantriPage() {
     },
   ];
 
-  const toggleSortHandler = (key: SortKey) => {
-    if (sortKey === key) {
-      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
-    } else {
-      setSortKey(key);
-      setSortDir("asc");
-    }
-  };
 
-  const renderSortIcon = (col: SortKey) => {
-    if (sortKey !== col)
-      return <ArrowUpDown className="h-3 w-3 ml-1.5 opacity-30" />;
-    return sortDir === "asc" ? (
-      <ArrowUp className="h-3 w-3 ml-1.5 text-primary" />
-    ) : (
-      <ArrowDown className="h-3 w-3 ml-1.5 text-primary" />
-    );
-  };
 
-  const activeTargetLabel = selectedSantriForHistory?.target
-    ? `${selectedSantriForHistory.target.nilai_target} ${SATUAN_TARGET_LABELS[selectedSantriForHistory.target.satuan as keyof typeof SATUAN_TARGET_LABELS] ?? selectedSantriForHistory.target.satuan} / ${TIPE_TARGET_LABELS[selectedSantriForHistory.target.tipe as keyof typeof TIPE_TARGET_LABELS]?.toLowerCase() ?? selectedSantriForHistory.target.tipe.toLowerCase()}`
-    : "Tanpa Target";
 
   // const getStatusBadgeVariant = (status: string) => {
   //   switch (status) {
@@ -556,199 +630,156 @@ export function ProgresSantriPage() {
                   <SelectItem value="BEBAS">Tanpa Target</SelectItem>
                 </SelectContent>
               </Select>
+
+              <Select value={`${sortKey}-${sortDir}`} onValueChange={(val) => {
+                const [key, dir] = val.split("-");
+                setSortKey(key as SortKey);
+                setSortDir(dir as SortDir);
+              }}>
+                <SelectTrigger className="h-9 w-[160px] bg-background">
+                  <SelectValue placeholder="Urutkan" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="nama_santri-asc">Nama Santri (A-Z)</SelectItem>
+                  <SelectItem value="nama_santri-desc">Nama Santri (Z-A)</SelectItem>
+                  <SelectItem value="persentase-desc">Capaian Tertinggi</SelectItem>
+                  <SelectItem value="persentase-asc">Capaian Terendah</SelectItem>
+                  <SelectItem value="target-desc">Target Tertinggi</SelectItem>
+                  <SelectItem value="target-asc">Target Terendah</SelectItem>
+                  {isAdmin && <SelectItem value="nama_halaqah-asc">Halaqah (A-Z)</SelectItem>}
+                </SelectContent>
+              </Select>
             </div>
           </div>
         )}
 
-        {/* Table list */}
-        <div className="overflow-x-auto">
+        {/* Accordion Collapsible List */}
+        <div className="p-4 md:p-6">
           {loadingProgres ? (
             <div className="p-12 text-center text-muted-foreground flex flex-col items-center justify-center gap-2">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
               <span>Memuat data progres...</span>
             </div>
           ) : sortedFilteredData.length === 0 ? (
-            <div className="p-12 text-center text-muted-foreground">
+            <div className="p-12 text-center text-muted-foreground border border-dashed rounded-xl bg-card">
               Data progres tidak ditemukan.
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="pl-6">
-                    <Button
-                      variant="ghost"
-                      onClick={() => toggleSortHandler("nama_santri")}
-                      className="hover:bg-transparent -ml-4"
-                    >
-                      Santri {renderSortIcon("nama_santri")}
-                    </Button>
-                  </TableHead>
-                  <TableHead className="hidden md:table-cell">
-                    <Button
-                      variant="ghost"
-                      onClick={() => toggleSortHandler("nama_halaqah")}
-                      className="hover:bg-transparent -ml-4"
-                    >
-                      Halaqah {renderSortIcon("nama_halaqah")}
-                    </Button>
-                  </TableHead>
-                  <TableHead className="hidden sm:table-cell">
-                    <Button
-                      variant="ghost"
-                      onClick={() => toggleSortHandler("target")}
-                      className="hover:bg-transparent -ml-4"
-                    >
-                      Target Aktif {renderSortIcon("target")}
-                    </Button>
-                  </TableHead>
-                  <TableHead>
-                    <Button
-                      variant="ghost"
-                      onClick={() => toggleSortHandler("persentase")}
-                      className="hover:bg-transparent -ml-4"
-                    >
-                      Capaian {renderSortIcon("persentase")}
-                    </Button>
-                  </TableHead>
-                  <TableHead className="text-right pr-6">Aksi</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {sortedFilteredData.map((row) => {
-                  const targetLabel = row.target
-                    ? `${row.target.nilai_target} ${SATUAN_TARGET_LABELS[row.target.satuan as keyof typeof SATUAN_TARGET_LABELS] ?? row.target.satuan} / ${TIPE_TARGET_LABELS[row.target.tipe as keyof typeof TIPE_TARGET_LABELS]?.toLowerCase() ?? row.target.tipe.toLowerCase()}`
-                    : "Tanpa Target";
+            <Accordion type="single" collapsible className="w-full space-y-3">
+              {sortedFilteredData.map((row) => {
+                const targetLabel = row.target
+                  ? `${row.target.nilai_target} ${SATUAN_TARGET_LABELS[row.target.satuan as keyof typeof SATUAN_TARGET_LABELS] ?? row.target.satuan} / ${TIPE_TARGET_LABELS[row.target.tipe as keyof typeof TIPE_TARGET_LABELS]?.toLowerCase() ?? row.target.tipe.toLowerCase()}`
+                  : "Tanpa Target";
 
-                  const lastDateStr = row.progres.tanggal_setoran_terakhir;
-                  let ewsLabel = "";
-                  if (!lastDateStr) {
-                    if (row.target) {
-                      ewsLabel = "Belum Mulai";
-                    }
-                  } else {
-                    const lastDate = new Date(lastDateStr);
-                    const diffDays = Math.floor(
-                      (new Date().getTime() - lastDate.getTime()) /
-                        (1000 * 60 * 60 * 24),
-                    );
-                    if (diffDays >= 3) {
-                      ewsLabel = `Pasif ${diffDays} Hari`;
-                    }
+                const lastDateStr = row.progres.tanggal_setoran_terakhir;
+                let ewsLabel = "";
+                if (!lastDateStr) {
+                  if (row.target) {
+                    ewsLabel = "Belum Mulai";
                   }
+                } else {
+                  const lastDate = new Date(lastDateStr);
+                  const diffDays = Math.floor(
+                    (new Date().getTime() - lastDate.getTime()) /
+                      (1000 * 60 * 60 * 24),
+                  );
+                  if (diffDays >= 3) {
+                    ewsLabel = `Pasif ${diffDays} Hari`;
+                  }
+                }
 
-                  return (
-                    <TableRow key={row.id_santri}>
-                      <TableCell className="pl-6 py-4">
-                        <div className="font-semibold">{row.nama_santri}</div>
-                        <div className="text-xs text-muted-foreground md:hidden mt-0.5">
-                          {row.nama_halaqah}
+                const statusLabels = {
+                  TERCAPAI: "Tercapai",
+                  DALAM_PROSES: "Dalam Proses",
+                  BELUM_MULAI: "Belum Mulai",
+                  BEBAS: "Tanpa Target",
+                };
+                const statusStyles = {
+                  TERCAPAI: "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-900/50",
+                  DALAM_PROSES: "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-900/50",
+                  BELUM_MULAI: "bg-destructive/10 text-destructive border-destructive/20 dark:bg-destructive/20 dark:text-red-400",
+                  BEBAS: "bg-muted text-muted-foreground border-muted-foreground/20",
+                };
+
+                return (
+                  <AccordionItem
+                    key={row.id_santri}
+                    value={row.id_santri.toString()}
+                    className="border rounded-xl bg-card overflow-hidden shadow-sm transition-all duration-200 hover:shadow-md [&[data-state=open]]:border-primary/45"
+                  >
+                    <AccordionTrigger className="hover:no-underline py-4 px-4 sm:px-6">
+                      <div className="flex flex-1 flex-col sm:flex-row sm:items-center justify-between gap-4 text-left pr-4">
+                        {/* Nama & Initial */}
+                        <div className="flex items-center gap-3">
+                          <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm uppercase shrink-0">
+                            {row.nama_santri.charAt(0)}
+                          </div>
+                          <div className="space-y-1">
+                            <div className="font-semibold text-sm sm:text-base text-foreground leading-snug">
+                              {row.nama_santri}
+                            </div>
+                            <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+                              {isAdmin && (
+                                <span className="font-medium bg-muted px-1.5 py-0.5 rounded text-[10px]">
+                                  {row.nama_halaqah}
+                                </span>
+                              )}
+                              <span>Target: {targetLabel}</span>
+                            </div>
+                          </div>
                         </div>
-                        {ewsLabel && (
-                          <div className="mt-1">
+
+                        {/* Progress Bar (Middle) */}
+                        <div className="flex items-center gap-4 min-w-[120px] sm:min-w-[180px]">
+                          {row.target ? (
+                            <div className="flex flex-col gap-1 w-full max-w-[200px]">
+                              <div className="flex justify-between items-center text-[10px] text-muted-foreground font-medium">
+                                <span>
+                                  {row.progres.capaian}/{row.target.nilai_target} {SATUAN_TARGET_LABELS[row.target.satuan as keyof typeof SATUAN_TARGET_LABELS] ?? row.target.satuan}
+                                </span>
+                                <span className="font-bold text-primary">{row.progres.persentase}%</span>
+                              </div>
+                              <Progress
+                                value={row.progres.persentase}
+                                className="h-1.5"
+                              />
+                            </div>
+                          ) : (
+                            <span className="text-xs font-medium text-muted-foreground bg-muted/40 px-2 py-1 rounded">
+                              {row.progres.jumlah_setoran} setoran
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Status Badges (Right) */}
+                        <div className="flex items-center gap-2 self-start sm:self-auto">
+                          <Badge
+                            variant="outline"
+                            className={cn("text-[10px] font-semibold px-2 py-0.5 rounded-full capitalize shrink-0", statusStyles[row.progres.status as keyof typeof statusStyles])}
+                          >
+                            {statusLabels[row.progres.status as keyof typeof statusLabels] ?? row.progres.status}
+                          </Badge>
+                          {ewsLabel && (
                             <Badge
                               variant="destructive"
-                              className="text-[10px] px-1.5 py-0"
+                              className="text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0"
                             >
                               {ewsLabel}
                             </Badge>
-                          </div>
-                        )}
-                      </TableCell>
-                      <TableCell className="hidden md:table-cell text-muted-foreground">
-                        {row.nama_halaqah}
-                      </TableCell>
-                      <TableCell className="hidden sm:table-cell">
-                        {targetLabel}
-                      </TableCell>
-                      <TableCell>
-                        {row.target ? (
-                          <div className="flex flex-col gap-1 w-28">
-                            <div className="flex justify-between items-center text-[10px] text-muted-foreground">
-                              <span>
-                                {row.progres.capaian}/{row.target.nilai_target}
-                              </span>
-                              <span>{row.progres.persentase}%</span>
-                            </div>
-                            <Progress
-                              value={row.progres.persentase}
-                              className="h-1.5"
-                            />
-                          </div>
-                        ) : (
-                          <span className="text-xs text-muted-foreground">
-                            {row.progres.jumlah_setoran} setoran
-                          </span>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-right pr-6">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            fetchSetoranBySantri(row.id_santri);
-                            setSelectedSantriForHistory(row);
-                          }}
-                        >
-                          <History className="h-4 w-4 mr-1.5 text-muted-foreground" />
-                          Riwayat
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
+                          )}
+                        </div>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="p-0 border-t">
+                      <SantriProgresCollapsibleDetail santri={row} />
+                    </AccordionContent>
+                  </AccordionItem>
+                );
+              })}
+            </Accordion>
           )}
         </div>
       </div>
-
-      {/* ── DETAIL MODAL DIALOG ── */}
-      <Dialog
-        open={!!selectedSantriForHistory}
-        onOpenChange={(open) => !open && setSelectedSantriForHistory(null)}
-      >
-        <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
-          <DialogHeader className="border-b pb-4">
-            <DialogTitle className="text-lg font-bold">
-              Riwayat Setoran — {selectedSantriForHistory?.nama_santri}
-            </DialogTitle>
-            <DialogDescription className="text-xs text-muted-foreground mt-1">
-              {selectedSantriForHistory?.nama_halaqah} · Target:{" "}
-              {activeTargetLabel}
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="py-4">
-            {selectedSantriForHistory && (
-              <Tabs defaultValue="setoran" className="w-full">
-                <TabsList className="grid w-full grid-cols-2 max-w-[400px] mb-6">
-                  <TabsTrigger value="setoran">Riwayat Setoran</TabsTrigger>
-                  <TabsTrigger value="ujian">Riwayat Ujian</TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="setoran">
-                  {loadingHistory ? (
-                    <div className="py-12 text-center text-muted-foreground flex flex-col items-center justify-center gap-2">
-                      <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                      <span>Mengambil riwayat setoran...</span>
-                    </div>
-                  ) : (
-                    <HistoryTable
-                      santri={selectedSantriForHistory}
-                      history={history}
-                    />
-                  )}
-                </TabsContent>
-
-                <TabsContent value="ujian">
-                  <ExamHistoryTable santri={selectedSantriForHistory} />
-                </TabsContent>
-              </Tabs>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
       {/* Dialog Pratinjau PDF */}
       <PdfPreviewDialog
         isOpen={previewOpen}

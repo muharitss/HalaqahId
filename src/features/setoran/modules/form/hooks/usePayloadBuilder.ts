@@ -13,6 +13,17 @@ export function buildPayload(
     values.ayat_mulai
   );
 
+  const customValuesObj = {
+    ...(values.custom_values || {}),
+    ...(mushafSelection && mushafSelection.isPartialAyah && {
+      is_partial_ayah: true,
+      start_word_pos: mushafSelection.startWordPosition,
+      end_word_pos: mushafSelection.endWordPosition,
+      start_word_text: mushafSelection.startWordText,
+      end_word_text: mushafSelection.endWordText,
+    })
+  };
+
   return {
     id_santri: values.id_santri,
     id_sesi: values.id_sesi,
@@ -26,7 +37,7 @@ export function buildPayload(
     tanggal_setoran: values.tanggal_setoran,
     taqwim: values.taqwim,
     keterangan: values.keterangan,
-    custom_values: values.custom_values || null,
+    custom_values: Object.keys(customValuesObj).length > 0 ? customValuesObj : null,
     start_surat_id: startSuratId,
     start_ayat: values.ayat_mulai,
     end_surat_id: endSuratId,

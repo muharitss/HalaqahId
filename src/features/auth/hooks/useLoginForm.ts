@@ -36,7 +36,7 @@ export function useLoginForm() {
     setIsSubmitting(true);
     try {
       await login(values);
-      navigate("/", { replace: true });
+      navigate("/dashboard", { replace: true });
     } catch (error: unknown) {
       const errorMessage = getErrorMessage(error, "Terjadi kesalahan saat login");
       setBackendError(errorMessage);

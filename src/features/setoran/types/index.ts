@@ -49,6 +49,11 @@ export interface MushafSelection {
   endPage: number;
   endLine: number;
   totalBaris: number;
+  isPartialAyah?: boolean;
+  startWordPosition?: number;
+  endWordPosition?: number;
+  startWordText?: string;
+  endWordText?: string;
 }
 
 // ─────────────────────────────────────────────

@@ -12,12 +12,14 @@
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
-import { ArrowLeft, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MushafViewer } from "../components/MushafViewer";
 import { SURAH_PAGE_START, surahNameToNumber, adjustStartLine } from "@/utils/mushafUtils";
 import { pemetaanJuz } from "@/utils/daftarSurah";
-import type { MushafSelection } from "../types";
+import { setoranService } from "../api/services/setoranService";
+import { DRAFT_STORAGE_KEY } from "../modules/form/constants/form.constants";
+import type { MushafSelection, SetoranRecord } from "../types";
 
 export function MushafPage() {
   const navigate = useNavigate();
@@ -39,6 +41,57 @@ export function MushafPage() {
   const [selection, setSelection] = useState<MushafSelection | null>(
     location.state?.currentSelection ?? null
   );
+  const [completedRanges, setCompletedRanges] = useState<SetoranRecord[]>([]);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+
+  // Load history setoran santri untuk kategori terpilih
+  useEffect(() => {
+    const storedDraft = sessionStorage.getItem(DRAFT_STORAGE_KEY);
+    if (!storedDraft) return;
+
+    try {
+      const draft = JSON.parse(storedDraft);
+      const idSantri = draft.id_santri;
+      const idKategori = draft.id_kategori;
+
+      if (idSantri && idKategori) {
+        setIsLoadingHistory(true);
+        setoranService.getSetoranBySantri(idSantri)
+          .then((res) => {
+            if (res.data) {
+              // Filter setoran berdasarkan kategori yang sama
+              const filtered = res.data.filter((s) => s.id_kategori === idKategori);
+              setCompletedRanges(filtered);
+
+              // Cari setoran paling terakhir berdasarkan tanggal & id
+              const sorted = [...filtered].sort((a, b) => {
+                const dateA = new Date(a.tanggal_setoran).getTime();
+                const dateB = new Date(b.tanggal_setoran).getTime();
+                if (dateA !== dateB) return dateB - dateA;
+                return b.id_setoran - a.id_setoran;
+              });
+
+              const latest = sorted[0];
+              // Jika query param page tidak diset secara khusus, lompat ke halaman setoran terakhir
+              if (latest && (initialPageFromQuery === 1 && !initialSurahFromState)) {
+                const targetPage = latest.end_page ?? latest.start_page ?? (latest.end_surat_id ? SURAH_PAGE_START[latest.end_surat_id] : null);
+                if (targetPage) {
+                  setCurrentPage(targetPage);
+                }
+              }
+            }
+          })
+          .catch((err) => {
+            console.error("Gagal memuat riwayat setoran santri:", err);
+          })
+          .finally(() => {
+            setIsLoadingHistory(false);
+          });
+      }
+    } catch (e) {
+      console.error("Error parsing form draft for history:", e);
+    }
+  }, [initialPageFromQuery, initialSurahFromState]);
 
   // Kunci scroll body saat mushaf page aktif
   useEffect(() => {
@@ -147,7 +200,12 @@ export function MushafPage() {
 
           {/* Info seleksi aktif */}
           <div className="flex-1 text-xs text-center text-muted-foreground truncate min-w-0">
-            {selection ? (
+            {isLoadingHistory ? (
+              <span className="inline-flex items-center justify-center gap-1.5 text-[10px] sm:text-[11px] text-primary/70 italic">
+                <Loader2 className="h-3 w-3 animate-spin text-primary" />
+                Memuat riwayat setoran...
+              </span>
+            ) : selection ? (
               <span className="font-semibold text-primary text-[11px] sm:text-xs">
                 {selection.startSurahName} {selection.startAyah} → {selection.endSurahName} {selection.endAyah}
                 <span className="ml-1 text-muted-foreground font-normal">
@@ -183,6 +241,7 @@ export function MushafPage() {
           onSelectionChange={setSelection}
           selectionMode={selectionMode}
           onSelectionModeChange={setSelectionMode}
+          completedRanges={completedRanges}
         />
       </div>
     </div>
