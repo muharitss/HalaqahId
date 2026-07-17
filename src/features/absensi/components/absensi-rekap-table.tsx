@@ -41,7 +41,7 @@ const getStatusConfig = (status?: AbsensiStatusType | null) =>
 
 export function AbsensiRekapTable() {
   const { halaqahId, viewDate, setViewDate, santriList, filteredSesiList, loadingSantri } = useAbsensi();
-  const { getPdfDocument, isGenerating } = useAbsensiPdf();
+  const { getPdfDocument } = useAbsensiPdf();
   const [previewOpen, setPreviewOpen] = useState(false);
   const [pdfDocInfo, setPdfDocInfo] = useState<{
     doc: React.ReactElement;
@@ -273,7 +273,6 @@ export function AbsensiRekapTable() {
                 Nama Santri
               </TableHead>
               {daysInMonth.map((date) => {
-                const dateStr = format(date, "yyyy-MM-dd");
                 const relevantSesi = filteredSesiList.length > 0 ? filteredSesiList : [{ id_sesi: 0, nama_sesi: "Sesi" }];
                 return (
                   <TableHead

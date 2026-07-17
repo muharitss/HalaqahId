@@ -15,7 +15,7 @@ import {
 } from "../modules/laporan";
 
 import { Button } from "@/components/ui/button";
-import { FileDown, Loader2, RefreshCw } from "lucide-react";
+import { FileDown, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -49,7 +49,7 @@ export function LaporanSetoranPage() {
     refreshData,
   } = useLaporanData();
 
-  const { getPdfDocument, isGenerating } = useLaporanPdf();
+  const { getPdfDocument } = useLaporanPdf();
   const [previewOpen, setPreviewOpen] = useState(false);
   const [pdfDocInfo, setPdfDocInfo] = useState<{
     doc: React.ReactElement;

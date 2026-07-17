@@ -83,7 +83,7 @@ export function ProgresSantriPage() {
     history,
     loading: loadingHistory,
   } = useSetoran();
-  const { getPdfDocument, isGenerating } = useProgresPdf();
+  const { getPdfDocument } = useProgresPdf();
   const [previewOpen, setPreviewOpen] = useState(false);
   const [pdfDocInfo, setPdfDocInfo] = useState<{
     doc: React.ReactElement;

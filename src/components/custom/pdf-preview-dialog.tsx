@@ -13,17 +13,17 @@ import { Download, ExternalLink, Loader2, FileText, MonitorOff } from "lucide-re
 import { toast } from "sonner";
 
 interface PdfPreviewInnerProps {
-  document: React.ReactElement;
+  document: React.ReactElement<any>;
   filename: string;
   onClose: () => void;
 }
 
 function PdfPreviewInner({ document: docElement, filename, onClose }: PdfPreviewInnerProps) {
-  const [instance, updateInstance] = usePDF({ document: docElement });
+  const [instance, updateInstance] = usePDF({ document: docElement as any });
 
   // Update instance if document changes
   useEffect(() => {
-    updateInstance(docElement);
+    updateInstance(docElement as any);
   }, [docElement, updateInstance]);
 
   const handleDownload = () => {
@@ -137,7 +137,7 @@ function PdfPreviewInner({ document: docElement, filename, onClose }: PdfPreview
 interface PdfPreviewDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  document: React.ReactElement | null;
+  document: React.ReactElement<any> | null;
   filename: string;
   title?: string;
 }
