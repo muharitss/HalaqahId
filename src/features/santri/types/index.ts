@@ -42,9 +42,3 @@ export interface CreateSantriData {
 }
 
 export type UpdateSantriData = Partial<CreateSantriData>;
-
-export interface SantriStats {
-  total: number;
-  active: number;
-  inactive: number;
-}

@@ -1,7 +1,8 @@
+import { useEffect } from "react";
 import { HelmetProvider } from "react-helmet-async";
 import { RouterProvider } from "react-router-dom";
 import { AuthProvider } from "@/features/auth/components/auth-provider";
-import { ThemeProvider } from "@/store/ThemeContext";
+import { useAuthStore } from "@/store/useAuthStore";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { queryClient } from "@/lib/react-query";
@@ -11,21 +12,23 @@ import { AnalyticsWrapper } from "@/components/custom/seo/AnalyticsWrapper";
 import "./App.css";
 
 function App() {
+  useEffect(() => {
+    useAuthStore.getState().refreshUser();
+  }, []);
+
   return (
     <HelmetProvider>
       <AnalyticsWrapper>
         <QueryClientProvider client={queryClient}>
-          <ThemeProvider defaultTheme="light" storageKey="app-theme">
-            {/* AuthProvider di luar RouterProvider agar context tersedia di semua route elements */}
-            <AuthProvider>
-              <RouterProvider router={router} />
-              <Toaster
-                position="top-center"
-                richColors
-                closeButton
-              />
-            </AuthProvider>
-          </ThemeProvider>
+          {/* AuthProvider wraps the application to preserve compatability facades */}
+          <AuthProvider>
+            <RouterProvider router={router} />
+            <Toaster
+              position="top-center"
+              richColors
+              closeButton
+            />
+          </AuthProvider>
           <ReactQueryDevtools initialIsOpen={false} />
         </QueryClientProvider>
       </AnalyticsWrapper>

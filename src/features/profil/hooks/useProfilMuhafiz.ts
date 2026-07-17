@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/features/auth/components/auth-provider";
-import { profilService } from "../api/profilService";
+import { profilService } from "../api";
 import type { ProfilFormValues, GantiPasswordFormValues } from "../types";
 
 export function useProfilMuhafiz() {

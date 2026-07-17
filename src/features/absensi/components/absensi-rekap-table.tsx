@@ -1,20 +1,25 @@
 import { useMemo, useCallback, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { AlertCircle, Loader2, FileDown } from "lucide-react";
+import { AlertCircle, Loader2, FileDown, CheckCheck } from "lucide-react";
 import { format, getDate, startOfMonth, endOfMonth, eachDayOfInterval } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 import { useAbsensi } from "./absensi-provider";
-import { useAbsensiRekapQuery } from "../hooks/use-absensi-query";
-import { useAbsensiRekapMutation } from "../hooks/use-absensi-mutation";
+import { useAbsensiRekapQuery, useAbsensiRekapMutation } from "../api";
 import { useAbsensiPdf } from "../hooks/useAbsensiPdf";
-import { type AbsensiStatusType, absensiStatusSchema } from "../types/absensi.schema";
+import { PdfPreviewDialog } from "@/components/custom/pdf-preview-dialog";
+import { type AbsensiStatusType, absensiStatusSchema } from "../validation/absensi.schema";
+import { absensiKeys } from "../api/queries/queryKeys";
+import { useAuth } from "@/features/auth";
+import { type MonthlyAbsensiData } from "../types";
+import { getErrorMessage } from "@/utils/error";
 
 // Status config
 const STATUS_CONFIG: {
@@ -36,25 +41,34 @@ const getStatusConfig = (status?: AbsensiStatusType | null) =>
 
 export function AbsensiRekapTable() {
   const { halaqahId, viewDate, setViewDate, santriList, filteredSesiList, loadingSantri } = useAbsensi();
-  const { generatePdf, isGenerating } = useAbsensiPdf();
+  const { getPdfDocument, isGenerating } = useAbsensiPdf();
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [pdfDocInfo, setPdfDocInfo] = useState<{
+    doc: React.ReactElement;
+    filename: string;
+    title: string;
+  } | null>(null);
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
 
-  const handleDownloadPdf = async () => {
+  const handlePreviewPdf = () => {
     if (santriList.length === 0) {
       toast.warning("Tidak ada data untuk di-export");
       return;
     }
     try {
-      await generatePdf({
+      const info = getPdfDocument({
         santriList,
         monthlyData,
         filteredSesiList,
         viewDate,
         halaqahId,
       });
-      toast.success("Laporan PDF berhasil diunduh!");
+      setPdfDocInfo(info);
+      setPreviewOpen(true);
     } catch (err) {
-      console.error("PDF generation error:", err);
-      toast.error("Gagal membuat PDF, silakan coba lagi");
+      console.error("PDF preview preparation error:", err);
+      toast.error("Gagal menyiapkan pratinjau PDF");
     }
   };
 
@@ -65,6 +79,7 @@ export function AbsensiRekapTable() {
   const { updateCell, isUpdating, pendingVariables } = useAbsensiRekapMutation();
 
   const [openCell, setOpenCell] = useState<string | null>(null);
+  const [bulkingDate, setBulkingDate] = useState<string | null>(null);
 
   const daysInMonth = useMemo(
     () => eachDayOfInterval({ start: startOfMonth(viewDate), end: endOfMonth(viewDate) }),
@@ -118,6 +133,91 @@ export function AbsensiRekapTable() {
     pendingVariables?.id_sesi === sesiId &&
     pendingVariables?.tanggal === dateStr;
 
+  const handleBulkHadirDateSesi = async (dateStr: string, sesiId: number) => {
+    const bulkKey = `${dateStr}-${sesiId}`;
+    if (bulkingDate === bulkKey) return;
+
+    // --- Optimistic update ---
+    const queryKey = halaqahId
+      ? absensiKeys.rekapHalaqah(user?.id_user, halaqahId, month, year)
+      : absensiKeys.rekapAll(user?.id_user, month, year);
+
+    // Ambil santri yang relevan untuk sesi ini
+    const relevantSantri = santriList.filter((santri) => {
+      const sesi = filteredSesiList.find((s) => s.id_sesi === sesiId);
+      if (!sesi) return true;
+      return (
+        !sesi.halaqahs ||
+        sesi.halaqahs.length === 0 ||
+        sesi.halaqahs.some((h) => h.id_halaqah === santri.id_halaqah)
+      );
+    });
+
+    // Snapshot data sebelum diubah (untuk rollback jika gagal)
+    const previousData = queryClient.getQueryData<MonthlyAbsensiData[]>(queryKey);
+
+    // Update cache langsung (tanpa menunggu server)
+    queryClient.setQueryData<MonthlyAbsensiData[]>(queryKey, (old = []) => {
+      const updated = old.map((day) => {
+        if (day.tanggal !== dateStr) return day;
+        // Buat set id_santri yang akan diupdate
+        const updatingIds = new Set(relevantSantri.map((s) => s.id_santri));
+        // Hapus entri lama untuk santri+sesi yang akan diupdate
+        const filtered = day.data.filter(
+          (item) => !(updatingIds.has(Number(item.id_santri)) && Number(item.id_sesi) === sesiId)
+        );
+        // Tambahkan entri baru HADIR
+        const newEntries = relevantSantri.map((santri) => ({
+          id_santri: santri.id_santri,
+          id_sesi: sesiId,
+          status: "HADIR" as AbsensiStatusType,
+        }));
+        return { ...day, data: [...filtered, ...newEntries] };
+      });
+
+      // Jika tanggal belum ada di data (belum ada absensi apapun di hari itu)
+      const hasDate = updated.some((d) => d.tanggal === dateStr);
+      if (!hasDate) {
+        updated.push({
+          tanggal: dateStr,
+          data: relevantSantri.map((santri) => ({
+            id_santri: santri.id_santri,
+            id_sesi: sesiId,
+            status: "HADIR" as AbsensiStatusType,
+          })),
+        });
+      }
+      return updated;
+    });
+
+    setBulkingDate(bulkKey);
+    const tasks = relevantSantri.map((santri) =>
+      updateCell({
+        id_santri: santri.id_santri,
+        id_sesi: sesiId,
+        status: "HADIR",
+        tanggal: dateStr,
+        silent: true,
+      })
+    );
+
+    const results = await Promise.allSettled(tasks);
+    const failures = results.filter((r): r is PromiseRejectedResult => r.status === "rejected");
+
+    if (failures.length > 0) {
+      // Rollback ke data sebelumnya jika ada yang gagal
+      queryClient.setQueryData(queryKey, previousData);
+      const firstError = failures[0].reason;
+      toast.error(getErrorMessage(firstError, "Gagal menyimpan absensi, perubahan dibatalkan"));
+    } else {
+      // Semua sukses — sync dengan server di background
+      queryClient.invalidateQueries({ queryKey });
+      toast.success("Semua santri dicatat HADIR");
+    }
+
+    setBulkingDate(null);
+  };
+
   const isDataLoading = isLoadingData || loadingSantri;
 
   return (
@@ -132,20 +232,11 @@ export function AbsensiRekapTable() {
           <Button
             variant="outline"
             size="sm"
-            onClick={handleDownloadPdf}
-            disabled={isGenerating || isDataLoading}
+            onClick={handlePreviewPdf}
+            disabled={isDataLoading}
           >
-            {isGenerating ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Membuat PDF...
-              </>
-            ) : (
-              <>
-                <FileDown className="h-4 w-4 mr-2" />
-                Unduh PDF
-              </>
-            )}
+            <FileDown className="h-4 w-4 mr-2" />
+            Unduh PDF
           </Button>
           <Select
             value={format(viewDate, "yyyy-MM")}
@@ -170,24 +261,25 @@ export function AbsensiRekapTable() {
         </div>
       </div>
 
-      {/* Table */}
-      <div className="rounded-md border overflow-x-auto relative shadow-sm scrollbar-thin">
+      {/* Table — overflow-auto + fixed height agar scroll 2 arah (horizontal & vertikal) bekerja */}
+      <div className="rounded-md border overflow-auto relative shadow-sm scrollbar-thin h-[calc(100dvh-260px)] min-h-64">
         <Table className="border-separate border-spacing-0">
           <TableHeader>
             <TableRow className="bg-muted/50">
               <TableHead
                 rowSpan={2}
-                className="min-w-40 sticky left-0 z-30 bg-muted font-bold border-r border-b text-xs align-middle"
+                className="min-w-40 sticky left-0 top-0 z-50 bg-muted font-bold border-r border-b text-xs align-middle"
               >
                 Nama Santri
               </TableHead>
               {daysInMonth.map((date) => {
+                const dateStr = format(date, "yyyy-MM-dd");
                 const relevantSesi = filteredSesiList.length > 0 ? filteredSesiList : [{ id_sesi: 0, nama_sesi: "Sesi" }];
                 return (
                   <TableHead
                     key={date.toString()}
                     colSpan={relevantSesi.length}
-                    className="text-center p-1 text-[10px] font-bold border-r border-b"
+                    className="text-center p-1 text-[10px] font-bold border-r border-b sticky top-0 z-40 bg-muted"
                   >
                     {getDate(date)}
                   </TableHead>
@@ -195,28 +287,51 @@ export function AbsensiRekapTable() {
               })}
               <TableHead
                 colSpan={5}
-                className="text-center min-w-10 bg-muted/80 font-black border-r border-b text-primary text-[10px]"
+                className="text-center min-w-10 bg-muted/80 font-black border-r border-b text-primary text-[10px] sticky top-0 z-40"
               >
                 Total
               </TableHead>
             </TableRow>
             <TableRow className="bg-muted/30">
               {daysInMonth.map((date) => {
+                const dateStr = format(date, "yyyy-MM-dd");
                 const relevantSesi = filteredSesiList.length > 0 ? filteredSesiList : [{ id_sesi: 0, nama_sesi: "Sesi", singkatan: "-" }];
-                return relevantSesi.map((sesi) => (
-                  <TableHead
-                    key={`${date.toString()}-${sesi.id_sesi}`}
-                    className="text-center p-1 text-[9px] min-w-[35px] border-r border-b text-muted-foreground truncate"
-                    title={sesi.nama_sesi}
-                  >
-                    {sesi.nama_sesi.substring(0, 3)}
-                  </TableHead>
-                ));
+                return relevantSesi.map((sesi) => {
+                  const bulkKey = `${dateStr}-${sesi.id_sesi}`;
+                  const isBulkingThis = bulkingDate === bulkKey;
+                  return (
+                    <TableHead
+                      key={`${date.toString()}-${sesi.id_sesi}`}
+                      className="text-center p-0 text-[9px] min-w-[35px] border-r border-b text-muted-foreground sticky top-[32px] z-40 bg-muted group/sesi"
+                      title={sesi.nama_sesi}
+                    >
+                      <div className="flex flex-col items-center justify-center h-full py-1 gap-0.5">
+                        <span className="truncate max-w-full px-1">{sesi.nama_sesi.substring(0, 3)}</span>
+                        <button
+                          onClick={() => handleBulkHadirDateSesi(dateStr, sesi.id_sesi)}
+                          disabled={isBulkingThis || isUpdating}
+                          title={`Hadir semua santri — ${sesi.nama_sesi} ${format(date, "dd MMM")}`}
+                          className={cn(
+                            "opacity-0 group-hover/sesi:opacity-100 transition-opacity duration-150",
+                            "flex items-center justify-center w-4 h-4 rounded-sm",
+                            "bg-green-500 hover:bg-green-600 text-white disabled:opacity-40 disabled:cursor-not-allowed"
+                          )}
+                        >
+                          {isBulkingThis ? (
+                            <Loader2 className="h-2 w-2 animate-spin" />
+                          ) : (
+                            <CheckCheck className="h-2 w-2" />
+                          )}
+                        </button>
+                      </div>
+                    </TableHead>
+                  );
+                });
               })}
               {["H", "I", "S", "T", "A"].map((label) => (
                 <TableHead
                   key={label}
-                  className="text-center min-w-[40px] bg-muted/50 font-bold border-r border-b text-primary text-[10px]"
+                  className="text-center min-w-[40px] bg-muted/50 font-bold border-r border-b text-primary text-[10px] sticky top-[52px] z-40"
                 >
                   {label}
                 </TableHead>
@@ -399,6 +514,14 @@ export function AbsensiRekapTable() {
           ))}
         </div>
       </div>
+      {/* Dialog Pratinjau PDF */}
+      <PdfPreviewDialog
+        isOpen={previewOpen}
+        onOpenChange={setPreviewOpen}
+        document={pdfDocInfo?.doc ?? null}
+        filename={pdfDocInfo?.filename ?? ""}
+        title={pdfDocInfo?.title}
+      />
     </div>
   );
 }

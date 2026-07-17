@@ -6,7 +6,7 @@ import { JenisLembagaChart } from "../components/JenisLembagaChart";
 import { SekolahDetailSheet } from "../components/SekolahDetailSheet";
 import type { SekolahWithCount, JenisLembaga } from "@/types/domain/sekolah";
 import { useQuery } from "@tanstack/react-query";
-import { sekolahService } from "@/features/sekolah/api/sekolahService";
+import { sekolahService } from "@/features/sekolah";
 import { SystemHealthPanel } from "../components/SystemHealthPanel";
 
 export function SuperadminDashboard() {

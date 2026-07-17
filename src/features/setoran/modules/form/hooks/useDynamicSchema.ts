@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { sekolahService } from "@/features/sekolah/api/sekolahService";
+import { sekolahService } from "@/features/sekolah";
 import { buildDynamicSchema } from "../validation/setoran.schema";
 
 export function useDynamicSchema() {

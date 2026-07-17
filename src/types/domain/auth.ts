@@ -1,5 +1,5 @@
 import { type Role } from './enums';
-import { type LoginFormValues } from '@/features/auth/types/auth.schema';
+import { type LoginFormValues } from '@/features/auth';
 
 export interface User {
   id_user: number;

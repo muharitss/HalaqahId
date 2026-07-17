@@ -7,7 +7,7 @@ import * as z from "zod";
 import { useQuery } from "@tanstack/react-query";
 import { SURAH_IDS, pemetaanJuz } from "@/utils/daftarSurah";
 import { type SetoranRecord, type SetoranPayload } from "../../../types";
-import { sekolahService } from "@/features/sekolah/api/sekolahService";
+import { sekolahService } from "@/features/sekolah";
 
 // Helper function to extract Surah Name and Ayah from strings
 const parseAyatRange = (ayatStr: string) => {

@@ -1,6 +1,6 @@
 import { setoranService } from "@/features/setoran/api/services/setoranService";
 import { halaqahService } from "@/features/halaqah/api/halaqahService";
-import { transformSetoranData } from "@/lib/dataTransformer";
+import { transformSetoranData } from "@/features/setoran/utils/dataTransformer";
 import type {
   DateFilter,
   GroupedData,
@@ -8,8 +8,8 @@ import type {
   GroupedHalaqahItem,
   GroupedSantriItem,
 } from "../types";
-import { santriService } from "@/features/santri/api/santriService";
-import { absensiService } from "@/features/shared/api";
+import { santriService } from "@/features/santri";
+import { absensiService } from "@/features/shared";
 import type { Halaqah } from "@/features/halaqah/types";
 import type { Santri } from "@/features/santri/types";
 

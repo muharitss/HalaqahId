@@ -47,6 +47,7 @@ interface LaporanPdfTemplateProps {
   sekolah?: Sekolah | null;
   namaSekolah?: string;
   namaHalaqah?: string;
+  docTitle?: string;
   generatedAt: string;
 }
 
@@ -306,6 +307,7 @@ export function LaporanPdfTemplate({
   sekolah,
   namaSekolah = "Halaqah ID",
   namaHalaqah = "Semua Halaqah",
+  docTitle = "Laporan Rekapitulasi Setoran Hafalan",
   generatedAt,
 }: LaporanPdfTemplateProps) {
   const ROWS_FIRST = 10;
@@ -334,12 +336,12 @@ export function LaporanPdfTemplate({
         ? "Baik (Itqan)"
         : "Perlu Perbaikan";
 
-  const distribusiKategoriEntries = Object.entries(stats.distribusiKategori).sort(
-    (a, b) => b[1] - a[1]
-  );
-  const distribusiHalaqahEntries = Object.entries(stats.distribusiHalaqah).sort(
-    (a, b) => b[1] - a[1]
-  );
+  // const distribusiKategoriEntries = Object.entries(stats.distribusiKategori).sort(
+  //   (a, b) => b[1] - a[1]
+  // );
+  // const distribusiHalaqahEntries = Object.entries(stats.distribusiHalaqah).sort(
+  //   (a, b) => b[1] - a[1]
+  // );
 
   const formatTanggal = (raw: string) => {
     try {
@@ -377,7 +379,7 @@ export function LaporanPdfTemplate({
                 </Text>
               ) : null}
               <Text style={styles.docTitle}>
-                Laporan Rekapitulasi Setoran Hafalan
+                {docTitle}
               </Text>
               <Text style={styles.periodText}>
                 Periode Laporan: {periodLabel}
@@ -423,7 +425,7 @@ export function LaporanPdfTemplate({
                       {stats.rataRataTaqwim.toFixed(1)} — {taqwimLabel}
                     </Text>
                   </View>
-                  <View style={styles.summaryField}>
+                  {/* <View style={styles.summaryField}>
                     <Text style={styles.summaryLabel}>Kategori Dominan</Text>
                     <Text
                       style={[
@@ -435,11 +437,11 @@ export function LaporanPdfTemplate({
                     >
                       {stats.kategoriDominan || "—"}
                     </Text>
-                  </View>
+                  </View> */}
                 </View>
               </View>
 
-              {(distribusiKategoriEntries.length > 0 ||
+              {/* {(distribusiKategoriEntries.length > 0 ||
                 distribusiHalaqahEntries.length > 0) && (
                 <View style={styles.distribusiContainer}>
                   {distribusiKategoriEntries.length > 0 && (
@@ -484,7 +486,7 @@ export function LaporanPdfTemplate({
                     </View>
                   )}
                 </View>
-              )}
+              )} */}
             </>
           )}
 

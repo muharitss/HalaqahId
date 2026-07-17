@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { laporanService } from "../laporanService";
-import { sekolahService } from "@/features/sekolah/api/sekolahService";
+import { sekolahService } from "@/features/sekolah";
 import { useAuth } from "@/features/auth/components/auth-provider";
 
 export function useLaporanDataQuery() {

@@ -370,7 +370,7 @@ export function AbsensiPdfTemplate({
                 </View>
               </View>
 
-              <View style={styles.distribusiContainer}>
+              {/* <View style={styles.distribusiContainer}>
                 <View style={styles.distribusiCard}>
                   <Text style={styles.distribusiTitle}>
                     Distribusi Status Kehadiran
@@ -428,7 +428,7 @@ export function AbsensiPdfTemplate({
                     </View>
                   </View>
                 </View>
-              </View>
+              </View> */}
             </>
           )}
 

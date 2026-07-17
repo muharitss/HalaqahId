@@ -15,15 +15,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 
 // Hooks & Components
-import { useMuhafiz } from "../hooks/useMuhafiz";
-import { BuatAkun } from "../components/BuatAkun";
-import { DaftarAkun } from "../components/DaftarAkun";
-import { EditAkun } from "../components/EditAkun";
-import { DeleteAkun } from "../components/DeleteAkun";
-import { RekapAbsensiAsatidz } from "../components/RekapAbsensiAsatidz";
-import { InputAbsensiAsatidz } from "../components/InputAbsensiAsatidz";
+import { useMuhafiz, BuatAkun, DaftarAkun, EditAkun, DeleteAkun, RekapAbsensiAsatidz, InputAbsensiAsatidz } from "../modules";
 import { AccessDenied } from "../components/AccessDenied";
 import { isKepalaRole } from "@/types/domain/enums";
+import { type Muhafiz } from "../types";
+import { type SesiHalaqah } from "@/types/domain/sesi-halaqah";
 
 export default function KelolaMuhafizPage() {
   const { user } = useAuth();
@@ -69,12 +65,12 @@ export default function KelolaMuhafizPage() {
 
   if (!user || !isKepalaRole(user.role)) return <AccessDenied />;
 
-  const filteredMuhafizList = muhafizList.filter((m) => {
+  const filteredMuhafizList = muhafizList.filter((m: Muhafiz) => {
     if (!selectedSesi) return true;
-    return m.halaqah?.sesi_halaqahs?.some((s) => s.id_sesi === selectedSesi) ?? false;
+    return m.halaqah?.sesi_halaqahs?.some((s: any) => s.id_sesi === selectedSesi) ?? false;
   });
 
-  const filteredMuhafiz = muhafizList.filter((m) =>
+  const filteredMuhafiz = muhafizList.filter((m: Muhafiz) =>
     m.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     m.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -209,7 +205,7 @@ export default function KelolaMuhafizPage() {
                 <SelectValue placeholder="Pilih Sesi" />
               </SelectTrigger>
               <SelectContent>
-                {sesiList.map((sesi) => (
+                {sesiList.map((sesi: SesiHalaqah) => (
                   <SelectItem key={sesi.id_sesi} value={sesi.id_sesi.toString()}>
                     {sesi.nama_sesi} ({sesi.jam_mulai} - {sesi.jam_selesai})
                   </SelectItem>

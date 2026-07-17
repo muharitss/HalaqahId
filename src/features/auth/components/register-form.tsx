@@ -1,8 +1,4 @@
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Link, useNavigate } from "react-router-dom";
-import { toast } from "sonner";
+import { Link } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSpinner, faUser, faEnvelope, faLock, faBuilding, faMapMarkerAlt, faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 
@@ -18,47 +14,23 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { authService } from "@/features/auth/api/authService";
-import { registerAdminSchema, type RegisterFormValues } from "@/features/auth/types/auth.schema";
-import { getErrorMessage } from "@/utils/error";
+import { useRegisterForm } from "../hooks/useRegisterForm";
 
 export function RegisterForm() {
-  const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
-
   const {
     register,
     handleSubmit,
-    formState: { errors },
-  } = useForm<RegisterFormValues>({
-    resolver: zodResolver(registerAdminSchema),
-  });
-
-  const onSubmit = async (data: RegisterFormValues) => {
-    setIsLoading(true);
-    try {
-      const payload = {
-        name: data.name,
-        email: data.email,
-        password: data.password,
-        nama_sekolah: data.nama_sekolah,
-        alamat: data.alamat,
-      };
-
-      const res = await authService.registerAdmin(payload);
-      toast.success(res.message || "Pendaftaran berhasil!");
-      
-      // Tampilkan dialog sukses
-      setShowSuccessDialog(true);
-    } catch (error: unknown) {
-      toast.error(getErrorMessage(error, "Pendaftaran gagal. Silakan coba lagi."));
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    errors,
+    isLoading,
+    showPassword,
+    setShowPassword,
+    showConfirmPassword,
+    setShowConfirmPassword,
+    showSuccessDialog,
+    setShowSuccessDialog,
+    onSubmit,
+    navigate,
+  } = useRegisterForm();
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -234,3 +206,4 @@ export function RegisterForm() {
     </form>
   );
 }
+

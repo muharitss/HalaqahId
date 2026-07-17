@@ -1,6 +1,6 @@
-﻿export { muhafizService as akunService } from "@/features/muhafiz/api/muhafizService";
-export { halaqahManagementService as halaqahService } from "@/features/halaqah/api/halaqahManagementService";
-export { santriService } from "@/features/santri/api/santriService";
-export { setoranService } from "@/features/setoran/api/services/setoranService";
-export { progresService } from "@/features/santri/api/progresService";
-export { absensiService } from "@/features/absensi/api/absensiService";
+export { muhafizService as akunService } from "@/features/muhafiz";
+export { halaqahManagementService as halaqahService } from "@/features/halaqah";
+export { santriService } from "@/features/santri";
+export { setoranService } from "@/features/setoran";
+export { progresService } from "@/features/santri";
+export { absensiService } from "@/features/absensi";

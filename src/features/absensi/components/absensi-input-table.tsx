@@ -3,9 +3,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, CheckCheck, RotateCcw } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { absensiStatusSchema } from "../types/absensi.schema";
+import { absensiStatusSchema } from "../validation/absensi.schema";
 import { useAbsensi } from "./absensi-provider";
 
 export function AbsensiInputTable() {
@@ -16,6 +16,9 @@ export function AbsensiInputTable() {
     attendanceMap,
     submittedAttendance,
     handleStatusChange,
+    handleBulkHadir,
+    handleBulkReset,
+    isBulkAllHadir,
     handleSave,
     isSubmitting,
     selectedSesi,
@@ -74,7 +77,35 @@ export function AbsensiInputTable() {
           <TableHeader className="bg-muted/50">
             <TableRow>
               <TableHead className="font-bold">Nama Santri</TableHead>
-              <TableHead className="text-right pr-4 font-bold">Kehadiran</TableHead>
+              <TableHead className="text-right pr-2 font-bold">
+                <div className="flex items-center justify-end gap-2">
+                  {isBulkAllHadir ? (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleBulkReset}
+                      className="h-7 px-2 text-xs text-muted-foreground hover:text-destructive gap-1.5"
+                      title="Batalkan semua draft HADIR"
+                    >
+                      <RotateCcw className="h-3.5 w-3.5" />
+                      Batalkan
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="default"
+                      size="sm"
+                      onClick={handleBulkHadir}
+                      disabled={santriList.length === 0 || !isDateValidForSesi || !selectedSesi}
+                      className="h-7 px-3 text-xs font-bold shadow-sm shadow-primary/20 gap-1.5"
+                      title="Tandai semua santri sebagai HADIR"
+                    >
+                      <CheckCheck className="h-3.5 w-3.5" />
+                      Hadir Semua
+                    </Button>
+                  )}
+                  <span className="text-xs font-bold pr-2">Kehadiran</span>
+                </div>
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

@@ -1,8 +1,8 @@
-﻿import { Button } from "@/components/ui/button";
-import { useTheme } from "@/store/ThemeContext";
+import { Button } from "@/components/ui/button";
+import { useThemeStore } from "@/store/useThemeStore";
 
 export function ThemeToggle() {
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme } = useThemeStore();
   const isDark = theme === "dark";
 
   return (

@@ -38,7 +38,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { pemetaanJuz } from "@/utils/daftarSurah";
 import { surahNumberToName } from "@/utils/mushafUtils";
 import { type SetoranRecord, type SetoranPayload } from "../../../types";
-import { type KategoriSetoranResponse } from "@/features/sekolah/api/sekolahService";
+import { type KategoriSetoranResponse } from "@/features/sekolah";
 import { useEditSetoranForm } from "../hooks/useEditSetoranForm";
 
 interface EditSetoranModalProps {

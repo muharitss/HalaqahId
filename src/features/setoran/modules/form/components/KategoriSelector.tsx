@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { sekolahService, type KategoriSetoranResponse } from "@/features/sekolah/api/sekolahService";
+import { sekolahService, type KategoriSetoranResponse } from "@/features/sekolah";
 import {
   FormControl,
   FormField,

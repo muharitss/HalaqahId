@@ -34,7 +34,7 @@ import { cn } from "@/lib/utils";
 import { EditSetoranModal } from "../../form/components/EditSetoranModal";
 import { useSetoran } from "../../../hooks/useSetoran";
 import { useQuery } from "@tanstack/react-query";
-import { sekolahService } from "@/features/sekolah/api/sekolahService";
+import { sekolahService } from "@/features/sekolah";
 import {
   AlertDialog,
   AlertDialogAction,

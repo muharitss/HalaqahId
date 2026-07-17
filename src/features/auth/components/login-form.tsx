@@ -1,11 +1,5 @@
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useNavigate, Link, useLocation } from "react-router-dom";
-import { loginSchema, type LoginFormValues } from "@/features/auth/types/auth.schema";
-import { useAuth } from "@/features/auth/components/auth-provider";
-import { getErrorMessage } from "@/utils/error";
-import { authService } from "@/features/auth/api/authService";
+import { Link } from "react-router-dom";
+import { useLoginForm } from "../hooks/useLoginForm";
 
 // Shadcn UI Components
 import { Button } from "@/components/ui/button";
@@ -42,62 +36,19 @@ import {
 import { CheckCircle2 } from "lucide-react";
 
 export function LoginForm() {
-  const [showPassword, setShowPassword] = useState(false);
-  const [backendError, setBackendError] = useState<string>("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showResend, setShowResend] = useState(false);
-  const [isResending, setIsResending] = useState(false);
-  const { login } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
-  const [successMessage, setSuccessMessage] = useState<string>(
-    location.state?.successMessage || ""
-  );
-
-  const form = useForm<LoginFormValues>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-    },
-  });
-
-  async function onSubmit(values: LoginFormValues) {
-    setBackendError("");
-    setSuccessMessage("");
-    setShowResend(false);
-    setIsSubmitting(true);
-    try {
-      await login(values);
-      navigate("/", { replace: true });
-    } catch (error: unknown) {
-      const errorMessage = getErrorMessage(error, "Terjadi kesalahan saat login");
-      setBackendError(errorMessage);
-      if (
-        errorMessage.toLowerCase().includes("verifikasi") || 
-        errorMessage.toLowerCase().includes("verify")
-      ) {
-        setShowResend(true);
-      }
-      form.setValue("password", "");
-    } finally {
-      setIsSubmitting(false);
-    }
-  }
-
-  const handleResend = async () => {
-    setIsResending(true);
-    try {
-      const email = form.getValues("email");
-      await authService.resendVerification(email);
-      setBackendError("Email verifikasi telah dikirim ulang. Silakan periksa inbox atau folder spam Anda.");
-      setShowResend(false);
-    } catch (error: unknown) {
-      setBackendError(getErrorMessage(error, "Gagal mengirim ulang email verifikasi."));
-    } finally {
-      setIsResending(false);
-    }
-  };
+  const {
+    form,
+    showPassword,
+    setShowPassword,
+    backendError,
+    isSubmitting,
+    showResend,
+    isResending,
+    successMessage,
+    onSubmit,
+    handleResend,
+    clearMessages,
+  } = useLoginForm();
 
   return (
     <Card className="w-full border-none shadow-none bg-transparent sm:bg-card sm:border sm:shadow-sm">
@@ -179,11 +130,7 @@ export function LoginForm() {
                         disabled={isSubmitting}
                         onChange={(e) => {
                           field.onChange(e);
-                          if (backendError) {
-                            setBackendError("");
-                            setShowResend(false);
-                          }
-                          if (successMessage) setSuccessMessage("");
+                          clearMessages();
                         }}
                       />
                     </div>
@@ -214,11 +161,7 @@ export function LoginForm() {
                         disabled={isSubmitting}
                         onChange={(e) => {
                           field.onChange(e);
-                          if (backendError) {
-                            setBackendError("");
-                            setShowResend(false);
-                          }
-                          if (successMessage) setSuccessMessage("");
+                          clearMessages();
                         }}
                       />
                       <Button
@@ -269,3 +212,4 @@ export function LoginForm() {
     </Card>
   );
 }
+

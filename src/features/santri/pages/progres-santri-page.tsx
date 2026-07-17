@@ -40,7 +40,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ExamHistoryTable } from "../components/ExamHistoryTable";
+// Components & hooks will be imported from sub-modules below
 
 import {
   Search,
@@ -59,11 +59,10 @@ import {
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
-import { useProgres } from "../hooks/useProgres";
-import { useSetoran } from "../../setoran/hooks/useSetoran";
-import { useProgresPdf } from "../hooks/useProgresPdf";
-import { HistoryTable } from "../components/HistoryTable";
+import { useProgres, useProgresPdf, HistoryTable, ExamHistoryTable } from "../modules";
+import { useSetoran } from "@/features/setoran";
 import { useAuth } from "@/features/auth/components/auth-provider";
+import { PdfPreviewDialog } from "@/components/custom/pdf-preview-dialog";
 import { Role } from "@/types/domain/enums";
 import {
   SATUAN_TARGET_LABELS,
@@ -84,7 +83,13 @@ export function ProgresSantriPage() {
     history,
     loading: loadingHistory,
   } = useSetoran();
-  const { generatePdf, isGenerating } = useProgresPdf();
+  const { getPdfDocument, isGenerating } = useProgresPdf();
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [pdfDocInfo, setPdfDocInfo] = useState<{
+    doc: React.ReactElement;
+    filename: string;
+    title: string;
+  } | null>(null);
 
   const isAdmin =
     user?.role === Role.SUPERADMIN ||
@@ -260,25 +265,26 @@ export function ProgresSantriPage() {
     return { total, tercapai, dalamProses, belumMulai, bebas, butuhPerhatian };
   }, [progresData, effectiveActiveHalaqah]);
 
-  // PDF download handler
-  const handleDownloadPdf = async () => {
+  // PDF preview handler
+  const handlePreviewPdf = () => {
     if (filteredProgresData.length === 0) {
       toast.warning("Tidak ada data progres untuk di-export");
       return;
     }
 
     try {
-      await generatePdf({
+      const info = getPdfDocument({
         progresData: filteredProgresData,
         stats,
         activeHalaqah: effectiveActiveHalaqah,
         periodLabel: "Periode Target Aktif",
         namaSekolah: "Halaqah ID",
       });
-      toast.success("Laporan PDF progres berhasil diunduh!");
+      setPdfDocInfo(info);
+      setPreviewOpen(true);
     } catch (err) {
-      console.error("Progress PDF error:", err);
-      toast.error("Gagal mengunduh laporan PDF, silakan coba lagi");
+      console.error("Progress PDF preview preparation error:", err);
+      toast.error("Gagal menyiapkan pratinjau PDF");
     }
   };
 
@@ -369,22 +375,13 @@ export function ProgresSantriPage() {
 
           <Button
             size="sm"
-            onClick={handleDownloadPdf}
+            onClick={handlePreviewPdf}
             disabled={
-              isGenerating || loadingProgres || filteredProgresData.length === 0
+              loadingProgres || filteredProgresData.length === 0
             }
           >
-            {isGenerating ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Membuat PDF...
-              </>
-            ) : (
-              <>
-                <FileDown className="h-4 w-4 mr-2" />
-                Unduh PDF Progres
-              </>
-            )}
+            <FileDown className="h-4 w-4 mr-2" />
+            Unduh PDF Progres
           </Button>
         </div>
       </div>
@@ -752,6 +749,14 @@ export function ProgresSantriPage() {
           </div>
         </DialogContent>
       </Dialog>
+      {/* Dialog Pratinjau PDF */}
+      <PdfPreviewDialog
+        isOpen={previewOpen}
+        onOpenChange={setPreviewOpen}
+        document={pdfDocInfo?.doc ?? null}
+        filename={pdfDocInfo?.filename ?? ""}
+        title={pdfDocInfo?.title}
+      />
     </div>
   );
 }

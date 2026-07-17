@@ -1,0 +1,1 @@
+export { useUpdateProfilSekolah } from "./useUpdateProfilSekolah";

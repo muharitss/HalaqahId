@@ -2,7 +2,7 @@ import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
-import { sekolahService } from "@/features/sekolah/api/sekolahService";
+import { sekolahService } from "@/features/sekolah";
 import {
   Table,
   TableBody,
