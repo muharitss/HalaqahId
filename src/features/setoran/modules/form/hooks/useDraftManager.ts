@@ -27,7 +27,6 @@ export function useDraftManager(
       } catch (err) {
         console.error("Gagal memulihkan draf form:", err);
       }
-      setTimeout(() => sessionStorage.removeItem(DRAFT_STORAGE_KEY), 0);
     }
 
     // Restore mushaf selection
@@ -35,10 +34,6 @@ export function useDraftManager(
     if (stored) {
       try {
         const { selection, juzNumber } = JSON.parse(stored);
-        setTimeout(
-          () => sessionStorage.removeItem(MUSHAF_SELECTION_KEY),
-          0
-        );
         if (selection) {
           setMushafSelection(selection);
           form.setValue("surat_mulai", selection.startSurahName);
@@ -60,12 +55,19 @@ export function useDraftManager(
             "ayat_selesai",
           ]);
         }
-      } catch {
-        setTimeout(
-          () => sessionStorage.removeItem(MUSHAF_SELECTION_KEY),
-          0
-        );
+      } catch (err) {
+        console.error("Gagal memulihkan mushaf selection:", err);
       }
     }
+
+    return () => {
+      // Clear draft ONLY if we are navigating to a page that is NOT the mushaf page
+      const nextPath = window.location.pathname;
+      const isGoingToMushaf = nextPath.endsWith("/setoran/mushaf");
+      if (!isGoingToMushaf) {
+        sessionStorage.removeItem(DRAFT_STORAGE_KEY);
+        sessionStorage.removeItem(MUSHAF_SELECTION_KEY);
+      }
+    };
   }, [location]);
 }

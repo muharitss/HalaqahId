@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Layers, BookOpen } from "lucide-react";
 import { type MushafSelection } from "../../../types";
 import { surahNameToNumber, SURAH_PAGE_START } from "@/utils/mushafUtils";
-import { DRAFT_STORAGE_KEY } from "../constants/form.constants";
+import { DRAFT_STORAGE_KEY, MUSHAF_SELECTION_KEY } from "../constants/form.constants";
 
 interface MushafToolbarProps {
   form: any;
@@ -56,7 +56,10 @@ export function MushafToolbar({
             </span>
             <button
               type="button"
-              onClick={() => setMushafSelection(null)}
+              onClick={() => {
+                setMushafSelection(null);
+                sessionStorage.removeItem(MUSHAF_SELECTION_KEY);
+              }}
               className="ml-1 text-destructive/70 hover:text-destructive underline text-xs"
             >
               Hapus

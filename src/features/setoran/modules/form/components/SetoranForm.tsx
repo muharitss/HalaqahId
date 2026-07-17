@@ -63,6 +63,8 @@ export function SetoranForm({
       : false
   );
 
+  const prevMode = useRef<import("../../../hooks/useSmartSetoranMode").FormMode>("idle");
+
   useDraftManager(form, setMushafSelection);
 
   // Auto juz
@@ -122,6 +124,7 @@ export function SetoranForm({
     if (isRestoringDraft.current) {
       if (smartMode.mode !== "idle") {
         isRestoringDraft.current = false;
+        prevMode.current = smartMode.mode;
       }
       return;
     }
@@ -143,7 +146,7 @@ export function SetoranForm({
       form.setValue("keterangan", data.keterangan || "");
       if (data.custom_values) form.setValue("custom_values", data.custom_values as any);
       form.trigger();
-    } else if (smartMode.mode === "create") {
+    } else if (smartMode.mode === "create" && prevMode.current === "edit") {
       form.setValue("juz", 1);
       form.setValue("surat_mulai", "");
       form.setValue("surat_selesai", "");
@@ -152,6 +155,10 @@ export function SetoranForm({
       form.setValue("taqwim", undefined);
       form.setValue("keterangan", "");
       setMushafSelection(null);
+    }
+
+    if (smartMode.mode !== "idle") {
+      prevMode.current = smartMode.mode;
     }
   }, [smartMode.mode, smartMode.existingData]);
 
@@ -185,6 +192,8 @@ export function SetoranForm({
       try {
         await setoranService.updateSetoran(smartMode.recordId, payload);
         toast.success("Setoran berhasil diperbarui ✓");
+        sessionStorage.removeItem(DRAFT_STORAGE_KEY);
+        sessionStorage.removeItem(MUSHAF_SELECTION_KEY);
         smartMode.retryCheck();
       } catch (err: any) {
         toast.error(
@@ -196,6 +205,8 @@ export function SetoranForm({
 
     const result = await onSubmit(payload);
     if (result.success) {
+      sessionStorage.removeItem(DRAFT_STORAGE_KEY);
+      sessionStorage.removeItem(MUSHAF_SELECTION_KEY);
       form.reset({
         ...form.getValues(),
         surat_mulai: "",
