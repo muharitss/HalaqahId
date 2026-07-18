@@ -1,11 +1,14 @@
 import { useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { format } from "date-fns";
+import { id as idLocale } from "date-fns/locale";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
+import { Calendar } from "@/components/ui/calendar";
+import { sekolahService } from "@/features/sekolah";
 import {
   Select,
   SelectContent,
@@ -51,6 +54,8 @@ import {
   Loader2,
   ChevronDown,
   Check,
+  CalendarDays,
+  BookOpen,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -71,9 +76,17 @@ type SortDir = "asc" | "desc";
 
 interface SantriProgresCollapsibleDetailProps {
   santri: ProgresSantri;
+  filters: {
+    selectedMonth: number | null;
+    selectedYear: number | null;
+    dateFrom: Date | null;
+    dateTo: Date | null;
+    selectedKategori: string;
+  };
 }
 
-function SantriProgresCollapsibleDetail({ santri }: SantriProgresCollapsibleDetailProps) {
+function SantriProgresCollapsibleDetail({ santri, filters }: SantriProgresCollapsibleDetailProps) {
+  const { selectedMonth, selectedYear, dateFrom, dateTo, selectedKategori } = filters;
   const { data: history = [], isFetching: loadingHistory } = useSetoranHistory(santri.id_santri);
 
   const getKategoriName = (item: any) => {
@@ -96,6 +109,47 @@ function SantriProgresCollapsibleDetail({ santri }: SantriProgresCollapsibleDeta
     }
   };
 
+  const isDateRangeMode = dateFrom !== null || dateTo !== null;
+
+  const filteredHistory = useMemo(() => {
+    return history.filter((item: any) => {
+      // 1. Kategori Filter
+      const catName = getKategoriName(item);
+      if (
+        selectedKategori &&
+        selectedKategori !== "all" &&
+        selectedKategori !== "" &&
+        catName.toUpperCase() !== selectedKategori.toUpperCase()
+      ) {
+        return false;
+      }
+
+      // 2. Date Range / Month-Year Filter
+      const date = new Date(item.tanggal_setoran);
+      if (isDateRangeMode) {
+        if (dateFrom) {
+          const start = new Date(dateFrom);
+          start.setHours(0, 0, 0, 0);
+          if (date < start) return false;
+        }
+        if (dateTo) {
+          const end = new Date(dateTo);
+          end.setHours(23, 59, 59, 999);
+          if (date > end) return false;
+        }
+      } else {
+        if (selectedMonth !== null) {
+          if (date.getMonth() !== selectedMonth) return false;
+        }
+        if (selectedYear !== null) {
+          if (date.getFullYear() !== selectedYear) return false;
+        }
+      }
+
+      return true;
+    });
+  }, [history, selectedKategori, dateFrom, dateTo, selectedMonth, selectedYear, isDateRangeMode]);
+
   return (
     <div className="bg-muted/5 dark:bg-muted/10">
       {loadingHistory ? (
@@ -103,9 +157,9 @@ function SantriProgresCollapsibleDetail({ santri }: SantriProgresCollapsibleDeta
           <Loader2 className="h-5 w-5 animate-spin text-primary" />
           <span className="text-xs">Mengambil riwayat setoran...</span>
         </div>
-      ) : history.length === 0 ? (
+      ) : filteredHistory.length === 0 ? (
         <div className="py-8 text-center text-xs text-muted-foreground italic">
-          Belum ada riwayat setoran.
+          Belum ada riwayat setoran yang cocok dengan filter.
         </div>
       ) : (
         <div className="overflow-x-auto border-t">
@@ -119,7 +173,7 @@ function SantriProgresCollapsibleDetail({ santri }: SantriProgresCollapsibleDeta
               </TableRow>
             </TableHeader>
             <TableBody>
-              {history.map((item: any) => {
+              {filteredHistory.map((item: any) => {
                 const date = new Date(item.tanggal_setoran);
                 const dateLabel = format(date, "dd/MM/yyyy");
                 const timeLabel = format(date, "HH:mm");
@@ -175,6 +229,26 @@ function SantriProgresCollapsibleDetail({ santri }: SantriProgresCollapsibleDeta
   );
 }
 
+const MONTHS = [
+  "Januari",
+  "Februari",
+  "Maret",
+  "April",
+  "Mei",
+  "Juni",
+  "Juli",
+  "Agustus",
+  "September",
+  "Oktober",
+  "November",
+  "Desember",
+];
+
+const YEARS = Array.from(
+  { length: 5 },
+  (_, i) => new Date().getFullYear() - 2 + i
+);
+
 export function ProgresSantriPage() {
   const [scope, setScope] = useState<string>("target");
   const { user } = useAuth();
@@ -187,6 +261,29 @@ export function ProgresSantriPage() {
     filename: string;
     title: string;
   } | null>(null);
+
+  // New Filter States (just like admin page)
+  const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
+  const [selectedYear, setSelectedYear] = useState<number | null>(null);
+  const [dateFrom, setDateFrom] = useState<Date | null>(null);
+  const [dateTo, setDateTo] = useState<Date | null>(null);
+  const [selectedKategori, setSelectedKategori] = useState<string>("all");
+  const [calFromOpen, setCalFromOpen] = useState(false);
+  const [calToOpen, setCalToOpen] = useState(false);
+
+  // Fetch Kategori Data
+  const { data: kategoriList = [] } = useQuery({
+    queryKey: ["kategori-setoran-progres"],
+    queryFn: async () => {
+      const res = await sekolahService.getKategori();
+      return res.data || [];
+    },
+  });
+
+  const kategoriNames = useMemo(() => {
+    const list = kategoriList.map((k: any) => k.nama_kategori);
+    return Array.from(new Set(list)) as string[];
+  }, [kategoriList]);
 
   const isAdmin =
     user?.role === Role.SUPERADMIN ||
@@ -243,6 +340,8 @@ export function ProgresSantriPage() {
     return Array.from(names).sort();
   }, [progresData, effectiveActiveHalaqah]);
 
+  const isDateRangeMode = dateFrom !== null || dateTo !== null;
+
   const handleResetFilters = () => {
     setSearch("");
     setActiveHalaqah(
@@ -253,13 +352,23 @@ export function ProgresSantriPage() {
     );
     setSelectedStatus("all");
     setScope("target");
+    setSelectedMonth(null);
+    setSelectedYear(null);
+    setDateFrom(null);
+    setDateTo(null);
+    setSelectedKategori("all");
   };
 
   const isFilterActive =
     search !== "" ||
     scope !== "target" ||
     (activeHalaqah !== "" && activeHalaqah !== "all") ||
-    selectedStatus !== "all";
+    selectedStatus !== "all" ||
+    selectedMonth !== null ||
+    selectedYear !== null ||
+    dateFrom !== null ||
+    dateTo !== null ||
+    (selectedKategori !== "" && selectedKategori !== "all");
 
   const handleScopeChange = (value: string) => {
     setScope(value);
@@ -382,29 +491,6 @@ export function ProgresSantriPage() {
     }
   };
 
-  const kpiCards = [
-    {
-      title: "Target Tercapai",
-      value: stats.tercapai,
-      subtitle: `${stats.total} santri terdaftar`,
-    },
-    {
-      title: "Dalam Proses",
-      value: stats.dalamProses,
-      subtitle: "Sedang berprogres",
-    },
-    {
-      title: "Belum Mulai",
-      value: stats.belumMulai,
-      subtitle: "Belum ada setoran",
-    },
-    {
-      title: "Butuh Perhatian",
-      value: stats.butuhPerhatian,
-      subtitle: "Pasif > 3 hari",
-    },
-  ];
-
 
 
 
@@ -460,27 +546,6 @@ export function ProgresSantriPage() {
         </div>
       </div>
 
-      {/* ── KPI METRICS SECTION ── */}
-      {!loadingProgres && progresData.length > 0 && (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {kpiCards.map((card) => (
-            <Card key={card.title} className="shadow-sm">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  {card.title}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{card.value}</div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {card.subtitle}
-                </p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
-
       {/* ── MAIN TABLE CARD ── */}
       <div className="rounded-xl border bg-card shadow-sm overflow-hidden">
         <div className="p-6 border-b flex flex-col sm:flex-row justify-between items-center gap-4">
@@ -535,7 +600,7 @@ export function ProgresSantriPage() {
 
             <div className="flex flex-wrap gap-2">
               <Select value={scope} onValueChange={handleScopeChange}>
-                <SelectTrigger>
+                <SelectTrigger className="h-9 w-[180px] bg-background">
                   <SelectValue placeholder="Cakupan Data" />
                 </SelectTrigger>
                 <SelectContent>
@@ -631,6 +696,161 @@ export function ProgresSantriPage() {
                 </SelectContent>
               </Select>
 
+              {/* Month Selector (Admin page style) */}
+              <Select
+                value={selectedMonth !== null && !isDateRangeMode ? String(selectedMonth) : "__all__"}
+                onValueChange={(v) => setSelectedMonth(v === "__all__" ? null : Number(v))}
+                disabled={isDateRangeMode}
+              >
+                <SelectTrigger className="h-9 gap-1.5 text-xs w-[160px] bg-background">
+                  <CalendarDays className="h-3.5 w-3.5 text-muted-foreground" />
+                  <SelectValue placeholder="Semua Bulan" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__all__">Semua Bulan</SelectItem>
+                  {MONTHS.map((m, i) => (
+                    <SelectItem key={i} value={String(i)}>
+                      {m}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {/* Year Selector */}
+              <Select
+                value={selectedYear !== null && !isDateRangeMode ? String(selectedYear) : "__all__"}
+                onValueChange={(v) => setSelectedYear(v === "__all__" ? null : Number(v))}
+                disabled={isDateRangeMode}
+              >
+                <SelectTrigger className="h-9 text-xs w-[120px] bg-background">
+                  <SelectValue placeholder="Tahun" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__all__">Semua Tahun</SelectItem>
+                  {YEARS.map((y) => (
+                    <SelectItem key={y} value={String(y)}>
+                      {y}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {/* Date From popover picker */}
+              <Popover open={calFromOpen} onOpenChange={setCalFromOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className={cn(
+                      "h-9 gap-1.5 text-xs font-normal min-w-[140px] bg-background",
+                      dateFrom && "border-primary/50 text-primary bg-primary/5"
+                    )}
+                  >
+                    <CalendarDays className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                    {dateFrom
+                      ? format(dateFrom, "dd MMM yyyy", { locale: idLocale })
+                      : "Dari tanggal"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <div className="p-2 border-b flex items-center justify-between bg-muted/20">
+                    <p className="text-xs font-semibold text-muted-foreground">Tanggal Mulai</p>
+                    {dateFrom && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-5 text-[10px] text-muted-foreground px-1"
+                        onClick={() => {
+                          setDateFrom(null);
+                          setCalFromOpen(false);
+                        }}
+                      >
+                        Hapus
+                      </Button>
+                    )}
+                  </div>
+                  <Calendar
+                    mode="single"
+                    selected={dateFrom ?? undefined}
+                    onSelect={(d) => {
+                      setDateFrom(d ?? null);
+                      setCalFromOpen(false);
+                    }}
+                    disabled={(d) => (dateTo ? d > dateTo : false)}
+                    locale={idLocale}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+
+              {/* Date To popover picker */}
+              <Popover open={calToOpen} onOpenChange={setCalToOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className={cn(
+                      "h-9 gap-1.5 text-xs font-normal min-w-[140px] bg-background",
+                      dateTo && "border-primary/50 text-primary bg-primary/5"
+                    )}
+                  >
+                    <CalendarDays className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                    {dateTo
+                      ? format(dateTo, "dd MMM yyyy", { locale: idLocale })
+                      : "Hingga tanggal"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <div className="p-2 border-b flex items-center justify-between bg-muted/20">
+                    <p className="text-xs font-semibold text-muted-foreground">Tanggal Selesai</p>
+                    {dateTo && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-5 text-[10px] text-muted-foreground px-1"
+                        onClick={() => {
+                          setDateTo(null);
+                          setCalToOpen(false);
+                        }}
+                      >
+                        Hapus
+                      </Button>
+                    )}
+                  </div>
+                  <Calendar
+                    mode="single"
+                    selected={dateTo ?? undefined}
+                    onSelect={(d) => {
+                      setDateTo(d ?? null);
+                      setCalToOpen(false);
+                    }}
+                    disabled={(d) => (dateFrom ? d < dateFrom : false)}
+                    locale={idLocale}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+
+              {/* Category Selector */}
+              <Select
+                value={selectedKategori || "all"}
+                onValueChange={(v) => setSelectedKategori(v)}
+              >
+                <SelectTrigger className="h-9 gap-1.5 text-xs w-[160px] bg-background">
+                  <BookOpen className="h-3.5 w-3.5 text-muted-foreground" />
+                  <SelectValue placeholder="Semua Kategori" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Semua Kategori</SelectItem>
+                  {kategoriNames.map((k) => (
+                    <SelectItem key={k} value={k}>
+                      {k}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {/* Sorting Select */}
               <Select value={`${sortKey}-${sortDir}`} onValueChange={(val) => {
                 const [key, dir] = val.split("-");
                 setSortKey(key as SortKey);
@@ -650,6 +870,62 @@ export function ProgresSantriPage() {
                 </SelectContent>
               </Select>
             </div>
+
+            {/* Active Filter Badges */}
+            {isFilterActive && (
+              <div className="flex flex-wrap gap-1.5 pt-2 border-t border-dashed mt-2">
+                {activeHalaqah !== "" && activeHalaqah !== "all" && (
+                  <Badge variant="secondary" className="text-[10px]">
+                    Halaqah: {activeHalaqah}
+                    <button onClick={() => setActiveHalaqah("all")} className="ml-1 opacity-50 hover:opacity-100 font-bold">✕</button>
+                  </Badge>
+                )}
+                {search !== "" && (
+                  <Badge variant="secondary" className="text-[10px]">
+                    Santri: {search}
+                    <button onClick={() => setSearch("")} className="ml-1 opacity-50 hover:opacity-100 font-bold">✕</button>
+                  </Badge>
+                )}
+                {selectedStatus !== "all" && (
+                  <Badge variant="secondary" className="text-[10px]">
+                    Status: {selectedStatus}
+                    <button onClick={() => setSelectedStatus("all")} className="ml-1 opacity-50 hover:opacity-100 font-bold">✕</button>
+                  </Badge>
+                )}
+                {isDateRangeMode && (
+                  <Badge variant="secondary" className="text-[10px]">
+                    Tanggal: {dateFrom && format(dateFrom, "dd MMM", { locale: idLocale })}
+                    {dateFrom && dateTo && " – "}
+                    {dateTo && format(dateTo, "dd MMM yyyy", { locale: idLocale })}
+                    <button
+                      onClick={() => {
+                        setDateFrom(null);
+                        setDateTo(null);
+                      }}
+                      className="ml-1 opacity-50 hover:opacity-100 font-bold"
+                    >✕</button>
+                  </Badge>
+                )}
+                {!isDateRangeMode && selectedMonth !== null && (
+                  <Badge variant="secondary" className="text-[10px]">
+                    Bulan: {MONTHS[selectedMonth]}
+                    <button onClick={() => setSelectedMonth(null)} className="ml-1 opacity-50 hover:opacity-100 font-bold">✕</button>
+                  </Badge>
+                )}
+                {!isDateRangeMode && selectedYear !== null && (
+                  <Badge variant="secondary" className="text-[10px]">
+                    Tahun: {selectedYear}
+                    <button onClick={() => setSelectedYear(null)} className="ml-1 opacity-50 hover:opacity-100 font-bold">✕</button>
+                  </Badge>
+                )}
+                {selectedKategori !== "" && selectedKategori !== "all" && (
+                  <Badge variant="secondary" className="text-[10px]">
+                    Kategori: {selectedKategori}
+                    <button onClick={() => setSelectedKategori("all")} className="ml-1 opacity-50 hover:opacity-100 font-bold">✕</button>
+                  </Badge>
+                )}
+              </div>
+            )}
           </div>
         )}
 
@@ -771,7 +1047,16 @@ export function ProgresSantriPage() {
                       </div>
                     </AccordionTrigger>
                     <AccordionContent className="p-0 border-t">
-                      <SantriProgresCollapsibleDetail santri={row} />
+                      <SantriProgresCollapsibleDetail
+                        santri={row}
+                        filters={{
+                          selectedMonth,
+                          selectedYear,
+                          dateFrom,
+                          dateTo,
+                          selectedKategori,
+                        }}
+                      />
                     </AccordionContent>
                   </AccordionItem>
                 );
