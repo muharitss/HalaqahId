@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/select";
 import { pemetaanJuz } from "@/utils/daftarSurah";
 import { type MushafSelection } from "../../../types";
+import { MUSHAF_SELECTION_KEY } from "../constants/form.constants";
 
 interface JuzSelectorProps {
   form: any;
@@ -39,6 +40,7 @@ export function JuzSelector({ form, setMushafSelection }: JuzSelectorProps) {
                 form.setValue("ayat_selesai", surahsInJuz[0].ayatMulai);
               }
               setMushafSelection(null);
+              sessionStorage.removeItem(MUSHAF_SELECTION_KEY);
             }}
             value={field.value?.toString() || ""}
           >
