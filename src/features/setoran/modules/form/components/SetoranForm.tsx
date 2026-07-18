@@ -267,11 +267,13 @@ export function SetoranForm({
           )}
 
         {/* Mushaf Toolbar */}
-        <MushafToolbar
-          form={form}
-          mushafSelection={mushafSelection}
-          setMushafSelection={setMushafSelection}
-        />
+        <div data-tour="setoran-mushaf-toolbar">
+          <MushafToolbar
+            form={form}
+            mushafSelection={mushafSelection}
+            setMushafSelection={setMushafSelection}
+          />
+        </div>
 
         {/* Sesi Warning */}
         <FormFooter isValid={isTodayValidForSesi} sesiName={selectedSesiObj?.nama_sesi} />

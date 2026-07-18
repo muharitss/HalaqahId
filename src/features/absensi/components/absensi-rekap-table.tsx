@@ -230,6 +230,7 @@ export function AbsensiRekapTable() {
         </p>
         <div className="flex items-center gap-2">
           <Button
+            data-tour="absensi-rekap-download-pdf"
             variant="outline"
             size="sm"
             onClick={handlePreviewPdf}
@@ -242,7 +243,7 @@ export function AbsensiRekapTable() {
             value={format(viewDate, "yyyy-MM")}
             onValueChange={(val) => setViewDate(new Date(val + "-01"))}
           >
-            <SelectTrigger className="w-48 shadow-sm">
+            <SelectTrigger className="w-48 shadow-sm" data-tour="absensi-rekap-month-select">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

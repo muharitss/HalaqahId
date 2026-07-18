@@ -1,4 +1,4 @@
-﻿import { format } from "date-fns";
+import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 import { CalendarIcon } from "lucide-react";
 import {
@@ -28,7 +28,7 @@ export function AbsensiFilter() {
   } = useAbsensi();
 
   return (
-    <div className="flex flex-col md:flex-row md:items-center justify-end gap-2">
+    <div className="flex flex-col md:flex-row md:items-center justify-end gap-2" data-tour="absensi-filters">
       <Select
         value={selectedSesi ? selectedSesi.toString() : ""}
         onValueChange={(val) => setSelectedSesi(Number(val))}

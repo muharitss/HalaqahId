@@ -78,7 +78,7 @@ export function AbsensiInputTable() {
             <TableRow>
               <TableHead className="font-bold">Nama Santri</TableHead>
               <TableHead className="text-right pr-2 font-bold">
-                <div className="flex items-center justify-end gap-2">
+                <div className="flex items-center justify-end gap-2" data-tour="absensi-bulk-action">
                   {isBulkAllHadir ? (
                     <Button
                       variant="ghost"
@@ -192,6 +192,7 @@ export function AbsensiInputTable() {
           </p>
         </div>
         <Button
+          data-tour="absensi-save-btn"
           onClick={handleSave}
           disabled={
             isSubmitting ||

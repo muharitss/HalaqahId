@@ -4,15 +4,20 @@ import {
   RefreshCw, 
   Search, 
   Square, 
-  ChevronRight 
+  ChevronRight,
+  HelpCircle
 } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useTahfidzAi } from "../hooks/useTahfidzAi";
+import { useAuth } from "@/features/auth";
+import { useTour } from "@/hooks/useTour";
+import { type DriveStep } from "driver.js";
 
 export const TahfidzAi = () => {
+  const { user } = useAuth();
   const {
     liveTranscript,
     detectedAyah,
@@ -24,9 +29,67 @@ export const TahfidzAi = () => {
     resetSession,
   } = useTahfidzAi();
 
+  const steps: DriveStep[] = [
+    {
+      element: '[data-tour="tahfidzai-header"]',
+      popover: {
+        title: "Tahfidz AI 🤖",
+        description: "Selamat datang di Tahfidz AI! Fitur asisten cerdas ini membantu memverifikasi kebenaran dan rujukan ayat dari hafalan suara santri secara otomatis.",
+        side: "bottom",
+        align: "center"
+      }
+    },
+    {
+      element: '[data-tour="tahfidzai-live-box"]',
+      popover: {
+        title: "Kotak Transkrip Suara 🎙️",
+        description: "Saat santri mulai membaca hafalan, teks transkrip bahasa arab dari ucapan santri akan langsung muncul di kotak ini.",
+        side: "bottom",
+        align: "center"
+      }
+    },
+    {
+      element: '[data-tour="tahfidzai-mushaf-result"]',
+      popover: {
+        title: "Mushaf Hasil Deteksi 📖",
+        description: "AI akan mencocokkan suara santri dengan ayat Al-Quran asli dan menampilkan potongan ayat terbaik beserta daftar kemiripan lafal (mutasyabihat) di sini.",
+        side: "top",
+        align: "center"
+      }
+    },
+    {
+      element: '[data-tour="tahfidzai-record-btn"]',
+      popover: {
+        title: "Tombol Perekam Suara 🎤",
+        description: "Klik tombol mikrofon ini untuk mulai merekam, dan klik sekali lagi (tombol kotak merah) jika pembacaan setoran selesai.",
+        side: "top",
+        align: "center"
+      }
+    }
+  ];
+
+  const { restartTour } = useTour({
+    tourKey: "tour_tahfidz_ai",
+    steps,
+    userId: user?.id_user,
+    autoStart: true,
+    ready: isDataLoaded
+  });
+
   return (
     <div className="container max-w-2xl mx-auto p-4 py-8 space-y-6">
-      <header className="text-center space-y-2">
+      <header className="text-center space-y-2 relative" data-tour="tahfidzai-header">
+        <div className="absolute right-0 top-0">
+          <Button
+            onClick={restartTour}
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-muted-foreground hover:text-primary rounded-full"
+            title="Mulai Panduan Tahfidz AI"
+          >
+            <HelpCircle className="h-5 w-5" />
+          </Button>
+        </div>
         <h1 className="text-4xl font-black tracking-tighter text-primary">Tahfidz AI</h1>
         <p className="text-muted-foreground text-sm font-medium">Verifikator Hafalan Quran Berbasis AI</p>
       </header>
@@ -39,7 +102,7 @@ export const TahfidzAi = () => {
               <Badge variant="destructive" className="animate-pulse">Mendengarkan...</Badge>
             )}
           </div>
-          <div className="min-h-[80px] flex items-center justify-center text-center px-4">
+          <div className="min-h-[80px] flex items-center justify-center text-center px-4" data-tour="tahfidzai-live-box">
             <p className="text-2xl font-serif leading-relaxed text-foreground/80 italic" dir="rtl">
               {liveTranscript || "Tekan tombol mikrofon untuk mulai..."}
             </p>
@@ -47,7 +110,7 @@ export const TahfidzAi = () => {
         </CardHeader>
 
         <CardContent className="pt-8 space-y-6">
-          <div className="space-y-4">
+          <div className="space-y-4" data-tour="tahfidzai-mushaf-result">
             <div className="flex items-center gap-2 px-1">
               <BookOpen className="w-4 h-4 text-primary" />
               <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Mushaf Virtual</span>
@@ -107,7 +170,7 @@ export const TahfidzAi = () => {
             </div>
           </div>
 
-          <div className="flex flex-col items-center gap-4 py-4">
+          <div className="flex flex-col items-center gap-4 py-4" data-tour="tahfidzai-record-btn">
             <Button
               size="lg"
               disabled={!isDataLoaded || isProcessing}

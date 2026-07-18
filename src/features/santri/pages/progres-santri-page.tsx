@@ -56,7 +56,10 @@ import {
   Check,
   CalendarDays,
   BookOpen,
+  HelpCircle,
 } from "lucide-react";
+import { useTour } from "@/hooks/useTour";
+import { type DriveStep } from "driver.js";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -261,6 +264,62 @@ export function ProgresSantriPage() {
     filename: string;
     title: string;
   } | null>(null);
+
+  const steps: DriveStep[] = [
+    {
+      element: '[data-tour="progres-header"]',
+      popover: {
+        title: "Progres Hafalan Santri 📈",
+        description: "Di sini Anda memantau ketercapaian target hafalan seluruh santri aktif di halaqah Anda secara real-time.",
+        side: "bottom",
+        align: "start"
+      }
+    },
+    {
+      element: '[data-tour="progres-refresh-pdf-actions"]',
+      popover: {
+        title: "Aksi Data & Laporan 📄",
+        description: "Segarkan data untuk menarik setoran terbaru atau unduh rekapitulasi progres santri ke berkas PDF resmi.",
+        side: "bottom",
+        align: "end"
+      }
+    },
+    {
+      element: '[data-tour="progres-search-bar"]',
+      popover: {
+        title: "Pencarian Santri 🔍",
+        description: "Cari nama santri tertentu secara cepat untuk melihat rincian progresnya saja.",
+        side: "bottom",
+        align: "center"
+      }
+    },
+    {
+      element: '[data-tour="progres-filter-btn"]',
+      popover: {
+        title: "Filter Pencarian Detail ⚙️",
+        description: "Klik tombol ini untuk membuka filter tambahan (kategori setoran, rentang tanggal, status ketercapaian target, dan pengurutan data).",
+        side: "bottom",
+        align: "end"
+      }
+    },
+    {
+      element: '[data-tour="progres-accordion"]',
+      popover: {
+        title: "Daftar Persentase Target 🎯",
+        description: "Setiap baris menampilkan persentase target hafalan. Klik baris santri untuk melihat detail riwayat setoran lengkapnya.",
+        side: "top",
+        align: "center"
+      }
+    }
+  ];
+
+  const { restartTour } = useTour({
+    tourKey: "tour_progres",
+    steps,
+    userId: user?.id_user,
+    autoStart: true,
+    ready: !loadingProgres
+  });
 
   // New Filter States (just like admin page)
   const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
@@ -510,17 +569,28 @@ export function ProgresSantriPage() {
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       {/* ── STANDARD PAGE HEADER ── */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b pb-8">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b pb-8" data-tour="progres-header">
         <div className="space-y-1">
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">
-            Progres Hafalan Santri
-          </h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">
+              Progres Hafalan Santri
+            </h1>
+            <Button
+              onClick={restartTour}
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6 text-muted-foreground hover:text-primary rounded-full"
+              title="Mulai Panduan Progres"
+            >
+              <HelpCircle className="h-4 w-4" />
+            </Button>
+          </div>
           <p className="text-sm text-muted-foreground">
             Realisasi target capaian setoran hafalan santri yang aktif saat ini.
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2" data-tour="progres-refresh-pdf-actions">
           <Button
             variant="outline"
             size="sm"
@@ -557,7 +627,7 @@ export function ProgresSantriPage() {
           </div>
 
           <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
-            <div className="relative w-full sm:w-64">
+            <div className="relative w-full sm:w-64" data-tour="progres-search-bar">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Cari nama santri..."
@@ -568,6 +638,7 @@ export function ProgresSantriPage() {
             </div>
 
             <Button
+              data-tour="progres-filter-btn"
               variant={isFilterActive ? "secondary" : "outline"}
               size="sm"
               onClick={() => setShowFilter(!showFilter)}
@@ -941,7 +1012,7 @@ export function ProgresSantriPage() {
               Data progres tidak ditemukan.
             </div>
           ) : (
-            <Accordion type="single" collapsible className="w-full space-y-3">
+            <Accordion type="single" collapsible className="w-full space-y-3" data-tour="progres-accordion">
               {sortedFilteredData.map((row) => {
                 const targetLabel = row.target
                   ? `${row.target.nilai_target} ${SATUAN_TARGET_LABELS[row.target.satuan as keyof typeof SATUAN_TARGET_LABELS] ?? row.target.satuan} / ${TIPE_TARGET_LABELS[row.target.tipe as keyof typeof TIPE_TARGET_LABELS]?.toLowerCase() ?? row.target.tipe.toLowerCase()}`

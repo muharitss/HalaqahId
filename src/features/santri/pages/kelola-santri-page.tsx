@@ -7,6 +7,9 @@ import { useSantri, SantriTable, SantriModal } from "../modules";
 import type { Santri, CreateSantriData, UpdateSantriData } from "../types";
 import { useAuth } from "@/features/auth/components/auth-provider";
 import { Role } from "@/types/domain/enums";
+import { useTour } from "@/hooks/useTour";
+import { type DriveStep } from "driver.js";
+import { HelpCircle } from "lucide-react";
 
 import { KelolaSantri } from "@/components/custom/typed-text";
 
@@ -23,6 +26,53 @@ export function KelolaSantriPage() {
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const [showAll, setShowAll] = useState(false);
+
+  const steps: DriveStep[] = [
+    {
+      element: '[data-tour="kelola-santri-header"]',
+      popover: {
+        title: "Kelola Santri 👥",
+        description: "Selamat datang! Halaman ini digunakan untuk melihat dan mengelola daftar santri aktif di halaqah Anda.",
+        side: "bottom",
+        align: "start"
+      }
+    },
+    {
+      element: '[data-tour="kelola-santri-add-btn"]',
+      popover: {
+        title: "Tambah Santri Baru ➕",
+        description: "Klik tombol ini untuk mendaftarkan santri baru ke halaqah Anda dengan menentukan nama, nomor telepon orang tua, dan target hafalan.",
+        side: "bottom",
+        align: "end"
+      }
+    },
+    {
+      element: '[data-tour="kelola-santri-search-bar"]',
+      popover: {
+        title: "Cari Nama Santri 🔍",
+        description: "Ketikkan nama santri di sini untuk menyaring tabel dan mencari santri secara instan.",
+        side: "bottom",
+        align: "start"
+      }
+    },
+    {
+      element: '[data-tour="kelola-santri-table"]',
+      popover: {
+        title: "Tabel Data Santri 📋",
+        description: "Menampilkan rincian profil santri, nama halaqah, target aktif, serta aksi Edit data atau Hapus data santri.",
+        side: "top",
+        align: "center"
+      }
+    }
+  ];
+
+  const { restartTour } = useTour({
+    tourKey: "tour_kelola_santri",
+    steps,
+    userId: user?.id_user,
+    autoStart: true,
+    ready: !isLoading
+  });
 
   useEffect(() => {
     loadSantri();
@@ -81,11 +131,22 @@ export function KelolaSantriPage() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b pb-8">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b pb-8" data-tour="kelola-santri-header">
         <div className="space-y-1">
-          <KelolaSantri />
+          <div className="flex items-center gap-2">
+            <KelolaSantri />
+            <Button
+              onClick={restartTour}
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6 text-muted-foreground hover:text-primary rounded-full"
+              title="Mulai Panduan Kelola Santri"
+            >
+              <HelpCircle className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
-        <div className="shrink-0">
+        <div className="shrink-0" data-tour="kelola-santri-add-btn">
           <Button onClick={() => setIsModalOpen(true)}>
             <FontAwesomeIcon icon={faPlus} className="mr-2" />
             Tambah Santri
@@ -95,7 +156,7 @@ export function KelolaSantriPage() {
 
       <div className="rounded-xl border bg-card shadow-sm overflow-hidden">
         <div className="p-6 border-b flex flex-col sm:flex-row justify-between items-center gap-4">
-          <div className="relative w-full sm:w-72">
+          <div className="relative w-full sm:w-72" data-tour="kelola-santri-search-bar">
             <FontAwesomeIcon icon={faSearch} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <Input 
               placeholder="Cari nama santri..." 
@@ -106,14 +167,16 @@ export function KelolaSantriPage() {
           </div>
         </div>
 
-        <SantriTable 
-          data={displayedSantri}
-          searchTerm={searchTerm}
-          isAdmin={isAdmin}
-          halaqahList={[]} 
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-        />
+        <div data-tour="kelola-santri-table">
+          <SantriTable 
+            data={displayedSantri}
+            searchTerm={searchTerm}
+            isAdmin={isAdmin}
+            halaqahList={[]} 
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+          />
+        </div>
 
         {/* Pagination Section */}
         {filteredSantri.length > 10 && (

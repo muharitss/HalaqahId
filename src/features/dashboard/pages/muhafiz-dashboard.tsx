@@ -7,6 +7,7 @@ import {
   ChevronRight,
   Calendar,
   TrendingUp,
+  HelpCircle,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,9 +18,13 @@ import { ActivityChart } from "../components/ActivityChart";
 import { AttendanceDonutChart } from "../components/AttendanceDonutChart";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
+import { useAuth } from "@/features/auth";
+import { useTour } from "@/hooks/useTour";
+import { type DriveStep } from "driver.js";
 
 export function MuhafizDashboard() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const {
     isLoading,
     halaqahName,
@@ -37,6 +42,62 @@ export function MuhafizDashboard() {
     absensiView,
     setAbsensiView,
   } = useMuhafizDashboard();
+
+  const steps: DriveStep[] = [
+    {
+      element: '[data-tour="dashboard-header"]',
+      popover: {
+        title: "Dashboard Muhafiz 🌟",
+        description: "Selamat datang di halaman utama Anda! Di sini Anda dapat memantau perkembangan hafalan dan kehadiran santri secara cepat.",
+        side: "bottom",
+        align: "start"
+      }
+    },
+    {
+      element: '[data-tour="dashboard-actions"]',
+      popover: {
+        title: "Aksi Cepat ⚡",
+        description: "Gunakan tombol ini untuk mencatat kehadiran halaqah atau merekam setoran hafalan baru santri Anda secara langsung.",
+        side: "bottom",
+        align: "end"
+      }
+    },
+    {
+      element: '[data-tour="dashboard-kpis"]',
+      popover: {
+        title: "Statistik Utama 📈",
+        description: "Pantau jumlah santri aktif, persentase kehadiran hari ini, jumlah setoran pekan ini, dan pencapaian target hafalan.",
+        side: "bottom",
+        align: "center"
+      }
+    },
+    {
+      element: '[data-tour="dashboard-charts"]',
+      popover: {
+        title: "Visualisasi Grafik 📊",
+        description: "Analisis grafik aktivitas setoran pekan/bulanan serta diagram lingkaran kehadiran halaqah Anda.",
+        side: "top",
+        align: "center"
+      }
+    },
+    {
+      element: '[data-tour="dashboard-progress"]',
+      popover: {
+        title: "Progres Target Santri 🎯",
+        description: "Lihat daftar capaian real-time santri Anda terhadap target hafalan sekolah untuk memastikan kelancaran belajar.",
+        side: "top",
+        align: "start"
+      }
+    }
+  ];
+
+  const { restartTour } = useTour({
+    tourKey: "tour_muhafiz_dashboard",
+    steps,
+    userId: user?.id_user,
+    autoStart: true,
+    ready: !isLoading,
+  });
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -113,14 +174,25 @@ export function MuhafizDashboard() {
       
       {/* 1. HEADER */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b pb-8">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-bold tracking-tight">Dashboard Muhafiz</h1>
+        <div className="space-y-1" data-tour="dashboard-header">
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold tracking-tight">Dashboard Muhafiz</h1>
+            <Button
+              onClick={restartTour}
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6 text-muted-foreground hover:text-primary rounded-full"
+              title="Mulai Panduan Dashboard"
+            >
+              <HelpCircle className="h-4 w-4" />
+            </Button>
+          </div>
           <p className="text-muted-foreground text-sm">
             Kelola perkembangan setoran hafalan dan kehadiran santri di halaqah{" "}
             <span className="font-semibold text-foreground">{halaqahName}</span>
           </p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex gap-3" data-tour="dashboard-actions">
           <Button
             onClick={() => navigate("/muhafidz/absensi")}
             variant="outline"
@@ -140,7 +212,7 @@ export function MuhafizDashboard() {
       </div>
 
       {/* 2. KPI CARDS */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4" data-tour="dashboard-kpis">
         {/* CARD 1: TOTAL SANTRI */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -193,7 +265,7 @@ export function MuhafizDashboard() {
       </div>
 
       {/* 3. CHARTS SECTION */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5" data-tour="dashboard-charts">
         <ActivityChart
           dataPekan={weeklyChartData}
           dataBulan={monthlyChartData}
@@ -213,7 +285,7 @@ export function MuhafizDashboard() {
       {/* 4. BOTTOM SECTION: STUDENT PROGRESS & RECENT ACTIVITY */}
       <div className="grid gap-6 md:grid-cols-2">
         {/* COLUMN 1: STUDENT PROGRESS */}
-        <Card>
+        <Card data-tour="dashboard-progress">
           <CardHeader className="flex flex-row items-center justify-between pb-4 border-b">
             <div className="space-y-1">
               <CardTitle className="text-base font-semibold flex items-center gap-2">

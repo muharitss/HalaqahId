@@ -196,3 +196,80 @@
     font-weight: 600;
   }
 }
+
+/* Custom Styling for Driver.js Popover matching HalaqahId's Design System */
+.halaqah-tour-popover {
+  background-color: var(--card) !important;
+  color: var(--card-foreground) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius) !important;
+  padding: 18px !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1) !important;
+  font-family: inherit !important;
+}
+
+.halaqah-tour-popover .driver-popover-title {
+  color: var(--foreground) !important;
+  font-size: 1.1rem !important;
+  font-weight: 700 !important;
+  line-height: 1.4 !important;
+}
+
+.halaqah-tour-popover .driver-popover-description {
+  color: var(--muted-foreground) !important;
+  font-size: 0.875rem !important;
+  line-height: 1.5 !important;
+  margin-top: 6px !important;
+}
+
+.halaqah-tour-popover .driver-popover-close-btn {
+  color: var(--muted-foreground) !important;
+  font-size: 1.1rem !important;
+  transition: color 0.2s !important;
+}
+
+.halaqah-tour-popover .driver-popover-close-btn:hover {
+  color: var(--foreground) !important;
+}
+
+.halaqah-tour-popover .driver-popover-footer {
+  margin-top: 15px !important;
+  border-top: 1px solid var(--border) !important;
+  padding-top: 12px !important;
+}
+
+.halaqah-tour-popover .driver-popover-progress-text {
+  color: var(--muted-foreground) !important;
+  font-size: 0.75rem !important;
+}
+
+.halaqah-tour-popover .driver-popover-footer-btn {
+  background-color: var(--secondary) !important;
+  color: var(--secondary-foreground) !important;
+  border: 1px solid var(--border) !important;
+  padding: 5px 10px !important;
+  border-radius: calc(var(--radius) - 2px) !important;
+  font-size: 0.75rem !important;
+  font-weight: 500 !important;
+  transition: all 0.2s !important;
+  cursor: pointer !important;
+}
+
+.halaqah-tour-popover .driver-popover-footer-btn:hover {
+  background-color: var(--muted) !important;
+}
+
+.halaqah-tour-popover .driver-popover-next-btn {
+  background-color: var(--primary) !important;
+  color: var(--primary-foreground) !important;
+  border: 1px solid transparent !important;
+}
+
+.halaqah-tour-popover .driver-popover-next-btn:hover {
+  opacity: 0.9 !important;
+}
+
+.halaqah-tour-popover .driver-popover-arrow {
+  border-color: var(--card) !important;
+}
+
