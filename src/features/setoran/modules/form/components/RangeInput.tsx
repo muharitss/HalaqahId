@@ -25,6 +25,7 @@ import {
 import { Check, ChevronsUpDown } from "lucide-react";
 import { surahNumberToName } from "@/utils/mushafUtils";
 import { type MushafSelection } from "../../../types";
+import { MUSHAF_SELECTION_KEY } from "../constants/form.constants";
 
 const ALL_SURAHS = Array.from({ length: 114 }, (_, i) => ({
   number: i + 1,
@@ -130,6 +131,7 @@ export function RangeInput({ form, setMushafSelection }: RangeInputProps) {
                       form.setValue("surat_selesai", name);
                     }
                     setMushafSelection(null);
+                    sessionStorage.removeItem(MUSHAF_SELECTION_KEY);
                   }}
                   open={openMulai}
                   onOpenChange={setOpenMulai}
@@ -155,6 +157,7 @@ export function RangeInput({ form, setMushafSelection }: RangeInputProps) {
                       const val = e.target.value;
                       field.onChange(val === "" ? undefined : Number(val));
                       setMushafSelection(null);
+                      sessionStorage.removeItem(MUSHAF_SELECTION_KEY);
                     }}
                   />
                 </FormControl>
@@ -185,6 +188,7 @@ export function RangeInput({ form, setMushafSelection }: RangeInputProps) {
                   onChange={(name) => {
                     form.setValue("surat_selesai", name);
                     setMushafSelection(null);
+                    sessionStorage.removeItem(MUSHAF_SELECTION_KEY);
                   }}
                   open={openSelesai}
                   onOpenChange={setOpenSelesai}
@@ -210,6 +214,7 @@ export function RangeInput({ form, setMushafSelection }: RangeInputProps) {
                       const val = e.target.value;
                       field.onChange(val === "" ? undefined : Number(val));
                       setMushafSelection(null);
+                      sessionStorage.removeItem(MUSHAF_SELECTION_KEY);
                     }}
                   />
                 </FormControl>
