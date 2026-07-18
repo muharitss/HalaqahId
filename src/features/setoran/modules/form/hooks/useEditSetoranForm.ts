@@ -277,6 +277,10 @@ export function useEditSetoranForm({
           }
         }
       }
+      // Fallback: gunakan taqwim dari field utama jika tidak ditemukan di custom_values
+      if (taqwimValue === undefined && values.taqwim !== undefined) {
+        taqwimValue = values.taqwim;
+      }
 
       const payload: Partial<SetoranPayload> = {
         juz: values.juz,

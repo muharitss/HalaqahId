@@ -319,7 +319,7 @@ export function MuhafizDashboard() {
                         </p>
                         {setoran.keterangan && (
                           <p className="text-[10px] italic text-muted-foreground/90">
-                            "{setoran.keterangan}"
+                            {setoran.keterangan}
                           </p>
                         )}
                       </div>

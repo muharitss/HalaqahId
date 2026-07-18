@@ -1,5 +1,4 @@
 import { useEffect } from "react";
-import { useLocation } from "react-router-dom";
 import { type MushafSelection } from "../../../types";
 import { DRAFT_STORAGE_KEY, MUSHAF_SELECTION_KEY } from "../constants/form.constants";
 import { findJuzBySurahAndAyah } from "../utils/findJuz";
@@ -8,7 +7,6 @@ export function useDraftManager(
   form: any,
   setMushafSelection: (s: MushafSelection | null) => void
 ) {
-  const location = useLocation();
 
   // Restore draft dari sessionStorage
   useEffect(() => {
@@ -67,5 +65,7 @@ export function useDraftManager(
         );
       }
     }
-  }, [location]);
+  // Restore draft hanya sekali saat komponen mount (bukan setiap perubahan URL)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 }

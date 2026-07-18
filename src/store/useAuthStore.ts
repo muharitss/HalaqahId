@@ -99,9 +99,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       try {
         const response = await authService.getCurrentUser();
-        console.log("DEBUG auth-store response:", response);
         const userData = response.data?.user || response.data;
-        console.log("DEBUG auth-store userData:", userData);
 
         if (!userData) {
           throw new Error("No user data received from API");

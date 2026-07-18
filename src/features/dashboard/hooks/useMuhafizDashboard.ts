@@ -46,15 +46,16 @@ export const useMuhafizDashboard = () => {
     const present = todayAbsensi.filter(
       (a) => a.status === "HADIR" || a.status === "TERLAMBAT",
     ).length;
+    // Gunakan jumlah santri aktif (progresData) sebagai total,
+    // bukan jumlah record absensi — agar card tidak menampilkan "0 dari 0"
+    // ketika sesi belum dimulai / belum ada absensi hari ini.
+    const total = progresData.length || todayAbsensi.length;
     return {
       present,
-      total: todayAbsensi.length,
-      percentage:
-        todayAbsensi.length > 0
-          ? Math.round((present / todayAbsensi.length) * 100)
-          : 0,
+      total,
+      percentage: total > 0 ? Math.round((present / total) * 100) : 0,
     };
-  }, [todayAbsensi]);
+  }, [todayAbsensi, progresData]);
 
   // 4. Fetch Monthly Attendance Rekap
   const { data: monthlyAbsensi = [], isFetching: loadingMonthlyAbsensi } = useMuhafizDashboardMonthlyAbsensiQuery(

@@ -112,7 +112,11 @@ export function useAbsensiProvider() {
 
   const handleBulkHadir = () => {
     const bulk: Record<number, AbsensiStatusType> = {};
-    santriList.forEach((s) => {
+    // Hanya mark santri yang relevan dengan halaqah yang sedang aktif
+    const targetSantri = halaqahId
+      ? santriList.filter((s) => s.id_halaqah === halaqahId)
+      : santriList;
+    targetSantri.forEach((s) => {
       bulk[s.id_santri] = "HADIR";
     });
     setAttendanceMap(bulk);

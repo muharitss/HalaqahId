@@ -88,12 +88,13 @@ export function SetoranForm({
   const selectedSantriId = form.watch("id_santri");
   const selectedSesiId = form.watch("id_sesi");
   const selectedTanggal = form.watch("tanggal_setoran");
+  const selectedKategoriId = form.watch("id_kategori"); // angkat ke variabel agar tidak dipanggil dalam dep array
 
-  useEffect(() => smartMode.setSelectedSantriId(selectedSantriId ?? null), [selectedSantriId]);
-  useEffect(() => smartMode.setSelectedSesiId(selectedSesiId ?? null), [selectedSesiId]);
-  useEffect(() => smartMode.setSelectedTanggal(selectedTanggal ?? null), [selectedTanggal]);
-  useEffect(() => onModeChange?.(smartMode.mode), [smartMode.mode]);
-  useEffect(() => onCheckingChange?.(smartMode.isChecking), [smartMode.isChecking]);
+  useEffect(() => smartMode.setSelectedSantriId(selectedSantriId ?? null), [selectedSantriId, smartMode.setSelectedSantriId]);
+  useEffect(() => smartMode.setSelectedSesiId(selectedSesiId ?? null), [selectedSesiId, smartMode.setSelectedSesiId]);
+  useEffect(() => smartMode.setSelectedTanggal(selectedTanggal ?? null), [selectedTanggal, smartMode.setSelectedTanggal]);
+  useEffect(() => onModeChange?.(smartMode.mode), [smartMode.mode, onModeChange]);
+  useEffect(() => onCheckingChange?.(smartMode.isChecking), [smartMode.isChecking, onCheckingChange]);
   useEffect(() => setBannerDismissed(false), [smartMode.mode]);
 
   // Validasi sesi
@@ -120,9 +121,9 @@ export function SetoranForm({
   // Pre-fill saat edit
   useEffect(() => {
     if (isRestoringDraft.current) {
-      if (smartMode.mode !== "idle") {
-        isRestoringDraft.current = false;
-      }
+      // Selalu reset flag setelah satu kali dijalankan,
+      // agar pre-fill edit tidak terblokir pada sesi berikutnya.
+      isRestoringDraft.current = false;
       return;
     }
 
@@ -157,18 +158,18 @@ export function SetoranForm({
 
   // Simpan temp ke localStorage
   useEffect(() => {
-    if (selectedSantriId || selectedSesiId || form.watch("id_kategori")) {
+    if (selectedSantriId || selectedSesiId || selectedKategoriId) {
       localStorage.setItem(
         TEMP_STORAGE_KEY,
         JSON.stringify({
           id_santri: selectedSantriId,
           id_sesi: selectedSesiId,
-          id_kategori: form.watch("id_kategori"),
+          id_kategori: selectedKategoriId,
           timestamp: Date.now(),
         })
       );
     }
-  }, [selectedSantriId, selectedSesiId, form.watch("id_kategori")]);
+  }, [selectedSantriId, selectedSesiId, selectedKategoriId]);
 
   // Submit handler
   const onFormSubmit = async (values: any) => {
