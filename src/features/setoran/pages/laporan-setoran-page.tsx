@@ -1,18 +1,21 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLaporanData } from "../hooks/useLaporanData";
 import { useLaporanPdf } from "../hooks/useLaporanPdf";
+import { PdfPreviewDialog } from "@/components/custom/pdf-preview-dialog";
 import { laporanService } from "../api/laporanService";
 import { useAuth } from "@/features/auth/components/auth-provider";
 import { Role } from "@/types/domain/enums";
 
-import { LaporanSkeleton } from "../components/LaporanSkeleton";
-import { EmptyState } from "../components/EmptyState";
-import { LaporanTablePro } from "../components/LaporanTablePro";
-import { LaporanFilterBar } from "../components/LaporanFilterBar";
-import { LaporanStatsCard } from "../components/LaporanStatsCard";
+import {
+  LaporanSkeleton,
+  EmptyState,
+  LaporanTablePro,
+  LaporanFilterBar,
+  LaporanStatsCard,
+} from "../modules/laporan";
 
 import { Button } from "@/components/ui/button";
-import { FileDown, Loader2, RefreshCw } from "lucide-react";
+import { FileDown, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -46,7 +49,13 @@ export function LaporanSetoranPage() {
     refreshData,
   } = useLaporanData();
 
-  const { generatePdf, isGenerating } = useLaporanPdf();
+  const { getPdfDocument } = useLaporanPdf();
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [pdfDocInfo, setPdfDocInfo] = useState<{
+    doc: React.ReactElement;
+    filename: string;
+    title: string;
+  } | null>(null);
 
   useEffect(() => {
     refreshData();
@@ -59,23 +68,25 @@ export function LaporanSetoranPage() {
 
   const hasData = Object.keys(groupedData).length > 0;
 
-  const handleDownloadPdf = async () => {
+  const handlePreviewPdf = () => {
     if (!hasData) {
       toast.warning("Tidak ada data untuk di-export");
       return;
     }
     try {
-      await generatePdf({
+      const info = getPdfDocument({
         groupedData,
         stats,
         activeHalaqah,
+        selectedSantri,
         periodLabel,
         namaSekolah: "Halaqah ID",
       });
-      toast.success("Laporan PDF berhasil diunduh!");
+      setPdfDocInfo(info);
+      setPreviewOpen(true);
     } catch (err) {
-      console.error("PDF generation error:", err);
-      toast.error("Gagal membuat PDF, silakan coba lagi");
+      console.error("PDF preview preparation error:", err);
+      toast.error("Gagal menyiapkan pratinjau PDF");
     }
   };
 
@@ -105,20 +116,11 @@ export function LaporanSetoranPage() {
           
           <Button
             size="sm"
-            onClick={handleDownloadPdf}
-            disabled={isGenerating || loading || !hasData}
+            onClick={handlePreviewPdf}
+            disabled={loading || !hasData}
           >
-            {isGenerating ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Membuat PDF...
-              </>
-            ) : (
-              <>
-                <FileDown className="h-4 w-4 mr-2" />
-                Unduh PDF Laporan
-              </>
-            )}
+            <FileDown className="h-4 w-4 mr-2" />
+            Unduh PDF Laporan
           </Button>
         </div>
       </div>
@@ -165,6 +167,14 @@ export function LaporanSetoranPage() {
           />
         </div>
       )}
+      {/* Dialog Pratinjau PDF */}
+      <PdfPreviewDialog
+        isOpen={previewOpen}
+        onOpenChange={setPreviewOpen}
+        document={pdfDocInfo?.doc ?? null}
+        filename={pdfDocInfo?.filename ?? ""}
+        title={pdfDocInfo?.title}
+      />
     </div>
   );
 }

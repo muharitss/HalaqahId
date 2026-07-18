@@ -1,25 +1,13 @@
-import { useEffect, useState, useMemo, useCallback } from "react";
-import { useParams } from "react-router-dom";
-import { displayService } from "@/features/display/api/displayService";
-import { startOfMonth, endOfMonth, eachDayOfInterval } from "date-fns";
+import { useSantriDetail } from "../hooks/useSantriDetail";
 import { Skeleton } from "@/components/ui/skeleton";
-import { SantriDetailHeader } from "@/features/display/components/santri-detail/SantriDetailHeader";
-import { ProfileCard } from "@/features/display/components/santri-detail/ProfileCard";
-import { StatistikKehadiran } from "@/features/display/components/santri-detail/StatistikKehadiran";
-import { RekapHarian } from "@/features/display/components/santri-detail/RekapHarian";
-import { RiwayatSetoran } from "@/features/display/components/santri-detail/RiwayatSetoran";
-import type { SantriDetailData } from "@/types/domain/display";
+import { SantriDetailHeader } from "../components/santri-detail/SantriDetailHeader";
+import { ProfileCard } from "../components/santri-detail/ProfileCard";
+import { StatistikKehadiran } from "../components/santri-detail/StatistikKehadiran";
+import { RekapHarian } from "../components/santri-detail/RekapHarian";
+import { RiwayatSetoran } from "../components/santri-detail/RiwayatSetoran";
 import { AlertCircle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-
-const STATUS_CONFIG = {
-  HADIR: { label: "Hadir", color: "#10b981" },
-  IZIN: { label: "Izin", color: "#3b82f6" },
-  SAKIT: { label: "Sakit", color: "#f59e0b" },
-  TERLAMBAT: { label: "Terlambat", color: "#f97316" },
-  ALFA: { label: "Alfa", color: "#ef4444" },
-};
 
 function DetailSkeleton() {
   return (
@@ -91,56 +79,17 @@ function DetailSkeleton() {
 }
 
 const SantriDetail = () => {
-  const { id, slug } = useParams<{ id: string; slug: string }>();
-  const [loading, setLoading] = useState(true);
-  const [data, setData] = useState<SantriDetailData | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [viewDate, setViewDate] = useState<Date>(new Date());
-
-  const daysInMonth = useMemo(() => {
-    return eachDayOfInterval({
-      start: startOfMonth(viewDate),
-      end: endOfMonth(viewDate),
-    });
-  }, [viewDate]);
-
-  const fetchData = useCallback(async () => {
-    if (!id || !slug) return;
-    try {
-      setLoading(true);
-      setError(null);
-      const res = await displayService.getSantriDetail(slug, id);
-      setData(res);
-    } catch (err) {
-      console.error("Error fetching santri detail:", err);
-      setError("Gagal memuat data santri. Silakan coba lagi.");
-    } finally {
-      setLoading(false);
-    }
-  }, [id, slug]);
-
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-
-  const chartData = useMemo(() => {
-    if (!data) return [];
-    const stats = { HADIR: 0, IZIN: 0, SAKIT: 0, TERLAMBAT: 0, ALFA: 0 };
-    data.riwayat_absensi.forEach((item) => {
-      const status = item.status as keyof typeof stats;
-      if (status in stats) {
-        stats[status]++;
-      }
-    });
-
-    return [
-      { name: "Hadir", value: stats.HADIR, fill: STATUS_CONFIG.HADIR.color },
-      { name: "Izin", value: stats.IZIN, fill: STATUS_CONFIG.IZIN.color },
-      { name: "Sakit", value: stats.SAKIT, fill: STATUS_CONFIG.SAKIT.color },
-      { name: "Terlambat", value: stats.TERLAMBAT, fill: STATUS_CONFIG.TERLAMBAT.color },
-      { name: "Alfa", value: stats.ALFA, fill: STATUS_CONFIG.ALFA.color },
-    ].filter((d) => d.value > 0);
-  }, [data]);
+  const {
+    id,
+    data,
+    loading,
+    error,
+    viewDate,
+    setViewDate,
+    daysInMonth,
+    chartData,
+    refetch,
+  } = useSantriDetail();
 
   if (loading) {
     return <DetailSkeleton />;
@@ -158,7 +107,7 @@ const SantriDetail = () => {
               <h3 className="font-semibold text-foreground mb-1">Terjadi Kesalahan</h3>
               <p className="text-sm text-muted-foreground">{error}</p>
             </div>
-            <Button onClick={fetchData} variant="outline" size="sm">
+            <Button onClick={() => refetch()} variant="outline" size="sm">
               Coba Lagi
             </Button>
           </CardContent>

@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { format, parseISO } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 import { BookOpen, Calendar, Hash, Type, FileText } from "lucide-react";
-import { type SetoranRecord } from "@/types/domain/display";
+import { type SetoranRecord } from "../../types";
 import { cn } from "@/lib/utils";
 
 interface RiwayatSetoranProps {

@@ -1,6 +1,5 @@
 import { useState, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { sekolahService } from "../api/sekolahService";
+import { useSekolahQueryList } from "../api";
 import type { SekolahWithCount, JenisLembaga } from "@/types/domain/sekolah";
 
 const PAGE_SIZE = 10;
@@ -10,12 +9,7 @@ export const useSekolahList = () => {
   const [page, setPage] = useState(1);
   const [filterJenis, setFilterJenis] = useState<JenisLembaga | "ALL">("ALL");
 
-  const { data, isLoading, isError, refetch } = useQuery({
-    queryKey: ["sekolah-list", page, search],
-    queryFn: () =>
-      sekolahService.getAll({ page, limit: PAGE_SIZE, search: search || undefined }),
-    placeholderData: (prev) => prev,
-  });
+  const { data, isLoading, isError, refetch } = useSekolahQueryList(page, PAGE_SIZE, search);
 
   const sekolahList: SekolahWithCount[] = data?.data ?? [];
   const total: number = (data as any)?.pagination?.total ?? sekolahList.length;

@@ -1,10 +1,8 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus, AlertTriangle } from "lucide-react";
-import { useSesi } from "../hooks/useSesi";
-import { useHalaqahManagement } from "@/features/halaqah/hooks/useHalaqahManagement";
-import { SesiTable } from "../components/SesiTable";
-import { SesiModal } from "../components/SesiModal";
+import { useSesi, SesiTable, SesiModal } from "../modules";
+import { useHalaqahManagement } from "@/features/halaqah";
 import type { SesiHalaqah, CreateSesiHalaqahRequest, UpdateSesiHalaqahRequest } from "@/types/domain/sesi-halaqah";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 

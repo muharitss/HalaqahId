@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom";
 import { SEO } from "@/components/custom/seo/SEO";
-import { BookOpen, Home, ArrowLeft } from "lucide-react";
 
 export default function NotFoundPage() {
   return (
@@ -11,39 +10,29 @@ export default function NotFoundPage() {
         robots="noindex, nofollow"
       />
 
-      <div className="space-y-6 max-w-md">
-        {/* Animated logo */}
-        <div className="flex justify-center">
-          <div className="w-16 h-16 rounded-2xl bg-primary text-white flex items-center justify-center shadow-xl shadow-primary/20 animate-bounce">
-            <BookOpen size={32} />
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <h1 className="text-8xl font-black tracking-tight text-primary">404</h1>
-          <h2 className="text-2xl font-bold text-slate-800 dark:text-white">Halaman Tidak Ditemukan</h2>
-          <p className="text-slate-500 dark:text-slate-400 text-sm sm:text-base leading-relaxed">
-            Maaf, kami tidak dapat menemukan halaman yang Anda cari. Mungkin URL telah diubah, dihapus, atau terjadi kesalahan ketik.
-          </p>
-        </div>
-
-        <div className="flex flex-col sm:flex-row justify-center gap-4 pt-4">
+      <div className="flex flex-col items-center justify-center text-sm max-md:px-4">
+        <h1 className="text-8xl md:text-9xl font-bold text-primary">404</h1>
+        <div className="h-1 w-16 rounded bg-primary my-5 md:my-7"></div>
+        <p className="text-2xl md:text-3xl font-bold text-slate-800 dark:text-white">Halaman Tidak Ditemukan</p>
+        <p className="text-sm md:text-base mt-4 text-slate-500 dark:text-slate-400 max-w-md text-center">
+          Halaman yang Anda cari mungkin telah dihapus, mengalami perubahan nama, atau tidak tersedia untuk sementara waktu.
+        </p>
+        <div className="flex items-center gap-4 mt-6">
           <Link
             to="/"
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary hover:bg-primary/95 text-white font-bold text-sm rounded-xl shadow-md transition-all"
+            className="bg-primary hover:bg-primary/90 text-white font-semibold px-7 py-2.5 rounded-md active:scale-95 transition-all text-sm"
           >
-            <Home size={16} />
-            <span>Kembali ke Home</span>
+            Kembali ke Beranda
           </Link>
-          <button
-            onClick={() => window.history.back()}
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 font-bold text-sm rounded-xl hover:bg-slate-50 transition-all"
+          <Link
+            to="/contact"
+            className="border border-slate-300 dark:border-slate-700 px-7 py-2.5 text-slate-800 dark:text-slate-200 font-semibold rounded-md active:scale-95 transition-all hover:bg-slate-50 dark:hover:bg-slate-900 text-sm"
           >
-            <ArrowLeft size={16} />
-            <span>Halaman Sebelumnya</span>
-          </button>
+            Hubungi Support
+          </Link>
         </div>
       </div>
     </div>
   );
 }
+

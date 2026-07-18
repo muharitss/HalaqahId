@@ -1,4 +1,4 @@
-﻿// API Types
+// API Types
 export * from './api/response';
 
 // Domain Types
@@ -10,4 +10,3 @@ export * from './domain/santri';
 export * from './domain/sesi-halaqah';
 export * from './domain/absensi';
 export * from './domain/setoran';
-export * from './domain/display';

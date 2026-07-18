@@ -1,9 +1,15 @@
-import { setoranService } from "@/features/setoran/api/setoranService";
+import { setoranService } from "@/features/setoran/api/services/setoranService";
 import { halaqahService } from "@/features/halaqah/api/halaqahService";
-import { transformSetoranData } from "@/lib/dataTransformer";
-import type { DateFilter, GroupedData, SetoranItem, GroupedHalaqahItem, GroupedSantriItem } from "../types";
-import { santriService } from "@/features/santri/api/santriService";
-import { absensiService } from "@/features/shared/api";
+import { transformSetoranData } from "@/features/setoran/utils/dataTransformer";
+import type {
+  DateFilter,
+  GroupedData,
+  SetoranItem,
+  GroupedHalaqahItem,
+  GroupedSantriItem,
+} from "../types";
+import { santriService } from "@/features/santri";
+import { absensiService } from "@/features/shared";
 import type { Halaqah } from "@/features/halaqah/types";
 import type { Santri } from "@/features/santri/types";
 
@@ -59,7 +65,9 @@ export const laporanService = {
     halaqahName: string,
   ): number | undefined => {
     return halaqahList.find((h) => {
-      const combined = h.muhafiz?.name ? `${h.name_halaqah} - ${h.muhafiz.name}` : h.name_halaqah;
+      const combined = h.muhafiz?.name
+        ? `${h.name_halaqah} - ${h.muhafiz.name}`
+        : h.name_halaqah;
       return combined === halaqahName || h.name_halaqah === halaqahName;
     })?.id_halaqah;
   },
@@ -92,30 +100,40 @@ export const laporanService = {
     const distribusiHalaqah: Record<string, number> = {};
     let totalTaqwim = 0;
 
-    Object.entries(groupedData).forEach(([halaqahName, group]: [string, GroupedHalaqahItem]) => {
-      if (activeHalaqah !== "all" && activeHalaqah !== "" && halaqahName !== activeHalaqah) return;
+    Object.entries(groupedData).forEach(
+      ([halaqahName, group]: [string, GroupedHalaqahItem]) => {
+        if (
+          activeHalaqah !== "all" &&
+          activeHalaqah !== "" &&
+          halaqahName !== activeHalaqah
+        )
+          return;
 
-      let halaqahCount = 0;
-      Object.values(group.santriGroup).forEach((santri: GroupedSantriItem) => {
-        santri.setoran.forEach((s: SetoranItem) => {
-          totalSetoran++;
-          halaqahCount++;
-          santriSet.add(santri.nama);
-          totalTaqwim += s.taqwim ?? 0;
-          const kategoriName = s.kategori?.nama_kategori || "HAFALAN";
-          const key = kategoriName.toUpperCase();
-          distribusiKategori[key] = (distribusiKategori[key] ?? 0) + 1;
-        });
-      });
-      if (halaqahCount > 0) {
-        distribusiHalaqah[halaqahName] = halaqahCount;
-      }
-    });
+        let halaqahCount = 0;
+        Object.values(group.santriGroup).forEach(
+          (santri: GroupedSantriItem) => {
+            santri.setoran.forEach((s: SetoranItem) => {
+              totalSetoran++;
+              halaqahCount++;
+              santriSet.add(santri.nama);
+              totalTaqwim += s.taqwim ?? 0;
+              const kategoriName = s.kategori?.nama_kategori || "HAFALAN";
+              const key = kategoriName.toUpperCase();
+              distribusiKategori[key] = (distribusiKategori[key] ?? 0) + 1;
+            });
+          },
+        );
+        if (halaqahCount > 0) {
+          distribusiHalaqah[halaqahName] = halaqahCount;
+        }
+      },
+    );
 
     const rataRataTaqwim = totalSetoran > 0 ? totalTaqwim / totalSetoran : 0;
-    const kategoriDominan = Object.entries(distribusiKategori).sort(
-      ([, a], [, b]) => b - a,
-    )[0]?.[0] ?? "";
+    const kategoriDominan =
+      Object.entries(distribusiKategori).sort(
+        ([, a], [, b]) => b - a,
+      )[0]?.[0] ?? "";
 
     return {
       totalSetoran,

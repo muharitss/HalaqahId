@@ -1,8 +1,12 @@
 import { useState, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { dashboardService } from "../api/dashboardService";
+import {
+  dashboardService,
+  useDashboardInitialQuery,
+  useDashboardAbsensiQuery,
+  useDashboardAlfaQuery,
+  useDashboardJuzDistributionQuery,
+} from "../api";
 import { laporanService } from "@/features/setoran/api/laporanService";
-import { sekolahService } from "@/features/sekolah/api/sekolahService";
 import type { ViewType } from "../types";
 
 export const useDashboardData = () => {
@@ -10,60 +14,10 @@ export const useDashboardData = () => {
   const [absensiView, setAbsensiView] = useState<ViewType>("pekan");
   const [alfaView, setAlfaView] = useState<ViewType>("pekan");
 
-  const { data: initialData, isFetching: loadingInitial } = useQuery({
-    queryKey: ["dashboard-initial"],
-    queryFn: async () => {
-      try {
-        const [setoran, muhafiz] = await Promise.all([
-          dashboardService.getAllSetoran(),
-          dashboardService.getMuhafizList()
-        ]);
-        return { setoran, muhafiz };
-      } catch (error) {
-        console.error("Error loading dashboard data:", error);
-        throw error;
-      }
-    }
-  });
-
-  const { data: absensiData, isFetching: loadingAbsensi } = useQuery({
-    queryKey: ["dashboard-absensi", absensiView],
-    queryFn: async () => {
-      try {
-        const { stats, total } = await dashboardService.getAttendanceStats(absensiView);
-        return { stats, total };
-      } catch (error) {
-        console.error("Error loading absensi data:", error);
-        throw error;
-      }
-    }
-  });
-
-  const { data: alfaData, isFetching: loadingAlfa } = useQuery({
-    queryKey: ["dashboard-alfa", alfaView],
-    queryFn: async () => {
-      try {
-        const { alfaStudents } = await dashboardService.getAttendanceStats(alfaView);
-        return { alfaStudents };
-      } catch (error) {
-        console.error("Error loading alfa data:", error);
-        throw error;
-      }
-    }
-  });
-
-  const { data: juzDistributionData, isFetching: loadingJuz } = useQuery({
-    queryKey: ["dashboard-juz-distribution"],
-    queryFn: async () => {
-      try {
-        const res = await sekolahService.getJuzDistribution();
-        return res.data;
-      } catch (error) {
-        console.error("Error loading juz distribution data:", error);
-        throw error;
-      }
-    }
-  });
+  const { data: initialData, isFetching: loadingInitial } = useDashboardInitialQuery();
+  const { data: absensiData, isFetching: loadingAbsensi } = useDashboardAbsensiQuery(absensiView);
+  const { data: alfaData, isFetching: loadingAlfa } = useDashboardAlfaQuery(alfaView);
+  const { data: juzDistributionData, isFetching: loadingJuz } = useDashboardJuzDistributionQuery();
 
   const setoranData = useMemo(() => initialData?.setoran || [], [initialData?.setoran]);
   

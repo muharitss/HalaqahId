@@ -1,0 +1,182 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faEllipsisH,
+  faEdit,
+  faTrash,
+} from "@fortawesome/free-solid-svg-icons";
+import { faWhatsapp } from "@fortawesome/free-brands-svg-icons";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+  DropdownMenuLabel,
+  DropdownMenuGroup,
+} from "@/components/ui/dropdown-menu";
+import { type Santri } from "@/features/santri/types";
+import { type Halaqah } from "@/features/halaqah/api/halaqahService";
+import type { TargetSekolah } from "@/types/domain/target";
+
+interface SantriTableProps {
+  data: Santri[];
+  searchTerm: string;
+  isAdmin: boolean;
+  halaqahList: Halaqah[];
+  onEdit: (santri: Santri) => void;
+  onDelete: (santri: Santri) => void;
+}
+
+export function SantriTable({
+  data,
+  searchTerm,
+  isAdmin,
+  halaqahList,
+  onEdit,
+  onDelete,
+}: SantriTableProps) {
+  const renderTargetBadge = (target?: TargetSekolah | null) => {
+    if (!target) {
+      return (
+        <Badge variant="outline" className="font-normal text-muted-foreground">
+          Bebas
+        </Badge>
+      );
+    }
+
+    return (
+      <Badge variant="secondary" className="font-medium bg-orange-100 text-orange-700 dark:bg-orange-950/40 dark:text-orange-400 border-orange-200 dark:border-orange-900/50">
+        {target.nama_target}
+      </Badge>
+    );
+  };
+
+  const formatWhatsApp = (phone: string | null | undefined) => {
+    if (!phone) return "#";
+
+    let cleaned = phone.replace(/\D/g, "");
+    if (cleaned.startsWith("0")) {
+      cleaned = "62" + cleaned.substring(1);
+    }
+    return `https://wa.me/${cleaned}`;
+  };
+
+  return (
+    <Table>
+      <TableHeader>
+        <TableRow className="bg-muted/50 hover:bg-muted/50">
+          <TableHead className="font-bold text-foreground w-[30%] min-w-[150px]">
+            Nama Santri
+          </TableHead>
+          <TableHead className="font-bold text-foreground w-[20%] min-w-[140px]">
+            Nomor Telepon
+          </TableHead>
+          <TableHead className="font-bold text-foreground w-[20%] min-w-[120px]">Target</TableHead>
+          {isAdmin && (
+            <TableHead className="font-bold text-foreground w-[20%] min-w-[120px]">Halaqah</TableHead>
+          )}
+          <TableHead className="text-right font-bold text-foreground w-[10%] min-w-[80px]">
+            Aksi
+          </TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {data.length === 0 ? (
+          <TableRow>
+            <TableCell
+              colSpan={isAdmin ? 6 : 5}
+              className="text-center py-12 text-muted-foreground"
+            >
+              {searchTerm ? (
+                <p>
+                  Tidak ada santri yang sesuai dengan pencarian{" "}
+                  <span className="font-semibold">"{searchTerm}"</span>
+                </p>
+              ) : (
+                <p>Belum ada data santri</p>
+              )}
+            </TableCell>
+          </TableRow>
+        ) : (
+          data.map((santri) => (
+            <TableRow
+              key={santri.id_santri}
+              className="hover:bg-muted/30 transition-colors"
+            >
+              <TableCell className="font-medium">
+                {santri.nama_santri}
+              </TableCell>
+              <TableCell>
+                {santri.nomor_telepon ? (
+                  <a
+                    href={formatWhatsApp(santri.nomor_telepon)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 text-primary hover:text-primary-dark hover:underline transition-all text-xs md:text-sm"
+                  >
+                    <FontAwesomeIcon icon={faWhatsapp} />
+                    {santri.nomor_telepon}
+                  </a>
+                ) : (
+                  <span className="text-xs md:text-sm text-muted-foreground italic">-</span>
+                )}
+              </TableCell>
+              <TableCell>{renderTargetBadge(santri.target)}</TableCell>
+              {isAdmin && (
+                <TableCell>
+                  <span className="text-sm text-muted-foreground">
+                    {halaqahList.find((h) => h.id_halaqah === santri.id_halaqah)
+                      ?.name_halaqah || `Halaqah ${santri.id_halaqah}`}
+                  </span>
+                </TableCell>
+              )}
+              <TableCell className="text-right">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                      <FontAwesomeIcon icon={faEllipsisH} className="h-3 w-3" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuLabel>Opsi Santri</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuGroup>
+                      <DropdownMenuItem onClick={() => onEdit(santri)}>
+                        <FontAwesomeIcon
+                          icon={faEdit}
+                          className="mr-2 h-3 w-3"
+                        />
+                        <span>Edit Profil</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={() => onDelete(santri)}
+                        className="text-destructive focus:text-destructive focus:bg-destructive/10"
+                      >
+                        <FontAwesomeIcon
+                          icon={faTrash}
+                          className="mr-2 h-3 w-3"
+                        />
+                        <span>Hapus Santri</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuGroup>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </TableCell>
+            </TableRow>
+          ))
+        )}
+      </TableBody>
+    </Table>
+  );
+}

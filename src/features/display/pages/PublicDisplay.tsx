@@ -1,9 +1,9 @@
 import { useState, useMemo } from "react";
-import { useDisplay } from "@/features/display/context/DisplayContext";
-import { DisplayHeader } from "@/features/display/components/DisplayHeader";
-import { SantriCard } from "@/features/display/components/SantriCard";
-import { EmptyState } from "@/features/display/components/EmptyState";
-import { SearchBar } from "@/features/display/components/SearchBar";
+import { useDisplay } from "../components/display-provider";
+import { DisplayHeader } from "../components/DisplayHeader";
+import { SantriCard } from "../components/SantriCard";
+import { EmptyState } from "../components/EmptyState";
+import { SearchBar } from "../components/SearchBar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Users, BookOpen, GraduationCap } from "lucide-react";
 

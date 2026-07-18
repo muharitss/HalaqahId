@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { setoranService } from "../api/setoranService";
+import { setoranService } from "../api/services/setoranService";
 import { type SetoranRecord } from "../types";
 import axios from "axios";
 
@@ -41,7 +41,8 @@ export interface SmartSetoranModeActions {
 
 const DEBOUNCE_MS = 400;
 
-export function useSmartSetoranMode(): SmartSetoranModeState & SmartSetoranModeActions {
+export function useSmartSetoranMode(): SmartSetoranModeState &
+  SmartSetoranModeActions {
   const [selectedSantriId, setSelectedSantriId] = useState<number | null>(null);
   const [selectedTanggal, setSelectedTanggal] = useState<string | null>(null);
   const [selectedSesiId, setSelectedSesiId] = useState<number | null>(null);

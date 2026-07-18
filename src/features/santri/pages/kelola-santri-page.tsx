@@ -3,9 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus, faSearch } from "@fortawesome/free-solid-svg-icons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useSantri } from "../hooks/useSantri";
-import { SantriTable } from "../components/SantriTable";
-import { SantriModal } from "../components/SantriModal";
+import { useSantri, SantriTable, SantriModal } from "../modules";
 import type { Santri, CreateSantriData, UpdateSantriData } from "../types";
 import { useAuth } from "@/features/auth/components/auth-provider";
 import { Role } from "@/types/domain/enums";
@@ -35,7 +33,7 @@ export function KelolaSantriPage() {
     setCurrentPage(1);
   }, [searchTerm]);
 
-  const filteredSantri = santriList.filter((s) =>
+  const filteredSantri = santriList.filter((s: Santri) =>
     s.nama_santri.toLowerCase().includes(searchTerm.toLowerCase())
   );
 

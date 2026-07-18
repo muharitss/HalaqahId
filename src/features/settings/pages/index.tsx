@@ -1,54 +1,22 @@
-import { useNavigate } from "react-router-dom";
 import { Info, Trash2, ChevronLeft, LogOut, ArrowLeft, Bot, Link as LinkIcon, Building2, Layers, Target, GraduationCap, Sliders, UserCircle } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { SettingItem } from "./SettingItem";
-import { useAuth } from "@/features/auth/components/auth-provider";
+import { SettingItem } from "../components/SettingItem";
 import { Settings } from "@/components/custom/typed-text";
 import { Separator } from "@/components/ui/separator";
-import { isKepalaRole, Role } from "@/types/domain/enums";
-import { sekolahService } from "@/features/sekolah/api/sekolahService";
-import { toast } from "sonner";
+import { useSettingsPage } from "../hooks/useSettingsPage";
 
 export default function SettingsPage() {
-  const navigate = useNavigate();
-  const { user, logout, isImpersonating, stopImpersonating } = useAuth();
-  const isKepala = user ? isKepalaRole(user.role) : false;
-
-  const basePath = isKepala ? "/kepala-muhafidz/settings" : "/muhafidz/settings";
-  const dashboardPath = isKepala ? "/kepala-muhafidz" : "/muhafidz";
-
-  const handleBackToSuperadmin = async () => {
-    if (stopImpersonating) {
-      const originalRole = user?.originalUser?.role;
-      await stopImpersonating();
-      
-      if (originalRole === Role.SUPERADMIN) {
-        navigate("/superadmin");
-      } else {
-        navigate("/kepala-muhafidz");
-      }
-    }
-  };
-
-  const handleCopyDisplayLink = async () => {
-    try {
-      const profile = await sekolahService.getProfile();
-      const slug = profile.data?.slug;
-      
-      if (!slug) {
-        toast.error("Slug belum diatur. Perbarui profil sekolah terlebih dahulu untuk mendapatkan link publik.");
-        return;
-      }
-
-      const publicLink = `${window.location.origin}/display/${slug}`;
-      await navigator.clipboard.writeText(publicLink);
-      toast.success("Link portal publik berhasil disalin ke clipboard!");
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Terjadi kesalahan";
-      toast.error(`Terjadi kesalahan saat menyalin link: ${message}`);
-    }
-  };
+  const {
+    navigate,
+    logout,
+    isImpersonating,
+    isKepala,
+    basePath,
+    dashboardPath,
+    handleBackToSuperadmin,
+    handleCopyDisplayLink,
+  } = useSettingsPage();
 
   return (
     <div className="space-y-6 max-w-3xl mx-auto animate-in fade-in duration-500">

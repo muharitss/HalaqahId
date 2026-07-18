@@ -1,11 +1,7 @@
 import { useEffect, useState } from "react";
 import { HalaqahManagement } from "@/components/custom/typed-text";
-import { useHalaqahManagement } from "../hooks/useHalaqahManagement";
-import { BuatHalaqah } from "../components/BuatHalaqah";
-import { DaftarHalaqah } from "../components/DaftarHalaqah";
-import { EditHalaqah } from "../components/EditHalaqah";
-import { DeleteHalaqah } from "../components/DeleteHalaqah";
-import { SantriModal } from "@/features/santri/components/SantriModal";
+import { useHalaqahManagement, BuatHalaqah, DaftarHalaqah, EditHalaqah, DeleteHalaqah } from "../modules";
+import { SantriModal } from "@/features/santri";
 import {
   Dialog,
   DialogContent,
