@@ -1,53 +1,33 @@
-import { type RouteObject } from "react-router-dom";
-import {
-  LandingPage,
-  AboutPage,
-  FeaturesPage,
-  ContactPage,
-  FaqPage,
-} from "@/features/landing";
-import { BlogListPage, BlogDetailPage } from "@/features/blog";
-import {
-  DisplayProvider,
-  PublicDisplay,
-  SantriDetail,
-} from "@/features/display";
+import { Navigate, type RouteObject } from "react-router-dom";
 
 export const publicRoutes: RouteObject[] = [
   // ── Public: Display Portal (tidak butuh login) ───────────────────────────
   {
     path: "/display/:slug",
-    element: (
-      <DisplayProvider>
-        <PublicDisplay />
-      </DisplayProvider>
-    ),
+    element: <Navigate to="/login" replace />,
   },
   {
     path: "/display/:slug/santri/:id",
-    element: (
-      <DisplayProvider>
-        <SantriDetail />
-      </DisplayProvider>
-    ),
+    element: <Navigate to="/login" replace />,
   },
 
   // ── Public: Landing & SEO Pages (tidak butuh login) ──────────────────────
-  { path: "/", element: <LandingPage /> },
-  { path: "/about", element: <AboutPage /> },
-  { path: "/features", element: <FeaturesPage /> },
-  { path: "/contact", element: <ContactPage /> },
-  { path: "/faq", element: <FaqPage /> },
-  { path: "/blog", element: <BlogListPage /> },
-  { path: "/blog/:slug", element: <BlogDetailPage /> },
+  { path: "/", element: <Navigate to="/login" replace /> },
+  { path: "/about", element: <Navigate to="/login" replace /> },
+  { path: "/features", element: <Navigate to="/login" replace /> },
+  { path: "/contact", element: <Navigate to="/login" replace /> },
+  { path: "/faq", element: <Navigate to="/login" replace /> },
+  { path: "/blog", element: <Navigate to="/login" replace /> },
+  { path: "/blog/:slug", element: <Navigate to="/login" replace /> },
 
   // Keyword Landings
-  { path: "/aplikasi-halaqah", element: <LandingPage /> },
-  { path: "/aplikasi-tahfidz", element: <LandingPage /> },
-  { path: "/aplikasi-rumah-tahfidz", element: <LandingPage /> },
-  { path: "/aplikasi-pondok-pesantren", element: <LandingPage /> },
-  { path: "/aplikasi-tpq", element: <LandingPage /> },
-  { path: "/aplikasi-setoran-hafalan", element: <LandingPage /> },
-  { path: "/administrasi-tahfidz", element: <LandingPage /> },
-  { path: "/monitoring-hafalan-santri", element: <LandingPage /> },
+  { path: "/aplikasi-halaqah", element: <Navigate to="/login" replace /> },
+  { path: "/aplikasi-tahfidz", element: <Navigate to="/login" replace /> },
+  { path: "/aplikasi-rumah-tahfidz", element: <Navigate to="/login" replace /> },
+  { path: "/aplikasi-pondok-pesantren", element: <Navigate to="/login" replace /> },
+  { path: "/aplikasi-tpq", element: <Navigate to="/login" replace /> },
+  { path: "/aplikasi-setoran-hafalan", element: <Navigate to="/login" replace /> },
+  { path: "/administrasi-tahfidz", element: <Navigate to="/login" replace /> },
+  { path: "/monitoring-hafalan-santri", element: <Navigate to="/login" replace /> },
 ];
+
