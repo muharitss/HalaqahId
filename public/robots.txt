@@ -8,4 +8,4 @@ Disallow: /register
 Disallow: /verify-email
 
 # Pastikan ganti domain ini dengan domain produksi Anda yang sebenarnya
-Sitemap: https://halaqah.id/sitemap.xml
+Sitemap: https://halaqah-id.vercel.app/sitemap.xml

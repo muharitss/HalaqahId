@@ -1,38 +1,38 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <!-- Pastikan ganti domain halaqah.id dengan domain produksi Anda yang sebenarnya -->
+  <!-- Sitemap untuk halaqah-id.vercel.app -->
   <url>
-    <loc>https://halaqah.id/</loc>
+    <loc>https://halaqah-id.vercel.app/</loc>
     <lastmod>2026-07-19</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://halaqah.id/about</loc>
+    <loc>https://halaqah-id.vercel.app/about</loc>
     <lastmod>2026-07-19</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://halaqah.id/features</loc>
+    <loc>https://halaqah-id.vercel.app/features</loc>
     <lastmod>2026-07-19</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://halaqah.id/contact</loc>
+    <loc>https://halaqah-id.vercel.app/contact</loc>
     <lastmod>2026-07-19</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://halaqah.id/faq</loc>
+    <loc>https://halaqah-id.vercel.app/faq</loc>
     <lastmod>2026-07-19</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://halaqah.id/blog</loc>
+    <loc>https://halaqah-id.vercel.app/blog</loc>
     <lastmod>2026-07-19</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
@@ -40,49 +40,49 @@
   
   <!-- Halaman Pendaratan Kata Kunci (SEO Landings) -->
   <url>
-    <loc>https://halaqah.id/aplikasi-halaqah</loc>
+    <loc>https://halaqah-id.vercel.app/aplikasi-halaqah</loc>
     <lastmod>2026-07-19</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://halaqah.id/aplikasi-tahfidz</loc>
+    <loc>https://halaqah-id.vercel.app/aplikasi-tahfidz</loc>
     <lastmod>2026-07-19</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://halaqah.id/aplikasi-rumah-tahfidz</loc>
+    <loc>https://halaqah-id.vercel.app/aplikasi-rumah-tahfidz</loc>
     <lastmod>2026-07-19</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://halaqah.id/aplikasi-pondok-pesantren</loc>
+    <loc>https://halaqah-id.vercel.app/aplikasi-pondok-pesantren</loc>
     <lastmod>2026-07-19</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://halaqah.id/aplikasi-tpq</loc>
+    <loc>https://halaqah-id.vercel.app/aplikasi-tpq</loc>
     <lastmod>2026-07-19</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://halaqah.id/aplikasi-setoran-hafalan</loc>
+    <loc>https://halaqah-id.vercel.app/aplikasi-setoran-hafalan</loc>
     <lastmod>2026-07-19</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://halaqah.id/administrasi-tahfidz</loc>
+    <loc>https://halaqah-id.vercel.app/administrasi-tahfidz</loc>
     <lastmod>2026-07-19</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://halaqah.id/monitoring-hafalan-santri</loc>
+    <loc>https://halaqah-id.vercel.app/monitoring-hafalan-santri</loc>
     <lastmod>2026-07-19</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
