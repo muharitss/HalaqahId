@@ -20,7 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import axios from "axios";
+import axiosClient from "@/lib/axiosClient";
 import { TiptapEditor } from "../components/TiptapEditor";
 
 interface BlogPost {
@@ -101,9 +101,9 @@ export default function KelolaBlogPage() {
     setLoading(true);
     try {
       const [postRes, catRes, tagRes] = await Promise.all([
-        axios.get("/api/blog/admin/posts"),
-        axios.get("/api/blog/categories"),
-        axios.get("/api/blog/tags"),
+        axiosClient.get("/blog/admin/posts"),
+        axiosClient.get("/blog/categories"),
+        axiosClient.get("/blog/tags"),
       ]);
 
       if (postRes.data && postRes.data.success) setPosts(postRes.data.data);
@@ -199,10 +199,10 @@ export default function KelolaBlogPage() {
 
     try {
       if (editingPostId) {
-        await axios.put(`/api/blog/admin/posts/${editingPostId}`, payload);
+        await axiosClient.put(`/blog/admin/posts/${editingPostId}`, payload);
         toast.success("Artikel berhasil diperbarui!");
       } else {
-        await axios.post("/api/blog/admin/posts", payload);
+        await axiosClient.post("/blog/admin/posts", payload);
         toast.success("Artikel baru berhasil dibuat!");
       }
       fetchData();
@@ -215,7 +215,7 @@ export default function KelolaBlogPage() {
   const handleDeletePost = async (id: number) => {
     if (!confirm("Apakah Anda yakin ingin menghapus artikel ini?")) return;
     try {
-      await axios.delete(`/api/blog/admin/posts/${id}`);
+      await axiosClient.delete(`/blog/admin/posts/${id}`);
       toast.success("Artikel berhasil dihapus");
       fetchData();
     } catch (e) {
@@ -225,7 +225,7 @@ export default function KelolaBlogPage() {
 
   const handleRestorePost = async (id: number) => {
     try {
-      await axios.post(`/api/blog/admin/posts/${id}/restore`);
+      await axiosClient.post(`/blog/admin/posts/${id}/restore`);
       toast.success("Artikel berhasil dipulihkan");
       fetchData();
     } catch (e) {
@@ -238,7 +238,7 @@ export default function KelolaBlogPage() {
     e.preventDefault();
     if (!catName || !catSlug) return;
     try {
-      await axios.post("/api/blog/admin/categories", {
+      await axiosClient.post("/blog/admin/categories", {
         name: catName,
         slug: catSlug,
         description: catDesc,
@@ -256,7 +256,7 @@ export default function KelolaBlogPage() {
   const handleDeleteCategory = async (id: number) => {
     if (!confirm("Hapus kategori ini?")) return;
     try {
-      await axios.delete(`/api/blog/admin/categories/${id}`);
+      await axiosClient.delete(`/blog/admin/categories/${id}`);
       toast.success("Kategori berhasil dihapus");
       fetchData();
     } catch (e) {
@@ -269,7 +269,7 @@ export default function KelolaBlogPage() {
     e.preventDefault();
     if (!tagName || !tagSlug) return;
     try {
-      await axios.post("/api/blog/admin/tags", {
+      await axiosClient.post("/blog/admin/tags", {
         name: tagName,
         slug: tagSlug,
       });
@@ -285,7 +285,7 @@ export default function KelolaBlogPage() {
   const handleDeleteTag = async (id: number) => {
     if (!confirm("Hapus tag ini?")) return;
     try {
-      await axios.delete(`/api/blog/admin/tags/${id}`);
+      await axiosClient.delete(`/blog/admin/tags/${id}`);
       toast.success("Tag berhasil dihapus");
       fetchData();
     } catch (e) {

@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Disallow: /muhafidz/
+Disallow: /kepala/
+Disallow: /superadmin/
+Disallow: /login
+Disallow: /register
+Disallow: /verify-email
+
+# Pastikan ganti domain ini dengan domain produksi Anda yang sebenarnya
+Sitemap: https://halaqah.id/sitemap.xml

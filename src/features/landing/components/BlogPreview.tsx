@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, Calendar, User, Clock } from "lucide-react";
-import axios from "axios";
+import axiosClient from "@/lib/axiosClient";
 
 interface BlogPostSummary {
   id_post: number;
@@ -22,7 +22,7 @@ export const BlogPreview: React.FC = () => {
   useEffect(() => {
     const fetchLatestPosts = async () => {
       try {
-        const res = await axios.get("/api/blog/posts?limit=3");
+        const res = await axiosClient.get("/blog/posts?limit=3");
         if (res.data && res.data.success && res.data.data.posts) {
           setPosts(res.data.data.posts);
         }

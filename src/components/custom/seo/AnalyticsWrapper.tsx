@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import axiosClient from "@/lib/axiosClient";
 
 interface SeoSettings {
   seo_google_verification?: string;
@@ -18,7 +18,7 @@ export const AnalyticsWrapper: React.FC<{ children: React.ReactNode }> = ({ chil
     // Fetch public SEO settings
     const fetchSeoSettings = async () => {
       try {
-        const response = await axios.get("/api/seo/settings");
+        const response = await axiosClient.get("/seo/settings");
         if (response.data && response.data.success) {
           setSettings(response.data.data);
         }

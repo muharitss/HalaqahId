@@ -5,7 +5,7 @@ import { Header } from "@/features/landing/components/Header";
 import { Footer } from "@/features/landing/components/Footer";
 import { Calendar, Clock, ChevronRight, Share2, Eye, ArrowLeft, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
-import axios from "axios";
+import axiosClient from "@/lib/axiosClient";
 
 interface BlogPostDetail {
   id_post: number;
@@ -48,7 +48,7 @@ export default function BlogDetailPage() {
       if (!slug) return;
       setLoading(true);
       try {
-        const res = await axios.get(`/api/blog/posts/${slug}`);
+        const res = await axiosClient.get(`/blog/posts/${slug}`);
         if (res.data && res.data.success) {
           setData(res.data.data);
           generateToc(res.data.data.post.content);

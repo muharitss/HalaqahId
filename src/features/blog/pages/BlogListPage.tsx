@@ -4,7 +4,7 @@ import { SEO } from "@/components/custom/seo/SEO";
 import { Header } from "@/features/landing/components/Header";
 import { Footer } from "@/features/landing/components/Footer";
 import { Search, Calendar, User, Clock, ChevronRight } from "lucide-react";
-import axios from "axios";
+import axiosClient from "@/lib/axiosClient";
 
 interface BlogPost {
   id_post: number;
@@ -51,8 +51,8 @@ export default function BlogListPage() {
     const fetchMetadata = async () => {
       try {
         const [catRes, tagRes] = await Promise.all([
-          axios.get("/api/blog/categories"),
-          axios.get("/api/blog/tags"),
+          axiosClient.get("/blog/categories"),
+          axiosClient.get("/blog/tags"),
         ]);
         if (catRes.data && catRes.data.success) setCategories(catRes.data.data);
         if (tagRes.data && tagRes.data.success) setTags(tagRes.data.data);
@@ -74,7 +74,7 @@ export default function BlogListPage() {
         if (categoryQuery) params.category = categoryQuery;
         if (tagQuery) params.tag = tagQuery;
 
-        const res = await axios.get("/api/blog/posts", { params });
+        const res = await axiosClient.get("/blog/posts", { params });
         if (res.data && res.data.success) {
           setPosts(res.data.data.posts);
           setTotal(res.data.data.total);
