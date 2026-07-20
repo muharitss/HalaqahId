@@ -39,7 +39,7 @@ export interface UseLeaderboardPageResult {
 }
 
 export function useLeaderboardPage({ role }: UseLeaderboardPageParams): UseLeaderboardPageResult {
-  const [period, setPeriod] = useState<string>("pekan_ini");
+  const [period, setPeriod] = useState<string>("bulan_ini");
   const [startDate, setStartDate] = useState<string>(
     format(new Date(), "yyyy-MM-01") // awal bulan default
   );

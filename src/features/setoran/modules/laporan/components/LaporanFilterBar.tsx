@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Command,
   CommandEmpty,
@@ -30,6 +31,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MONTHS, YEARS } from "../constants";
+import { usePeriodFilter } from "../hooks";
 
 interface LaporanFilterBarProps {
   halaqahNames: string[];
@@ -43,13 +45,20 @@ interface LaporanFilterBarProps {
 
   selectedMonth: number | null;
   selectedYear: number | null;
-  onMonthChange: (v: number | null) => void;
-  onYearChange: (v: number | null) => void;
-
   dateFrom: Date | null;
   dateTo: Date | null;
-  onDateFromChange: (v: Date | null) => void;
-  onDateToChange: (v: Date | null) => void;
+  filterMode: "month" | "week" | "range";
+  selectedWeek: number | null;
+  onPeriodChange: (
+    mode: "month" | "week" | "range",
+    payload: {
+      selectedMonth: number | null;
+      selectedYear: number | null;
+      selectedWeek: number | null;
+      dateFrom: Date | null;
+      dateTo: Date | null;
+    }
+  ) => void;
 
   selectedKategori: string;
   onKategoriChange: (v: string) => void;
@@ -69,12 +78,11 @@ export function LaporanFilterBar({
   onSantriChange,
   selectedMonth,
   selectedYear,
-  onMonthChange,
-  onYearChange,
   dateFrom,
   dateTo,
-  onDateFromChange,
-  onDateToChange,
+  filterMode,
+  selectedWeek,
+  onPeriodChange,
   selectedKategori,
   onKategoriChange,
   kategoriNames = [],
@@ -82,45 +90,141 @@ export function LaporanFilterBar({
   isFilterActive,
 }: LaporanFilterBarProps) {
   const [santriOpen, setSantriOpen] = useState(false);
-  const [calFromOpen, setCalFromOpen] = useState(false);
-  const [calToOpen, setCalToOpen] = useState(false);
 
-  const isDateRangeMode = dateFrom !== null || dateTo !== null;
+  const {
+    periodOpen,
+    setPeriodOpen,
+    tempMode,
+    setTempMode,
+    tempMonth,
+    setTempMonth,
+    tempYear,
+    setTempYear,
+    tempWeek,
+    setTempWeek,
+    tempDateFrom,
+    setTempDateFrom,
+    tempDateTo,
+    setTempDateTo,
+    calFromOpen,
+    setCalFromOpen,
+    calToOpen,
+    setCalToOpen,
+    daysInMonth,
+    handleModeChange,
+    handleApplyPeriod,
+    getPeriodTriggerLabel,
+  } = usePeriodFilter({
+    filterMode,
+    selectedMonth,
+    selectedYear,
+    selectedWeek,
+    dateFrom,
+    dateTo,
+    onPeriodChange,
+  });
+  const getRecentMonths = () => {
+    const months = [];
+    const today = new Date();
+    for (let i = 0; i < 6; i++) {
+      const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+      months.push({
+        label: i === 0 
+          ? `${MONTHS[d.getMonth()]} ${d.getFullYear()} (Bulan Ini)`
+          : `${MONTHS[d.getMonth()]} ${d.getFullYear()}`,
+        month: d.getMonth(),
+        year: d.getFullYear(),
+      });
+    }
+    return months;
+  };
 
+  const handleSelectThisWeek = () => {
+    const today = new Date();
+    const dayOfWeek = today.getDay();
+    const diffToMonday = today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1);
+    const fromDate = new Date(today.getFullYear(), today.getMonth(), diffToMonday, 0, 0, 0, 0);
+    const toDate = new Date(today.getFullYear(), today.getMonth(), diffToMonday + 6, 23, 59, 59, 999);
+    onPeriodChange("range", {
+      selectedMonth: null,
+      selectedYear: null,
+      selectedWeek: null,
+      dateFrom: fromDate,
+      dateTo: toDate,
+    });
+    setPeriodOpen(false);
+  };
+
+  const handleSelectMonthOption = (val: string) => {
+    if (!val) return;
+    const [yearStr, monthStr] = val.split("-");
+    onPeriodChange("month", {
+      selectedMonth: Number(monthStr),
+      selectedYear: Number(yearStr),
+      selectedWeek: null,
+      dateFrom: null,
+      dateTo: null,
+    });
+    setPeriodOpen(false);
+  };
+
+  const getCurrentMonthOptionValue = () => {
+    if (filterMode === "month" && selectedMonth !== null && selectedYear !== null) {
+      return `${selectedYear}-${selectedMonth}`;
+    }
+    return "";
+  };
+
+  const handleApplyRange = () => {
+    onPeriodChange("range", {
+      selectedMonth: null,
+      selectedYear: null,
+      selectedWeek: null,
+      dateFrom: tempDateFrom,
+      dateTo: tempDateTo,
+    });
+    setPeriodOpen(false);
+  };
+
+  const isThisWeekSelected = () => {
+    if (filterMode !== "range" || !dateFrom || !dateTo) return false;
+    const today = new Date();
+    const dayOfWeek = today.getDay();
+    const diffToMonday = today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1);
+    const startOfWeek = new Date(today.getFullYear(), today.getMonth(), diffToMonday, 0, 0, 0, 0);
+    const endOfWeek = new Date(today.getFullYear(), today.getMonth(), diffToMonday + 6, 23, 59, 59, 999);
+    return (
+      dateFrom.getTime() >= startOfWeek.getTime() - 1000 &&
+      dateFrom.getTime() <= startOfWeek.getTime() + 1000 &&
+      dateTo.getTime() >= endOfWeek.getTime() - 1000 &&
+      dateTo.getTime() <= endOfWeek.getTime() + 1000
+    );
+  };
+
+  const getCustomPeriodTriggerLabel = () => {
+    if (isThisWeekSelected()) {
+      return "Pekan Ini";
+    }
+    return getPeriodTriggerLabel();
+  };
+
+  // Active filters count
   let activeCount = 0;
   if (activeHalaqah !== "" && activeHalaqah !== "all") activeCount++;
   if (selectedSantri !== "") activeCount++;
-  if (isDateRangeMode) {
+  if (filterMode === "range" || filterMode === "week") {
     activeCount++;
   } else {
-    if (selectedMonth !== null) activeCount++;
-    if (selectedYear !== null) activeCount++;
+    const currentM = new Date().getMonth();
+    const currentY = new Date().getFullYear();
+    if (selectedMonth !== currentM) activeCount++;
+    if (selectedYear !== currentY) activeCount++;
   }
   if (selectedKategori !== "") activeCount++;
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-          Filter Laporan
-        </p>
-        {isFilterActive && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-7 text-xs text-muted-foreground hover:text-foreground gap-1"
-            onClick={onReset}
-          >
-            <FilterX className="h-3 w-3" />
-            Reset filter
-            <Badge variant="secondary" className="h-4 px-1 text-[10px]">
-              {activeCount}
-            </Badge>
-          </Button>
-        )}
-      </div>
-
-      <div className="flex flex-wrap gap-2">
+    <div className="flex flex-col gap-2">
+      <div className="flex flex-wrap gap-2 items-center">
         {showHalaqahSelect && (
           <Select
             value={activeHalaqah || "all"}
@@ -205,132 +309,155 @@ export function LaporanFilterBar({
           </PopoverContent>
         </Popover>
 
-        <Select
-          value={selectedMonth !== null && !isDateRangeMode ? String(selectedMonth) : "__all__"}
-          onValueChange={(v) => onMonthChange(v === "__all__" ? null : Number(v))}
-          disabled={isDateRangeMode}
-        >
-          <SelectTrigger className="h-8 gap-1.5 text-xs w-36">
-            <CalendarDays className="h-3.5 w-3.5 text-muted-foreground" />
-            <SelectValue placeholder="Semua Bulan" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="__all__">
-              <span className="text-xs">Semua Bulan</span>
-            </SelectItem>
-            {MONTHS.map((m, i) => (
-              <SelectItem key={i} value={String(i)}>
-                <span className="text-xs">{m}</span>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <Select
-          value={selectedYear !== null && !isDateRangeMode ? String(selectedYear) : "__all__"}
-          onValueChange={(v) => onYearChange(v === "__all__" ? null : Number(v))}
-          disabled={isDateRangeMode}
-        >
-          <SelectTrigger className="h-8 text-xs w-28">
-            <SelectValue placeholder="Tahun" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="__all__">
-              <span className="text-xs">Semua Tahun</span>
-            </SelectItem>
-            {YEARS.map((y) => (
-              <SelectItem key={y} value={String(y)}>
-                <span className="text-xs">{y}</span>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <Popover open={calFromOpen} onOpenChange={setCalFromOpen}>
+        {/* ── CONSOLIDATED PERIOD FILTER SELECTOR ── */}
+        <Popover open={periodOpen} onOpenChange={setPeriodOpen}>
           <PopoverTrigger asChild>
             <Button
               variant="outline"
               size="sm"
-              className="h-8 gap-1.5 text-xs font-normal min-w-36"
+              className="h-8 gap-1.5 text-xs font-normal min-w-[150px] max-w-[180px] justify-between bg-background"
             >
-              <CalendarDays className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-              {dateFrom
-                ? format(dateFrom, "dd MMM yyyy", { locale: idLocale })
-                : "Dari tanggal"}
+              <span className="flex items-center gap-1.5 truncate mr-1">
+                <CalendarDays className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                <span className="truncate">{getCustomPeriodTriggerLabel()}</span>
+              </span>
+              <ChevronDown className="h-3 w-3 opacity-50 shrink-0" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            <div className="p-2 border-b flex items-center justify-between">
-              <p className="text-xs font-semibold text-muted-foreground">Tanggal Mulai</p>
-              {dateFrom && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-5 text-[10px] text-muted-foreground px-1"
-                  onClick={() => {
-                    onDateFromChange(null);
-                    setCalFromOpen(false);
-                  }}
-                >
-                  Hapus
-                </Button>
-              )}
+          <PopoverContent className="w-72 p-3.5 space-y-3" align="start">
+            <div className="space-y-1 pb-2 border-b">
+              <h4 className="font-semibold text-xs leading-none">Pilih Periode</h4>
+              <p className="text-[10px] text-muted-foreground">Filter data setoran berdasarkan waktu.</p>
             </div>
-            <Calendar
-              mode="single"
-              selected={dateFrom ?? undefined}
-              onSelect={(d) => {
-                onDateFromChange(d ?? null);
-                setCalFromOpen(false);
-              }}
-              disabled={(d) => (dateTo ? d > dateTo : false)}
-              locale={idLocale}
-              initialFocus
-            />
-          </PopoverContent>
-        </Popover>
+            
+            <div className="space-y-3">
+              {/* 1. Pekan Ini */}
+              <div className="space-y-1">
+                <label className="text-[10px] font-semibold text-muted-foreground block px-1">
+                  Pekan
+                </label>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full justify-start text-xs font-normal h-8 hover:bg-muted"
+                  onClick={handleSelectThisWeek}
+                >
+                  <CalendarDays className="h-3.5 w-3.5 mr-2 text-muted-foreground shrink-0" />
+                  Pekan Ini
+                </Button>
+              </div>
 
-        <Popover open={calToOpen} onOpenChange={setCalToOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-8 gap-1.5 text-xs font-normal min-w-36"
-            >
-              <CalendarDays className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-              {dateTo
-                ? format(dateTo, "dd MMM yyyy", { locale: idLocale })
-                : "Hingga tanggal"}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            <div className="p-2 border-b flex items-center justify-between">
-              <p className="text-xs font-semibold text-muted-foreground">Tanggal Selesai</p>
-              {dateTo && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-5 text-[10px] text-muted-foreground px-1"
-                  onClick={() => {
-                    onDateToChange(null);
-                    setCalToOpen(false);
-                  }}
+              {/* 2. Pilihan Bulan */}
+              <div className="space-y-1">
+                <label className="text-[10px] font-semibold text-muted-foreground block px-1">
+                  Bulan
+                </label>
+                <Select
+                  value={getCurrentMonthOptionValue()}
+                  onValueChange={handleSelectMonthOption}
                 >
-                  Hapus
-                </Button>
-              )}
+                  <SelectTrigger className="h-8 text-xs w-full">
+                    <SelectValue placeholder="Pilih Bulan..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {getRecentMonths().map((m, idx) => (
+                      <SelectItem key={idx} value={`${m.year}-${m.month}`}>
+                        <span className="text-xs">{m.label}</span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* 3. Pilih Tanggal */}
+              <div className="space-y-1.5 pt-2.5 border-t">
+                <label className="text-[10px] font-semibold text-muted-foreground block px-1">
+                  Pilih Tanggal (Rentang)
+                </label>
+                
+                <div className="grid grid-cols-2 gap-2">
+                  <Popover open={calFromOpen} onOpenChange={setCalFromOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-8 w-full gap-1 text-[11px] font-normal justify-start px-2"
+                      >
+                        <span className="truncate">
+                          {tempDateFrom
+                            ? format(tempDateFrom, "dd MMM yyyy", { locale: idLocale })
+                            : "Mulai"}
+                        </span>
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={tempDateFrom ?? undefined}
+                        onSelect={(d) => {
+                          setTempDateFrom(d ?? null);
+                          setCalFromOpen(false);
+                        }}
+                        disabled={(d) => (tempDateTo ? d > tempDateTo : false)}
+                        locale={idLocale}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+
+                  <Popover open={calToOpen} onOpenChange={setCalToOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-8 w-full gap-1 text-[11px] font-normal justify-start px-2"
+                      >
+                        <span className="truncate">
+                          {tempDateTo
+                            ? format(tempDateTo, "dd MMM yyyy", { locale: idLocale })
+                            : "Selesai"}
+                        </span>
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={tempDateTo ?? undefined}
+                        onSelect={(d) => {
+                          setTempDateTo(d ?? null);
+                          setCalToOpen(false);
+                        }}
+                        disabled={(d) => (tempDateFrom ? d < tempDateFrom : false)}
+                        locale={idLocale}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+
+                <div className="flex gap-2 justify-end pt-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 text-[10px] px-2"
+                    onClick={() => {
+                      setTempDateFrom(null);
+                      setTempDateTo(null);
+                    }}
+                  >
+                    Reset Tanggal
+                  </Button>
+                  <Button
+                    size="sm"
+                    className="h-7 text-[10px] px-3 font-semibold"
+                    onClick={handleApplyRange}
+                    disabled={!tempDateFrom && !tempDateTo}
+                  >
+                    Terapkan
+                  </Button>
+                </div>
+              </div>
             </div>
-            <Calendar
-              mode="single"
-              selected={dateTo ?? undefined}
-              onSelect={(d) => {
-                onDateToChange(d ?? null);
-                setCalToOpen(false);
-              }}
-              disabled={(d) => (dateFrom ? d < dateFrom : false)}
-              locale={idLocale}
-              initialFocus
-            />
           </PopoverContent>
         </Popover>
 
@@ -353,6 +480,21 @@ export function LaporanFilterBar({
             ))}
           </SelectContent>
         </Select>
+
+        {isFilterActive && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 text-xs text-muted-foreground hover:text-foreground gap-1.5 px-2 shrink-0"
+            onClick={onReset}
+          >
+            <FilterX className="h-3.5 w-3.5" />
+            Reset
+            <Badge variant="secondary" className="h-4 px-1 text-[10px]">
+              {activeCount}
+            </Badge>
+          </Button>
+        )}
       </div>
 
       {isFilterActive && (
@@ -369,15 +511,43 @@ export function LaporanFilterBar({
               <button onClick={() => onSantriChange("")} className="ml-1 opacity-50 hover:opacity-100">✕</button>
             </Badge>
           )}
-          {isDateRangeMode && (
+          {filterMode === "week" && selectedWeek !== null && (
             <Badge variant="secondary">
-              Tanggal: {dateFrom && format(dateFrom, "dd MMM", { locale: idLocale })}
-              {dateFrom && dateTo && " – "}
-              {dateTo && format(dateTo, "dd MMM yyyy", { locale: idLocale })}
+              Pekan: Pekan {selectedWeek} ({selectedMonth !== null ? MONTHS[selectedMonth] : ""} {selectedYear})
               <button
                 onClick={() => {
-                  onDateFromChange(null);
-                  onDateToChange(null);
+                  onPeriodChange("month", {
+                    selectedMonth: new Date().getMonth(),
+                    selectedYear: new Date().getFullYear(),
+                    selectedWeek: null,
+                    dateFrom: null,
+                    dateTo: null,
+                  });
+                }}
+                className="ml-1 opacity-50 hover:opacity-100"
+              >✕</button>
+            </Badge>
+          )}
+          {filterMode === "range" && (dateFrom || dateTo) && (
+            <Badge variant="secondary">
+              {isThisWeekSelected() ? (
+                "Periode: Pekan Ini"
+              ) : (
+                <>
+                  Tanggal: {dateFrom && format(dateFrom, "dd MMM", { locale: idLocale })}
+                  {dateFrom && dateTo && " – "}
+                  {dateTo && format(dateTo, "dd MMM yyyy", { locale: idLocale })}
+                </>
+              )}
+              <button
+                onClick={() => {
+                  onPeriodChange("month", {
+                    selectedMonth: new Date().getMonth(),
+                    selectedYear: new Date().getFullYear(),
+                    selectedWeek: null,
+                    dateFrom: null,
+                    dateTo: null,
+                  });
                 }}
                 className="ml-1 opacity-50 hover:opacity-100"
               >✕</button>

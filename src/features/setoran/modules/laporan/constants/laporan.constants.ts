@@ -14,4 +14,7 @@ export const DEFAULT_FILTER = {
   dateFrom: null as Date | null,
   dateTo: null as Date | null,
   selectedKategori: "",
+  filterMode: "month" as "month" | "week" | "range",
+  selectedWeek: null as number | null,
 };
+

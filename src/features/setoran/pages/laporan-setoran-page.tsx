@@ -31,6 +31,8 @@ export function LaporanSetoranPage() {
     selectedSantri,
     dateFrom,
     dateTo,
+    filterMode,
+    selectedWeek,
     selectedKategori,
     groupedData,
     halaqahNames,
@@ -38,13 +40,10 @@ export function LaporanSetoranPage() {
     kategoriNames,
     periodLabel,
     isFilterActive,
-    setSelectedMonth,
-    setSelectedYear,
     setActiveHalaqah,
     setSelectedSantri,
-    setDateFrom,
-    setDateTo,
     setSelectedKategori,
+    setPeriodFilters,
     resetFilters,
     refreshData,
   } = useLaporanData();
@@ -93,7 +92,7 @@ export function LaporanSetoranPage() {
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       {/* ── STANDARD PAGE HEADER ── */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b pb-8">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-4">
         <div className="space-y-1">
           <h1 className="text-2xl font-bold tracking-tight text-foreground">
             Laporan Setoran Hafalan
@@ -151,12 +150,11 @@ export function LaporanSetoranPage() {
                 onSantriChange={setSelectedSantri}
                 selectedMonth={selectedMonth}
                 selectedYear={selectedYear}
-                onMonthChange={setSelectedMonth}
-                onYearChange={setSelectedYear}
                 dateFrom={dateFrom}
                 dateTo={dateTo}
-                onDateFromChange={setDateFrom}
-                onDateToChange={setDateTo}
+                filterMode={filterMode}
+                selectedWeek={selectedWeek}
+                onPeriodChange={setPeriodFilters}
                 selectedKategori={selectedKategori}
                 onKategoriChange={setSelectedKategori}
                 kategoriNames={kategoriNames}

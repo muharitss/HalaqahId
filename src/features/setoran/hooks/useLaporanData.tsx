@@ -18,13 +18,12 @@ export function useLaporanData() {
     dateFrom,
     dateTo,
     selectedKategori,
-    setSelectedMonth,
-    setSelectedYear,
+    filterMode,
+    selectedWeek,
     setActiveHalaqah,
     setSelectedSantri,
-    setDateFrom,
-    setDateTo,
     setSelectedKategori,
+    setPeriodFilters,
     resetFilters,
   } = useLaporanFilter();
 
@@ -131,6 +130,8 @@ export function useLaporanData() {
     dateFrom,
     dateTo,
     selectedKategori,
+    filterMode,
+    selectedWeek,
 
     // Derived
     groupedData,
@@ -143,13 +144,10 @@ export function useLaporanData() {
     isFilterActive,
 
     // Setters
-    setSelectedMonth,
-    setSelectedYear,
     setActiveHalaqah,
     setSelectedSantri,
-    setDateFrom,
-    setDateTo,
     setSelectedKategori,
+    setPeriodFilters,
     resetFilters,
 
     // Actions

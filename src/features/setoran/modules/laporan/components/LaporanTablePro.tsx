@@ -82,7 +82,6 @@ export function LaporanTablePro({
   const [search, setSearch] = useState("");
   const [sortKey, setSortKey] = useState<SortKey>("tanggal_setoran");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
-  const [showFilter, setShowFilter] = useState(false);
   const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
   const [currentPage, setCurrentPage] = useState(1);
   const [showAll, setShowAll] = useState(false);
@@ -214,40 +213,23 @@ export function LaporanTablePro({
 
   return (
     <div className="rounded-xl border bg-card shadow-sm overflow-hidden">
-      <div className="p-6 border-b flex flex-col sm:flex-row justify-between items-center gap-4">
-        <div className="flex items-center gap-2">
-          <h3 className="font-bold text-lg">Detail Riwayat Setoran</h3>
-          <Badge variant="secondary" className="font-bold">
-            {sortedRows.length} catatan
-          </Badge>
+      <div className="p-4 border-b flex flex-col lg:flex-row justify-between items-stretch lg:items-center gap-4">
+        {/* Left: Search Input */}
+        <div className="relative w-full lg:w-64 shrink-0">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Cari nama santri, surat, halaqah..."
+            className="pl-9 h-9 text-xs w-full bg-background"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
         </div>
-        <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
-          <div className="relative w-full sm:w-64 shrink-0">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Cari nama santri, surat, halaqah..."
-              className="pl-9 h-9 text-xs w-full bg-background"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </div>
-          {filterComponent && (
-            <Button
-              variant={isFilterActive ? "secondary" : "outline"}
-              size="sm"
-              onClick={() => setShowFilter(!showFilter)}
-            >
-              <Filter className="h-4 w-4 mr-2" />
-              Filter
-            </Button>
-          )}
-        </div>
-      </div>
-      {showFilter && filterComponent && (
-        <div className="p-6 border-b bg-muted/20 space-y-4 animate-in fade-in duration-200">
+
+        {/* Right: Filters */}
+        <div className="flex-1 min-w-0 flex lg:justify-end">
           {filterComponent}
         </div>
-      )}
+      </div>
 
       <div className="p-0">
         <div className="overflow-x-auto">

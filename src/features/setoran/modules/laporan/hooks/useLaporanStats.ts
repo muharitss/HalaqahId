@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { startOfDay, endOfDay, isWithinInterval } from "date-fns";
 import type { GroupedData, GroupedSantriItem, SetoranItem } from "../../../types";
 import type { LaporanFilter } from "./useLaporanFilter";
+import { MONTHS } from "../constants";
 
 interface UseLaporanStatsProps {
   groupedDataRaw: GroupedData;
@@ -98,7 +99,12 @@ export function useLaporanStats({
     (effectiveActiveHalaqah !== "" && effectiveActiveHalaqah !== "all");
 
   const periodLabel = useMemo(() => {
-    const { dateFrom, dateTo, selectedMonth, selectedYear } = filters;
+    const { dateFrom, dateTo, selectedMonth, selectedYear, filterMode, selectedWeek } = filters;
+
+    if (filterMode === "week" && selectedWeek !== null && selectedMonth !== null && selectedYear !== null) {
+      const monthName = MONTHS[selectedMonth] || "";
+      return `Pekan ${selectedWeek} (${monthName} ${selectedYear})`;
+    }
 
     if (dateFrom || dateTo) {
       const fmt = (d: Date) =>

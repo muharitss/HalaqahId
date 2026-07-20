@@ -9,31 +9,13 @@ export interface LaporanFilter {
   dateFrom: Date | null;
   dateTo: Date | null;
   selectedKategori: string;
+  filterMode: "month" | "week" | "range";
+  selectedWeek: number | null;
 }
 
 export function useLaporanFilter() {
   const [filters, setFilters] = useState<LaporanFilter>(DEFAULT_FILTER);
 
-  const setSelectedMonth = useCallback(
-    (v: number | null) =>
-      setFilters((f) => ({
-        ...f,
-        selectedMonth: v,
-        dateFrom: null,
-        dateTo: null,
-      })),
-    [],
-  );
-  const setSelectedYear = useCallback(
-    (v: number | null) =>
-      setFilters((f) => ({
-        ...f,
-        selectedYear: v,
-        dateFrom: null,
-        dateTo: null,
-      })),
-    [],
-  );
   const setActiveHalaqah = useCallback(
     (v: string) =>
       setFilters((f) => ({ ...f, activeHalaqah: v, selectedSantri: "" })),
@@ -43,30 +25,35 @@ export function useLaporanFilter() {
     (v: string) => setFilters((f) => ({ ...f, selectedSantri: v })),
     [],
   );
-  const setDateFrom = useCallback(
-    (v: Date | null) =>
-      setFilters((f) => ({
-        ...f,
-        dateFrom: v,
-        selectedMonth: null,
-        selectedYear: null,
-      })),
-    [],
-  );
-  const setDateTo = useCallback(
-    (v: Date | null) =>
-      setFilters((f) => ({
-        ...f,
-        dateTo: v,
-        selectedMonth: null,
-        selectedYear: null,
-      })),
-    [],
-  );
   const setSelectedKategori = useCallback(
     (v: string) => setFilters((f) => ({ ...f, selectedKategori: v })),
     [],
   );
+
+  const setPeriodFilters = useCallback(
+    (
+      mode: "month" | "week" | "range",
+      payload: {
+        selectedMonth: number | null;
+        selectedYear: number | null;
+        selectedWeek: number | null;
+        dateFrom: Date | null;
+        dateTo: Date | null;
+      }
+    ) => {
+      setFilters((f) => ({
+        ...f,
+        filterMode: mode,
+        selectedMonth: payload.selectedMonth,
+        selectedYear: payload.selectedYear,
+        selectedWeek: payload.selectedWeek,
+        dateFrom: payload.dateFrom,
+        dateTo: payload.dateTo,
+      }));
+    },
+    []
+  );
+
   const resetFilters = useCallback(() => {
     setFilters(DEFAULT_FILTER);
   }, []);
@@ -80,13 +67,12 @@ export function useLaporanFilter() {
     dateFrom: filters.dateFrom,
     dateTo: filters.dateTo,
     selectedKategori: filters.selectedKategori,
-    setSelectedMonth,
-    setSelectedYear,
+    filterMode: filters.filterMode,
+    selectedWeek: filters.selectedWeek,
     setActiveHalaqah,
     setSelectedSantri,
-    setDateFrom,
-    setDateTo,
     setSelectedKategori,
+    setPeriodFilters,
     resetFilters,
   };
 }
