@@ -9,3 +9,4 @@ export { LandingSectionsCard } from "./components/LandingSectionsCard";
 export { PlatformSettingsCard } from "./components/PlatformSettingsCard";
 export { RedirectsCard } from "./components/RedirectsCard";
 export { SeoSettingsCard } from "./components/SeoSettingsCard";
+export { TestimonialsCard } from "./components/TestimonialsCard";

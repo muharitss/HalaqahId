@@ -12,7 +12,6 @@ import {
 } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Command,
   CommandEmpty,
@@ -30,7 +29,7 @@ import {
   Check,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { MONTHS, YEARS } from "../constants";
+import { MONTHS } from "../constants";
 import { usePeriodFilter } from "../hooks";
 
 interface LaporanFilterBarProps {
@@ -94,14 +93,6 @@ export function LaporanFilterBar({
   const {
     periodOpen,
     setPeriodOpen,
-    tempMode,
-    setTempMode,
-    tempMonth,
-    setTempMonth,
-    tempYear,
-    setTempYear,
-    tempWeek,
-    setTempWeek,
     tempDateFrom,
     setTempDateFrom,
     tempDateTo,
@@ -110,9 +101,6 @@ export function LaporanFilterBar({
     setCalFromOpen,
     calToOpen,
     setCalToOpen,
-    daysInMonth,
-    handleModeChange,
-    handleApplyPeriod,
     getPeriodTriggerLabel,
   } = usePeriodFilter({
     filterMode,

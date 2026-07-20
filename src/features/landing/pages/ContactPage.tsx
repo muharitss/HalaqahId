@@ -28,7 +28,7 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen text-slate-800 dark:text-slate-200 bg-white dark:bg-slate-950">
+    <div className="flex flex-col min-h-screen text-foreground bg-background">
       <SEO
         title="Hubungi Kami - Konsultasi & Layanan Support"
         description="Hubungi tim support dan layanan pelanggan Halaqah ID. Tanyakan seputar harga paket, panduan migrasi data sekolah, atau request demo gratis."

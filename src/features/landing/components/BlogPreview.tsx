@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, Calendar, User, Clock } from "lucide-react";
 import axiosClient from "@/lib/axiosClient";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 interface BlogPostSummary {
   id_post: number;
@@ -42,20 +44,24 @@ export const BlogPreview: React.FC = () => {
     return d.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
   };
 
+  if (!loading && posts.length === 0) {
+    return null;
+  }
+
   return (
-    <section className="py-20 bg-white dark:bg-slate-900">
+    <section className="py-16 sm:py-24 bg-background border-b border-border text-left">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Title & Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-4 text-left">
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-4">
           <div className="space-y-4 max-w-2xl">
             <h2 className="text-xs font-bold uppercase tracking-wider text-primary">
               ARTIKEL TERBARU
             </h2>
-            <h3 className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white">
+            <h3 className="text-3xl sm:text-4xl font-bold text-foreground tracking-tight font-display">
               Wawasan & Edukasi Pengelolaan Tahfidz
             </h3>
-            <p className="text-slate-500 dark:text-slate-400 text-sm sm:text-base leading-relaxed">
+            <p className="text-muted-foreground text-sm sm:text-base leading-relaxed">
               Dapatkan info terkini, tips, dan strategi mengajar Al-Quran secara efektif dari para praktisi pendidikan tahfidz berpengalaman.
             </p>
           </div>
@@ -73,7 +79,7 @@ export const BlogPreview: React.FC = () => {
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="animate-pulse bg-slate-50 dark:bg-slate-950/50 rounded-2xl h-80 border border-slate-100 dark:border-slate-800" />
+              <div key={i} className="animate-pulse bg-muted/40 dark:bg-muted/10 rounded-2xl h-80 border border-border/80" />
             ))}
           </div>
         ) : posts.length === 0 ? (
@@ -105,79 +111,79 @@ export const BlogPreview: React.FC = () => {
                 category: "Kurikulum",
               },
             ].map((item, idx) => (
-              <div
+              <Card
                 key={idx}
-                className="bg-slate-50 dark:bg-slate-950 border border-slate-200/50 dark:border-slate-800/50 rounded-2xl overflow-hidden text-left flex flex-col justify-between shadow-sm hover:shadow-md transition-shadow duration-300"
+                className="border border-border/85 bg-card overflow-hidden flex flex-col justify-between hover:shadow-xs transition-shadow duration-300 py-0 gap-0"
               >
-                <div className="p-6 space-y-4">
-                  <span className="px-2.5 py-1 bg-primary/10 text-primary text-xs font-bold rounded-lg">
+                <CardContent className="p-6 space-y-4">
+                  <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20 hover:bg-primary/10 select-none">
                     {item.category}
-                  </span>
-                  <h4 className="text-lg font-bold text-slate-900 dark:text-white leading-snug hover:text-primary transition-colors">
+                  </Badge>
+                  <h4 className="text-lg font-bold text-foreground leading-snug hover:text-primary transition-colors">
                     <Link to={`/blog/${item.slug}`}>{item.title}</Link>
                   </h4>
-                  <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm leading-relaxed line-clamp-3">
+                  <p className="text-muted-foreground text-xs sm:text-sm leading-relaxed line-clamp-3">
                     {item.excerpt}
                   </p>
-                </div>
+                </CardContent>
 
-                <div className="p-6 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-400">
+                <div className="p-6 border-t border-border/40 flex items-center justify-between text-xs text-muted-foreground bg-muted/[0.01]">
                   <div className="flex items-center gap-2">
-                    <Calendar size={14} />
+                    <Calendar size={14} className="text-primary" />
                     <span>{formatDate(item.date)}</span>
                   </div>
                   <div className="flex items-center gap-1">
-                    <Clock size={14} />
+                    <Clock size={14} className="text-primary" />
                     <span>{item.time} Menit</span>
                   </div>
                 </div>
-              </div>
+              </Card>
             ))}
           </div>
         ) : (
           /* Real Data Grid */
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {posts.map((post) => (
-              <div
+              <Card
                 key={post.id_post}
-                className="bg-slate-50 dark:bg-slate-950 border border-slate-200/50 dark:border-slate-800/50 rounded-2xl overflow-hidden text-left flex flex-col justify-between shadow-sm hover:shadow-md transition-all duration-300"
+                className="border border-border/85 bg-card overflow-hidden flex flex-col justify-between hover:shadow-xs transition-shadow duration-300 py-0 gap-0"
               >
                 <div>
                   {post.thumbnail && (
-                    <img src={post.thumbnail} alt={post.title} className="w-full h-48 object-cover" />
+                    <img src={post.thumbnail} alt={post.title} className="w-full h-48 object-cover border-b border-border/40" />
                   )}
-                  <div className="p-6 space-y-4">
+                  <CardContent className="p-6 space-y-4">
                     {post.category && (
-                      <span className="px-2.5 py-1 bg-primary/10 text-primary text-xs font-bold rounded-lg">
+                      <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20 hover:bg-primary/10 select-none">
                         {post.category.name}
-                      </span>
+                      </Badge>
                     )}
-                    <h4 className="text-lg font-bold text-slate-900 dark:text-white leading-snug hover:text-primary transition-colors line-clamp-2">
+                    <h4 className="text-lg font-bold text-foreground leading-snug hover:text-primary transition-colors line-clamp-2">
                       <Link to={`/blog/${post.slug}`}>{post.title}</Link>
                     </h4>
-                    <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm leading-relaxed line-clamp-3">
+                    <p className="text-muted-foreground text-xs sm:text-sm leading-relaxed line-clamp-3">
                       {post.excerpt}
                     </p>
-                  </div>
+                  </CardContent>
                 </div>
 
-                <div className="p-6 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-400">
+                <div className="p-6 border-t border-border/40 flex items-center justify-between text-xs text-muted-foreground bg-muted/[0.01]">
                   <div className="flex items-center gap-1">
-                    <User size={14} />
+                    <User size={14} className="text-primary" />
                     <span>{post.author?.name || "Admin"}</span>
                   </div>
                   <div className="flex items-center gap-4">
                     <span className="flex items-center gap-1">
-                      <Calendar size={14} />
+                      <Calendar size={14} className="text-primary" />
                       {formatDate(post.published_at)}
                     </span>
                     <span className="flex items-center gap-1">
-                      <Clock size={14} />
+                      <Clock size={14} className="text-primary" />
                       {post.reading_time} Min
                     </span>
                   </div>
                 </div>
-              </div>
+              </Card>
             ))}
           </div>
         )}

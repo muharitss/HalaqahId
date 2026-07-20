@@ -16,7 +16,6 @@ import {
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
-  Filter,
   ChevronRight,
   Edit,
   Trash2,
@@ -77,7 +76,6 @@ export function LaporanTablePro({
   groupedData,
   activeHalaqah,
   filterComponent,
-  isFilterActive,
 }: LaporanTableProProps) {
   const [search, setSearch] = useState("");
   const [sortKey, setSortKey] = useState<SortKey>("tanggal_setoran");

@@ -32,10 +32,10 @@ const KEYWORD_CONFIGS: Record<
     metaDesc: "Halaqah ID adalah aplikasi tahfidz quran terbaik untuk mempermudah asatidz mencatat kemajuan hafalan juz Al-Quran santri dan santriwati.",
   },
   "/aplikasi-rumah-tahfidz": {
-    title: "Aplikasi Rumah Tahfidz & TPQ Berbasis Web & Mobile",
-    subtitle: "Kelola puluhan santri rumah tahfidz Anda dengan mudah. Lengkap dengan notifikasi setoran harian otomatis via WhatsApp.",
+    title: "Aplikasi Rumah Tahfidz & TPQ Berbasis Web",
+    subtitle: "Kelola puluhan santri rumah tahfidz Anda dengan mudah. Lengkap dengan rekapitulasi setoran harian dan monitor target belajar.",
     keyword: "Aplikasi Rumah Tahfidz",
-    metaDesc: "Bantu pengelolaan operasional harian rumah tahfidz Anda dengan Halaqah ID. Laporan perkembangan dikirim instan langsung ke WhatsApp wali murid.",
+    metaDesc: "Bantu pengelolaan operasional harian rumah tahfidz Anda dengan Halaqah ID. Laporan perkembangan dapat dipantau langsung oleh wali murid.",
   },
   "/aplikasi-pondok-pesantren": {
     title: "Sistem Informasi Tahfidz Pondok Pesantren Terintegrasi",
@@ -63,7 +63,7 @@ const KEYWORD_CONFIGS: Record<
   },
   "/monitoring-hafalan-santri": {
     title: "Aplikasi Monitoring Hafalan Santri Terlengkap",
-    subtitle: "Dashboard grafik kemajuan, rekap harian wali murid, notifikasi gateway WA, dan monitoring kurikulum terpusat.",
+    subtitle: "Dashboard grafik kemajuan, rekap harian wali murid, cetak rapor PDF, dan monitoring kurikulum terpusat.",
     keyword: "Monitoring Hafalan Santri",
     metaDesc: "Halaqah ID adalah aplikasi monitoring hafalan santri paling terpercaya untuk mendeteksi dini kemunduran atau akselerasi hafalan santri.",
   },
@@ -150,7 +150,7 @@ export default function LandingPage() {
   const heroSubtitle = dbSections["hero"]?.subtitle || config.subtitle;
 
   return (
-    <div className="flex flex-col min-h-screen text-slate-800 dark:text-slate-200 bg-white dark:bg-slate-950 font-sans">
+    <div className="flex flex-col min-h-screen text-foreground bg-background font-sans">
       <SEO
         title={heroTitle}
         description={config.metaDesc}
@@ -185,7 +185,7 @@ export default function LandingPage() {
 
         {/* Testimoni */}
         {(!dbSections["testimonials"] || dbSections["testimonials"]?.is_active) && (
-          <Testimonials />
+          <Testimonials section={dbSections["testimonials"]} />
         )}
 
         {/* FAQ */}

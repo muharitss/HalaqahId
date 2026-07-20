@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap");
 @import "tailwindcss";
 @import "tw-animate-css";
 @plugin "daisyui" {
@@ -133,6 +134,9 @@
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
+
+  /* Custom Display Font for Landing Page */
+  --font-display: "Plus Jakarta Sans", sans-serif;
 }
 
 @layer base {
@@ -272,4 +276,16 @@
 .halaqah-tour-popover .driver-popover-arrow {
   border-color: var(--card) !important;
 }
+
+/* Landing Page Mockup Utility Classes */
+.bg-pattern-subtle {
+  background-image: radial-gradient(var(--border) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+.glass-card {
+  background: color-mix(in oklch, var(--card) 80%, transparent);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+}
+
 

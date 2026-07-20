@@ -30,8 +30,6 @@ export const router = createBrowserRouter([
       {
         element: <DashboardLayout />,
         children: [
-          // Index: redirect berdasarkan role
-          { index: true, element: <RoleRedirect /> },
           { path: "/dashboard", element: <RoleRedirect /> },
 
           // ── SUPERADMIN ─────────────────────────────────────────────────────

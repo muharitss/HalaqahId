@@ -8,6 +8,7 @@ import {
   Shuffle,
   LayoutTemplate,
   Shield,
+  MessageSquare,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -19,6 +20,7 @@ import {
   RedirectsCard,
   LandingSectionsCard,
   KeamananSettingsCard,
+  TestimonialsCard,
 } from "../modules";
 
 export default function SuperadminSettingsPage() {
@@ -106,7 +108,7 @@ export default function SuperadminSettingsPage() {
 
       {/* TABS CONTAINER */}
       <Tabs defaultValue="platform" className="w-full">
-        <TabsList className="grid w-full grid-cols-6 mb-8 h-11 p-1 bg-muted/50 rounded-lg">
+        <TabsList className="grid w-full grid-cols-7 mb-8 h-11 p-1 bg-muted/50 rounded-lg">
           <TabsTrigger value="platform" className="flex items-center gap-1.5 text-[11px] font-bold">
             <Settings size={14} />
             <span>Platform</span>
@@ -126,6 +128,10 @@ export default function SuperadminSettingsPage() {
           <TabsTrigger value="landing" className="flex items-center gap-1.5 text-[11px] font-bold">
             <LayoutTemplate size={14} />
             <span>Landing</span>
+          </TabsTrigger>
+          <TabsTrigger value="testimoni" className="flex items-center gap-1.5 text-[11px] font-bold">
+            <MessageSquare size={14} />
+            <span>Testimoni</span>
           </TabsTrigger>
           <TabsTrigger value="keamanan" className="flex items-center gap-1.5 text-[11px] font-bold">
             <Shield size={14} />
@@ -202,6 +208,11 @@ export default function SuperadminSettingsPage() {
             handleSaveSection={handleSaveSection}
             handleEditSection={handleEditSection}
           />
+        </TabsContent>
+
+        {/* TAB CONTENT: TESTIMONI */}
+        <TabsContent value="testimoni">
+          <TestimonialsCard />
         </TabsContent>
 
         {/* TAB CONTENT: KEAMANAN */}

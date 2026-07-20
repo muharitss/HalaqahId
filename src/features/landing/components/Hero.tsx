@@ -1,6 +1,10 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, BookOpen, CheckCircle, Shield } from "lucide-react";
+import { ArrowRight, Check, PlayCircle, TrendingUp } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 
 interface HeroProps {
   title?: string;
@@ -9,118 +13,149 @@ interface HeroProps {
 }
 
 export const Hero: React.FC<HeroProps> = ({
-  title = "Sistem Manajemen Halaqah & Tahfidz Quran Modern",
-  subtitle = "Solusi digital terbaik untuk mengelola kelompok halaqah, monitoring setoran hafalan santri secara real-time, absensi, dan administrasi laporan perkembangan dalam satu platform terpadu.",
-  keyword = "Aplikasi Halaqah",
+  title = "Beralih dari Kertas, Digitalkan Pencatatan & Evaluasi Tahfidz Quran",
+  subtitle = "Sederhanakan pendataan setoran hafalan santri secara digital, otomatisasi pembuatan rapor PDF, dan pantau perkembangan belajar secara berkala.",
+  keyword = "Didukung Whisper Engine v3 AI",
 }) => {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-b from-sky-50 via-white to-slate-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 py-20 lg:py-32">
-      {/* Background Decorative Gradients */}
-      <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl -z-10 animate-pulse" />
-      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-sky-500/10 rounded-full blur-3xl -z-10" />
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="relative py-16 sm:py-24 lg:py-32 overflow-hidden bg-background text-foreground border-b border-border">
+      {/* Subtle Dot Grid Background */}
+      <div className="absolute inset-0 bg-pattern-subtle z-0 opacity-40"></div>
+      
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           
-          {/* Text Content */}
-          <div className="lg:col-span-7 space-y-8 text-left">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary-foreground text-xs font-semibold tracking-wide uppercase">
-              <BookOpen size={14} />
-              <span>{keyword} Terpercaya</span>
-            </div>
+          {/* Left Column (Text & Actions) */}
+          <div className="lg:col-span-7 flex flex-col items-start text-left space-y-6">
+            <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20 hover:bg-primary/10 select-none">
+              🤖 {keyword}
+            </Badge>
             
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-slate-900 dark:text-white leading-tight">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black font-display tracking-tight text-foreground leading-[1.1]">
               {title}
             </h1>
             
-            <p className="text-lg sm:text-xl text-slate-600 dark:text-slate-300 font-medium leading-relaxed max-w-2xl">
+            <p className="text-base sm:text-lg text-muted-foreground leading-relaxed font-medium max-w-2xl">
               {subtitle}
             </p>
-
-            <div className="flex flex-wrap gap-4 pt-2">
-              <Link
-                to="/register"
-                className="inline-flex items-center gap-2 px-8 py-4 bg-primary hover:bg-primary/95 text-white font-bold rounded-xl shadow-lg shadow-primary/25 hover:shadow-primary/35 hover:-translate-y-0.5 transition-all duration-255"
-              >
-                <span>Mulai Gratis Sekarang</span>
-                <ArrowRight size={18} />
-              </Link>
-              <Link
-                to="/features"
-                className="inline-flex items-center gap-2 px-8 py-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 font-bold rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-all duration-255"
-              >
-                <span>Pelajari Fitur</span>
-              </Link>
-            </div>
-
-            {/* Quick trust badges */}
-            <div className="flex flex-wrap items-center gap-6 text-sm text-slate-500 dark:text-slate-400 pt-4">
-              <div className="flex items-center gap-2">
-                <CheckCircle size={16} className="text-emerald-500" />
-                <span>Tanpa Kartu Kredit</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Shield size={16} className="text-emerald-500" />
-                <span>Aman & Terenkripsi</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Graphical Mockup Element */}
-          <div className="lg:col-span-5 relative">
-            <div className="relative mx-auto max-w-md lg:max-w-none">
-              <div className="absolute inset-0 bg-gradient-to-tr from-sky-400 to-primary rounded-3xl blur-2xl opacity-20 -z-10 transform scale-105" />
+            
+            <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto pt-2">
+              <Button asChild size="lg" className="font-bold shadow-md">
+                <Link to="/register">
+                  Mulai Gratis Sekarang
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Link>
+              </Button>
               
-              {/* Glassmorphic card frame */}
-              <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur border border-slate-200/50 dark:border-slate-800/50 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden transition-all duration-500 hover:scale-[1.01]">
-                
-                {/* Simulated App Header */}
-                <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4 mb-6">
-                  <div className="flex items-center gap-2">
-                    <span className="w-3 h-3 bg-red-400 rounded-full" />
-                    <span className="w-3 h-3 bg-yellow-400 rounded-full" />
-                    <span className="w-3 h-3 bg-green-400 rounded-full" />
-                  </div>
-                  <span className="text-xs text-slate-400 font-mono">halaqahid-dashboard</span>
-                </div>
-
-                <div className="space-y-4">
-                  {/* Stat Cards */}
-                  <div className="bg-slate-50 dark:bg-slate-950 p-4 rounded-2xl flex items-center justify-between">
-                    <div>
-                      <p className="text-xs text-slate-400 font-semibold uppercase">Total Santri</p>
-                      <h4 className="text-2xl font-bold text-slate-800 dark:text-white mt-1">1,248</h4>
-                    </div>
-                    <span className="px-2 py-1 bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300 text-xs font-bold rounded-lg">+14% Bln Ini</span>
-                  </div>
-
-                  <div className="bg-slate-50 dark:bg-slate-950 p-4 rounded-2xl flex items-center justify-between">
-                    <div>
-                      <p className="text-xs text-slate-400 font-semibold uppercase">Setoran Hafalan</p>
-                      <h4 className="text-2xl font-bold text-slate-800 dark:text-white mt-1">3,492 Halaman</h4>
-                    </div>
-                    <span className="px-2 py-1 bg-primary/10 text-primary text-xs font-bold rounded-lg">Realtime</span>
-                  </div>
-
-                  {/* Simulated list item */}
-                  <div className="border border-slate-100 dark:border-slate-800 p-4 rounded-2xl space-y-3">
-                    <p className="text-xs text-slate-400 font-bold uppercase">Aktivitas Halaqah Terbaru</p>
-                    <div className="flex gap-3 items-start">
-                      <div className="w-8 h-8 rounded-full bg-emerald-500/10 text-emerald-600 flex items-center justify-center font-bold text-xs shrink-0">
-                        AN
-                      </div>
-                      <div className="text-xs space-y-1">
-                        <p className="font-bold text-slate-700 dark:text-slate-300">Ahmad Naufal</p>
-                        <p className="text-slate-400">Baru saja menyetor Juz 30 (An-Naba 1-20) - Mumtaz</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
+              <Button asChild variant="outline" size="lg" className="font-bold shadow-xs">
+                <Link to="/contact">
+                  <PlayCircle className="w-4 h-4 mr-2" />
+                  Hubungi Layanan Demo
+                </Link>
+              </Button>
+            </div>
+            
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs sm:text-sm text-muted-foreground pt-4">
+              <div className="flex items-center gap-1.5">
+                <Check className="w-4 h-4 text-primary shrink-0" />
+                Gratis Uji Coba
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Check className="w-4 h-4 text-primary shrink-0" />
+                Tidak Butuh Kartu Kredit
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Check className="w-4 h-4 text-primary shrink-0" />
+                Setup Cepat 5 Menit
               </div>
             </div>
           </div>
-
+          
+          {/* Right Column (Simulated Live Mockup Dashboard) */}
+          <div className="lg:col-span-5 relative w-full">
+            <Card className="shadow-xl border border-border/80 bg-card overflow-hidden">
+              {/* Simulated Window Toolbar */}
+              <div className="border-b border-border/80 bg-muted/40 px-4 py-3 flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2.5 h-2.5 bg-destructive/60 rounded-full inline-block" />
+                  <span className="w-2.5 h-2.5 bg-yellow-500/60 rounded-full inline-block" />
+                  <span className="w-2.5 h-2.5 bg-primary/60 rounded-full inline-block" />
+                </div>
+                <span className="text-xs text-muted-foreground font-mono select-none">halaqahid-dashboard</span>
+              </div>
+              
+              <CardContent className="pt-6 pb-6 px-6 space-y-6">
+                {/* Stats Row */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="border border-border/60 bg-muted/20 p-4 rounded-lg flex flex-col justify-between h-20">
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Total Santri</p>
+                    <div className="flex items-baseline justify-between">
+                      <span className="text-lg font-black text-foreground">1,248</span>
+                      <span className="text-[9px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded">+14%</span>
+                    </div>
+                  </div>
+                  
+                  <div className="border border-border/60 bg-muted/20 p-4 rounded-lg flex flex-col justify-between h-20">
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Peningkatan</p>
+                    <div className="flex items-baseline justify-between">
+                      <span className="text-lg font-black text-primary flex items-center gap-1">
+                        <TrendingUp className="w-4 h-4 text-primary shrink-0" />
+                        45%
+                      </span>
+                      <span className="text-[9px] font-bold text-muted-foreground">Efisiensi</span>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Simulated Student List */}
+                <div className="border border-border/60 p-4 rounded-lg space-y-3">
+                  <div className="flex justify-between items-center pb-2 border-b border-border/40">
+                    <p className="text-[11px] font-bold text-foreground">Aktivitas Halaqah Terbaru</p>
+                    <Badge variant="outline" className="text-[9px] px-1 py-0.5 text-primary border-primary/20">Realtime</Badge>
+                  </div>
+                  
+                  <div className="space-y-3 text-left">
+                    {/* Item 1 */}
+                    <div className="space-y-1.5">
+                      <div className="flex justify-between items-center text-xs">
+                        <span className="font-semibold text-foreground">Ahmad Naufal</span>
+                        <span className="text-muted-foreground text-[10px]">Juz 30: An-Naba 1-20</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Progress value={80} className="h-1.5" />
+                        <span className="text-[9px] font-bold text-primary">80%</span>
+                      </div>
+                    </div>
+                    
+                    {/* Item 2 */}
+                    <div className="space-y-1.5">
+                      <div className="flex justify-between items-center text-xs">
+                        <span className="font-semibold text-foreground">Sarah Amira</span>
+                        <span className="text-muted-foreground text-[10px]">Juz 29: Al-Mulk 1-15</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Progress value={45} className="h-1.5" />
+                        <span className="text-[9px] font-bold text-primary">45%</span>
+                      </div>
+                    </div>
+                    
+                    {/* Item 3 */}
+                    <div className="space-y-1.5">
+                      <div className="flex justify-between items-center text-xs">
+                        <span className="font-semibold text-foreground">Rizky Ramadhan</span>
+                        <span className="text-muted-foreground text-[10px]">Juz 1: Al-Baqarah 1-50</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Progress value={95} className="h-1.5" />
+                        <span className="text-[9px] font-bold text-primary">95%</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+          
         </div>
       </div>
     </section>

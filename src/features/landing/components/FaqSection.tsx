@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
+import { Card } from "@/components/ui/card";
 
 interface FaqItem {
   q: string;
@@ -12,23 +13,23 @@ export const FaqSection: React.FC = () => {
   const faqs: FaqItem[] = [
     {
       q: "Apakah Halaqah ID bisa digunakan secara gratis?",
-      a: "Ya! Kami menyediakan paket Free Trial gratis untuk dicoba lembaga Anda dengan kuota santri dan fitur pencatatan standar secara gratis.",
-    },
-    {
-      q: "Bagaimana cara kerja pengiriman WhatsApp ke wali santri?",
-      a: "Halaqah ID terintegrasi secara native dengan WhatsApp Gateway. Ustadz hanya perlu menginput nilai setoran hafalan santri di aplikasi, dan sistem akan langsung memicu pengiriman pesan WhatsApp ke nomor wali santri secara real-time.",
+      a: "Ya! Kami menyediakan paket uji coba gratis (Free Trial) untuk dicoba lembaga Anda dengan kuota santri dan fitur pencatatan standar secara gratis.",
     },
     {
       q: "Apakah data hafalan santri kami aman dari kehilangan?",
-      a: "Sangat aman. Seluruh data disimpan terenkripsi di server database cloud (PostgreSQL) yang dicadangkan secara harian otomatis. Tidak perlu khawatir kehilangan data layaknya buku saku fisik.",
+      a: "Sangat aman. Seluruh data disimpan di cloud database terpusat yang dicadangkan secara harian otomatis. Tidak perlu khawatir kehilangan data layaknya buku saku fisik.",
     },
     {
-      q: "Apakah kami bisa memodifikasi indikator kriteria penilaian ujian?",
-      a: "Tentu bisa! Administrator sekolah memiliki akses penuh di dashboard Pengaturan Ujian untuk merancang SOP penilai kustom, bobot kesalahan (tajwid, lancar, fashahah), dan klasifikasi nilai kelulusan sendiri.",
+      q: "Apakah kami bisa memodifikasi kriteria penilaian dan target ujian?",
+      a: "Tentu bisa! Administrator sekolah memiliki akses penuh di dashboard Pengaturan Ujian untuk merancang kriteria penilaian kustom (kesalahan tajwid, kelancaran, fashahah), target kurikulum, serta kategori setoran sesuai kebutuhan lembaga.",
     },
     {
-      q: "Bagaimana cara menghubungkan domain kustom lembaga kami?",
-      a: "Bagi lembaga paket Enterprise, tim kami akan membantu menghubungkan subdomain kustom (misal: tahfidz.pesantrenanda.sch.id) untuk branding mandiri tanpa tambahan biaya setup.",
+      q: "Bagaimana cara mencatat setoran santri di kelas?",
+      a: "Asatidz dapat mencatat setoran dengan sangat mudah dengan cara mengeklik nomor ayat awal dan akhir secara langsung pada visualisasi lembaran mushaf digital yang interaktif di aplikasi.",
+    },
+    {
+      q: "Apakah lembaga kami bisa merilis artikel wawasan atau berita?",
+      a: "Ya. Melalui dashboard superadmin, pengelola (superadmin) dapat mempublikasikan wawasan baru, tips menghafal, info kegiatan, maupun berita edukasi lainnya yang akan otomatis tampil pada halaman Blog website.",
     },
   ];
 
@@ -37,7 +38,7 @@ export const FaqSection: React.FC = () => {
   };
 
   return (
-    <section className="py-20 bg-slate-50 dark:bg-slate-950">
+    <section className="py-16 sm:py-24 bg-muted/30 border-b border-border text-left" id="faq">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Title */}
@@ -45,10 +46,10 @@ export const FaqSection: React.FC = () => {
           <h2 className="text-xs font-bold uppercase tracking-wider text-primary">
             FAQ (TANYA JAWAB)
           </h2>
-          <h3 className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white">
+          <h3 className="text-3xl sm:text-4xl font-bold text-foreground tracking-tight font-display">
             Pertanyaan yang Sering Diajukan
           </h3>
-          <p className="text-slate-500 dark:text-slate-400 text-sm sm:text-base leading-relaxed">
+          <p className="text-muted-foreground text-sm sm:text-base leading-relaxed">
             Menemukan kebingungan mengenai fitur, biaya, atau instalasi? Temukan jawaban cepat Anda di bawah ini.
           </p>
         </div>
@@ -58,32 +59,32 @@ export const FaqSection: React.FC = () => {
           {faqs.map((faq, idx) => {
             const isOpen = openIdx === idx;
             return (
-              <div
+              <Card
                 key={idx}
-                className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/50 dark:border-slate-800/50 overflow-hidden shadow-sm"
+                className="bg-card rounded-2xl border border-border overflow-hidden shadow-xs flex flex-col gap-0 py-0"
               >
                 <button
                   onClick={() => toggle(idx)}
                   className="w-full px-6 py-5 flex items-center justify-between text-left focus:outline-none"
                 >
-                  <span className="font-bold text-slate-800 dark:text-white text-base">
+                  <span className="font-bold text-foreground text-sm sm:text-base">
                     {faq.q}
                   </span>
                   {isOpen ? (
-                    <ChevronUp className="text-slate-400 shrink-0 ml-4" size={20} />
+                    <ChevronUp className="text-muted-foreground shrink-0 ml-4 w-5 h-5" />
                   ) : (
-                    <ChevronDown className="text-slate-400 shrink-0 ml-4" size={20} />
+                    <ChevronDown className="text-muted-foreground shrink-0 ml-4 w-5 h-5" />
                   )}
                 </button>
 
                 {isOpen && (
-                  <div className="px-6 pb-5 text-left border-t border-slate-100 dark:border-slate-800 pt-4">
-                    <p className="text-slate-500 dark:text-slate-400 text-sm sm:text-base leading-relaxed">
+                  <div className="px-6 pb-5 text-left border-t border-border/40 pt-4 bg-muted/[0.01]">
+                    <p className="text-muted-foreground text-xs sm:text-sm leading-relaxed">
                       {faq.a}
                     </p>
                   </div>
                 )}
-              </div>
+              </Card>
             );
           })}
         </div>

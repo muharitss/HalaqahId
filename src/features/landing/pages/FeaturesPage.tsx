@@ -33,7 +33,7 @@ export default function FeaturesPage() {
   ];
 
   return (
-    <div className="flex flex-col min-h-screen text-slate-800 dark:text-slate-200 bg-white dark:bg-slate-950">
+    <div className="flex flex-col min-h-screen text-foreground bg-background">
       <SEO
         title="Fitur Terlengkap Aplikasi Tahfidz & Halaqah"
         description="Jelajahi fitur lengkap Halaqah ID dari pencatatan setoran cepat, pelaporan otomatis WhatsApp, ujian tahfidz kustom, audit log, hingga manajemen multi-tenant."
@@ -47,10 +47,10 @@ export default function FeaturesPage() {
           
           {/* Header */}
           <div className="text-center max-w-3xl mx-auto space-y-4">
-            <h1 className="text-4xl sm:text-5xl font-black tracking-tight text-slate-900 dark:text-white leading-tight">
+            <h1 className="text-4xl sm:text-5xl font-black tracking-tight text-foreground leading-tight">
               Infrastruktur Terbaik untuk Pengelolaan Kelas Tahfidz
             </h1>
-            <p className="text-lg text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
+            <p className="text-lg text-muted-foreground leading-relaxed font-medium">
               Dirancang dengan prinsip skalabilitas tinggi dan kemudahan operasional demi menunjang perkembangan program hafalan Al-Quran.
             </p>
           </div>
@@ -60,13 +60,13 @@ export default function FeaturesPage() {
             {details.map((item, idx) => (
               <div
                 key={idx}
-                className="p-8 bg-slate-50 dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/50 rounded-3xl space-y-4 flex flex-col items-start hover:shadow-md transition-shadow duration-300"
+                className="p-8 bg-muted/40 dark:bg-muted/10 border border-border rounded-3xl space-y-4 flex flex-col items-start hover:shadow-md transition-shadow duration-300"
               >
-                <div className="p-3 bg-white dark:bg-slate-950 border border-slate-200/30 dark:border-slate-800/30 rounded-2xl">
+                <div className="p-3 bg-card border border-border/40 rounded-2xl">
                   {item.icon}
                 </div>
-                <h3 className="text-xl font-bold text-slate-900 dark:text-white">{item.title}</h3>
-                <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">{item.desc}</p>
+                <h3 className="text-xl font-bold text-foreground">{item.title}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{item.desc}</p>
               </div>
             ))}
           </div>

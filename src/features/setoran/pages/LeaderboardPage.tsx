@@ -1,5 +1,5 @@
 import { useLeaderboardPage } from "../hooks/useLeaderboardPage";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -32,7 +32,6 @@ export function LeaderboardPage({ role }: LeaderboardPageProps) {
     setEndDate,
     setSelectedHalaqah,
     setTopPerHalaqah,
-    setSearchQuery,
     getPeriodeLabel,
     handlePrint,
   } = useLeaderboardPage({ role });

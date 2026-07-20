@@ -1,89 +1,82 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Star } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface TestimonialItem {
+  id?: string;
   name: string;
   role: string;
-  institution: string;
-  content: string;
-  avatar: string;
+  quote: string;
 }
 
-export const Testimonials: React.FC = () => {
-  const testimonials: TestimonialItem[] = [
-    {
-      name: "Ustadz H. Abdul Wahab, Lc.",
-      role: "Kepala Kepengasuhan Tahfidz",
-      institution: "Pondok Pesantren Al-Iman",
-      content: "Semenjak menggunakan Halaqah ID, wali santri tidak perlu lagi menelepon asatidz untuk menanyakan perkembangan juz anak. Laporan setoran harian masuk otomatis ke WhatsApp mereka. Sangat menghemat waktu administrasi kami!",
-      avatar: "AW",
-    },
-    {
-      name: "Dr. Laila Rahmawati",
-      role: "Ketua Yayasan Pendidikan",
-      institution: "Yayasan Rumah Tahfidz Qurrata A'yun",
-      content: "Kami menaungi 5 cabang rumah tahfidz. Dulu rekapitulasi data santri kelulusan juz sangat berantakan. Sekarang saya bisa memonitor perkembangan semua cabang secara real-time lewat satu dashboard Superadmin saja.",
-      avatar: "LR",
-    },
-    {
-      name: "Ustadzah Nurul Hidayah, S.Ag.",
-      role: "Muhafizah Kelas Akhwat",
-      institution: "TPQ Baitul Quran Jakarta",
-      content: "Aplikasi ini sangat ringan dibuka lewat HP jadul saya sekalipun. Pencatatan sabaq dan sabqi santri menjadi sangat praktis, cukup klik-klik saja tidak sampai 10 detik per santri selesai.",
-      avatar: "NH",
-    },
-  ];
+interface TestimonialsProps {
+  section?: {
+    title?: string;
+    subtitle?: string;
+    content?: any;
+  };
+}
+
+export const Testimonials: React.FC<TestimonialsProps> = ({ section }) => {
+  const [reviews, setReviews] = useState<TestimonialItem[]>([]);
+
+  useEffect(() => {
+    if (section && section.content) {
+      if (Array.isArray(section.content)) {
+        setReviews(section.content);
+        return;
+      }
+    }
+    setReviews([]);
+  }, [section]);
+
+  if (reviews.length === 0) return null;
+
+  const titleText = section?.title || "TESTIMONI PENGGUNA";
+  const subtitleText = section?.subtitle || "Apa Kata Mereka yang Telah Menggunakan HalaqahId?";
 
   return (
-    <section className="py-20 bg-white dark:bg-slate-900">
+    <section className="py-16 sm:py-24 bg-background text-left border-b border-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* Title */}
-        <div className="text-center max-w-3xl mx-auto space-y-4 mb-16">
+        {/* Section Header */}
+        <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
           <h2 className="text-xs font-bold uppercase tracking-wider text-primary">
-            TESTIMONI PENGGUNA
+            {titleText}
           </h2>
-          <h3 className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white">
-            Telah Membantu Puluhan Pengajar & Lembaga Pendidikan
+          <h3 className="text-headline-lg font-headline-lg text-foreground font-display font-bold tracking-tight">
+            {subtitleText}
           </h3>
-          <p className="text-slate-500 dark:text-slate-400 text-sm sm:text-base leading-relaxed">
-            Dengarkan tanggapan tulus dari asatidz, pengelola pondok pesantren, dan pimpinan rumah tahfidz yang merasakan langsung kemudahan digitalisasi tahfidz bersama kami.
+          <p className="text-muted-foreground text-sm sm:text-base leading-relaxed">
+            Dipercaya oleh ratusan pengajar, pimpinan pesantren, dan wali santri di seluruh Indonesia.
           </p>
         </div>
-
-        {/* Testimonials Grid */}
+        
+        {/* Reviews Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {testimonials.map((item, idx) => (
-            <div
-              key={idx}
-              className="bg-slate-50 dark:bg-slate-950 p-8 border border-slate-200/50 dark:border-slate-800/50 rounded-2xl text-left flex flex-col justify-between shadow-sm hover:shadow-md transition-shadow duration-300"
+          {reviews.map((rev, idx) => (
+            <Card
+              key={rev.id || idx}
+              className="border border-border bg-card shadow-sm flex flex-col justify-between"
             >
-              <div className="space-y-4">
-                <div className="flex gap-1 text-amber-400">
+              <CardContent className="pt-6 space-y-4">
+                <div className="flex gap-1 text-yellow-500">
                   {[...Array(5)].map((_, i) => (
-                    <Star key={i} size={16} fill="currentColor" />
+                    <Star key={i} className="w-4 h-4 fill-yellow-500 text-yellow-500 shrink-0" />
                   ))}
                 </div>
-                <p className="text-slate-600 dark:text-slate-300 text-sm sm:text-base italic leading-relaxed">
-                  "{item.content}"
+                <p className="text-sm text-muted-foreground italic leading-relaxed">
+                  "{rev.quote}"
                 </p>
+              </CardContent>
+              <div className="px-6 pb-6 pt-2 border-t border-border/40 mt-4 bg-muted/[0.01]">
+                <p className="font-bold text-sm text-foreground">{rev.name}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{rev.role}</p>
               </div>
-
-              <div className="flex items-center gap-4 mt-8 pt-4 border-t border-slate-200/50 dark:border-slate-800/50">
-                <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm shrink-0">
-                  {item.avatar}
-                </div>
-                <div className="overflow-hidden">
-                  <h4 className="font-bold text-slate-900 dark:text-white text-sm truncate">{item.name}</h4>
-                  <p className="text-slate-400 text-xs truncate">
-                    {item.role}, {item.institution}
-                  </p>
-                </div>
-              </div>
-            </div>
+            </Card>
           ))}
         </div>
-
+        
       </div>
     </section>
   );
