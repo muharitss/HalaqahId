@@ -244,8 +244,8 @@ export function LeaderboardPage({ role }: LeaderboardPageProps) {
       ) : (
         /* CONTENT FOUND */
         <div className="space-y-6">
-          {/* A. PODIUM TOP 3 (Kecuali jika pencarian menyaring peringkat) */}
-          {!searchQuery && (
+          {/* A. PODIUM TOP 3 (Kecuali jika pencarian menyaring peringkat atau jika mode perwakilan halaqah aktif) */}
+          {!searchQuery && !topPerHalaqah && (
             <div className="podium-container grid gap-4 md:grid-cols-3 items-end pt-4 print:flex print:flex-row print:justify-around">
               {/* RANK 2: PERAK */}
               {topThree.silver ? (
@@ -368,8 +368,8 @@ export function LeaderboardPage({ role }: LeaderboardPageProps) {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {/* Tampilkan podium teratas juga dalam tabel jika ada pencarian agar tidak hilang */}
-                  {searchQuery && filteredLeaderboard.map((item) => (
+                  {/* Tampilkan podium teratas juga dalam tabel jika ada pencarian atau jika mode perwakilan halaqah aktif agar tidak tersembunyi */}
+                  {(searchQuery || topPerHalaqah) && filteredLeaderboard.map((item) => (
                     <TableRow key={item.id_santri} className="hover:bg-muted/40 transition-colors">
                       <TableCell className="text-center font-bold">
                         {item.rank === 1 ? (
@@ -394,8 +394,8 @@ export function LeaderboardPage({ role }: LeaderboardPageProps) {
                     </TableRow>
                   ))}
 
-                  {/* Tampilan normal jika tidak dicari: Tampilkan ranks 4+ */}
-                  {!searchQuery && (
+                  {/* Tampilan normal jika tidak dicari dan bukan mode perwakilan halaqah: Tampilkan ranks 4+ */}
+                  {!searchQuery && !topPerHalaqah && (
                     <>
                       {/* Tampilkan top 3 di tabel khusus untuk cetak kertas/print */}
                       <tr className="hidden print:table-row font-bold bg-yellow-50/50">
