@@ -4,12 +4,7 @@ import * as z from "zod";
 // ─────────────────────────────────────────────
 // Constants (akan dipindah ke constants nanti)
 // ─────────────────────────────────────────────
-import { SURAH_IDS, pemetaanJuz } from "@/utils/daftarSurah";
-
-const getGlobalAyahId = (surahName: string, ayahNum: number): number => {
-  const surahId = SURAH_IDS[surahName] || 0;
-  return surahId * 10000 + ayahNum;
-};
+import { pemetaanJuz } from "@/utils/daftarSurah";
 
 const getSurahTotalAyat = (surahName: string): number => {
   for (const surahs of Object.values(pemetaanJuz)) {
@@ -59,24 +54,6 @@ export const setoranBaseSchema = z
     taqwim: numericOptional(),
     keterangan: z.string().optional(),
   })
-  .refine(
-    (data) => {
-      if (
-        !data.surat_mulai ||
-        !data.ayat_mulai ||
-        !data.surat_selesai ||
-        !data.ayat_selesai
-      )
-        return true;
-      const startId = getGlobalAyahId(data.surat_mulai, data.ayat_mulai);
-      const endId = getGlobalAyahId(data.surat_selesai, data.ayat_selesai);
-      return endId >= startId;
-    },
-    {
-      message: "Posisi akhir tidak boleh sebelum posisi awal setoran",
-      path: ["surat_selesai"],
-    }
-  )
   .refine(
     (data) => {
       if (!data.surat_mulai || !data.ayat_mulai) return true;

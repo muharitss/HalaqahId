@@ -26,11 +26,6 @@ const parseSurahRange = (surahStr: string) => {
   return { start, end };
 };
 
-const getGlobalAyahId = (surahName: string, ayahNum: number): number => {
-  const surahId = SURAH_IDS[surahName] || 0;
-  return surahId * 10000 + ayahNum;
-};
-
 const getSurahTotalAyat = (surahName: string): number => {
   for (const surahs of Object.values(pemetaanJuz)) {
     const match = surahs.find((s) => s.nama.toLowerCase() === surahName.toLowerCase());
@@ -83,18 +78,6 @@ const editSchema = z
     taqwim: numericOptional(),
     keterangan: z.string().optional(),
   })
-  .refine(
-    (data) => {
-      if (!data.surat_mulai || !data.ayat_mulai || !data.surat_selesai || !data.ayat_selesai) return true;
-      const startId = getGlobalAyahId(data.surat_mulai, data.ayat_mulai);
-      const endId = getGlobalAyahId(data.surat_selesai, data.ayat_selesai);
-      return endId >= startId;
-    },
-    {
-      message: "Posisi akhir tidak boleh sebelum posisi awal setoran",
-      path: ["surat_selesai"],
-    }
-  )
   .refine(
     (data) => {
       if (!data.surat_mulai || !data.ayat_mulai) return true;
@@ -264,6 +247,20 @@ export function useEditSetoranForm({
     try {
       const startSuratId = SURAH_IDS[values.surat_mulai] || 1;
       const endSuratId = SURAH_IDS[values.surat_selesai] || startSuratId;
+      const startGlobal = startSuratId * 10000 + values.ayat_mulai;
+      const endGlobal = endSuratId * 10000 + values.ayat_selesai;
+
+      let finalStartSuratId = startSuratId;
+      let finalStartAyat = values.ayat_mulai;
+      let finalEndSuratId = endSuratId;
+      let finalEndAyat = values.ayat_selesai;
+
+      if (startGlobal > endGlobal) {
+        finalStartSuratId = endSuratId;
+        finalStartAyat = values.ayat_selesai;
+        finalEndSuratId = startSuratId;
+        finalEndAyat = values.ayat_mulai;
+      }
 
       let taqwimValue: number | undefined = undefined;
       if (values.custom_values) {
@@ -293,10 +290,10 @@ export function useEditSetoranForm({
         taqwim: taqwimValue,
         keterangan: values.keterangan,
         custom_values: values.custom_values || null,
-        start_surat_id: startSuratId,
-        start_ayat: values.ayat_mulai,
-        end_surat_id: endSuratId,
-        end_ayat: values.ayat_selesai,
+        start_surat_id: finalStartSuratId,
+        start_ayat: finalStartAyat,
+        end_surat_id: finalEndSuratId,
+        end_ayat: finalEndAyat,
       };
 
       const res = await onSubmit(setoran.id_setoran, payload);
