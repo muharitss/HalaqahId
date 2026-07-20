@@ -119,8 +119,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         if (isKepalaRole(userData?.role)) {
           saveSuperadminSession(fullUser);
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error("Failed to fetch user from API:", error);
+        // Clear session if API fetch fails with 401 (token expired/invalid)
+        if (error?.response?.status === 401) {
+          get().logout();
+        }
       }
     } catch (error) {
       console.error("Failed to parse user data:", error);

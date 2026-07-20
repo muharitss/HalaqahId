@@ -63,8 +63,21 @@ axiosClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Biarkan halaman login menangani 401-nya sendiri tanpa me-reload halaman
-      if (error.config?.url?.includes("/login")) {
+      // Jangan redirect jika request-nya adalah login, atau jika user sedang di halaman publik (login/register/verify-email)
+      const pathname = window.location.pathname;
+      const isPublicPage = 
+        pathname === "/login" || 
+        pathname.startsWith("/login/") ||
+        pathname === "/register" ||
+        pathname.startsWith("/register/") ||
+        pathname === "/verify-email" ||
+        pathname.startsWith("/verify-email/");
+        
+      const isLoginRequest = 
+        error.config?.url?.includes("/login") || 
+        error.config?.url?.includes("login");
+
+      if (isLoginRequest || isPublicPage) {
         return Promise.reject(error);
       }
 
