@@ -1,7 +1,7 @@
 import { type RouteObject } from "react-router-dom";
 import { MuhafizDashboard } from "@/features/dashboard";
 import { AbsensiPage } from "@/features/absensi";
-import { SetoranPage, MushafPage } from "@/features/setoran";
+import { SetoranPage, MushafPage, LeaderboardPage } from "@/features/setoran";
 import { KelolaSantriPage, ProgresSantriPage } from "@/features/santri";
 import { TahfidzAi } from "@/features/tahfidz-ai";
 import SettingsPage, { InfoPage } from "@/features/settings";
@@ -19,6 +19,7 @@ export const muhafizRoutes: RouteObject[] = [
       { path: "/muhafidz/setoran/mushaf", element: <MushafPage /> },
       { path: "/muhafidz/santri", element: <KelolaSantriPage /> },
       { path: "/muhafidz/progres", element: <ProgresSantriPage /> },
+      { path: "/muhafidz/leaderboard", element: <LeaderboardPage role="muhafiz" /> },
       { path: "/muhafidz/tahfidzai", element: <TahfidzAi /> },
     ],
   },

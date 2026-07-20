@@ -8,6 +8,7 @@ import {
   Calendar,
   TrendingUp,
   HelpCircle,
+  Trophy,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -204,9 +205,18 @@ export function MuhafizDashboard() {
           <Button
             onClick={() => navigate("/muhafidz/setoran")}
             size="sm"
+            className="mr-2"
           >
             <BookOpen className="mr-2 h-4 w-4" />
             Catat Setoran
+          </Button>
+          <Button
+            onClick={() => navigate("/muhafidz/leaderboard")}
+            variant="outline"
+            size="sm"
+          >
+            <Trophy className="mr-2 h-4 w-4 text-yellow-500" />
+            Leaderboard
           </Button>
         </div>
       </div>

@@ -11,6 +11,7 @@ export {
   useLaporanData,
   useLaporanPdf,
   useMushafPage,
+  useLeaderboardPage,
 } from "./hooks";
 export type { FormMode } from "./hooks";
 
@@ -41,3 +42,4 @@ export type {
 export { InputSetoranPage as SetoranPage } from "./pages/input-setoran-page";
 export { LaporanSetoranPage } from "./pages/laporan-setoran-page";
 export { MushafPage } from "./pages/mushaf-page";
+export { LeaderboardPage } from "./pages/LeaderboardPage";

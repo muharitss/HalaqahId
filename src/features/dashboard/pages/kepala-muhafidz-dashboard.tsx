@@ -6,9 +6,11 @@ import { useDashboardData } from "../hooks/useDashboardData";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { UserX } from "lucide-react";
+import { UserX, Trophy } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export function KepalaMuhafidzDashboard() {
+  const navigate = useNavigate();
   const {
     loading,
     chartView,
@@ -28,11 +30,22 @@ export function KepalaMuhafidzDashboard() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Dashboard Kepala Muhafiz</h1>
-        <p className="text-muted-foreground">
-          Kelola halaqah, santri, dan laporan secara terpusat
-        </p>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Dashboard Kepala Muhafiz</h1>
+          <p className="text-muted-foreground">
+            Kelola halaqah, santri, dan laporan secara terpusat
+          </p>
+        </div>
+        <Button
+          onClick={() => navigate("/kepala-muhafidz/leaderboard")}
+          variant="outline"
+          size="sm"
+          className="shadow-sm"
+        >
+          <Trophy className="mr-2 h-4 w-4 text-yellow-500" />
+          Lihat Leaderboard
+        </Button>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">

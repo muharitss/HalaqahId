@@ -19,6 +19,26 @@ export interface SetoranCheckResult {
   setoran: SetoranRecord | null;
 }
 
+export interface LeaderboardParams {
+  period?: string;
+  startDate?: string;
+  endDate?: string;
+  id_halaqah?: number;
+  mode?: string;
+}
+
+export interface LeaderboardRecord {
+  rank: number;
+  id_santri: number;
+  nama_santri: string;
+  id_halaqah: number;
+  nama_halaqah: string;
+  nama_muhafiz: string;
+  total_setoran_count: number;
+  total_baris: number;
+  total_halaman: number;
+}
+
 export const setoranService = {
   // GET /setoran/check
   checkSetoran: async (
@@ -33,6 +53,21 @@ export const setoranService = {
       return response.data;
     } catch (error: unknown) {
       throw error;
+    }
+  },
+
+  // GET /setoran/leaderboard
+  getLeaderboard: async (
+    params: LeaderboardParams,
+  ): Promise<ApiResponse<LeaderboardRecord[]>> => {
+    try {
+      const response = await axiosClient.get<ApiResponse<LeaderboardRecord[]>>(
+        "/setoran/leaderboard",
+        { params },
+      );
+      return response.data;
+    } catch (error: unknown) {
+      throw new Error(getErrorMessage(error, "Gagal mengambil data leaderboard"));
     }
   },
 

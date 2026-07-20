@@ -10,6 +10,7 @@ import {
   SetoranPage,
   LaporanSetoranPage,
   MushafPage,
+  LeaderboardPage,
 } from "@/features/setoran";
 import { TahfidzAi } from "@/features/tahfidz-ai";
 import { ProfilSekolahPage } from "@/features/sekolah";
@@ -56,6 +57,10 @@ export const kepalaRoutes: RouteObject[] = [
   {
     path: "/kepala-muhafidz/laporan",
     element: <LaporanSetoranPage />,
+  },
+  {
+    path: "/kepala-muhafidz/leaderboard",
+    element: <LeaderboardPage role="admin" />,
   },
   {
     path: "/kepala-muhafidz/tahfidzai",

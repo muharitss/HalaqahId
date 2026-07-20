@@ -14,6 +14,7 @@ import {
   faBuilding,
   faClock,
   faGear,
+  faTrophy,
 } from "@fortawesome/free-solid-svg-icons";
 import {
   Sidebar,
@@ -105,6 +106,11 @@ export function AppSidebar() {
             path: "/kepala-muhafidz/laporan",
             icon: faClipboardCheck,
           },
+          {
+            name: "Leaderboard",
+            path: "/kepala-muhafidz/leaderboard",
+            icon: faTrophy,
+          },
         ]
       : [
           {
@@ -127,6 +133,11 @@ export function AppSidebar() {
             name: "Progres Santri",
             path: "/muhafidz/progres",
             icon: faChartPie,
+          },
+          {
+            name: "Leaderboard",
+            path: "/muhafidz/leaderboard",
+            icon: faTrophy,
           },
         ];
 

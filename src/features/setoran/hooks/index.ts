@@ -4,3 +4,4 @@ export type { FormMode, SmartSetoranModeState, SmartSetoranModeActions } from ".
 export { useLaporanData } from "./useLaporanData";
 export { useLaporanPdf } from "./useLaporanPdf";
 export { useMushafPage } from "./useMushafPage";
+export { useLeaderboardPage } from "./useLeaderboardPage";
