@@ -24,6 +24,7 @@ import { type Santri } from "@/features/santri/types";
 import { type Halaqah } from "@/features/halaqah/api/halaqahService";
 import { useTargetList } from "@/features/settings";
 import { TIPE_TARGET_LABELS, SATUAN_TARGET_LABELS, type TargetSekolah } from "@/types/domain/target";
+import { Term } from "@/components/ui/Term";
 
 interface SantriModalProps {
   isOpen: boolean;
@@ -97,10 +98,10 @@ export function SantriModal({
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle>
-              {selectedSantri?.id_santri ? "Edit Data Santri" : "Tambah Santri Baru"}
+              {selectedSantri?.id_santri ? <>Edit Data <Term code="SANTRI" /></> : <>Tambah <Term code="SANTRI" /> Baru</>}
             </DialogTitle>
             <DialogDescription>
-              Isi data santri di bawah ini. Target setoran bersifat opsional.
+              Isi data <Term code="SANTRI" /> di bawah ini. Target setoran bersifat opsional.
             </DialogDescription>
           </DialogHeader>
 
@@ -198,7 +199,7 @@ export function SantriModal({
             {/* Halaqah — hanya admin & bukan auto-halaqah */}
             {isAdmin && !isAutoHalaqah && (
               <div className="grid gap-2">
-                <Label htmlFor="id_halaqah">Pilih Halaqah</Label>
+                <Label htmlFor="id_halaqah">Pilih <Term code="HALAQAH" /></Label>
                 <Select value={halaqahId} onValueChange={setHalaqahId}>
                   <SelectTrigger id="id_halaqah">
                     <SelectValue placeholder="Pilih halaqah" />
@@ -218,12 +219,12 @@ export function SantriModal({
             {isAutoHalaqah && (
               <div className="bg-muted/50 p-3 rounded-md border border-dashed">
                 <p className="text-[10px] uppercase text-muted-foreground font-bold">
-                  Halaqah Tujuan
+                  <Term code="HALAQAH" /> Tujuan
                 </p>
                 <p className="text-sm font-semibold">
                   {halaqahList.find(
                     (h) => h.id_halaqah.toString() === halaqahId
-                  )?.name_halaqah ?? "Halaqah saat ini"}
+                  )?.name_halaqah ?? <><Term code="HALAQAH" /> saat ini</>}
                 </p>
               </div>
             )}

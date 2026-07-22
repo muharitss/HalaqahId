@@ -33,6 +33,8 @@ import { useEffect } from "react";
 import { isKepalaRole, Role } from "@/types/domain/enums";
 
 import { useTenant } from "@/store/tenant-context";
+import { useTerminology } from "@/lib/hooks/useTerminology";
+import { Term } from "@/components/ui/Term";
 
 export function AppSidebar() {
   const { user, logout, stopImpersonating, isImpersonating } = useAuth();
@@ -66,51 +68,64 @@ export function AppSidebar() {
       ? "/kepala-muhafidz/settings"
       : "/muhafidz/settings";
 
+  const labelSantri = useTerminology("SANTRI");
+  const labelHalaqah = useTerminology("HALAQAH");
+  const labelMuhafiz = useTerminology("MUHAFIZ");
+  const labelSekolah = useTerminology("SEKOLAH");
+
   const menuItems = isSuperAdmin
     ? [
-        { name: "Dashboard", path: "/superadmin", icon: faChartPie },
+        { name: "Dashboard", tooltip: "Dashboard", path: "/superadmin", icon: faChartPie },
         {
-          name: "Kelola Sekolah",
+          name: <>Kelola <Term code="SEKOLAH" /></>,
+          tooltip: `Kelola ${labelSekolah}`,
           path: "/superadmin/sekolah",
           icon: faBuilding,
         },
         {
           name: "Kelola Pengguna",
+          tooltip: "Kelola Pengguna",
           path: "/superadmin/users",
           icon: faUsers,
         },
         {
           name: "Audit Logs",
+          tooltip: "Audit Logs",
           path: "/superadmin/audit-logs",
           icon: faClock,
         },
         {
           name: "Kelola Blog",
+          tooltip: "Kelola Blog",
           path: "/superadmin/blog",
           icon: faBook,
         },
       ]
     : user && isKepalaRole(user.role)
       ? [
-          { name: "Dashboard", path: "/kepala-muhafidz", icon: faChartPie },
+          { name: "Dashboard", tooltip: "Dashboard", path: "/kepala-muhafidz", icon: faChartPie },
           {
-            name: "Kelola Muhafiz",
+            name: <>Kelola <Term code="MUHAFIZ" /></>,
+            tooltip: `Kelola ${labelMuhafiz}`,
             path: "/kepala-muhafidz/muhafiz",
             icon: faUserTie,
           },
           {
-            name: "Kelola Halaqah",
+            name: <>Kelola <Term code="HALAQAH" /></>,
+            tooltip: `Kelola ${labelHalaqah}`,
             path: "/kepala-muhafidz/halaqah",
             icon: faBook,
           },
-          { name: "Kelola Sesi", path: "/kepala-muhafidz/sesi", icon: faClock },
+          { name: "Kelola Sesi", tooltip: "Kelola Sesi", path: "/kepala-muhafidz/sesi", icon: faClock },
           {
             name: "Lihat Laporan",
+            tooltip: "Lihat Laporan",
             path: "/kepala-muhafidz/laporan",
             icon: faClipboardCheck,
           },
           {
             name: "Leaderboard",
+            tooltip: "Leaderboard",
             path: "/kepala-muhafidz/leaderboard",
             icon: faTrophy,
           },
@@ -118,27 +133,37 @@ export function AppSidebar() {
       : [
           {
             name: "Dashboard",
+            tooltip: "Dashboard",
             path: "/muhafidz",
             icon: faChartPie,
           },
           {
             name: "Absensi Hari Ini",
+            tooltip: "Absensi Hari Ini",
             path: "/muhafidz/absensi",
             icon: faClipboardCheck,
           },
           {
             name: "Input Setoran",
+            tooltip: "Input Setoran",
             path: "/muhafidz/setoran",
             icon: faBookOpen,
           },
-          { name: "Kelola Santri", path: "/muhafidz/santri", icon: faUsers },
           {
-            name: "Progres Santri",
+            name: <>Kelola <Term code="SANTRI" /></>,
+            tooltip: `Kelola ${labelSantri}`,
+            path: "/muhafidz/santri",
+            icon: faUsers,
+          },
+          {
+            name: <>Progres <Term code="SANTRI" /></>,
+            tooltip: `Progres ${labelSantri}`,
             path: "/muhafidz/progres",
             icon: faChartPie,
           },
           {
             name: "Leaderboard",
+            tooltip: "Leaderboard",
             path: "/muhafidz/leaderboard",
             icon: faTrophy,
           },
@@ -201,11 +226,11 @@ export function AppSidebar() {
                     location.pathname.startsWith(item.path + "/");
 
                 return (
-                  <SidebarMenuItem key={item.name}>
+                  <SidebarMenuItem key={item.path}>
                     <SidebarMenuButton
                       asChild
                       isActive={isActive}
-                      tooltip={item.name}
+                      tooltip={item.tooltip || (item.name as any)}
                     >
                       <Link to={item.path}>
                         <FontAwesomeIcon icon={item.icon} />
