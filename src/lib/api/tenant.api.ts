@@ -1,5 +1,5 @@
 import axiosClient from "../axiosClient";
-import { Tenant, TenantBrand, TenantTerminology, TenantFeature } from "@/types";
+import type  { Tenant, TenantBrand, TenantTerminology, TenantFeature } from "@/types";
 
 export const tenantApi = {
   resolve: async (slug: string) => {
