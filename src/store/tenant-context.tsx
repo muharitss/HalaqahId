@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { tenantApi } from "@/lib/api/tenant.api";
-import { Tenant, TenantBrand, TenantTerminology, TenantFeature } from "@/types";
+import type { Tenant, TenantBrand, TenantTerminology, TenantFeature } from "@/types";
 
 interface TenantContextType {
   tenant: Tenant | null;
@@ -25,15 +25,7 @@ export const getTenantSlugFromUrl = (): string => {
   const parts = hostname.split(".");
 
   // Handle subdomain resolving (e.g., tenant-a.halaqah.id or tenant-a.localhost)
-  const isLocalhost = hostname.endsWith("localhost") || hostname === "127.0.0.1";
-  if (isLocalhost) {
-    if (parts.length > 1) {
-      const subdomain = parts[0];
-      if (subdomain !== "localhost") {
-        return subdomain;
-      }
-    }
-  } else if (parts.length > 2) {
+  if (parts.length > 2) {
     const subdomain = parts[0];
     if (subdomain !== "www" && subdomain !== "app" && subdomain !== "admin") {
       return subdomain;
