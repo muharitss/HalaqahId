@@ -32,8 +32,11 @@ import {
 import { useEffect } from "react";
 import { isKepalaRole, Role } from "@/types/domain/enums";
 
+import { useTenant } from "@/store/tenant-context";
+
 export function AppSidebar() {
   const { user, logout, stopImpersonating, isImpersonating } = useAuth();
+  const { brand } = useTenant();
   const location = useLocation();
   const navigate = useNavigate();
   const { isMobile, setOpenMobile } = useSidebar();
@@ -144,11 +147,17 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon" className="bg-sidebar text-sidebar-foreground">
       <SidebarHeader className="h-16 border-b flex flex-row items-center gap-3">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-md">
-          <FontAwesomeIcon icon={faBookOpen} className="text-sm" />
-        </div>
+        {brand?.logo_url ? (
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg overflow-hidden bg-background">
+            <img src={brand.logo_url} alt="Logo" className="max-h-full max-w-full object-contain" />
+          </div>
+        ) : (
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-md">
+            <FontAwesomeIcon icon={faBookOpen} className="text-sm" />
+          </div>
+        )}
         <div className="flex flex-col overflow-hidden whitespace-nowrap group-data-[collapsible=icon]:hidden">
-          <span className="font-bold tracking-tight">HalaqahId</span>
+          <span className="font-bold tracking-tight">{brand?.nama_aplikasi || "HalaqahId"}</span>
           {isImpersonating && (
             <span className="text-[10px] text-yellow-500 font-semibold uppercase">
               Muhafidz Mode

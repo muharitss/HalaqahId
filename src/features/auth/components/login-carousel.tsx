@@ -1,5 +1,6 @@
-﻿import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import loginBg from "@/assets/login-bg.png";
+import { useTenant } from "@/store/tenant-context";
 
 const carouselData = [
   {
@@ -23,13 +24,25 @@ const carouselData = [
 ];
 
 export function LoginCarousel() {
+  const { brand } = useTenant();
   const [activeSlide, setActiveSlide] = useState(0);
   const carouselRef = useRef<HTMLDivElement>(null);
+
+  const slides = useMemo(() => {
+    const list = [...carouselData];
+    if (brand?.login_background_url) {
+      list[0] = {
+        ...list[0],
+        image: brand.login_background_url,
+      };
+    }
+    return list;
+  }, [brand?.login_background_url]);
 
   useEffect(() => {
     const interval = setInterval(() => {
       // Hitung slide berikutnya
-      const nextSlide = (activeSlide + 1) % carouselData.length;
+      const nextSlide = (activeSlide + 1) % slides.length;
       
       if (carouselRef.current) {
         const { offsetWidth } = carouselRef.current;
@@ -44,7 +57,7 @@ export function LoginCarousel() {
     }, 3000); 
 
     return () => clearInterval(interval);
-  }, [activeSlide]); 
+  }, [activeSlide, slides.length]); 
 
   return (
     <div className="relative h-full w-full overflow-hidden bg-surface-dark">
@@ -57,7 +70,7 @@ export function LoginCarousel() {
           scrollbarWidth: 'none' 
         }}
       >
-        {carouselData.map((item) => (
+        {slides.map((item) => (
           <div 
             key={item.id} 
             className="carousel-item relative h-full w-full flex-shrink-0"
@@ -84,7 +97,7 @@ export function LoginCarousel() {
       </div>
 
       <div className="absolute bottom-12 left-12 z-20 flex gap-2">
-        {carouselData.map((_, i) => (
+        {slides.map((_, i) => (
           <div
             key={i}
             className={`h-1.5 transition-all duration-700 rounded-full ${
