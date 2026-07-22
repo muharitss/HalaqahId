@@ -10,7 +10,13 @@ import { queryClient } from "@/lib/react-query";
 import { router } from "@/routes";
 import { Toaster } from "@/components/ui/sonner";
 import { AnalyticsWrapper } from "@/components/custom/seo/AnalyticsWrapper";
+import { useTenantTheme } from "@/hooks/useTenantTheme";
 import "./App.css";
+
+const TenantThemeWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  useTenantTheme();
+  return <>{children}</>;
+};
 
 function App() {
   useEffect(() => {
@@ -22,15 +28,17 @@ function App() {
       <AnalyticsWrapper>
         <QueryClientProvider client={queryClient}>
           <TenantProvider>
-            {/* AuthProvider wraps the application to preserve compatability facades */}
-            <AuthProvider>
-              <RouterProvider router={router} />
-              <Toaster
-                position="top-center"
-                richColors
-                closeButton
-              />
-            </AuthProvider>
+            <TenantThemeWrapper>
+              {/* AuthProvider wraps the application to preserve compatability facades */}
+              <AuthProvider>
+                <RouterProvider router={router} />
+                <Toaster
+                  position="top-center"
+                  richColors
+                  closeButton
+                />
+              </AuthProvider>
+            </TenantThemeWrapper>
           </TenantProvider>
           <ReactQueryDevtools initialIsOpen={false} />
         </QueryClientProvider>
