@@ -1,6 +1,7 @@
 import { useAuth } from "@/features/auth/components/auth-provider";
 import { Link, useLocation } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { Term } from "@/components/ui/Term";
 import {
   faChartPie,
   faUsers,
@@ -24,15 +25,15 @@ export function MobileDock() {
   const menuItems = isSuperAdmin
     ? [
         { name: "Dash", path: "/superadmin", icon: faChartPie },
-        { name: "Sekolah", path: "/superadmin/sekolah", icon: faBuilding },
+        { name: <Term code="SEKOLAH" />, path: "/superadmin/sekolah", icon: faBuilding },
         { name: "Pengguna", path: "/superadmin/users", icon: faUsers },
         { name: "Audit", path: "/superadmin/audit-logs", icon: faClock },
       ]
     : user && isKepalaRole(user.role)
       ? [
           { name: "Dash", path: "/kepala-muhafidz", icon: faChartPie },
-          { name: "Muhafiz", path: "/kepala-muhafidz/muhafiz", icon: faUserTie },
-          { name: "Halaqah", path: "/kepala-muhafidz/halaqah", icon: faBook },
+          { name: <Term code="MUHAFIZ" />, path: "/kepala-muhafidz/muhafiz", icon: faUserTie },
+          { name: <Term code="HALAQAH" />, path: "/kepala-muhafidz/halaqah", icon: faBook },
           { name: "Sesi", path: "/kepala-muhafidz/sesi", icon: faClock },
           { name: "Laporan", path: "/kepala-muhafidz/laporan", icon: faClipboardCheck },
         ]
@@ -40,7 +41,7 @@ export function MobileDock() {
           { name: "Dash", path: "/muhafidz", icon: faChartPie },
           { name: "Absen", path: "/muhafidz/absensi", icon: faClipboardCheck },
           { name: "Setoran", path: "/muhafidz/setoran", icon: faBookOpen },
-          { name: "Santri", path: "/muhafidz/santri", icon: faUsers },
+          { name: <Term code="SANTRI" />, path: "/muhafidz/santri", icon: faUsers },
           { name: "Progres", path: "/muhafidz/progres", icon: faChartLine },
         ];
 
@@ -58,7 +59,7 @@ export function MobileDock() {
             location.pathname.startsWith(item.path + "/");
         return (
           <Link
-            key={item.name}
+            key={item.path}
             to={item.path}
             className={cn(
               "transition-all duration-200 ease-in-out",

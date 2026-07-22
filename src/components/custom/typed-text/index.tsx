@@ -1,4 +1,6 @@
-﻿
+
+import { Term } from "@/components/ui/Term";
+
 export default function Laporan() {
   return (
     <h1 className="text-xl md:text-2xl font-bold tracking-tight">
@@ -10,7 +12,7 @@ export default function Laporan() {
 export const HalaqahManagement = () => {
   return (
     <h1 className="text-xl md:text-2xl font-bold tracking-tight">
-      Kelola Halaqah
+      Kelola <Term code="HALAQAH" />
     </h1>
   );
 }
@@ -26,7 +28,7 @@ export const Settings = () => {
 export const MuhafizManagement = () => {
   return (
     <h1 className="text-xl md:text-2xl font-bold tracking-tight">
-      Kelola Muhafiz
+      Kelola <Term code="MUHAFIZ" />
     </h1>
   );
 }
@@ -42,7 +44,7 @@ export const Dashboard = () => {
 export const Absensi = () => {
   return (
     <h1 className="text-xl md:text-2xl font-bold tracking-tight">
-      Absensi Santri
+      Absensi <Term code="SANTRI" />
     </h1>
   );
 }
@@ -58,7 +60,7 @@ export const Setoran = () => {
 export const KelolaSantri = () => {
   return (
     <h1 className="text-xl md:text-2xl font-bold tracking-tight">
-      Kelola Santri
+      Kelola <Term code="SANTRI" />
     </h1>
   );
 }
@@ -66,7 +68,7 @@ export const KelolaSantri = () => {
 export const Progres = () => {
   return (
     <h1 className="text-xl md:text-2xl font-bold tracking-tight">
-      Progres Santri
+      Progres <Term code="SANTRI" />
     </h1>
   );
 }
