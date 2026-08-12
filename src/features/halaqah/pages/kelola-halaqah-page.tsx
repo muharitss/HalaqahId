@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { HalaqahManagement } from "@/components/custom/typed-text";
 import { useHalaqahManagement, BuatHalaqah, DaftarHalaqah, EditHalaqah, DeleteHalaqah } from "../modules";
 import { SantriModal } from "@/features/santri";

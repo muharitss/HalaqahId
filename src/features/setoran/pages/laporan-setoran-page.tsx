@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useLaporanData } from "../hooks/useLaporanData";
 import { useLaporanPdf } from "../hooks/useLaporanPdf";
 import { PdfPreviewDialog } from "@/components/custom/pdf-preview-dialog";

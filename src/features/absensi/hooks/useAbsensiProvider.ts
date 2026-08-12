@@ -12,7 +12,7 @@ export function useAbsensiProvider() {
   const halaqahId = paramHalaqahId ? Number(paramHalaqahId) : undefined;
 
   const urlState = useAbsensiUrlState();
-  const { santriList, loadSantri, isLoading: loadingSantri } = useSantri();
+  const { santriList, isLoading: loadingSantri } = useSantri();
   
   // Local state for draft attendance
   const [attendanceMap, setAttendanceMap] = useState<Record<number, AbsensiStatusType>>({});

@@ -17,7 +17,7 @@ export function KelolaSantriPage() {
   const { user } = useAuth();
   const isAdmin = user?.role === Role.SUPERADMIN || user?.role === Role.ADMIN || user?.role === Role.KOORDINATOR_TAHFIZ;
   
-  const { santriList, isLoading, createSantri, updateSantri, deleteSantri, loadSantri } = useSantri();
+  const { santriList, isLoading, createSantri, updateSantri, deleteSantri } = useSantri();
   
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);

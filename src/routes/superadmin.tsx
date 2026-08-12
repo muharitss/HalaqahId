@@ -20,7 +20,7 @@ const TrashPage = lazy(() =>
   import("@/features/settings/pages/TrashPage")
 );
 const KelolaBlogPage = lazy(() =>
-  import("@/features/blog/pages/KelolaBlogPage").then((m) => ({ default: m.KelolaBlogPage }))
+  import("@/features/blog/pages/KelolaBlogPage")
 );
 
 export const superadminRoutes: RouteObject[] = [

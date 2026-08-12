@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus, AlertTriangle } from "lucide-react";
 import { useSesi, SesiTable, SesiModal } from "../modules";
@@ -7,8 +7,8 @@ import type { SesiHalaqah, CreateSesiHalaqahRequest, UpdateSesiHalaqahRequest } 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 
 export function KelolaSesiPage() {
-  const { sesiList, isLoading: loadingSesi, fetchSesi, createSesi, updateSesi, deleteSesi } = useSesi();
-  const { halaqahs, fetchData: fetchHalaqahs } = useHalaqahManagement();
+  const { sesiList, isLoading: loadingSesi, createSesi, updateSesi, deleteSesi } = useSesi();
+  const { halaqahs } = useHalaqahManagement();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedSesi, setSelectedSesi] = useState<SesiHalaqah | null>(null);
