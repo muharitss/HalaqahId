@@ -8,7 +8,7 @@ import {
 import { laporanService } from "../api/laporanService";
 
 export function useLaporanData() {
-  const { data, isFetching: loading, refetch: refreshData } = useLaporanDataQuery();
+  const { data, isLoading: loading, refetch: refreshData } = useLaporanDataQuery();
   const {
     filters,
     selectedMonth,

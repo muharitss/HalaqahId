@@ -65,20 +65,26 @@ export default function KelolaMuhafizPage() {
 
   if (!user || !isKepalaRole(user.role)) return <AccessDenied />;
 
-  const filteredMuhafizList = muhafizList.filter((m: Muhafiz) => {
-    if (!selectedSesi) return true;
-    return m.halaqah?.sesi_halaqahs?.some((s: any) => s.id_sesi === selectedSesi) ?? false;
-  });
+  const filteredMuhafizList = useMemo(() => {
+    return muhafizList.filter((m: Muhafiz) => {
+      if (!selectedSesi) return true;
+      return m.halaqah?.sesi_halaqahs?.some((s: { id_sesi: number }) => s.id_sesi === selectedSesi) ?? false;
+    });
+  }, [muhafizList, selectedSesi]);
 
-  const filteredMuhafiz = muhafizList.filter((m: Muhafiz) =>
-    m.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    m.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredMuhafiz = useMemo(() => {
+    return muhafizList.filter((m: Muhafiz) =>
+      m.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      m.email.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [muhafizList, searchTerm]);
 
-  const totalPages = Math.ceil(filteredMuhafiz.length / 10);
-  const displayedMuhafiz = showAll
-    ? filteredMuhafiz
-    : filteredMuhafiz.slice((currentPage - 1) * 10, currentPage * 10);
+  const totalPages = useMemo(() => Math.max(1, Math.ceil(filteredMuhafiz.length / 10)), [filteredMuhafiz.length]);
+  const displayedMuhafiz = useMemo(() => {
+    return showAll
+      ? filteredMuhafiz
+      : filteredMuhafiz.slice((currentPage - 1) * 10, currentPage * 10);
+  }, [filteredMuhafiz, showAll, currentPage]);
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">

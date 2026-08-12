@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useQuery } from "@tanstack/react-query";
-import { SURAH_IDS, pemetaanJuz } from "@/utils/daftarSurah";
+import { getSurahTotalAyat, getSurahNumberByName, pemetaanJuz, SURAH_IDS } from "@/utils/daftarSurah";
 import { type SetoranRecord, type SetoranPayload } from "../../../types";
 import { sekolahService } from "@/features/sekolah";
 
@@ -24,14 +24,6 @@ const parseSurahRange = (surahStr: string) => {
   const start = parts[0] || "";
   const end = parts[1] || start;
   return { start, end };
-};
-
-const getSurahTotalAyat = (surahName: string): number => {
-  for (const surahs of Object.values(pemetaanJuz)) {
-    const match = surahs.find((s) => s.nama.toLowerCase() === surahName.toLowerCase());
-    if (match) return match.totalAyat;
-  }
-  return 286;
 };
 
 const findJuzBySurahAndAyah = (surahName: string, ayahNum: number): number => {
@@ -68,38 +60,69 @@ const editSchema = z
       if (val === "" || val === undefined || val === null) return undefined;
       const n = Number(val);
       return isNaN(n) ? undefined : n;
-    }, z.number({ message: "Pilih juz" }).min(1).max(30)),
-    surat_mulai: z.string().min(1, "Pilih surah mulai"),
-    ayat_mulai: numericRequired("Ayat mulai minimal 1"),
-    surat_selesai: z.string().min(1, "Pilih surah selesai"),
-    ayat_selesai: numericRequired("Ayat selesai minimal 1"),
-    id_kategori: numericRequired("Pilih kategori setoran"),
-    tanggal_setoran: z.string().min(1, "Pilih tanggal setoran"),
+    }, z.number({ message: "Juz wajib dipilih" }).min(1, "Juz minimal 1").max(30, "Juz maksimal 30")),
+    surat_mulai: z.string().min(1, "Surah awal wajib dipilih"),
+    ayat_mulai: numericRequired("Ayat awal minimal 1"),
+    surat_selesai: z.string().min(1, "Surah akhir wajib dipilih"),
+    ayat_selesai: numericRequired("Ayat akhir minimal 1"),
+    id_kategori: numericRequired("Kategori setoran wajib dipilih"),
+    tanggal_setoran: z.string().min(1, "Tanggal setoran wajib dipilih"),
     taqwim: numericOptional(),
     keterangan: z.string().optional(),
   })
-  .refine(
-    (data) => {
-      if (!data.surat_mulai || !data.ayat_mulai) return true;
+  .superRefine((data, ctx) => {
+    // Validasi batas maksimal ayat awal
+    if (data.surat_mulai && typeof data.ayat_mulai === "number") {
       const maxAyatMulai = getSurahTotalAyat(data.surat_mulai);
-      return data.ayat_mulai <= maxAyatMulai;
-    },
-    {
-      message: "Ayat mulai melebihi total ayat surah tersebut",
-      path: ["ayat_mulai"],
+      if (data.ayat_mulai > maxAyatMulai) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `Ayat awal (${data.ayat_mulai}) melebihi total ayat Surah ${data.surat_mulai} (maksimal ${maxAyatMulai} ayat)`,
+          path: ["ayat_mulai"],
+        });
+      }
     }
-  )
-  .refine(
-    (data) => {
-      if (!data.surat_selesai || !data.ayat_selesai) return true;
+
+    // Validasi batas maksimal ayat akhir
+    if (data.surat_selesai && typeof data.ayat_selesai === "number") {
       const maxAyatSelesai = getSurahTotalAyat(data.surat_selesai);
-      return data.ayat_selesai <= maxAyatSelesai;
-    },
-    {
-      message: "Ayat selesai melebihi total ayat surah tersebut",
-      path: ["ayat_selesai"],
+      if (data.ayat_selesai > maxAyatSelesai) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `Ayat akhir (${data.ayat_selesai}) melebihi total ayat Surah ${data.surat_selesai} (maksimal ${maxAyatSelesai} ayat)`,
+          path: ["ayat_selesai"],
+        });
+      }
     }
-  );
+
+    // Validasi urutan surah dan rentang ayat
+    if (data.surat_mulai && data.surat_selesai) {
+      const startSurahNum = getSurahNumberByName(data.surat_mulai);
+      const endSurahNum = getSurahNumberByName(data.surat_selesai);
+
+      if (startSurahNum !== null && endSurahNum !== null) {
+        if (endSurahNum < startSurahNum) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `Surah akhir (${data.surat_selesai}) tidak boleh mendahului surah awal (${data.surat_mulai}) dalam urutan mushaf`,
+            path: ["surat_selesai"],
+          });
+        } else if (
+          startSurahNum === endSurahNum &&
+          typeof data.ayat_mulai === "number" &&
+          typeof data.ayat_selesai === "number"
+        ) {
+          if (data.ayat_selesai < data.ayat_mulai) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: `Ayat akhir (${data.ayat_selesai}) tidak boleh lebih kecil dari ayat awal (${data.ayat_mulai}) pada surah yang sama`,
+              path: ["ayat_selesai"],
+            });
+          }
+        }
+      }
+    }
+  });
 
 export type EditFormFields = z.infer<typeof editSchema> & {
   custom_values?: Record<string, any>;

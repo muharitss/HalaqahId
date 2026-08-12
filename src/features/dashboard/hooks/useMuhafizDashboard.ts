@@ -22,7 +22,7 @@ export const useMuhafizDashboard = () => {
   const currentYear = useMemo(() => format(new Date(), "yyyy"), []);
 
   // 1. Fetch Santri List (Auto-filtered by backend for Muhafiz own halaqah)
-  const { data: santriList = [], isFetching: loadingSantri } = useMuhafizDashboardSantriQuery(user?.id_user);
+  const { data: santriList = [], isLoading: loadingSantri } = useMuhafizDashboardSantriQuery(user?.id_user);
 
   // Halaqah Name derived from student records
   const halaqahName = useMemo(() => {
@@ -33,10 +33,10 @@ export const useMuhafizDashboard = () => {
   }, [santriList]);
 
   // 2. Fetch Progress List (Auto-filtered by backend)
-  const { data: progresData = [], isFetching: loadingProgres } = useMuhafizDashboardProgresQuery(user?.id_user);
+  const { data: progresData = [], isLoading: loadingProgres } = useMuhafizDashboardProgresQuery(user?.id_user);
 
   // 3. Fetch Today's Attendance for own halaqah
-  const { data: todayAbsensi = [], isFetching: loadingTodayAbsensi } = useMuhafizDashboardTodayAbsensiQuery(
+  const { data: todayAbsensi = [], isLoading: loadingTodayAbsensi } = useMuhafizDashboardTodayAbsensiQuery(
     user?.id_halaqah,
     todayStr
   );
@@ -58,7 +58,7 @@ export const useMuhafizDashboard = () => {
   }, [todayAbsensi, progresData]);
 
   // 4. Fetch Monthly Attendance Rekap
-  const { data: monthlyAbsensi = [], isFetching: loadingMonthlyAbsensi } = useMuhafizDashboardMonthlyAbsensiQuery(
+  const { data: monthlyAbsensi = [], isLoading: loadingMonthlyAbsensi } = useMuhafizDashboardMonthlyAbsensiQuery(
     user?.id_halaqah,
     currentMonth,
     currentYear
@@ -74,13 +74,13 @@ export const useMuhafizDashboard = () => {
         ? startOfWeek(now, { weekStartsOn: 1 })
         : startOfMonth(now);
 
-    monthlyAbsensi.forEach((day: any) => {
+    monthlyAbsensi.forEach((day: { tanggal: string; data?: Array<{ status: string }> }) => {
       const dayDate = new Date(day.tanggal);
       const inRange =
         absensiView === "bulan" || (dayDate >= rangeStart && dayDate <= now);
 
       if (inRange && Array.isArray(day.data)) {
-        day.data.forEach((record: any) => {
+        day.data.forEach((record) => {
           const status = record.status as keyof typeof counts;
           if (status in counts) {
             counts[status]++;
@@ -107,7 +107,7 @@ export const useMuhafizDashboard = () => {
   }, [monthlyAbsensi, absensiView]);
 
   // 5. Fetch Setoran records for all students in the halaqah via bulk query
-  const { data: setoranHistory = [], isFetching: loadingSetoran } = useMuhafizDashboardSetoranQuery(user?.id_user);
+  const { data: setoranHistory = [], isLoading: loadingSetoran } = useMuhafizDashboardSetoranQuery(user?.id_user);
 
   // Calculate stats from setoran data
   const setoranStats = useMemo(() => {
@@ -128,12 +128,12 @@ export const useMuhafizDashboard = () => {
         id_santri: s.id_santri,
         nama_santri: s.santriName,
       },
-    })) as any;
+    }));
 
     const weeklyChartData =
-      dashboardService.getWeeklyChartData(chartDataFormat);
+      dashboardService.getWeeklyChartData(chartDataFormat as unknown as Parameters<typeof dashboardService.getWeeklyChartData>[0]);
     const monthlyChartData =
-      dashboardService.getMonthlyChartData(chartDataFormat);
+      dashboardService.getMonthlyChartData(chartDataFormat as unknown as Parameters<typeof dashboardService.getMonthlyChartData>[0]);
 
     return {
       weeklyCount,

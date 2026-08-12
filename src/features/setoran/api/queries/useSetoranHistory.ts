@@ -3,7 +3,7 @@ import { setoranService } from "../services/setoranService";
 import { toast } from "sonner";
 import { getErrorMessage } from "@/utils/error";
 
-export function useSetoranHistory(santriId: number | null) {
+export function useSetoranHistory(santriId: number | null, options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: ["setoran-history", santriId],
     queryFn: async () => {
@@ -19,6 +19,6 @@ export function useSetoranHistory(santriId: number | null) {
         throw err;
       }
     },
-    enabled: !!santriId,
+    enabled: options?.enabled !== undefined ? Boolean(santriId && options.enabled) : !!santriId,
   });
 }

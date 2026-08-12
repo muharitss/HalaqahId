@@ -13,7 +13,7 @@ export const useSantri = () => {
 
   const queryKey = ["santri", halaqahId, user?.id_user];
 
-  const { data, isFetching: isLoadingSantri, error, refetch: loadSantri } = useSantriList(
+  const { data, isLoading: isLoadingSantri, error, refetch: loadSantri } = useSantriList(
     halaqahId,
     user?.id_user
   );

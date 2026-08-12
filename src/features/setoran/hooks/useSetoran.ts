@@ -1,7 +1,6 @@
 import { useState, useCallback, useMemo } from "react";
 import { useSantriSesi } from "../api/queries/useSantriSesi";
 import { useSetoranHistory } from "../api/queries/useSetoranHistory";
-import { useAllSetoran } from "../api/queries/useAllSetoran";
 import { useCreateSetoran } from "../api/mutations/useCreateSetoran";
 import { useUpdateSetoran } from "../api/mutations/useUpdateSetoran";
 import { useDeleteSetoran } from "../api/mutations/useDeleteSetoran";
@@ -12,18 +11,12 @@ export function useSetoran() {
   // Queries
   const {
     data: santriSesiData,
-    isFetching: loadingSantri,
+    isLoading: loadingSantri,
     refetch: fetchSantri,
   } = useSantriSesi();
 
-  const { data: history = [], isFetching: loadingHistory } =
-    useSetoranHistory(selectedSantriId);
-
-  const {
-    data: allSetoran = [],
-    isFetching: loadingAll,
-    refetch: fetchAllSetoran,
-  } = useAllSetoran();
+  const { data: history = [] } =
+    useSetoranHistory(selectedSantriId, { enabled: !!selectedSantriId });
 
   // Mutations
   const { createSetoran: addSetoran, isPending: creating } =
@@ -38,8 +31,8 @@ export function useSetoran() {
 
   // Loading state
   const loading = useMemo(
-    () => loadingSantri || loadingHistory || loadingAll || creating || updating || deleting,
-    [loadingSantri, loadingHistory, loadingAll, creating, updating, deleting]
+    () => loadingSantri || creating || updating || deleting,
+    [loadingSantri, creating, updating, deleting]
   );
 
   return {
@@ -47,13 +40,13 @@ export function useSetoran() {
     santriList: santriSesiData?.santriList || [],
     sesiList: santriSesiData?.sesiList || [],
     history,
-    allSetoran,
+    allSetoran: [],
     // Actions
     addSetoran,
     updateSetoran,
     deleteSetoran,
     fetchSantri,
-    fetchAllSetoran,
+    fetchAllSetoran: async () => {},
     fetchSetoranBySantri,
     // State
     loading,

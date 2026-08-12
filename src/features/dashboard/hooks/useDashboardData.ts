@@ -14,10 +14,10 @@ export const useDashboardData = () => {
   const [absensiView, setAbsensiView] = useState<ViewType>("pekan");
   const [alfaView, setAlfaView] = useState<ViewType>("pekan");
 
-  const { data: initialData, isFetching: loadingInitial } = useDashboardInitialQuery();
-  const { data: absensiData, isFetching: loadingAbsensi } = useDashboardAbsensiQuery(absensiView);
-  const { data: alfaData, isFetching: loadingAlfa } = useDashboardAlfaQuery(alfaView);
-  const { data: juzDistributionData, isFetching: loadingJuz } = useDashboardJuzDistributionQuery();
+  const { data: initialData, isLoading: loadingInitial } = useDashboardInitialQuery();
+  const { data: absensiData, isLoading: loadingAbsensi } = useDashboardAbsensiQuery(absensiView);
+  const { data: alfaData, isLoading: loadingAlfa } = useDashboardAlfaQuery(alfaView);
+  const { data: juzDistributionData, isLoading: loadingJuz } = useDashboardJuzDistributionQuery();
 
   const setoranData = useMemo(() => initialData?.setoran || [], [initialData?.setoran]);
   
@@ -26,7 +26,7 @@ export const useDashboardData = () => {
   const categoryData = useMemo(() => dashboardService.getCategoryDistribution(setoranData), [setoranData]);
 
   const stats = useMemo(() => {
-    const grouped = laporanService.transformSetoranData(setoranData as any);
+    const grouped = laporanService.transformSetoranData(setoranData as unknown as Parameters<typeof laporanService.transformSetoranData>[0]);
     return laporanService.getSummaryStats(grouped, "all", "Semua Periode");
   }, [setoranData]);
 

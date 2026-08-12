@@ -7,7 +7,7 @@ export const useProgres = (scope: string = "target") => {
 
   const { 
     data: progresData = [], 
-    isFetching: loading, 
+    isLoading: loading, 
     error,
     refetch: fetchProgres 
   } = useProgresList(user?.id_user, scope);

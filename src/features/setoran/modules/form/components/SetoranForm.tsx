@@ -15,6 +15,8 @@ import { buildPayload } from "../hooks/usePayloadBuilder";
 import { findJuzBySurahAndAyah } from "../utils/findJuz";
 import { TEMP_STORAGE_KEY, DRAFT_STORAGE_KEY, MUSHAF_SELECTION_KEY } from "../constants/form.constants";
 
+import { getErrorMessage } from "@/utils/error";
+
 import { SantriSelector } from "./SantriSelector";
 import { SesiSelector } from "./SesiSelector";
 import { KategoriSelector } from "./KategoriSelector";
@@ -182,7 +184,7 @@ export function SetoranForm({
   const onFormSubmit = async (values: any) => {
     if (!isTodayValidForSesi) {
       toast.error(
-        `Sesi ${selectedSesiObj?.nama_sesi || ""} tidak dijadwalkan pada hari ini.`
+        `Sesi "${selectedSesiObj?.nama_sesi || ""}" tidak dijadwalkan pada tanggal yang dipilih (${selectedTanggal || "hari ini"}).`
       );
       return;
     }
@@ -197,9 +199,7 @@ export function SetoranForm({
         sessionStorage.removeItem(MUSHAF_SELECTION_KEY);
         smartMode.retryCheck();
       } catch (err: any) {
-        toast.error(
-          err?.response?.data?.message || err?.message || "Gagal memperbarui setoran"
-        );
+        toast.error(getErrorMessage(err, "Gagal memperbarui setoran"));
       }
       return;
     }

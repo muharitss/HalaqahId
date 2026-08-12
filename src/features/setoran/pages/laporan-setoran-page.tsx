@@ -56,10 +56,6 @@ export function LaporanSetoranPage() {
     title: string;
   } | null>(null);
 
-  useEffect(() => {
-    refreshData();
-  }, [refreshData]);
-
   // Hitung stats untuk KPI cards + charts
   const stats = useMemo(() => {
     return laporanService.getSummaryStats(groupedData, activeHalaqah, periodLabel);

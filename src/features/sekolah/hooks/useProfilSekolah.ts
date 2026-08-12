@@ -2,7 +2,7 @@ import { useProfilSekolahQuery, useUpdateProfilSekolah } from "../api";
 import { type UpdateSekolahRequest } from "@/types/domain/sekolah";
 
 export const useProfilSekolah = () => {
-  const { data: sekolah = null, isFetching: loading, refetch: fetchProfile } = useProfilSekolahQuery();
+  const { data: sekolah = null, isLoading: loading, refetch: fetchProfile } = useProfilSekolahQuery();
   const updateMutation = useUpdateProfilSekolah();
 
   const updateProfile = async (data: UpdateSekolahRequest) => {

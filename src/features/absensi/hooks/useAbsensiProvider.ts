@@ -19,16 +19,11 @@ export function useAbsensiProvider() {
 
   // Queries & Mutations
   const { data: sesiList = [] } = useSesiHalaqahQuery();
-  const { data: sesiAbsensiRecords = [], isFetching: isLoadingSync } = useAbsensiSesiQuery(
+  const { data: sesiAbsensiRecords = [], isLoading: isLoadingSync } = useAbsensiSesiQuery(
     urlState.selectedSesi,
     urlState.selectedDate
   );
   const { submitAbsensiBulk, isSubmitting } = useAbsensiMutation();
-
-  // Load Santri
-  useEffect(() => {
-    loadSantri();
-  }, [loadSantri]);
 
   // Derived Sesi Data
   const uniqueHalaqahIds = useMemo(() => {

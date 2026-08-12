@@ -40,10 +40,6 @@ export function InputSetoranPage({
   const [formMode, setFormMode] = useState<FormMode>("idle");
   const [isFormChecking, setIsFormChecking] = useState(false);
 
-  useEffect(() => {
-    fetchSantri();
-  }, [fetchSantri]);
-
   const isEditMode = formMode === "edit";
   const isIdle = formMode === "idle";
 

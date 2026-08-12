@@ -18,11 +18,6 @@ export function KelolaSesiPage() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  useEffect(() => {
-    fetchSesi();
-    fetchHalaqahs();
-  }, [fetchSesi, fetchHalaqahs]);
-
   const handleOpenAdd = () => {
     setSelectedSesi(null);
     setIsModalOpen(true);

@@ -29,7 +29,7 @@ function App() {
               closeButton
             />
           </AuthProvider>
-          <ReactQueryDevtools initialIsOpen={false} />
+          {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
         </QueryClientProvider>
       </AnalyticsWrapper>
     </HelmetProvider>

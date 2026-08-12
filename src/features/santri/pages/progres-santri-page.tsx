@@ -79,6 +79,7 @@ type SortDir = "asc" | "desc";
 
 interface SantriProgresCollapsibleDetailProps {
   santri: ProgresSantri;
+  isOpen: boolean;
   filters: {
     selectedMonth: number | null;
     selectedYear: number | null;
@@ -88,9 +89,9 @@ interface SantriProgresCollapsibleDetailProps {
   };
 }
 
-function SantriProgresCollapsibleDetail({ santri, filters }: SantriProgresCollapsibleDetailProps) {
+function SantriProgresCollapsibleDetail({ santri, isOpen, filters }: SantriProgresCollapsibleDetailProps) {
   const { selectedMonth, selectedYear, dateFrom, dateTo, selectedKategori } = filters;
-  const { data: history = [], isFetching: loadingHistory } = useSetoranHistory(santri.id_santri);
+  const { data: history = [], isLoading: loadingHistory } = useSetoranHistory(santri.id_santri, { enabled: isOpen });
 
   const getKategoriName = (item: any) => {
     if (typeof item.kategori === "object" && item.kategori) {
@@ -254,6 +255,7 @@ const YEARS = Array.from(
 
 export function ProgresSantriPage() {
   const [scope, setScope] = useState<string>("target");
+  const [openSantriId, setOpenSantriId] = useState<string | undefined>(undefined);
   const { user } = useAuth();
   const { halaqahId } = useParams<{ halaqahId?: string }>();
   const { progresData, loading: loadingProgres, fetchProgres } = useProgres(scope);
@@ -1012,7 +1014,14 @@ export function ProgresSantriPage() {
               Data progres tidak ditemukan.
             </div>
           ) : (
-            <Accordion type="single" collapsible className="w-full space-y-3" data-tour="progres-accordion">
+            <Accordion
+              type="single"
+              collapsible
+              value={openSantriId}
+              onValueChange={setOpenSantriId}
+              className="w-full space-y-3"
+              data-tour="progres-accordion"
+            >
               {sortedFilteredData.map((row) => {
                 const targetLabel = row.target
                   ? `${row.target.nilai_target} ${SATUAN_TARGET_LABELS[row.target.satuan as keyof typeof SATUAN_TARGET_LABELS] ?? row.target.satuan} / ${TIPE_TARGET_LABELS[row.target.tipe as keyof typeof TIPE_TARGET_LABELS]?.toLowerCase() ?? row.target.tipe.toLowerCase()}`
@@ -1120,6 +1129,7 @@ export function ProgresSantriPage() {
                     <AccordionContent className="p-0 border-t">
                       <SantriProgresCollapsibleDetail
                         santri={row}
+                        isOpen={openSantriId === row.id_santri.toString()}
                         filters={{
                           selectedMonth,
                           selectedYear,

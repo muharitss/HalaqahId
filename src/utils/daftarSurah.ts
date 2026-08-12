@@ -317,6 +317,26 @@ export const SURAH_IDS: Record<string, number> = {
   "Al-Lahab": 111,
   "Al-Ikhlas": 112,
   "Al-Falaq": 113,
-  "An-Nas": 114
+  "An-Nas": 114,
 };
 
+export const getSurahTotalAyat = (surahName: string): number => {
+  if (!surahName) return 286;
+  const cleanName = surahName.trim().toLowerCase();
+  for (const surahs of Object.values(pemetaanJuz)) {
+    const match = surahs.find(
+      (s) => s.nama.toLowerCase() === cleanName
+    );
+    if (match) return match.totalAyat;
+  }
+  return 286;
+};
+
+export const getSurahNumberByName = (surahName: string): number | null => {
+  if (!surahName) return null;
+  const cleanName = surahName.trim().toLowerCase();
+  const match = Object.entries(SURAH_IDS).find(
+    ([name]) => name.toLowerCase() === cleanName
+  );
+  return match ? match[1] : null;
+};

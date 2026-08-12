@@ -1,29 +1,44 @@
+import { lazy } from "react";
 import { type RouteObject } from "react-router-dom";
-import { KepalaMuhafidzDashboard } from "@/features/dashboard";
-import KelolaMuhafizPage from "@/features/muhafiz";
-import {
-  KelolaHalaqahPage,
-  KelolaSesiPage,
-} from "@/features/halaqah";
-import { AbsensiPage } from "@/features/absensi";
-import {
-  SetoranPage,
-  LaporanSetoranPage,
-  MushafPage,
-  LeaderboardPage,
-} from "@/features/setoran";
-import { TahfidzAi } from "@/features/tahfidz-ai";
-import { ProfilSekolahPage } from "@/features/sekolah";
-import { ProfilMuhafizPage } from "@/features/profil";
-import SettingsPage, {
-  InfoPage,
-  TrashPage,
-  KategoriSettingsPage,
-  TargetSettingsPage,
-  UjianSettingsPage,
-  FormSetoranSettingsPage,
-} from "@/features/settings";
-import { ProgresSantriPage } from "@/features/santri";
+
+const KepalaMuhafidzDashboard = lazy(() =>
+  import("@/features/dashboard/pages/kepala-muhafidz-dashboard").then((m) => ({ default: m.KepalaMuhafidzDashboard }))
+);
+const KelolaMuhafizPage = lazy(() => import("@/features/muhafiz/pages/index"));
+const KelolaHalaqahPage = lazy(() =>
+  import("@/features/halaqah/pages/kelola-halaqah-page").then((m) => ({ default: m.KelolaHalaqahPage }))
+);
+const KelolaSesiPage = lazy(() =>
+  import("@/features/halaqah/pages/kelola-sesi-page").then((m) => ({ default: m.KelolaSesiPage }))
+);
+const AbsensiPage = lazy(() => import("@/features/absensi/pages/AbsensiPage"));
+const SetoranPage = lazy(() =>
+  import("@/features/setoran/pages/input-setoran-page").then((m) => ({ default: m.InputSetoranPage }))
+);
+const LaporanSetoranPage = lazy(() =>
+  import("@/features/setoran/pages/laporan-setoran-page").then((m) => ({ default: m.LaporanSetoranPage }))
+);
+const MushafPage = lazy(() =>
+  import("@/features/setoran/pages/mushaf-page").then((m) => ({ default: m.MushafPage }))
+);
+const LeaderboardPage = lazy(() =>
+  import("@/features/setoran/pages/LeaderboardPage").then((m) => ({ default: m.LeaderboardPage }))
+);
+const TahfidzAi = lazy(() =>
+  import("@/features/tahfidz-ai/components/TahfidzAi").then((m) => ({ default: m.TahfidzAi }))
+);
+const ProfilSekolahPage = lazy(() => import("@/features/sekolah/pages/ProfilSekolahPage"));
+const ProfilMuhafizPage = lazy(() => import("@/features/profil/pages/index"));
+const SettingsPage = lazy(() => import("@/features/settings/pages/index"));
+const InfoPage = lazy(() => import("@/features/settings/pages/InfoPage"));
+const TrashPage = lazy(() => import("@/features/settings/pages/TrashPage"));
+const KategoriSettingsPage = lazy(() => import("@/features/settings/pages/KategoriSettingsPage"));
+const TargetSettingsPage = lazy(() => import("@/features/settings/pages/TargetSettingsPage"));
+const UjianSettingsPage = lazy(() => import("@/features/settings/pages/UjianSettingsPage"));
+const FormSetoranSettingsPage = lazy(() => import("@/features/settings/pages/FormSetoranSettingsPage"));
+const ProgresSantriPage = lazy(() =>
+  import("@/features/santri/pages/progres-santri-page").then((m) => ({ default: m.ProgresSantriPage }))
+);
 
 export const kepalaRoutes: RouteObject[] = [
   {

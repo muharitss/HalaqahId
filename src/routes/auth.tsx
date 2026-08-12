@@ -1,13 +1,25 @@
+import { lazy, Suspense } from "react";
 import { type RouteObject } from "react-router-dom";
-import { LoginPage, RegisterPage, VerifyEmailPage } from "@/features/auth";
-import { GuestRoute } from "./guards";
+import { GuestRoute, LoadingScreen } from "./guards";
+
+const LoginPage = lazy(() =>
+  import("@/features/auth/pages/LoginPage").then((m) => ({ default: m.LoginPage }))
+);
+const RegisterPage = lazy(() =>
+  import("@/features/auth/pages/RegisterPage").then((m) => ({ default: m.RegisterPage }))
+);
+const VerifyEmailPage = lazy(() =>
+  import("@/features/auth/pages/VerifyEmailPage").then((m) => ({ default: m.VerifyEmailPage }))
+);
 
 export const authRoutes: RouteObject[] = [
   {
     path: "/login",
     element: (
       <GuestRoute>
-        <LoginPage />
+        <Suspense fallback={<LoadingScreen />}>
+          <LoginPage />
+        </Suspense>
       </GuestRoute>
     ),
   },
@@ -15,12 +27,18 @@ export const authRoutes: RouteObject[] = [
     path: "/register",
     element: (
       <GuestRoute>
-        <RegisterPage />
+        <Suspense fallback={<LoadingScreen />}>
+          <RegisterPage />
+        </Suspense>
       </GuestRoute>
     ),
   },
   {
     path: "/verify-email",
-    element: <VerifyEmailPage />,
+    element: (
+      <Suspense fallback={<LoadingScreen />}>
+        <VerifyEmailPage />
+      </Suspense>
+    ),
   },
 ];

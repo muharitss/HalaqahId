@@ -20,4 +20,42 @@ export default defineConfig({
       },
     },
   },
+  build: {
+    chunkSizeWarningLimit: 1000,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          "vendor-react": ["react", "react-dom", "react-router-dom"],
+          "vendor-query": ["@tanstack/react-query"],
+          "vendor-ui": [
+            "@radix-ui/react-dialog",
+            "@radix-ui/react-dropdown-menu",
+            "@radix-ui/react-select",
+            "@radix-ui/react-popover",
+            "@radix-ui/react-tooltip",
+            "@radix-ui/react-tabs",
+            "@radix-ui/react-slot",
+            "clsx",
+            "tailwind-merge",
+            "sonner",
+          ],
+          "vendor-charts": ["recharts"],
+          "vendor-pdf": ["@react-pdf/renderer"],
+          "vendor-editor": [
+            "@tiptap/react",
+            "@tiptap/starter-kit",
+            "@tiptap/extension-highlight",
+            "@tiptap/extension-image",
+            "@tiptap/extension-link",
+            "@tiptap/extension-table",
+            "@tiptap/extension-table-cell",
+            "@tiptap/extension-table-header",
+            "@tiptap/extension-table-row",
+            "@tiptap/extension-underline",
+            "@tiptap/extension-youtube",
+          ],
+        },
+      },
+    },
+  },
 });

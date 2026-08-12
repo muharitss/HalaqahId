@@ -1,9 +1,27 @@
+import { lazy } from "react";
 import { type RouteObject } from "react-router-dom";
-import { SuperadminDashboard } from "@/features/dashboard";
-import { KelolaSekolahPage } from "@/features/sekolah";
-import { KelolaUserPage, KelolaAuditLogPage } from "@/features/auth";
-import { SuperadminSettingsPage, TrashPage } from "@/features/settings";
-import { KelolaBlogPage } from "@/features/blog";
+
+const SuperadminDashboard = lazy(() =>
+  import("@/features/dashboard/pages/superadmin-dashboard").then((m) => ({ default: m.SuperadminDashboard }))
+);
+const KelolaSekolahPage = lazy(() =>
+  import("@/features/sekolah/pages/index")
+);
+const KelolaUserPage = lazy(() =>
+  import("@/features/auth/pages/KelolaUserPage")
+);
+const KelolaAuditLogPage = lazy(() =>
+  import("@/features/auth/pages/KelolaAuditLogPage")
+);
+const SuperadminSettingsPage = lazy(() =>
+  import("@/features/settings/pages/SuperadminSettingsPage")
+);
+const TrashPage = lazy(() =>
+  import("@/features/settings/pages/TrashPage")
+);
+const KelolaBlogPage = lazy(() =>
+  import("@/features/blog/pages/KelolaBlogPage").then((m) => ({ default: m.KelolaBlogPage }))
+);
 
 export const superadminRoutes: RouteObject[] = [
   { path: "/superadmin", element: <SuperadminDashboard /> },
