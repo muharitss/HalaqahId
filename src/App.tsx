@@ -40,7 +40,7 @@ function App() {
               </AuthProvider>
             </TenantThemeWrapper>
           </TenantProvider>
-          <ReactQueryDevtools initialIsOpen={false} />
+          {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
         </QueryClientProvider>
       </AnalyticsWrapper>
     </HelmetProvider>

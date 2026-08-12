@@ -20,7 +20,7 @@ export function useHalaqahManagement() {
   const [isMoveSantriOpen, setIsMoveSantriOpen] = useState(false);
 
   // --- DATA FETCHING ---
-  const { data = { halaqahs: [] as Halaqah[], santriMap: {} as Record<number, Santri[]> }, isFetching: isLoadingHalaqah, refetch: fetchData } = useQuery({
+  const { data = { halaqahs: [] as Halaqah[], santriMap: {} as Record<number, Santri[]> }, isLoading: isLoadingHalaqah, refetch: fetchData } = useQuery({
     queryKey: ["halaqah-management"],
     queryFn: async () => {
       try {

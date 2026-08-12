@@ -28,6 +28,6 @@ export function useSantriSesi() {
         throw err;
       }
     },
-    enabled: false, // Manual fetch
+    enabled: !!user?.id_user,
   });
 }

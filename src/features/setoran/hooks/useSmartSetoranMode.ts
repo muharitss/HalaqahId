@@ -93,7 +93,7 @@ export function useSmartSetoranMode(): SmartSetoranModeState &
         if (err instanceof Error && err.name === "CanceledError") return;
 
         console.error("[useSmartSetoranMode] Check failed:", err);
-        setCheckError("Gagal memeriksa data setoran. Periksa koneksi Anda.");
+        setCheckError("Gagal memeriksa riwayat setoran santri untuk sesi ini. Silakan periksa koneksi internet Anda dan coba lagi.");
         setMode("idle");
         setRecordId(null);
         setExistingData(null);

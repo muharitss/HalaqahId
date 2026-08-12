@@ -13,8 +13,12 @@ import { superadminRoutes } from "./superadmin";
 import { kepalaRoutes } from "./kepala";
 import { muhafizRoutes } from "./muhafiz";
 
+import { lazy, Suspense } from "react";
+
 // Fallback Page
-import { NotFoundPage } from "@/features/landing";
+const NotFoundPage = lazy(() =>
+  import("@/features/landing/pages/NotFoundPage")
+);
 
 export const router = createBrowserRouter([
   // ── Public: Portal & Landing Pages (tidak butuh login) ───────────────────
@@ -63,5 +67,12 @@ export const router = createBrowserRouter([
   },
 
   // ── 404 Fallback ──────────────────────────────────────────────────────────
-  { path: "*", element: <NotFoundPage /> },
+  {
+    path: "*",
+    element: (
+      <Suspense fallback={<div className="min-h-screen" />}>
+        <NotFoundPage />
+      </Suspense>
+    ),
+  },
 ]);

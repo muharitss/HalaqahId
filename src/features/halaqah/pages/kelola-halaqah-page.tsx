@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { HalaqahManagement } from "@/components/custom/typed-text";
 import { useHalaqahManagement, BuatHalaqah, DaftarHalaqah, EditHalaqah, DeleteHalaqah } from "../modules";
 import { SantriModal } from "@/features/santri";
@@ -43,10 +43,6 @@ export function KelolaHalaqahPage() {
   } = useHalaqahManagement();
 
   const [targetHalaqahId, setTargetHalaqahId] = useState<string>("");
-
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">

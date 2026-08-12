@@ -21,7 +21,7 @@ export const useMuhafiz = () => {
   const [attendanceMap, setAttendanceMap] = useState<Record<number, AbsensiStatus>>({});
 
   // Fetch Muhafiz List & Active IDs & Sesi
-  const { data: initData, isFetching: isLoadingInit, refetch: loadMuhafiz } = useMuhafizInit(user?.id_user);
+  const { data: initData, isLoading: isLoadingInit, refetch: loadMuhafiz } = useMuhafizInit(user?.id_user);
 
   // Derive current active sesi ID from loaded list if not explicitly selected
   const activeSesiId = selectedSesi ?? initData?.sesiList?.[0]?.id_sesi ?? null;

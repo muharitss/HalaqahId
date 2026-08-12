@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus, faSearch } from "@fortawesome/free-solid-svg-icons";
 import { Button } from "@/components/ui/button";
@@ -17,7 +17,7 @@ export function KelolaSantriPage() {
   const { user } = useAuth();
   const isAdmin = user?.role === Role.SUPERADMIN || user?.role === Role.ADMIN || user?.role === Role.KOORDINATOR_TAHFIZ;
   
-  const { santriList, isLoading, createSantri, updateSantri, deleteSantri, loadSantri } = useSantri();
+  const { santriList, isLoading, createSantri, updateSantri, deleteSantri } = useSantri();
   
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -74,34 +74,45 @@ export function KelolaSantriPage() {
     ready: !isLoading
   });
 
-  useEffect(() => {
-    loadSantri();
-  }, [loadSantri]);
-
   // Reset page when search term changes
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm]);
 
-  const filteredSantri = santriList.filter((s: Santri) =>
-    s.nama_santri.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredSantri = useMemo(
+    () =>
+      santriList.filter((s: Santri) =>
+        s.nama_santri.toLowerCase().includes(searchTerm.toLowerCase())
+      ),
+    [santriList, searchTerm]
   );
 
-  const totalPages = Math.ceil(filteredSantri.length / 10);
-  const displayedSantri = showAll
-    ? filteredSantri
-    : filteredSantri.slice((currentPage - 1) * 10, currentPage * 10);
+  const totalPages = useMemo(
+    () => Math.max(1, Math.ceil(filteredSantri.length / 10)),
+    [filteredSantri.length]
+  );
 
-  const handleEdit = (santri: Santri) => {
+  const displayedSantri = useMemo(
+    () =>
+      showAll
+        ? filteredSantri
+        : filteredSantri.slice((currentPage - 1) * 10, currentPage * 10),
+    [filteredSantri, showAll, currentPage]
+  );
+
+  const handleEdit = useCallback((santri: Santri) => {
     setSelectedSantri(santri);
     setIsModalOpen(true);
-  };
+  }, []);
 
-  const handleDelete = async (santri: Santri) => {
-    if (confirm(`Yakin ingin menghapus santri ${santri.nama_santri}?`)) {
-      await deleteSantri(santri.id_santri);
-    }
-  };
+  const handleDelete = useCallback(
+    async (santri: Santri) => {
+      if (confirm(`Yakin ingin menghapus santri ${santri.nama_santri}?`)) {
+        await deleteSantri(santri.id_santri);
+      }
+    },
+    [deleteSantri]
+  );
 
   const handleSave = async (data: {
     nama_santri: string;

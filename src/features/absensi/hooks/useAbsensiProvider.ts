@@ -12,23 +12,18 @@ export function useAbsensiProvider() {
   const halaqahId = paramHalaqahId ? Number(paramHalaqahId) : undefined;
 
   const urlState = useAbsensiUrlState();
-  const { santriList, loadSantri, isLoading: loadingSantri } = useSantri();
+  const { santriList, isLoading: loadingSantri } = useSantri();
   
   // Local state for draft attendance
   const [attendanceMap, setAttendanceMap] = useState<Record<number, AbsensiStatusType>>({});
 
   // Queries & Mutations
   const { data: sesiList = [] } = useSesiHalaqahQuery();
-  const { data: sesiAbsensiRecords = [], isFetching: isLoadingSync } = useAbsensiSesiQuery(
+  const { data: sesiAbsensiRecords = [], isLoading: isLoadingSync } = useAbsensiSesiQuery(
     urlState.selectedSesi,
     urlState.selectedDate
   );
   const { submitAbsensiBulk, isSubmitting } = useAbsensiMutation();
-
-  // Load Santri
-  useEffect(() => {
-    loadSantri();
-  }, [loadSantri]);
 
   // Derived Sesi Data
   const uniqueHalaqahIds = useMemo(() => {

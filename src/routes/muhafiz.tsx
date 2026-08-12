@@ -1,12 +1,32 @@
+import { lazy } from "react";
 import { type RouteObject } from "react-router-dom";
-import { MuhafizDashboard } from "@/features/dashboard";
-import { AbsensiPage } from "@/features/absensi";
-import { SetoranPage, MushafPage, LeaderboardPage } from "@/features/setoran";
-import { KelolaSantriPage, ProgresSantriPage } from "@/features/santri";
-import { TahfidzAi } from "@/features/tahfidz-ai";
-import SettingsPage, { InfoPage } from "@/features/settings";
-import { ProfilMuhafizPage } from "@/features/profil";
 import { MuhafizGuard } from "./guards";
+
+const MuhafizDashboard = lazy(() =>
+  import("@/features/dashboard/pages/muhafiz-dashboard").then((m) => ({ default: m.MuhafizDashboard }))
+);
+const AbsensiPage = lazy(() => import("@/features/absensi/pages/AbsensiPage"));
+const SetoranPage = lazy(() =>
+  import("@/features/setoran/pages/input-setoran-page").then((m) => ({ default: m.InputSetoranPage }))
+);
+const MushafPage = lazy(() =>
+  import("@/features/setoran/pages/mushaf-page").then((m) => ({ default: m.MushafPage }))
+);
+const LeaderboardPage = lazy(() =>
+  import("@/features/setoran/pages/LeaderboardPage").then((m) => ({ default: m.LeaderboardPage }))
+);
+const KelolaSantriPage = lazy(() =>
+  import("@/features/santri/pages/kelola-santri-page").then((m) => ({ default: m.KelolaSantriPage }))
+);
+const ProgresSantriPage = lazy(() =>
+  import("@/features/santri/pages/progres-santri-page").then((m) => ({ default: m.ProgresSantriPage }))
+);
+const TahfidzAi = lazy(() =>
+  import("@/features/tahfidz-ai/components/TahfidzAi").then((m) => ({ default: m.TahfidzAi }))
+);
+const SettingsPage = lazy(() => import("@/features/settings/pages/index"));
+const InfoPage = lazy(() => import("@/features/settings/pages/InfoPage"));
+const ProfilMuhafizPage = lazy(() => import("@/features/profil/pages/index"));
 
 export const muhafizRoutes: RouteObject[] = [
   // Route yang butuh halaqah aktif — guard akan tampilkan NoHalaqahView jika belum punya

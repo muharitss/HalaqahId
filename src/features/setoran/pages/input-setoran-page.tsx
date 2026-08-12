@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Card,
   CardContent,
@@ -39,10 +39,6 @@ export function InputSetoranPage({
   const [activeTab, setActiveTab] = useState<"setoran" | "ujian">("setoran");
   const [formMode, setFormMode] = useState<FormMode>("idle");
   const [isFormChecking, setIsFormChecking] = useState(false);
-
-  useEffect(() => {
-    fetchSantri();
-  }, [fetchSantri]);
 
   const isEditMode = formMode === "edit";
   const isIdle = formMode === "idle";
