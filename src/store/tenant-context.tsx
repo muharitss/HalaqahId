@@ -54,30 +54,27 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({
   });
 
   const tenant = tenantResponse?.data || null;
-  const tenantId = tenant?.id_tenant;
+  const activeTenantId = tenant?.id_tenant || 1;
 
-  // Fetch branding info
+  // Fetch branding info (parallel)
   const { data: brandResponse, isLoading: isLoadingBrand } = useQuery({
-    queryKey: ["tenant-brand", tenantId],
-    queryFn: () => tenantApi.getBrand(tenantId!),
-    enabled: !!tenantId,
+    queryKey: ["tenant-brand", activeTenantId],
+    queryFn: () => tenantApi.getBrand(activeTenantId),
     staleTime: 1000 * 60 * 10,
   });
 
-  // Fetch custom terminology mapping
+  // Fetch custom terminology mapping (parallel)
   const { data: terminologyResponse, isLoading: isLoadingTerminology } =
     useQuery({
-      queryKey: ["tenant-terminology", tenantId],
-      queryFn: () => tenantApi.getTerminology(tenantId!),
-      enabled: !!tenantId,
+      queryKey: ["tenant-terminology", activeTenantId],
+      queryFn: () => tenantApi.getTerminology(activeTenantId),
       staleTime: 1000 * 60 * 10,
     });
 
-  // Fetch active features gating
+  // Fetch active features gating (parallel)
   const { data: featuresResponse, isLoading: isLoadingFeatures } = useQuery({
-    queryKey: ["tenant-features", tenantId],
-    queryFn: () => tenantApi.getFeatures(tenantId!),
-    enabled: !!tenantId,
+    queryKey: ["tenant-features", activeTenantId],
+    queryFn: () => tenantApi.getFeatures(activeTenantId),
     staleTime: 1000 * 60 * 10,
   });
 
@@ -89,7 +86,7 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({
       features: featuresResponse?.data || [],
       isLoading:
         isLoadingTenant ||
-        (!!tenantId &&
+        (!!activeTenantId &&
           (isLoadingBrand || isLoadingTerminology || isLoadingFeatures)),
       error: (tenantError as Error) || null,
     };
@@ -102,7 +99,7 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({
     isLoadingBrand,
     isLoadingTerminology,
     isLoadingFeatures,
-    tenantId,
+    activeTenantId,
     tenantError,
   ]);
 
