@@ -27,9 +27,16 @@ export function useUjianSettings() {
   );
 
   // Form State Tambahan
-  const [tipeUjian, setTipeUjian] = useState<"PEKANAN" | "BULANAN" | "HARIAN" | "KUSTOM">("KUSTOM");
+  const [tipeUjian, setTipeUjianState] = useState<"PEKANAN" | "BULANAN" | "HARIAN" | "KUSTOM">("KUSTOM");
   const [filterJenisKategori, setFilterJenisKategori] = useState<string[]>([]);
   const [soalAcakTanpaDetail, setSoalAcakTanpaDetail] = useState(false);
+
+  const setTipeUjian = (val: "PEKANAN" | "BULANAN" | "HARIAN" | "KUSTOM") => {
+    setTipeUjianState(val);
+    if (val === "BULANAN") {
+      setSoalAcakTanpaDetail(true);
+    }
+  };
 
   // Form State Template
   const [namaUjian, setNamaUjian] = useState("");

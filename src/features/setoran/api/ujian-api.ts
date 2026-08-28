@@ -48,6 +48,10 @@ export interface ExamSchedule {
     jenis_ujian: ExamMode;
     input_schema: any;
     formula_expression: string;
+    tipe_ujian?: "PEKANAN" | "BULANAN" | "HARIAN" | "KUSTOM";
+    filter_jenis_kategori?: string[];
+    jumlah_soal?: number;
+    soal_acak_tanpa_detail?: boolean;
     aturan_kelulusan?: {
       kkm?: number;
     };
