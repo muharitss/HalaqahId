@@ -43,55 +43,8 @@ import {
 import { toast } from "sonner";
 import { format, parseISO } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
+import { evaluateFormula } from "@/features/settings/modules/ujian/utils/evaluateFormula";
 
-// Client-side math formula evaluator
-function previewNilai(formulaExpression: string, context: Record<string, number>): number {
-  let expr = formulaExpression;
-  const keys = Object.keys(context).sort((a, b) => b.length - a.length);
-  for (const key of keys) {
-    const escaped = key.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
-    expr = expr.replace(new RegExp(`\\b${escaped}\\b`, "g"), context[key].toString());
-  }
-  try {
-    const tokens = expr.match(/(\d+(\.\d+)?|\+|\-|\*|\/|\(|\))/g) || [];
-    const values: number[] = [];
-    const ops: string[] = [];
-    const prec = (op: string) => (op === "+" || op === "-" ? 1 : 2);
-    const apply = (op: string, b: number, a: number) => {
-      if (op === "+") return a + b;
-      if (op === "-") return a - b;
-      if (op === "*") return a * b;
-      if (op === "/") return b === 0 ? 0 : a / b;
-      return 0;
-    };
-    for (const t of tokens) {
-      if (!isNaN(Number(t))) {
-        values.push(Number(t));
-      } else if (t === "(") {
-        ops.push(t);
-      } else if (t === ")") {
-        while (ops.length && ops[ops.length - 1] !== "(") {
-          const b = values.pop()!; const a = values.pop()!; const op = ops.pop()!;
-          values.push(apply(op, b, a));
-        }
-        ops.pop();
-      } else if (["+", "-", "*", "/"].includes(t)) {
-        while (ops.length && prec(ops[ops.length - 1]) >= prec(t)) {
-          const b = values.pop()!; const a = values.pop()!; const op = ops.pop()!;
-          values.push(apply(op, b, a));
-        }
-        ops.push(t);
-      }
-    }
-    while (ops.length) {
-      const b = values.pop()!; const a = values.pop()!; const op = ops.pop()!;
-      values.push(apply(op, b, a));
-    }
-    return Math.max(0, Math.min(100, Math.round((values[0] || 0) * 100) / 100));
-  } catch {
-    return 0;
-  }
-}
 
 interface DynamicExamFormProps {
   santriList: Santri[];
@@ -291,25 +244,32 @@ export function DynamicExamForm({ santriList, sesiList: _sesiList, onSuccess }: 
 
   // ── 8. DYNAMIC REAL-TIME SCORE PREVIEW ──
   const previewScore = useMemo(() => {
-    if (!template) return 0;
+    if (!template || !template.formula_expression) return 0;
 
     const context: Record<string, number> = {};
 
     if (template.jenis_ujian === "SINGLE_PASS") {
       Object.keys(singlePassInputs).forEach(k => {
-        if (typeof singlePassInputs[k] === "number") {
-          context[k] = singlePassInputs[k];
+        const val = singlePassInputs[k];
+        const numVal = Number(val);
+        if (!isNaN(numVal)) {
+          context[k] = numVal;
+          context[`total_${k}`] = numVal;
+          context[`avg_${k}`] = numVal;
+          context[`max_${k}`] = numVal;
+          context[`min_${k}`] = numVal;
         }
       });
     } else {
       // MULTI_SOAL
       const variableLists: Record<string, number[]> = {};
       multiSoalQuestions.forEach(q => {
-        Object.keys(q.input_values).forEach(k => {
+        Object.keys(q.input_values || {}).forEach(k => {
           const val = q.input_values[k];
-          if (typeof val === "number") {
+          const numVal = Number(val);
+          if (!isNaN(numVal)) {
             if (!variableLists[k]) variableLists[k] = [];
-            variableLists[k].push(val);
+            variableLists[k].push(numVal);
           }
         });
       });
@@ -321,10 +281,16 @@ export function DynamicExamForm({ santriList, sesiList: _sesiList, onSuccess }: 
         context[`avg_${k}`] = list.length > 0 ? total / list.length : 0;
         context[`max_${k}`] = Math.max(...list);
         context[`min_${k}`] = Math.min(...list);
+        context[k] = total;
       });
     }
 
-    return previewNilai(template.formula_expression, context);
+    try {
+      const rawResult = evaluateFormula(template.formula_expression, context);
+      return Math.max(0, Math.min(100, Math.round(rawResult * 100) / 100));
+    } catch {
+      return 0;
+    }
   }, [template, singlePassInputs, multiSoalQuestions]);
 
   // ── 9. SUBMIT RESULT ──
