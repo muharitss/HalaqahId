@@ -1,19 +1,14 @@
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Loader2, Sparkles, Languages } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useTerminologySettings } from "../hooks/useTerminologySettings";
 import { TerminologyItemCard } from "./TerminologyItemCard";
 
 export function TerminologySettingsCard() {
   const {
-    tenant,
     entityConfigs,
     customLabels,
     savingKey,
@@ -26,26 +21,9 @@ export function TerminologySettingsCard() {
 
   return (
     <Card className="shadow-sm border-primary/5">
-      <CardHeader className="py-5 px-6 border-b">
-        <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            <CardTitle className="text-base font-bold flex items-center gap-2">
-              <Languages className="h-5 w-5 text-primary" />
-              Kustomisasi Istilah & Label Entitas
-            </CardTitle>
-            <CardDescription className="text-xs">
-              Sesuaikan istilah sebutan di sistem dengan kultur dan identitas
-              lembaga Anda (contoh: Santri menjadi Siswa atau Murid).
-            </CardDescription>
-          </div>
-          <Badge variant="outline" className="text-xs font-normal">
-            {tenant?.nama_tenant || "Platform Default"}
-          </Badge>
-        </div>
-      </CardHeader>
 
-      <CardContent className="p-6">
-        <form onSubmit={handleSaveAll} className="space-y-6">
+      <CardContent>
+        <form onSubmit={handleSaveAll}>
           <div className="grid gap-6 sm:grid-cols-2">
             {entityConfigs.map((item) => {
               const currentVal = customLabels[item.code] || "";
@@ -67,12 +45,7 @@ export function TerminologySettingsCard() {
           </div>
 
           <div className="flex items-center justify-between pt-4 border-t">
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <Sparkles className="h-4 w-4 text-primary" />
-              <span>
-                Perubahan akan langsung diterapkan pada seluruh halaman dan
-                formulir.
-              </span>
+            <div>
             </div>
             <Button
               type="submit"
