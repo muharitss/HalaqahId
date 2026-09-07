@@ -3,6 +3,8 @@ export interface TerminologyConfigItem {
   defaultLabel: string;
   description: string;
   placeholder: string;
+  category?: string;
+  quickOptions?: string[];
 }
 
 export interface TerminologyState {
