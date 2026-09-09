@@ -1,15 +1,73 @@
-import { Info, Trash2, ChevronLeft, LogOut, ArrowLeft, Bot, Link as LinkIcon, Building2, Layers, Target, GraduationCap, Sliders, UserCircle, Languages } from "lucide-react";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { SettingItem } from "../components/SettingItem";
-import { Settings } from "@/components/custom/typed-text";
+import { useState } from "react";
+import { toast } from "sonner";
+import { Role } from "@/types/domain/enums";
 import { Separator } from "@/components/ui/separator";
+
 import { useSettingsPage } from "../hooks/useSettingsPage";
-import { useTerminology } from "@/hooks/useTerminology";
+import {
+  SettingsHeader,
+  AkunSection,
+  KurikulumSection,
+  InformasiSection,
+  SesiSection,
+  SettingsEmptyState,
+  LogoutDialog,
+} from "../components";
+
+const SETTINGS_SEARCH_KEYWORDS = [
+  "profil",
+  "saya",
+  "akun",
+  "pribadi",
+  "tahfidz",
+  "ai",
+  "bot",
+  "virtual",
+  "sekolah",
+  "lembaga",
+  "terminologi",
+  "glosarium",
+  "istilah",
+  "santri",
+  "halaqah",
+  "muhafiz",
+  "kategori",
+  "setoran",
+  "form",
+  "kolom",
+  "target",
+  "hafalan",
+  "ujian",
+  "pengaturan",
+  "kelulusan",
+  "rumus",
+  "info",
+  "sop",
+  "pedoman",
+  "peraturan",
+  "salin",
+  "link",
+  "portal",
+  "publik",
+  "wali",
+  "tempat",
+  "sampah",
+  "trash",
+  "recycle",
+  "admin",
+  "kembali",
+  "impersonasi",
+  "keluar",
+  "logout",
+  "aplikasi",
+  "sesi",
+];
 
 export default function SettingsPage() {
   const {
     navigate,
+    user,
+    isLoading,
     logout,
     isImpersonating,
     isKepala,
@@ -19,143 +77,97 @@ export default function SettingsPage() {
     handleCopyDisplayLink,
   } = useSettingsPage();
 
-  const labelSantri = useTerminology("SANTRI");
-  const labelSekolah = useTerminology("SEKOLAH");
-  const labelMuhafiz = useTerminology("MUHAFIZ");
-  const labelHalaqah = useTerminology("HALAQAH");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isLogoutOpen, setIsLogoutOpen] = useState(false);
 
-  return (
-    <div className="space-y-6 max-w-3xl mx-auto animate-in fade-in duration-500">
-      <div className="flex items-center gap-6 border-b pb-8">
-        <Button variant="outline" size="icon" onClick={() => navigate(dashboardPath)} className="rounded-full h-10 w-10 shrink-0">
-          <ChevronLeft className="h-5 w-5" />
-        </Button>
-        <div className="space-y-1">
-          <Settings/>
+  if (isLoading && !user) {
+    return (
+      <div className="w-full max-w-5xl mx-auto space-y-6 animate-pulse">
+        <div className="h-14 bg-muted rounded-xl" />
+        <div className="space-y-4">
+          <div className="h-20 bg-muted rounded-xl" />
+          <div className="h-64 bg-muted rounded-xl" />
+          <div className="h-32 bg-muted rounded-xl" />
         </div>
       </div>
+    );
+  }
 
-      <div className="space-y-6">
-        {/* GRUP 0: AKUN */}
-        <section className="space-y-3">
-          <h3 className="text-xs font-bold uppercase text-muted-foreground ml-1">Akun</h3>
-          <Card>
-            <SettingItem
-              icon={<UserCircle size={18} className="text-primary" />}
-              title="Profil Saya"
-              description="Lihat dan perbarui informasi pribadi Anda"
-              onClick={() => navigate(isKepala ? "/kepala-muhafidz/profil" : "/muhafidz/profil")}
-            />
-          </Card>
-        </section>
+  const handleAuditLogClick = () => {
+    if (
+      user?.role === Role.SUPERADMIN ||
+      user?.originalUser?.role === Role.SUPERADMIN
+    ) {
+      navigate("/superadmin/audit-logs");
+    } else {
+      toast.info("Fitur Audit Log hanya dapat diakses oleh Administrator.");
+    }
+  };
 
-        {/* GRUP 1: PROFIL & AI */}
-        <section className="space-y-3">
-          <h3 className="text-xs font-bold uppercase text-muted-foreground ml-1">Fitur Tambahan</h3>
-          <Card>
-            <SettingItem 
-              icon={<Bot size={18} className="text-blue-500" />}
-              title="Tahfidz AI"
-              description={`Asisten virtual hafalan ${labelSantri.toLowerCase()}`}
-              onClick={() => navigate(isKepala ? "/kepala-muhafidz/tahfidzai" : "/muhafidz/tahfidzai")}
-            />
-            {isKepala && (
-              <>
-                <SettingItem 
-                  icon={<Building2 size={18} className="text-primary" />}
-                  title={`Profil ${labelSekolah}`}
-                  description={`Kelola informasi dan alamat ${labelSekolah.toLowerCase()} Anda`}
-                  onClick={() => navigate("/kepala-muhafidz/profil-sekolah")}
-                />
-                <SettingItem 
-                  icon={<Languages size={18} className="text-teal-500" />}
-                  title="Terminologi Lembaga"
-                  description="Kustomisasi sebutan istilah santri, halaqah, muhafiz"
-                  onClick={() => navigate("/kepala-muhafidz/settings/terminology")}
-                />
-                <SettingItem 
-                  icon={<Layers size={18} className="text-violet-500" />}
-                  title="Kategori Setoran"
-                  description="Kelola kategori kustom setoran Al-Quran"
-                  onClick={() => navigate("/kepala-muhafidz/settings/kategori")}
-                />
-                <SettingItem 
-                  icon={<Sliders size={18} className="text-pink-500" />}
-                  title="Form Setoran"
-                  description="Atur kolom kustom untuk form setoran"
-                  onClick={() => navigate("/kepala-muhafidz/settings/form-setoran")}
-                />
-                <SettingItem 
-                  icon={<Target size={18} className="text-orange-500" />}
-                  title="Target Setoran"
-                  description={`Atur target hafalan fleksibel untuk ${labelSantri.toLowerCase()}`}
-                  onClick={() => navigate("/kepala-muhafidz/settings/target")}
-                />
-                <SettingItem 
-                  icon={<GraduationCap size={18} className="text-emerald-500" />}
-                  title="Pengaturan Ujian"
-                  description="Kelola kriteria dan rumus kelulusan ujian"
-                  onClick={() => navigate("/kepala-muhafidz/settings/ujian")}
-                />
+  const q = searchQuery.toLowerCase().trim();
+  const hasMatch =
+    !q ||
+    SETTINGS_SEARCH_KEYWORDS.some((kw) => kw.includes(q) || q.includes(kw)) ||
+    (user?.name?.toLowerCase().includes(q) ?? false);
 
-              </>
-            )}
-          </Card>
-        </section>
+  return (
+    <div className="w-full max-w-5xl mx-auto space-y-6">
+      {/* Header dengan Breadcrumb, Judul, Search, & Audit Log */}
+      <SettingsHeader
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        onClearSearch={() => setSearchQuery("")}
+        onNavigateHome={() => navigate(dashboardPath)}
+        onAuditLogClick={handleAuditLogClick}
+      />
 
-        {/* GRUP 2: SISTEM & INFO */}
-        <section className="space-y-3">
-          <h3 className="text-xs font-bold uppercase text-muted-foreground ml-1">Informasi</h3>
-          <Card className="overflow-hidden border-primary/5 shadow-sm">
-            <SettingItem 
-              icon={<Info size={18} />}
-              title="Informasi & SOP"
-              description="Pedoman penggunaan dan peraturan"
-              onClick={() => navigate(`${basePath}/info`)}
-            />
-            {isKepala && (
-              <>
-                <SettingItem 
-                  icon={<LinkIcon size={18} className="text-emerald-500" />}
-                  title="Salin Link Portal Publik"
-                  description={`Bagikan akses ke wali ${labelSantri.toLowerCase()}`}
-                  onClick={handleCopyDisplayLink}
-                />
-                <SettingItem 
-                  icon={<Trash2 size={18} className="text-destructive" />}
-                  title="Tempat Sampah"
-                  description={`Pulihkan data ${labelMuhafiz.toLowerCase()} atau ${labelHalaqah.toLowerCase()}`}
-                  onClick={() => navigate(`${basePath}/trash`)}
-                />
-              </>
-            )}
-          </Card>
-        </section>
+      <Separator />
 
-        {/* GRUP 3: TINDAKAN KHUSUS (Impersonate & Logout) */}
-        <section className="space-y-3">
-           <h3 className="text-xs font-bold uppercase text-muted-foreground ml-1">Sesi</h3>
-           <Card className="overflow-hidden border-primary/5 shadow-sm">
-              {isImpersonating && (
-                <>
-                  <SettingItem 
-                    icon={<ArrowLeft size={18} className="text-yellow-600" />}
-                    title="Kembali ke Admin"
-                    description="Keluar dari mode impersonasi"
-                    onClick={handleBackToSuperadmin}
-                  />
-                  <Separator />
-                </>
-              )}
-              <SettingItem 
-                icon={<LogOut size={18} className="text-destructive" />}
-                title="Keluar Aplikasi"
-                description="Akhiri sesi Anda sekarang"
-                onClick={logout}
-              />
-           </Card>
-        </section>
-      </div>
+      {/* Tampilan Kosong jika pencarian tidak ditemukan */}
+      {!hasMatch && searchQuery.trim() !== "" ? (
+        <SettingsEmptyState onReset={() => setSearchQuery("")} />
+      ) : (
+        /* Seksi-seksi Pengaturan Modular */
+        <div className="space-y-4">
+          <AkunSection
+            user={user}
+            isKepala={isKepala}
+            searchQuery={searchQuery}
+            onNavigate={navigate}
+          />
+
+          <KurikulumSection
+            isKepala={isKepala}
+            searchQuery={searchQuery}
+            onNavigate={navigate}
+          />
+
+          <InformasiSection
+            isKepala={isKepala}
+            basePath={basePath}
+            searchQuery={searchQuery}
+            onNavigate={navigate}
+            onCopyLink={handleCopyDisplayLink}
+          />
+
+          <SesiSection
+            isImpersonating={isImpersonating}
+            searchQuery={searchQuery}
+            onBackToSuperadmin={handleBackToSuperadmin}
+            onLogoutClick={() => setIsLogoutOpen(true)}
+          />
+        </div>
+      )}
+
+      {/* Modal Dialog Konfirmasi Logout */}
+      <LogoutDialog
+        open={isLogoutOpen}
+        onOpenChange={setIsLogoutOpen}
+        onConfirm={() => {
+          setIsLogoutOpen(false);
+          logout();
+        }}
+      />
     </div>
   );
 }

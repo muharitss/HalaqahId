@@ -17,3 +17,6 @@ export * from "./api";
 // Hooks
 export { useSettingsPage } from "./hooks/useSettingsPage";
 export { useTrashSection } from "./hooks/useTrashSection";
+
+// Components
+export * from "./components";

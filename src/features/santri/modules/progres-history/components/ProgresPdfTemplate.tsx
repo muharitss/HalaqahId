@@ -47,7 +47,7 @@ const STATUS_COLOR: Record<string, string> = {
   TERCAPAI: "#059669",
   DALAM_PROSES: "#2563eb",
   BELUM_MULAI: "#64748b",
-  BEBAS: "#7c3aed",
+  BEBAS: "#fafafa",
 };
 
 const styles = StyleSheet.create({
@@ -250,16 +250,21 @@ export function ProgresPdfTemplate({
   const resolvedNamaSingkat = sekolah?.nama_singkat || resolvedNamaSekolah;
 
   const pages = Array.from({ length: totalPages }, (_, i) =>
-    rows.slice(i * ROWS_PER_PAGE, (i + 1) * ROWS_PER_PAGE)
+    rows.slice(i * ROWS_PER_PAGE, (i + 1) * ROWS_PER_PAGE),
   );
 
   const getStatusLabel = (status: string) => {
     switch (status.toUpperCase()) {
-      case "TERCAPAI": return "Tercapai";
-      case "DALAM_PROSES": return "Dalam Proses";
-      case "BELUM_MULAI": return "Belum Mulai";
-      case "BEBAS": return "Tanpa Target";
-      default: return status;
+      case "TERCAPAI":
+        return "Tercapai";
+      case "DALAM_PROSES":
+        return "Dalam Proses";
+      case "BELUM_MULAI":
+        return "Belum Mulai";
+      case "BEBAS":
+        return "Tanpa Target";
+      default:
+        return status;
     }
   };
 
@@ -283,18 +288,22 @@ export function ProgresPdfTemplate({
                   {sekolah.alamat ? sekolah.alamat : ""}
                   {sekolah.kota ? ` · ${sekolah.kota}` : ""}
                   {sekolah.provinsi ? ` · ${sekolah.provinsi}` : ""}
-                  {sekolah.no_telepon || sekolah.whatsapp || sekolah.email ? "\n" : ""}
+                  {sekolah.no_telepon || sekolah.whatsapp || sekolah.email
+                    ? "\n"
+                    : ""}
                   {sekolah.no_telepon ? `Telp: ${sekolah.no_telepon}` : ""}
                   {sekolah.whatsapp ? ` · WA: ${sekolah.whatsapp}` : ""}
                   {sekolah.email ? ` · Email: ${sekolah.email}` : ""}
                 </Text>
               ) : null}
-              <Text style={styles.docTitle}>Laporan Progres Hafalan Santri</Text>
-              <Text style={styles.periodText}>Periode Laporan: {periodLabel}</Text>
+              <Text style={styles.docTitle}>
+                Laporan Progres Hafalan Santri
+              </Text>
+              <Text style={styles.periodText}>
+                Periode Laporan: {periodLabel}
+              </Text>
             </View>
-            {sekolah?.logo_url ? (
-              <View style={{ width: 55 }} />
-            ) : null}
+            {sekolah?.logo_url ? <View style={{ width: 55 }} /> : null}
           </View>
 
           {/* ── INFO BOX (Only Page 1) ── */}
@@ -340,19 +349,38 @@ export function ProgresPdfTemplate({
 
           {/* Section title */}
           <Text style={styles.sectionTitle}>
-            Daftar Progres Santri {pageIdx > 0 ? `(Lanjutan — Hal. ${pageIdx + 1})` : ""}
+            Daftar Progres Santri{" "}
+            {pageIdx > 0 ? `(Lanjutan — Hal. ${pageIdx + 1})` : ""}
           </Text>
 
           {/* Table */}
           <View style={styles.table}>
             <View style={styles.tableHeader}>
               <Text style={[styles.tableHeaderCell, styles.colNo]}>#</Text>
-              <Text style={[styles.tableHeaderCell, styles.colNama]}>Nama Santri</Text>
-              <Text style={[styles.tableHeaderCell, styles.colHalaqah]}>Halaqah</Text>
-              <Text style={[styles.tableHeaderCell, styles.colTarget]}>Target Aktif</Text>
-              <Text style={[styles.tableHeaderCell, styles.colCapaian]}>Capaian</Text>
-              <Text style={[styles.tableHeaderCell, styles.colPersen, { textAlign: "center" }]}>Persen</Text>
-              <Text style={[styles.tableHeaderCell, styles.colStatus]}>Status</Text>
+              <Text style={[styles.tableHeaderCell, styles.colNama]}>
+                Nama Santri
+              </Text>
+              <Text style={[styles.tableHeaderCell, styles.colHalaqah]}>
+                Halaqah
+              </Text>
+              <Text style={[styles.tableHeaderCell, styles.colTarget]}>
+                Target Aktif
+              </Text>
+              <Text style={[styles.tableHeaderCell, styles.colCapaian]}>
+                Capaian
+              </Text>
+              <Text
+                style={[
+                  styles.tableHeaderCell,
+                  styles.colPersen,
+                  { textAlign: "center" },
+                ]}
+              >
+                Persen
+              </Text>
+              <Text style={[styles.tableHeaderCell, styles.colStatus]}>
+                Status
+              </Text>
             </View>
 
             {pageRows.length > 0 ? (
@@ -361,15 +389,30 @@ export function ProgresPdfTemplate({
                 return (
                   <View
                     key={row.no}
-                    style={[styles.tableRow, globalIdx % 2 === 1 ? styles.tableRowAlt : {}]}
+                    style={[
+                      styles.tableRow,
+                      globalIdx % 2 === 1 ? styles.tableRowAlt : {},
+                    ]}
                   >
-                    <Text style={[styles.tableCell, styles.colNo, { color: "#94a3b8" }]}>
+                    <Text
+                      style={[
+                        styles.tableCell,
+                        styles.colNo,
+                        { color: "#94a3b8" },
+                      ]}
+                    >
                       {row.no}
                     </Text>
                     <Text style={[styles.tableCellBold, styles.colNama]}>
                       {row.nama_santri}
                     </Text>
-                    <Text style={[styles.tableCell, styles.colHalaqah, { color: "#64748b" }]}>
+                    <Text
+                      style={[
+                        styles.tableCell,
+                        styles.colHalaqah,
+                        { color: "#64748b" },
+                      ]}
+                    >
                       {row.nama_halaqah}
                     </Text>
                     <Text style={[styles.tableCell, styles.colTarget]}>
@@ -378,18 +421,29 @@ export function ProgresPdfTemplate({
                     <Text style={[styles.tableCellBold, styles.colCapaian]}>
                       {row.capaian}
                     </Text>
-                    <Text style={[styles.tableCellBold, styles.colPersen, { textAlign: "center" }]}>
+                    <Text
+                      style={[
+                        styles.tableCellBold,
+                        styles.colPersen,
+                        { textAlign: "center" },
+                      ]}
+                    >
                       {row.persentase}%
                     </Text>
                     <View style={styles.colStatus}>
-                      <StatusPill status={row.status} label={getStatusLabel(row.status)} />
+                      <StatusPill
+                        status={row.status}
+                        label={getStatusLabel(row.status)}
+                      />
                     </View>
                   </View>
                 );
               })
             ) : (
               <View style={{ padding: 16 }}>
-                <Text style={{ fontSize: 9, color: "#94a3b8", textAlign: "center" }}>
+                <Text
+                  style={{ fontSize: 9, color: "#94a3b8", textAlign: "center" }}
+                >
                   Tidak ada data progres santri
                 </Text>
               </View>

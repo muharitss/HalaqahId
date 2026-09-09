@@ -6,7 +6,7 @@ import { toast } from "sonner";
 
 export function useSettingsPage() {
   const navigate = useNavigate();
-  const { user, logout, isImpersonating, stopImpersonating } = useAuth();
+  const { user, isLoading, logout, isImpersonating, stopImpersonating } = useAuth();
   const isKepala = user ? isKepalaRole(user.role) : false;
 
   const basePath = isKepala ? "/kepala-muhafidz/settings" : "/muhafidz/settings";
@@ -47,6 +47,7 @@ export function useSettingsPage() {
   return {
     navigate,
     user,
+    isLoading,
     logout,
     isImpersonating,
     isKepala,

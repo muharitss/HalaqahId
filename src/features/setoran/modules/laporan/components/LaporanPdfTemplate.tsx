@@ -53,7 +53,8 @@ interface LaporanPdfTemplateProps {
 
 const getKategoriColor = (kategori: string): string => {
   const normalized = (kategori || "").toUpperCase();
-  if (normalized.includes("ZIYADAH") || normalized.includes("SETORAN")) return "#7c3aed";
+  if (normalized.includes("ZIYADAH") || normalized.includes("SETORAN"))
+    return "#fafafa";
   if (normalized.includes("MURAJAAH")) return "#2563eb";
   if (normalized.includes("HAFALAN")) return "#059669";
   if (normalized.includes("INTENS")) return "#d97706";
@@ -378,9 +379,7 @@ export function LaporanPdfTemplate({
                   {sekolah.email ? ` · Email: ${sekolah.email}` : ""}
                 </Text>
               ) : null}
-              <Text style={styles.docTitle}>
-                {docTitle}
-              </Text>
+              <Text style={styles.docTitle}>{docTitle}</Text>
               <Text style={styles.periodText}>
                 Periode Laporan: {periodLabel}
               </Text>
@@ -418,7 +417,9 @@ export function LaporanPdfTemplate({
                     </Text>
                   </View>
                   <View style={styles.summaryField}>
-                    <Text style={styles.summaryLabel}>Rata-rata Kelancaran</Text>
+                    <Text style={styles.summaryLabel}>
+                      Rata-rata Kelancaran
+                    </Text>
                     <Text
                       style={[styles.summaryValueBold, { color: "#059669" }]}
                     >
@@ -511,9 +512,7 @@ export function LaporanPdfTemplate({
               <Text style={[styles.tableHeaderCell, styles.colSurat]}>
                 Surat
               </Text>
-              <Text style={[styles.tableHeaderCell, styles.colAyat]}>
-                Ayat
-              </Text>
+              <Text style={[styles.tableHeaderCell, styles.colAyat]}>Ayat</Text>
               <Text style={[styles.tableHeaderCell, styles.colKategori]}>
                 Kategori
               </Text>
@@ -526,9 +525,7 @@ export function LaporanPdfTemplate({
               pageData.rows.map((row, idx) => {
                 const globalIdx = pageData.isFirst
                   ? idx
-                  : ROWS_FIRST +
-                    (pageIdx - 1) * ROWS_REST +
-                    idx;
+                  : ROWS_FIRST + (pageIdx - 1) * ROWS_REST + idx;
                 return (
                   <View
                     key={row.no}
@@ -592,28 +589,37 @@ export function LaporanPdfTemplate({
                       <KategoriBadge kategori={row.kategori} />
                     </View>
                     <View style={styles.colTaqwim}>
-                      {row.custom_values && typeof row.custom_values === "object" && Object.keys(row.custom_values).length > 0 ? (
+                      {row.custom_values &&
+                      typeof row.custom_values === "object" &&
+                      Object.keys(row.custom_values).length > 0 ? (
                         Object.entries(row.custom_values).map(([key, val]) => {
-                          const config = (sekolah?.form_setoran_config as any[]) || [];
+                          const config =
+                            (sekolah?.form_setoran_config as any[]) || [];
                           const fieldConfig = config.find((f) => f.id === key);
                           if (!fieldConfig) return null;
-                          if (val === undefined || val === null || val === "") return null;
+                          if (val === undefined || val === null || val === "")
+                            return null;
 
                           let displayVal = String(val);
                           if (fieldConfig.type === "boolean") {
                             displayVal = val ? "Ya" : "Tidak";
                           }
                           return (
-                            <Text key={key} style={{ fontSize: 6, color: "#1e293b", marginBottom: 1 }}>
+                            <Text
+                              key={key}
+                              style={{
+                                fontSize: 6,
+                                color: "#1e293b",
+                                marginBottom: 1,
+                              }}
+                            >
                               {fieldConfig.label}: {displayVal}
                             </Text>
                           );
                         })
-                      ) : (
-                        row.taqwim !== null && row.taqwim !== undefined ? (
-                          <TaqwimBadge taqwim={row.taqwim} />
-                        ) : null
-                      )}
+                      ) : row.taqwim !== null && row.taqwim !== undefined ? (
+                        <TaqwimBadge taqwim={row.taqwim} />
+                      ) : null}
                     </View>
                   </View>
                 );

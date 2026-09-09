@@ -42,10 +42,21 @@ const saveSuperadminSession = (superadminData: AuthUser) => {
   }
 };
 
+const getInitialUser = (): AuthUser | null => {
+  try {
+    const saved = localStorage.getItem("user");
+    return saved ? (JSON.parse(saved) as AuthUser) : null;
+  } catch {
+    return null;
+  }
+};
+
+const initialUser = getInitialUser();
+
 export const useAuthStore = create<AuthState>((set, get) => ({
-  user: null,
-  isLoading: true,
-  isImpersonating: false,
+  user: initialUser,
+  isLoading: !initialUser,
+  isImpersonating: initialUser?.isImpersonating || false,
 
   isAdmin: () => get().user?.role === Role.SUPERADMIN,
   isKepala: () => (get().user ? isKepalaRole(get().user!.role) : false),
