@@ -377,7 +377,7 @@
 **Objektif**: UI untuk manage roles & permissions per-tenant.
 
 **Tasks**:
-- [ ] Buat `src/features/role/`:
+- [x] Buat `src/features/role/`:
   - `pages/KelolaRolePage.tsx`
     - List roles (system vs custom)
     - Create custom role (dialog)
@@ -393,12 +393,12 @@
     - Get/Update permissions
   - `hooks/useRoles.ts`
     - React Query hooks for role data
-- [ ] Tambah route di `src/routes/index.tsx`:
+- [x] Tambah route di `src/routes/index.tsx`:
   ```tsx
   { path: "/superadmin/roles", element: <KelolaRolePage /> }
   { path: "/kepala-muhafidz/settings/roles", element: <KelolaRolePage /> }
   ```
-- [ ] Tambah menu item di sidebar
+- [x] Tambah menu item di sidebar
 
 **Files to create**:
 - `src/features/role/` [NEW directory]

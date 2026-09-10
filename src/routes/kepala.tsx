@@ -37,7 +37,12 @@ const KategoriSettingsPage = lazy(() => import("@/features/settings/pages/Katego
 const TargetSettingsPage = lazy(() => import("@/features/settings/pages/TargetSettingsPage"));
 const UjianSettingsPage = lazy(() => import("@/features/settings/pages/UjianSettingsPage"));
 const FormSetoranSettingsPage = lazy(() => import("@/features/settings/pages/FormSetoranSettingsPage"));
-const TerminologySettingsPage = lazy(() => import("@/features/settings/pages/TerminologySettingsPage"));
+const TerminologySettingsPage = lazy(() =>
+  import("@/features/settings/pages/TerminologySettingsPage")
+);
+const KelolaRolePage = lazy(() =>
+  import("@/features/role").then((m) => ({ default: m.KelolaRolePage }))
+);
 const ProgresSantriPage = lazy(() =>
   import("@/features/santri/pages/progres-santri-page").then((m) => ({ default: m.ProgresSantriPage }))
 );
@@ -130,6 +135,10 @@ export const kepalaRoutes: RouteObject[] = [
   {
     path: "/kepala-muhafidz/settings/terminology",
     element: <TerminologySettingsPage />,
+  },
+  {
+    path: "/kepala-muhafidz/settings/roles",
+    element: <KelolaRolePage />,
   },
 
   // Kontrol per-halaqah

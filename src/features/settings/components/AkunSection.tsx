@@ -1,4 +1,4 @@
-import { Building2 } from "lucide-react";
+import { Building2, Shield } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { SettingItem } from "./SettingItem";
@@ -55,6 +55,15 @@ export function AkunSection({
       description: `Kelola informasi dan alamat ${labelSekolah.toLowerCase()} Anda`,
       onClick: () => onNavigate("/kepala-muhafidz/profil-sekolah"),
       keywords: `profil sekolah lembaga npsn yayasan alamat kontak logo kop surat mudir ${labelSekolah.toLowerCase()}`,
+      visible: isKepala,
+    },
+    {
+      id: "kelola-roles",
+      icon: <Shield className="h-4 w-4" />,
+      title: "Kelola Role & Perizinan",
+      description: "Atur peran pengguna dan konfigurasi matriks permissions",
+      onClick: () => onNavigate("/kepala-muhafidz/settings/roles"),
+      keywords: "role permissions izin hak akses pengguna custom role matriks",
       visible: isKepala,
     },
   ].filter((item) => {

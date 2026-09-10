@@ -103,6 +103,13 @@ export function AppSidebar() {
           permission: "user.manage",
         },
         {
+          name: "Kelola Role",
+          tooltip: "Kelola Role & Perizinan",
+          path: "/superadmin/roles",
+          icon: faUserShield,
+          permission: "user.manage",
+        },
+        {
           name: "Audit Logs",
           tooltip: "Audit Logs",
           path: "/superadmin/audit-logs",
@@ -124,6 +131,13 @@ export function AppSidebar() {
             tooltip: `Kelola ${labelMuhafiz}`,
             path: "/kepala-muhafidz/muhafiz",
             icon: faUserTie,
+            permission: "user.manage",
+          },
+          {
+            name: "Kelola Role",
+            tooltip: "Kelola Role & Perizinan",
+            path: "/kepala-muhafidz/settings/roles",
+            icon: faUserShield,
             permission: "user.manage",
           },
           {

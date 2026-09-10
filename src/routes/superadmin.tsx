@@ -11,6 +11,9 @@ const KelolaSekolahPage = lazy(() =>
 const KelolaUserPage = lazy(() =>
   import("@/features/auth/pages/KelolaUserPage")
 );
+const KelolaRolePage = lazy(() =>
+  import("@/features/role").then((m) => ({ default: m.KelolaRolePage }))
+);
 const KelolaAuditLogPage = lazy(() =>
   import("@/features/auth/pages/KelolaAuditLogPage")
 );
@@ -31,6 +34,7 @@ export const superadminRoutes: RouteObject[] = [
   { path: "/superadmin", element: <SuperadminDashboard /> },
   { path: "/superadmin/sekolah", element: <KelolaSekolahPage /> },
   { path: "/superadmin/users", element: <KelolaUserPage /> },
+  { path: "/superadmin/roles", element: <KelolaRolePage /> },
   { path: "/superadmin/audit-logs", element: <KelolaAuditLogPage /> },
   { path: "/superadmin/settings", element: <SuperadminSettingsPage /> },
   { path: "/superadmin/settings/terminology", element: <TerminologySettingsPage /> },
