@@ -254,11 +254,11 @@
 **Objektif**: Login/Register mendukung tenant context.
 
 **Tasks**:
-- [ ] Update `src/features/auth/`:
+- [x] Update `src/features/auth/`:
   - Login form: kirim `X-Tenant-Slug` header
   - Register form: kirim `id_tenant` atau slug
   - Token storage: simpan `id_tenant` dari JWT
-- [ ] Update `src/lib/api/` (axios instance):
+- [x] Update `src/lib/api/` (axios instance):
   - Interceptor: otomatis tambahkan `X-Tenant-Slug` header dari tenant context
   ```ts
   axios.interceptors.request.use((config) => {
@@ -269,10 +269,10 @@
     return config;
   });
   ```
-- [ ] Update `useAuth` hook:
+- [x] Update `useAuth` hook:
   - Tambah `id_tenant` ke user state
   - Handle tenant mismatch (user login ke tenant yang salah)
-- [ ] Update type `src/types/domain/enums.ts`:
+- [x] Update type `src/types/domain/enums.ts`:
   - Ensure Role type masih compatible
 
 **Files to modify**:

@@ -3,8 +3,12 @@ import { ThemeToggle } from "@/components/custom/theme/ThemeToggle";
 import { LoginCarousel } from "../components/login-carousel";
 import { LoginHeader } from "../components/login-header";
 import { LoginFooter } from "../components/login-footer";
+import { useTenant } from "@/store/tenant-context";
 
 export function RegisterPage() {
+  const { brand } = useTenant();
+  const appName = brand?.nama_aplikasi;
+
   return (
     <div className="flex h-screen w-full overflow-hidden bg-background-light dark:bg-background-dark">
       <div className="absolute top-4 right-4 z-50">
@@ -27,7 +31,7 @@ export function RegisterPage() {
               Daftar Baru
             </h2>
             <p className="text-text-secondary-light dark:text-text-secondary-dark">
-              Buat akun admin dan daftarkan institusi Anda.
+              {appName ? `Buat akun admin untuk ${appName}.` : "Buat akun admin dan daftarkan institusi Anda."}
             </p>
           </div>
 

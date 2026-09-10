@@ -43,6 +43,7 @@ export function LoginForm() {
     backendError,
     isSubmitting,
     showResend,
+    isTenantMismatch,
     isResending,
     successMessage,
     onSubmit,
@@ -101,6 +102,14 @@ export function LoginForm() {
                       )}
                     </Button>
                   </div>
+                ) : isTenantMismatch ? (
+                  <Alert variant="destructive" className="animate-in fade-in zoom-in duration-300 border-red-300 dark:border-red-900/50 bg-red-50 dark:bg-red-950/30">
+                    <FontAwesomeIcon icon={faTriangleExclamation} className="h-4 w-4 text-destructive" />
+                    <AlertDescription className="text-destructive">
+                      <span className="font-semibold block mb-1">Akses Institusi Tidak Sesuai</span>
+                      {backendError}. Silakan pastikan Anda mengakses URL domain/portal institusi yang tepat.
+                    </AlertDescription>
+                  </Alert>
                 ) : (
                   <Alert variant="destructive" className="animate-in fade-in zoom-in duration-300">
                     <FontAwesomeIcon icon={faTriangleExclamation} className="h-4 w-4" />

@@ -5,10 +5,12 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { registerAdminSchema, type RegisterFormValues } from "../validation/auth.schema";
 import { useRegisterAdmin } from "../api/mutations/useRegisterAdmin";
+import { useTenant } from "@/store/tenant-context";
 import { getErrorMessage } from "@/utils/error";
 
 export function useRegisterForm() {
   const navigate = useNavigate();
+  const { tenant } = useTenant();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
@@ -27,6 +29,8 @@ export function useRegisterForm() {
         password: data.password,
         nama_sekolah: data.nama_sekolah,
         alamat: data.alamat,
+        id_tenant: tenant?.id_tenant,
+        tenant_slug: tenant?.slug,
       };
 
       const res = await registerMutation.mutateAsync(payload);

@@ -25,7 +25,7 @@ export const authService = {
   },
 
   registerAdmin: async (
-    data: Omit<RegisterFormValues, "confirmPassword">
+    data: Omit<RegisterFormValues, "confirmPassword"> & { id_tenant?: number; tenant_slug?: string }
   ): Promise<GlobalResponse<RegisterAdminResponse>> => {
     const response = await axiosClient.post<GlobalResponse<RegisterAdminResponse>>(
       "/halaqah/auth/register-admin",

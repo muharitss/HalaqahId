@@ -3,8 +3,12 @@ import { ThemeToggle } from "@/components/custom/theme/ThemeToggle";
 import { LoginCarousel } from "../components/login-carousel";
 import { LoginHeader } from "../components/login-header";
 import { LoginFooter } from "../components/login-footer";
+import { useTenant } from "@/store/tenant-context";
 
 export function LoginPage() {
+  const { brand } = useTenant();
+  const appName = brand?.nama_aplikasi;
+
   return (
     <div className="flex h-screen w-full overflow-hidden bg-background-light dark:bg-background-dark">
       <div className="absolute top-4 right-4 z-50">
@@ -27,7 +31,7 @@ export function LoginPage() {
               Assalamu'alaikum
             </h2>
             <p className="text-text-secondary-light dark:text-text-secondary-dark">
-              Silakan masuk ke akun Anda.
+              {appName ? `Silakan masuk ke portal ${appName}.` : "Silakan masuk ke akun Anda."}
             </p>
           </div>
 

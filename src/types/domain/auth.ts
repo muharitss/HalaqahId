@@ -9,6 +9,7 @@ export interface User {
   role: Role;
   is_verified: boolean;
   id_sekolah?: number | null;
+  id_tenant?: number | null;
   deleted_at?: string | null;
   has_halaqah?: boolean;
   id_halaqah?: number | null;
@@ -26,6 +27,7 @@ export interface UserProfile {
   email: string;
   role: Role;
   id_sekolah: number;
+  id_tenant?: number | null;
   has_halaqah: boolean;
   id_halaqah: number | null;
   is_verified: boolean;
@@ -48,6 +50,7 @@ export interface RegisterMuhafizRequest {
   password: string;
   role?: 'MUHAFIZ' | 'KOORDINATOR_TAHFIZ';
   id_sekolah?: number;
+  id_tenant?: number;
   nomor_telepon?: string;
 }
 
@@ -57,6 +60,8 @@ export interface RegisterAdminRequest {
   password: string;
   nama_sekolah: string;
   alamat?: string;
+  id_tenant?: number;
+  tenant_slug?: string;
 }
 
 export interface RegisterAdminResponse {
@@ -82,6 +87,7 @@ export interface ImpersonateResponse {
     email: string;
     role: Role;
     id_sekolah: number;
+    id_tenant?: number | null;
   };
   token: string;
 }
@@ -96,11 +102,15 @@ export interface AuthResponse {
       name: string;
       role: Role;
       id_sekolah?: number | null;
+      id_tenant?: number | null;
       id_halaqah?: number | null;
       has_halaqah?: boolean;
       is_verified?: boolean;
+      roles?: string[];
+      permissions?: string[];
     };
     token: string;
+    refresh_token?: string;
   };
 }
 
@@ -110,6 +120,7 @@ export interface AuthUser {
   role: Role;
   name: string;
   id_sekolah?: number | null;
+  id_tenant?: number | null;
   id_halaqah?: number | null;
   has_halaqah?: boolean;
   is_verified?: boolean;
@@ -127,6 +138,7 @@ export interface AuthUser {
     role: Role;
     name: string;
     token: string;
+    id_tenant?: number | null;
   };
 }
 

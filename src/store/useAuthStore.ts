@@ -18,6 +18,27 @@ interface AuthState {
   isKepala: () => boolean;
 }
 
+const extractTenantIdFromToken = (token?: string): number | null => {
+  if (!token) return null;
+  try {
+    const parts = token.split(".");
+    if (parts.length === 3) {
+      const base64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split("")
+          .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+          .join("")
+      );
+      const parsed = JSON.parse(jsonPayload);
+      return typeof parsed.id_tenant === "number" ? parsed.id_tenant : null;
+    }
+  } catch {
+    // ignore parse error
+  }
+  return null;
+};
+
 const saveUserToStorage = (userData: AuthUser | null) => {
   if (userData) {
     localStorage.setItem("user", JSON.stringify(userData));
@@ -36,6 +57,7 @@ const saveSuperadminSession = (superadminData: AuthUser) => {
         name: superadminData.name,
         email: superadminData.email,
         role: superadminData.role,
+        id_tenant: superadminData.id_tenant,
         is_verified: superadminData.is_verified,
       })
     );
@@ -70,10 +92,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     queryClient.clear();
 
+    const userPayload = response.data.user;
+    const token = response.data.token;
+    const tenantIdFromToken = extractTenantIdFromToken(token);
+
     const userData: AuthUser = {
-      ...response.data.user,
-      token: response.data.token,
-      name: response.data.user.name || "User",
+      ...userPayload,
+      id_tenant: userPayload.id_tenant ?? tenantIdFromToken ?? null,
+      token: token,
+      name: userPayload.name || "User",
       isImpersonating: false,
     };
 
@@ -118,6 +145,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
         const fullUser: AuthUser = {
           ...userData,
+          id_tenant: userData.id_tenant ?? parsedData.id_tenant ?? extractTenantIdFromToken(parsedData.token) ?? null,
           token: parsedData.token,
           name: userData.name || "User",
           isImpersonating: parsedData.isImpersonating,
@@ -130,11 +158,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         if (isKepalaRole(userData?.role)) {
           saveSuperadminSession(fullUser);
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error("Failed to fetch user from API:", error);
         // Clear session if API fetch fails with 401 (token expired/invalid)
-        if (error?.response?.status === 401) {
-          get().logout();
+        if (typeof error === "object" && error !== null && "response" in error) {
+          const resp = (error as { response?: { status?: number } }).response;
+          if (resp?.status === 401) {
+            get().logout();
+          }
         }
       }
     } catch (error) {
@@ -150,12 +181,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     const userData: AuthUser = {
       ...impersonatedUser,
+      id_tenant: impersonatedUser.id_tenant ?? extractTenantIdFromToken(impersonatedUser.token) ?? null,
       isImpersonating: true,
       originalUser: {
         id_user: originalUser.id_user,
         role: originalUser.role,
         name: originalUser.name,
         token: originalUser.token!,
+        id_tenant: originalUser.id_tenant,
       },
     };
 
@@ -181,6 +214,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         const superadminUser: AuthUser = {
           ...sessionData,
           role: originalRole,
+          id_tenant: sessionData.id_tenant ?? get().user?.originalUser?.id_tenant ?? null,
           isImpersonating: false,
           originalUser: undefined,
         };

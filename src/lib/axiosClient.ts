@@ -1,4 +1,5 @@
 import axios from "axios";
+import { getTenantSlugFromUrl } from "@/utils/tenant";
 
 const axiosClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL || "/api",
@@ -8,9 +9,15 @@ const axiosClient = axios.create({
   },
 });
 
-// Request interceptor untuk menambahkan token dari berbagai sumber
+// Request interceptor untuk menambahkan token dan tenant context dari berbagai sumber
 axiosClient.interceptors.request.use(
   (config) => {
+    // Tambahkan X-Tenant-Slug dari context/url
+    const tenantSlug = getTenantSlugFromUrl();
+    if (tenantSlug) {
+      config.headers["X-Tenant-Slug"] = tenantSlug;
+    }
+
     // Coba ambil token dari localStorage dengan berbagai cara
     let token = null;
     

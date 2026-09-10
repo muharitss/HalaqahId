@@ -71,6 +71,13 @@ export function useLoginForm() {
     if (successMessage) setSuccessMessage("");
   };
 
+  const isTenantMismatch = Boolean(
+    backendError &&
+    (backendError.toLowerCase().includes("tenant") ||
+     backendError.toLowerCase().includes("tidak terdaftar pada tenant") ||
+     backendError.toLowerCase().includes("institusi"))
+  );
+
   return {
     form,
     showPassword,
@@ -79,6 +86,7 @@ export function useLoginForm() {
     setBackendError,
     isSubmitting,
     showResend,
+    isTenantMismatch,
     isResending: resendMutation.isPending,
     successMessage,
     setSuccessMessage,

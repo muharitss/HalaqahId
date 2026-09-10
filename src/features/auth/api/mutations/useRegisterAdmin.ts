@@ -7,10 +7,10 @@ import { type RegisterAdminResponse } from "@/types/domain/auth";
 export function useRegisterAdmin(): UseMutationResult<
   GlobalResponse<RegisterAdminResponse>,
   Error,
-  Omit<RegisterFormValues, "confirmPassword">
+  Omit<RegisterFormValues, "confirmPassword"> & { id_tenant?: number; tenant_slug?: string }
 > {
   return useMutation({
-    mutationFn: (data: Omit<RegisterFormValues, "confirmPassword">) =>
+    mutationFn: (data: Omit<RegisterFormValues, "confirmPassword"> & { id_tenant?: number; tenant_slug?: string }) =>
       authService.registerAdmin(data),
   });
 }
