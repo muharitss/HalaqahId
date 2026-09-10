@@ -2,7 +2,7 @@ import axios from "axios";
 import { getTenantSlugFromUrl } from "@/utils/tenant";
 
 const axiosClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "/api",
+  baseURL: import.meta.env?.VITE_API_URL || "/api",
   withCredentials: true,
   headers: {
     "Content-Type": "application/json",

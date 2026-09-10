@@ -14,6 +14,7 @@ import { HelpCircle } from "lucide-react";
 import { KelolaSantri } from "@/components/custom/typed-text";
 import { Term } from "@/components/ui/Term";
 import { useTerminology } from "@/hooks/useTerminology";
+import { PermissionGate } from "@/components/ui/PermissionGate";
 
 export function KelolaSantriPage() {
   const { user } = useAuth();
@@ -161,12 +162,14 @@ export function KelolaSantriPage() {
             </Button>
           </div>
         </div>
-        <div className="shrink-0" data-tour="kelola-santri-add-btn">
-          <Button onClick={() => setIsModalOpen(true)}>
-            <FontAwesomeIcon icon={faPlus} className="mr-2" />
-            Tambah <Term code="SANTRI" />
-          </Button>
-        </div>
+        <PermissionGate permission="santri.create">
+          <div className="shrink-0" data-tour="kelola-santri-add-btn">
+            <Button onClick={() => setIsModalOpen(true)}>
+              <FontAwesomeIcon icon={faPlus} className="mr-2" />
+              Tambah <Term code="SANTRI" />
+            </Button>
+          </div>
+        </PermissionGate>
       </div>
 
       <div className="rounded-xl border bg-card shadow-sm overflow-hidden">

@@ -29,6 +29,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PermissionGate } from "@/components/ui/PermissionGate";
 import type { DaftarHalaqahProps } from "@/features/halaqah/types";
 
 // ---------------------------------------------------------------------------
@@ -114,21 +115,27 @@ function HalaqahItem({
             <DropdownMenuContent align="end" className="w-48">
               <DropdownMenuLabel>Aksi Halaqah</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => onAddSantri(h)} className="cursor-pointer">
-                <UserPlus className="mr-2 h-4 w-4" /> 
-                <span>Tambah Santri</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onEdit(h)} className="cursor-pointer">
-                <Edit2 className="mr-2 h-4 w-4" />
-                <span>Edit Data</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem 
-                onClick={() => onDelete(h)} 
-                className="cursor-pointer text-destructive focus:text-destructive"
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                <span>Hapus Halaqah</span>
-              </DropdownMenuItem>
+              <PermissionGate permission="santri.create">
+                <DropdownMenuItem onClick={() => onAddSantri(h)} className="cursor-pointer">
+                  <UserPlus className="mr-2 h-4 w-4" /> 
+                  <span>Tambah Santri</span>
+                </DropdownMenuItem>
+              </PermissionGate>
+              <PermissionGate permission="halaqah.update">
+                <DropdownMenuItem onClick={() => onEdit(h)} className="cursor-pointer">
+                  <Edit2 className="mr-2 h-4 w-4" />
+                  <span>Edit Data</span>
+                </DropdownMenuItem>
+              </PermissionGate>
+              <PermissionGate permission="halaqah.delete">
+                <DropdownMenuItem 
+                  onClick={() => onDelete(h)} 
+                  className="cursor-pointer text-destructive focus:text-destructive"
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  <span>Hapus Halaqah</span>
+                </DropdownMenuItem>
+              </PermissionGate>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -182,28 +189,32 @@ function HalaqahItem({
                         <DropdownMenuContent align="end" className="w-40">
                           <DropdownMenuLabel>Aksi Santri</DropdownMenuLabel>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem 
-                            onClick={() => onMoveSantri(s)} 
-                            className="cursor-pointer text-blue-600 focus:text-blue-600"
-                          >
-                            <ArrowRightLeft className="mr-2 h-4 w-4" />
-                            <span>Pindah Halaqah</span>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            onClick={() => onEditSantri(s)} 
-                            className="cursor-pointer"
-                          >
-                            <Edit2 className="mr-2 h-4 w-4" />
-                            <span>Edit Profil</span>
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem 
-                            onClick={() => onDeleteSantri(s)} 
-                            className="cursor-pointer text-destructive focus:text-destructive"
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            <span>Hapus Santri</span>
-                          </DropdownMenuItem>
+                          <PermissionGate permission="santri.update">
+                            <DropdownMenuItem 
+                              onClick={() => onMoveSantri(s)} 
+                              className="cursor-pointer text-blue-600 focus:text-blue-600"
+                            >
+                              <ArrowRightLeft className="mr-2 h-4 w-4" />
+                              <span>Pindah Halaqah</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              onClick={() => onEditSantri(s)} 
+                              className="cursor-pointer"
+                            >
+                              <Edit2 className="mr-2 h-4 w-4" />
+                              <span>Edit Profil</span>
+                            </DropdownMenuItem>
+                          </PermissionGate>
+                          <PermissionGate permission="santri.delete">
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem 
+                              onClick={() => onDeleteSantri(s)} 
+                              className="cursor-pointer text-destructive focus:text-destructive"
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              <span>Hapus Santri</span>
+                            </DropdownMenuItem>
+                          </PermissionGate>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>

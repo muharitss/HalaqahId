@@ -28,6 +28,7 @@ import { type Santri } from "@/features/santri/types";
 import { type Halaqah } from "@/features/halaqah/api/halaqahService";
 import type { TargetSekolah } from "@/types/domain/target";
 import { Term } from "@/components/ui/Term";
+import { PermissionGate } from "@/components/ui/PermissionGate";
 
 interface SantriTableProps {
   data: Santri[];
@@ -154,24 +155,28 @@ export function SantriTable({
                     <DropdownMenuLabel>Opsi Santri</DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <DropdownMenuGroup>
-                      <DropdownMenuItem onClick={() => onEdit(santri)}>
-                        <FontAwesomeIcon
-                          icon={faEdit}
-                          className="mr-2 h-3 w-3"
-                        />
-                        <span>Edit Profil</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        onClick={() => onDelete(santri)}
-                        className="text-destructive focus:text-destructive focus:bg-destructive/10"
-                      >
-                        <FontAwesomeIcon
-                          icon={faTrash}
-                          className="mr-2 h-3 w-3"
-                        />
-                        <span>Hapus Santri</span>
-                      </DropdownMenuItem>
+                      <PermissionGate permission="santri.update">
+                        <DropdownMenuItem onClick={() => onEdit(santri)}>
+                          <FontAwesomeIcon
+                            icon={faEdit}
+                            className="mr-2 h-3 w-3"
+                          />
+                          <span>Edit Profil</span>
+                        </DropdownMenuItem>
+                      </PermissionGate>
+                      <PermissionGate permission="santri.delete">
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onClick={() => onDelete(santri)}
+                          className="text-destructive focus:text-destructive focus:bg-destructive/10"
+                        >
+                          <FontAwesomeIcon
+                            icon={faTrash}
+                            className="mr-2 h-3 w-3"
+                          />
+                          <span>Hapus Santri</span>
+                        </DropdownMenuItem>
+                      </PermissionGate>
                     </DropdownMenuGroup>
                   </DropdownMenuContent>
                 </DropdownMenu>

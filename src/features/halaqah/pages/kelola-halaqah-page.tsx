@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { AlertTriangle, ArrowRightLeft } from "lucide-react";
 import { Term } from "@/components/ui/Term";
 import { useTerminology } from "@/hooks/useTerminology";
+import { PermissionGate } from "@/components/ui/PermissionGate";
 
 export function KelolaHalaqahPage() {
   const {
@@ -55,7 +56,9 @@ export function KelolaHalaqahPage() {
         <div className="space-y-1">
           <HalaqahManagement />
         </div>
-        <BuatHalaqah onSuccess={fetchData} />
+        <PermissionGate permission="halaqah.create">
+          <BuatHalaqah onSuccess={fetchData} />
+        </PermissionGate>
       </div>
 
       <DaftarHalaqah 

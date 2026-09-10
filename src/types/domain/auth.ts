@@ -133,6 +133,8 @@ export interface AuthUser {
     name_halaqah: string;
     id_muhafiz?: number;
   } | null;
+  roles?: string[];
+  permissions?: string[];
   originalUser?: {
     id_user: number;
     role: Role;
@@ -144,6 +146,8 @@ export interface AuthUser {
 
 export interface AuthContextType {
   user: AuthUser | null;
+  permissions: string[];
+  roles: string[];
   login: (values: LoginFormValues) => Promise<void>;
   logout: () => void;
   isLoading: boolean;

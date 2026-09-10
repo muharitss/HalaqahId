@@ -15,6 +15,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { isKepalaRole, Role } from "@/types/domain/enums";
 import { cn } from "@/lib/utils";
+import { PermissionGate } from "@/components/ui/PermissionGate";
 
 export function MobileDock() {
   const { user } = useAuth();
@@ -22,17 +23,24 @@ export function MobileDock() {
 
   const isSuperAdmin = user?.role === Role.SUPERADMIN;
 
-  const menuItems = isSuperAdmin
+  interface DockItem {
+    name: React.ReactNode;
+    path: string;
+    icon: any;
+    permission?: string | string[];
+  }
+
+  const menuItems: DockItem[] = isSuperAdmin
     ? [
         { name: "Dash", path: "/superadmin", icon: faChartPie },
         { name: <Term code="SEKOLAH" />, path: "/superadmin/sekolah", icon: faBuilding },
-        { name: "Pengguna", path: "/superadmin/users", icon: faUsers },
+        { name: "Pengguna", path: "/superadmin/users", icon: faUsers, permission: "user.manage" },
         { name: "Audit", path: "/superadmin/audit-logs", icon: faClock },
       ]
     : user && isKepalaRole(user.role)
       ? [
           { name: "Dash", path: "/kepala-muhafidz", icon: faChartPie },
-          { name: <Term code="MUHAFIZ" />, path: "/kepala-muhafidz/muhafiz", icon: faUserTie },
+          { name: <Term code="MUHAFIZ" />, path: "/kepala-muhafidz/muhafiz", icon: faUserTie, permission: "user.manage" },
           { name: <Term code="HALAQAH" />, path: "/kepala-muhafidz/halaqah", icon: faBook },
           { name: "Sesi", path: "/kepala-muhafidz/sesi", icon: faClock },
           { name: "Laporan", path: "/kepala-muhafidz/laporan", icon: faClipboardCheck },
@@ -57,7 +65,7 @@ export function MobileDock() {
           ? location.pathname === item.path
           : location.pathname === item.path ||
             location.pathname.startsWith(item.path + "/");
-        return (
+        const dockLink = (
           <Link
             key={item.path}
             to={item.path}
@@ -70,6 +78,16 @@ export function MobileDock() {
             <span className="dock-label text-[10px] tracking-tight">{item.name}</span>
           </Link>
         );
+
+        if (item.permission) {
+          return (
+            <PermissionGate key={item.path} permission={item.permission}>
+              {dockLink}
+            </PermissionGate>
+          );
+        }
+
+        return dockLink;
       })}
     </div>
   );

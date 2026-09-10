@@ -31,13 +31,14 @@ import {
   SidebarGroupContent,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 import { isKepalaRole, Role } from "@/types/domain/enums";
 
 import { useTenant } from "@/store/tenant-context";
 import { useTerminology } from "@/lib/hooks/useTerminology";
 import { Term } from "@/components/ui/Term";
 import { FeatureGate } from "@/components/ui/FeatureGate";
+import { PermissionGate } from "@/components/ui/PermissionGate";
 
 export function AppSidebar() {
   const { user, logout, stopImpersonating, isImpersonating } = useAuth();
@@ -82,6 +83,7 @@ export function AppSidebar() {
     path: string;
     icon: any;
     featureCode?: string;
+    permission?: string | string[];
   }
 
   const menuItems: MenuItem[] = isSuperAdmin
@@ -98,6 +100,7 @@ export function AppSidebar() {
           tooltip: "Kelola Pengguna",
           path: "/superadmin/users",
           icon: faUsers,
+          permission: "user.manage",
         },
         {
           name: "Audit Logs",
@@ -121,6 +124,7 @@ export function AppSidebar() {
             tooltip: `Kelola ${labelMuhafiz}`,
             path: "/kepala-muhafidz/muhafiz",
             icon: faUserTie,
+            permission: "user.manage",
           },
           {
             name: <>Kelola <Term code="HALAQAH" /></>,
@@ -251,7 +255,7 @@ export function AppSidebar() {
                   : location.pathname === item.path ||
                     location.pathname.startsWith(item.path + "/");
 
-                const menuItem = (
+                let node = (
                   <SidebarMenuItem key={item.path}>
                     <SidebarMenuButton
                       asChild
@@ -267,14 +271,22 @@ export function AppSidebar() {
                 );
 
                 if (item.featureCode) {
-                  return (
-                    <FeatureGate key={item.path} code={item.featureCode}>
-                      {menuItem}
+                  node = (
+                    <FeatureGate key={`feature-${item.path}`} code={item.featureCode}>
+                      {node}
                     </FeatureGate>
                   );
                 }
 
-                return menuItem;
+                if (item.permission) {
+                  node = (
+                    <PermissionGate key={`perm-${item.path}`} permission={item.permission}>
+                      {node}
+                    </PermissionGate>
+                  );
+                }
+
+                return node;
               })}
             </SidebarMenu>
           </SidebarGroupContent>

@@ -18,6 +18,8 @@ export const useAuth = () => {
   return useMemo(
     () => ({
       user,
+      permissions: user?.permissions ?? [],
+      roles: user?.roles ?? (user?.role ? [user.role] : []),
       isLoading,
       isImpersonating,
       login,

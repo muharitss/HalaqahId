@@ -336,8 +336,8 @@
 **Objektif**: UI elements render berdasarkan permissions dari DB.
 
 **Tasks**:
-- [ ] Update `useAuth` hook: tambah `permissions: string[]` dan `roles: string[]`
-- [ ] Buat `src/lib/hooks/usePermission.ts`:
+- [x] Update `useAuth` hook: tambah `permissions: string[]` dan `roles: string[]`
+- [x] Buat `src/lib/hooks/usePermission.ts`:
   ```ts
   export function usePermission(code: string): boolean {
     const { user } = useAuth();
@@ -349,7 +349,7 @@
     return codes.some(code => user?.permissions.includes(code));
   }
   ```
-- [ ] Buat komponen `src/components/ui/PermissionGate.tsx`:
+- [x] Buat komponen `src/components/ui/PermissionGate.tsx`:
   ```tsx
   export function PermissionGate({ permission, children }: {
     permission: string | string[];
@@ -361,7 +361,7 @@
     return has ? <>{children}</> : null;
   }
   ```
-- [ ] Update UI elements yang perlu permission check:
+- [x] Update UI elements yang perlu permission check:
   - Button "Tambah Santri" → `<PermissionGate permission="santri.create">`
   - Button "Edit Halaqah" → `<PermissionGate permission="halaqah.update">`
   - Menu "Kelola User" → `<PermissionGate permission="user.manage">`

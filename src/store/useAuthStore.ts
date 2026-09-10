@@ -57,6 +57,8 @@ const saveSuperadminSession = (superadminData: AuthUser) => {
         name: superadminData.name,
         email: superadminData.email,
         role: superadminData.role,
+        roles: superadminData.roles,
+        permissions: superadminData.permissions,
         id_tenant: superadminData.id_tenant,
         is_verified: superadminData.is_verified,
       })
@@ -102,6 +104,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       token: token,
       name: userPayload.name || "User",
       isImpersonating: false,
+      roles: userPayload.roles || (userPayload.role ? [userPayload.role] : []),
+      permissions: userPayload.permissions || [],
     };
 
     set({ user: userData, isImpersonating: false });
@@ -150,6 +154,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           name: userData.name || "User",
           isImpersonating: parsedData.isImpersonating,
           originalUser: parsedData.originalUser,
+          roles: userData.roles || (userData.role ? [userData.role] : parsedData.roles || []),
+          permissions: userData.permissions || parsedData.permissions || [],
         };
 
         set({ user: fullUser, isImpersonating: fullUser.isImpersonating || false });
@@ -183,6 +189,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       ...impersonatedUser,
       id_tenant: impersonatedUser.id_tenant ?? extractTenantIdFromToken(impersonatedUser.token) ?? null,
       isImpersonating: true,
+      roles: impersonatedUser.roles || (impersonatedUser.role ? [impersonatedUser.role] : []),
+      permissions: impersonatedUser.permissions || [],
       originalUser: {
         id_user: originalUser.id_user,
         role: originalUser.role,
