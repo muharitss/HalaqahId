@@ -1,3 +1,5 @@
+import type { UserRoleItem } from "@/features/role";
+
 export interface AuditLog {
   id_log: number;
   action: string;
@@ -19,10 +21,12 @@ export interface GlobalUser {
   role: string;
   is_verified: boolean;
   id_sekolah: number | null;
+  id_tenant?: number;
   nomor_telepon?: string | null;
   sekolah: {
     nama_sekolah: string;
   } | null;
+  user_roles?: UserRoleItem[];
 }
 
 export interface AllUsersParams {

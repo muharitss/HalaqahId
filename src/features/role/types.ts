@@ -49,3 +49,18 @@ export interface PermissionDefinition {
   actionLabel: string;
   deskripsi: string;
 }
+
+export interface UserRoleItem {
+  id_user: number;
+  id_role: number;
+  is_primary: boolean;
+  created_at?: string;
+  role: RoleItem;
+}
+
+export interface AssignUserRolePayload {
+  id_role?: number;
+  kode_role?: string;
+  is_primary?: boolean;
+}
+

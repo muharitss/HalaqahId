@@ -8,6 +8,8 @@ import {
   Trash,
   Building,
   Shield,
+  ShieldCheck,
+  Star,
   User,
   LogIn,
   Check,
@@ -17,6 +19,8 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faWhatsapp } from "@fortawesome/free-brands-svg-icons";
 import { useKelolaUser } from "../hooks/useKelolaUser";
+import { UserRoleManager } from "../components/UserRoleManager";
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -84,6 +88,11 @@ export default function KelolaUserPage() {
     setUserToDelete,
     emailConfirmation,
     setEmailConfirmation,
+    isRoleManagerOpen,
+    setIsRoleManagerOpen,
+    selectedUserForRole,
+    handleOpenRoleManager,
+    handleCloseRoleManager,
     handleImpersonate,
     handleVerifyEmail,
     handleResetPassword,
@@ -161,24 +170,25 @@ export default function KelolaUserPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[25%] min-w-[150px]">Nama & Email</TableHead>
-                <TableHead className="w-[18%] min-w-[140px]">Nomor Telepon</TableHead>
-                <TableHead className="w-[17%] min-w-[120px]">Peran</TableHead>
-                <TableHead className="w-[20%] min-w-[140px]">Lembaga / Sekolah</TableHead>
-                <TableHead className="w-[10%] min-w-[100px]">Status Email</TableHead>
-                <TableHead className="text-right w-[10%] min-w-[80px]">Aksi</TableHead>
+                <TableHead className="w-[20%] min-w-[150px]">Nama & Email</TableHead>
+                <TableHead className="w-[14%] min-w-[130px]">Nomor Telepon</TableHead>
+                <TableHead className="w-[13%] min-w-[110px]">Peran Sistem</TableHead>
+                <TableHead className="w-[21%] min-w-[160px]">Roles & Hak Akses</TableHead>
+                <TableHead className="w-[16%] min-w-[130px]">Lembaga / Sekolah</TableHead>
+                <TableHead className="w-[8%] min-w-[90px]">Status Email</TableHead>
+                <TableHead className="text-right w-[8%] min-w-[70px]">Aksi</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-10 text-muted-foreground">
+                  <TableCell colSpan={7} className="text-center py-10 text-muted-foreground">
                     Memuat data pengguna...
                   </TableCell>
                 </TableRow>
               ) : users.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-10 text-muted-foreground">
+                  <TableCell colSpan={7} className="text-center py-10 text-muted-foreground">
                     Tidak ditemukan data pengguna yang cocok
                   </TableCell>
                 </TableRow>
@@ -223,6 +233,51 @@ export default function KelolaUserPage() {
                       </span>
                     </TableCell>
                     <TableCell>
+                      <div className="flex flex-wrap items-center gap-1">
+                        {u.user_roles && u.user_roles.length > 0 ? (
+                          <>
+                            {u.user_roles.slice(0, 3).map((ur) => (
+                              <Badge
+                                key={ur.id_role}
+                                variant={ur.is_primary ? "default" : "secondary"}
+                                className={`text-[11px] py-0 px-2 cursor-pointer transition-colors ${
+                                  ur.is_primary
+                                    ? "bg-primary/90 hover:bg-primary text-primary-foreground font-semibold shadow-xs"
+                                    : "bg-muted/80 hover:bg-muted text-muted-foreground"
+                                }`}
+                                onClick={() => handleOpenRoleManager(u)}
+                                title={ur.is_primary ? "Role Utama (Klik untuk kelola)" : "Klik untuk kelola"}
+                              >
+                                {ur.is_primary && (
+                                  <Star className="h-2.5 w-2.5 mr-0.5 fill-current" />
+                                )}
+                                {ur.role?.nama_role || `Role #${ur.id_role}`}
+                              </Badge>
+                            ))}
+                            {u.user_roles.length > 3 && (
+                              <Badge
+                                variant="outline"
+                                className="text-[10px] py-0 px-1.5 cursor-pointer hover:bg-muted"
+                                onClick={() => handleOpenRoleManager(u)}
+                              >
+                                +{u.user_roles.length - 3} lagi
+                              </Badge>
+                            )}
+                          </>
+                        ) : (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 text-[11px] px-2 text-muted-foreground hover:text-primary hover:bg-primary/5 border border-dashed border-muted-foreground/30"
+                            onClick={() => handleOpenRoleManager(u)}
+                          >
+                            <ShieldCheck className="h-3 w-3 mr-1" />
+                            + Role
+                          </Button>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
                       {u.sekolah ? (
                         <div className="flex items-center gap-1.5 text-sm">
                           <Building className="text-slate-400 h-4 w-4" />
@@ -252,6 +307,13 @@ export default function KelolaUserPage() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onClick={() => handleOpenRoleManager(u)}
+                            className="cursor-pointer"
+                          >
+                            <ShieldCheck className="mr-2 h-4 w-4 text-primary" />
+                            Kelola Role
+                          </DropdownMenuItem>
                           {u.id_user !== currentUser?.id_user && u.role !== "SUPERADMIN" && (
                             <DropdownMenuItem
                               onClick={() => handleImpersonate(u)}
@@ -464,6 +526,28 @@ export default function KelolaUserPage() {
               {isSubmitting ? "Menghapus..." : "Ya, Hapus Pengguna"}
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* DIALOG KELOLA ROLE USER */}
+      <Dialog open={isRoleManagerOpen} onOpenChange={setIsRoleManagerOpen}>
+        <DialogContent className="sm:max-w-[540px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-lg">
+              <ShieldCheck className="h-5 w-5 text-primary" />
+              Kelola Role Pengguna
+            </DialogTitle>
+            <DialogDescription>
+              Tetapkan atau cabut role dan hak akses untuk pengguna platform.
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedUserForRole && (
+            <UserRoleManager
+              user={selectedUserForRole}
+              onClose={handleCloseRoleManager}
+            />
+          )}
         </DialogContent>
       </Dialog>
     </div>

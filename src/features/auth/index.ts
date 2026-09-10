@@ -5,6 +5,7 @@ export * from "./pages";
 export { LoginForm } from "./components/login-form";
 export { RegisterForm } from "./components/register-form";
 export { useAuth, AuthProvider } from "./components/auth-provider";
+export { UserRoleManager } from "./components/UserRoleManager";
 
 // Hooks
 export { useLoginForm } from "./hooks/useLoginForm";

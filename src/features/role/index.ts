@@ -18,6 +18,12 @@ export {
   useUpdateRolePermissions,
   ROLE_QUERY_KEYS,
 } from "./hooks/useRoles";
+export {
+  useUserRoles,
+  useAssignUserRole,
+  useRemoveUserRole,
+  USER_ROLE_QUERY_KEYS,
+} from "./hooks/useUserRoles";
 
 // Types
 export type {
@@ -28,6 +34,8 @@ export type {
   UpdateRolePermissionsPayload,
   PermissionDefinition,
   PermissionActionCategory,
+  UserRoleItem,
+  AssignUserRolePayload,
 } from "./types";
 
 // Constants

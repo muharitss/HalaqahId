@@ -415,14 +415,14 @@
 **Objektif**: Assign roles ke users melalui UI.
 
 **Tasks**:
-- [ ] Update `src/features/auth/pages/KelolaUserPage.tsx`:
+- [x] Update `src/features/auth/pages/KelolaUserPage.tsx`:
   - Tambah kolom "Roles" di tabel user
   - Dialog/sheet: assign role ke user (multi-select)
   - Badge untuk setiap role yang dimiliki user
-- [ ] Update user detail/edit form:
+- [x] Update user detail/edit form:
   - Multi-select roles (dari daftar role tenant)
   - Primary role indicator
-- [ ] Buat `src/features/auth/components/UserRoleManager.tsx`:
+- [x] Buat `src/features/auth/components/UserRoleManager.tsx`:
   - List current roles
   - Add role (select dropdown)
   - Remove role (with confirmation)

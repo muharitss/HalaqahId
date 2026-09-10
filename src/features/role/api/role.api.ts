@@ -4,6 +4,8 @@ import type {
   PermissionItem,
   CreateRolePayload,
   UpdateRolePayload,
+  UserRoleItem,
+  AssignUserRolePayload,
 } from "../types";
 
 export const roleApi = {
@@ -42,5 +44,27 @@ export const roleApi = {
     const res = await axiosClient.put(`/roles/${id_role}/permissions`, { permissions });
     const data = res.data?.data ?? res.data;
     return Array.isArray(data) ? data : [];
+  },
+
+  getUserRoles: async (userId: number): Promise<UserRoleItem[]> => {
+    const res = await axiosClient.get(`/users/${userId}/roles`);
+    const data = res.data?.data ?? res.data;
+    return Array.isArray(data) ? data : [];
+  },
+
+  assignUserRole: async (
+    userId: number,
+    payload: AssignUserRolePayload
+  ): Promise<UserRoleItem> => {
+    const res = await axiosClient.post(`/users/${userId}/roles`, payload);
+    return res.data?.data ?? res.data;
+  },
+
+  removeUserRole: async (
+    userId: number,
+    roleId: number
+  ): Promise<{ message: string }> => {
+    const res = await axiosClient.delete(`/users/${userId}/roles/${roleId}`);
+    return res.data?.data ?? res.data;
   },
 };

@@ -62,6 +62,20 @@ export function useKelolaUser() {
   const [userToDelete, setUserToDelete] = useState<GlobalUser | null>(null);
   const [emailConfirmation, setEmailConfirmation] = useState("");
 
+  // Role Manager Dialog States
+  const [isRoleManagerOpen, setIsRoleManagerOpen] = useState(false);
+  const [selectedUserForRole, setSelectedUserForRole] = useState<GlobalUser | null>(null);
+
+  const handleOpenRoleManager = (user: GlobalUser) => {
+    setSelectedUserForRole(user);
+    setIsRoleManagerOpen(true);
+  };
+
+  const handleCloseRoleManager = () => {
+    setIsRoleManagerOpen(false);
+    setSelectedUserForRole(null);
+  };
+
   const handleSetSearch = (val: string) => {
     setSearch(val);
     setPage(1);
@@ -215,6 +229,12 @@ export function useKelolaUser() {
     setUserToDelete,
     emailConfirmation,
     setEmailConfirmation,
+    isRoleManagerOpen,
+    setIsRoleManagerOpen,
+    selectedUserForRole,
+    setSelectedUserForRole,
+    handleOpenRoleManager,
+    handleCloseRoleManager,
     handleImpersonate,
     handleVerifyEmail,
     handleResetPassword,
