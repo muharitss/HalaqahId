@@ -15,6 +15,8 @@ import {
   faClock,
   faGear,
   faTrophy,
+  faGraduationCap,
+  faBullseye,
 } from "@fortawesome/free-solid-svg-icons";
 import {
   Sidebar,
@@ -35,6 +37,7 @@ import { isKepalaRole, Role } from "@/types/domain/enums";
 import { useTenant } from "@/store/tenant-context";
 import { useTerminology } from "@/lib/hooks/useTerminology";
 import { Term } from "@/components/ui/Term";
+import { FeatureGate } from "@/components/ui/FeatureGate";
 
 export function AppSidebar() {
   const { user, logout, stopImpersonating, isImpersonating } = useAuth();
@@ -73,7 +76,15 @@ export function AppSidebar() {
   const labelMuhafiz = useTerminology("MUHAFIZ");
   const labelSekolah = useTerminology("SEKOLAH");
 
-  const menuItems = isSuperAdmin
+  interface MenuItem {
+    name: React.ReactNode;
+    tooltip?: string;
+    path: string;
+    icon: any;
+    featureCode?: string;
+  }
+
+  const menuItems: MenuItem[] = isSuperAdmin
     ? [
         { name: "Dashboard", tooltip: "Dashboard", path: "/superadmin", icon: faChartPie },
         {
@@ -99,6 +110,7 @@ export function AppSidebar() {
           tooltip: "Kelola Blog",
           path: "/superadmin/blog",
           icon: faBook,
+          featureCode: "BLOG",
         },
       ]
     : user && isKepalaRole(user.role)
@@ -128,6 +140,20 @@ export function AppSidebar() {
             tooltip: "Leaderboard",
             path: "/kepala-muhafidz/leaderboard",
             icon: faTrophy,
+          },
+          {
+            name: "Ujian",
+            tooltip: "Ujian",
+            path: "/kepala-muhafidz/settings/ujian",
+            icon: faGraduationCap,
+            featureCode: "UJIAN",
+          },
+          {
+            name: "Target",
+            tooltip: "Target",
+            path: "/kepala-muhafidz/settings/target",
+            icon: faBullseye,
+            featureCode: "TARGET",
           },
         ]
       : [
@@ -225,12 +251,12 @@ export function AppSidebar() {
                   : location.pathname === item.path ||
                     location.pathname.startsWith(item.path + "/");
 
-                return (
+                const menuItem = (
                   <SidebarMenuItem key={item.path}>
                     <SidebarMenuButton
                       asChild
                       isActive={isActive}
-                      tooltip={item.tooltip || (item.name as any)}
+                      tooltip={item.tooltip || (typeof item.name === "string" ? item.name : undefined)}
                     >
                       <Link to={item.path}>
                         <FontAwesomeIcon icon={item.icon} />
@@ -239,6 +265,16 @@ export function AppSidebar() {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 );
+
+                if (item.featureCode) {
+                  return (
+                    <FeatureGate key={item.path} code={item.featureCode}>
+                      {menuItem}
+                    </FeatureGate>
+                  );
+                }
+
+                return menuItem;
               })}
             </SidebarMenu>
           </SidebarGroupContent>

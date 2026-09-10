@@ -20,6 +20,7 @@ import { ModeBadge } from "../components/SetoranModeBanner";
 import { useAuth } from "@/features/auth";
 import { useTour } from "@/hooks/useTour";
 import { type DriveStep } from "driver.js";
+import { FeatureGate } from "@/components/ui/FeatureGate";
 
 export function InputSetoranPage({
   hideHeader = false,
@@ -129,14 +130,16 @@ export function InputSetoranPage({
           <ClipboardList className="h-4 w-4" />
           Setoran Harian
         </Button>
-        <Button
-          variant={activeTab === "ujian" ? "default" : "outline"}
-          onClick={() => setActiveTab("ujian")}
-          className="font-bold flex items-center gap-2 h-10 shadow-sm"
-        >
-          <FileText className="h-4 w-4" />
-          Ujian Tahfiz
-        </Button>
+        <FeatureGate code="UJIAN">
+          <Button
+            variant={activeTab === "ujian" ? "default" : "outline"}
+            onClick={() => setActiveTab("ujian")}
+            className="font-bold flex items-center gap-2 h-10 shadow-sm"
+          >
+            <FileText className="h-4 w-4" />
+            Ujian Tahfiz
+          </Button>
+        </FeatureGate>
       </div>
 
       <div className="grid gap-6 md:grid-cols-1">
@@ -206,25 +209,34 @@ export function InputSetoranPage({
             </div>
           </>
         ) : (
-          <Card>
-            <CardHeader>
-              <CardTitle>Evaluasi &amp; Ujian Tahfiz</CardTitle>
-              <CardDescription>
-                Form penilaian ujian santri tahfiz berdasarkan jadwal
-                pelaksanaan aktif.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <DynamicExamForm
-                santriList={santriList}
-                sesiList={sesiList}
-                onSuccess={() => {
-                  setActiveTab("setoran");
-                  fetchSantri();
-                }}
-              />
-            </CardContent>
-          </Card>
+          <FeatureGate
+            code="UJIAN"
+            fallback={
+              <div className="p-8 text-center text-muted-foreground text-sm">
+                Fitur ujian tidak diaktifkan untuk lembaga ini.
+              </div>
+            }
+          >
+            <Card>
+              <CardHeader>
+                <CardTitle>Evaluasi &amp; Ujian Tahfiz</CardTitle>
+                <CardDescription>
+                  Form penilaian ujian santri tahfiz berdasarkan jadwal
+                  pelaksanaan aktif.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <DynamicExamForm
+                  santriList={santriList}
+                  sesiList={sesiList}
+                  onSuccess={() => {
+                    setActiveTab("setoran");
+                    fetchSantri();
+                  }}
+                />
+              </CardContent>
+            </Card>
+          </FeatureGate>
         )}
       </div>
     </div>

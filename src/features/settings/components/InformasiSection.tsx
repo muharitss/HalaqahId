@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { SettingItem } from "./SettingItem";
 import { useTerminology } from "@/hooks/useTerminology";
+import { useFeature } from "@/hooks/useFeature";
 
 interface InformasiSectionProps {
   isKepala: boolean;
@@ -25,6 +26,8 @@ export function InformasiSection({
   const labelSantri = useTerminology("SANTRI");
   const labelMuhafiz = useTerminology("MUHAFIZ");
   const labelHalaqah = useTerminology("HALAQAH");
+
+  const isPortalWaliEnabled = useFeature("PORTAL_WALI");
 
   const handleCopy = async () => {
     await onCopyLink();
@@ -66,7 +69,7 @@ export function InformasiSection({
           {isCopied ? "Tersalin!" : "Salin Link"}
         </Button>
       ),
-      visible: isKepala,
+      visible: isKepala && isPortalWaliEnabled,
     },
     {
       id: "trash",

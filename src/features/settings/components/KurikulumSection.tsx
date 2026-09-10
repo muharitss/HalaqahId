@@ -9,6 +9,7 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { SettingItem } from "./SettingItem";
 import { useTerminology } from "@/hooks/useTerminology";
+import { useFeature } from "@/hooks/useFeature";
 
 interface KurikulumSectionProps {
   isKepala: boolean;
@@ -24,6 +25,9 @@ export function KurikulumSection({
   const labelSantri = useTerminology("SANTRI");
   const labelMuhafiz = useTerminology("MUHAFIZ");
   const labelHalaqah = useTerminology("HALAQAH");
+
+  const isTargetEnabled = useFeature("TARGET");
+  const isUjianEnabled = useFeature("UJIAN");
 
   const q = searchQuery.toLowerCase().trim();
 
@@ -76,7 +80,7 @@ export function KurikulumSection({
       description: `Atur target hafalan fleksibel untuk ${labelSantri.toLowerCase()}`,
       onClick: () => onNavigate("/kepala-muhafidz/settings/target"),
       keywords: `target setoran fleksibel santri semester tahunan juz halaman mutqin akselerasi ikhtibar ${labelSantri.toLowerCase()}`,
-      visible: isKepala,
+      visible: isKepala && isTargetEnabled,
     },
     {
       id: "pengaturan-ujian",
@@ -86,7 +90,7 @@ export function KurikulumSection({
       onClick: () => onNavigate("/kepala-muhafidz/settings/ujian"),
       keywords:
         "pengaturan ujian kriteria kelulusan rumus nilai ikhtibar tasmi akreditasi tahfidz bobot munaqasyah",
-      visible: isKepala,
+      visible: isKepala && isUjianEnabled,
     },
   ].filter((item) => {
     if (!item.visible) return false;

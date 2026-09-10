@@ -287,7 +287,7 @@
 **Objektif**: UI component render berdasarkan tenant features.
 
 **Tasks**:
-- [ ] Buat `src/lib/hooks/useFeature.ts`:
+- [x] Buat `src/lib/hooks/useFeature.ts`:
   ```ts
   export function useFeature(code: string): boolean {
     const { features } = useTenant();
@@ -299,7 +299,7 @@
     return features.find(f => f.feature_code === code)?.config as T ?? null;
   }
   ```
-- [ ] Buat komponen `src/components/ui/FeatureGate.tsx`:
+- [x] Buat komponen `src/components/ui/FeatureGate.tsx`:
   ```tsx
   export function FeatureGate({ code, children, fallback }: {
     code: string;
@@ -310,13 +310,13 @@
     return enabled ? <>{children}</> : (fallback ?? null);
   }
   ```
-- [ ] Update sidebar/navigation: hide menu items untuk fitur yang disabled
+- [x] Update sidebar/navigation: hide menu items untuk fitur yang disabled
   ```tsx
   <FeatureGate code="UJIAN">
     <SidebarItem label="Ujian" />
   </FeatureGate>
   ```
-- [ ] Feature codes yang di-gate:
+- [x] Feature codes yang di-gate:
   - `UJIAN` — menu ujian
   - `RUBRIK` — rubrik scoring
   - `TARGET` — target hafalan

@@ -1,5 +1,6 @@
 import { lazy } from "react";
 import { type RouteObject } from "react-router-dom";
+import { FeatureRouteGuard } from "./guards";
 
 const KepalaMuhafidzDashboard = lazy(() =>
   import("@/features/dashboard/pages/kepala-muhafidz-dashboard").then((m) => ({ default: m.KepalaMuhafidzDashboard }))
@@ -108,11 +109,19 @@ export const kepalaRoutes: RouteObject[] = [
   },
   {
     path: "/kepala-muhafidz/settings/target",
-    element: <TargetSettingsPage />,
+    element: (
+      <FeatureRouteGuard code="TARGET">
+        <TargetSettingsPage />
+      </FeatureRouteGuard>
+    ),
   },
   {
     path: "/kepala-muhafidz/settings/ujian",
-    element: <UjianSettingsPage />,
+    element: (
+      <FeatureRouteGuard code="UJIAN">
+        <UjianSettingsPage />
+      </FeatureRouteGuard>
+    ),
   },
   {
     path: "/kepala-muhafidz/settings/form-setoran",

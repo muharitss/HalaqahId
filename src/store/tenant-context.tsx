@@ -112,10 +112,30 @@ export const useTerminology = (code: string, fallback?: string): string => {
   return matched?.label_custom || matched?.label_default || fallback || code;
 };
 
+const DEFAULT_CORE_FEATURES: Record<string, boolean> = {
+  UJIAN: true,
+  RUBRIK: true,
+  TARGET: true,
+  BLOG: true,
+  PORTAL_WALI: true,
+};
+
 export const useFeature = (code: string): boolean => {
   const { features } = useTenant();
-  const matched = features.find(
-    (f) => f.feature_code.toUpperCase() === code.toUpperCase()
+  const normalized = code?.toUpperCase();
+  const matched = features?.find(
+    (f) => f.feature_code?.toUpperCase() === normalized
   );
-  return matched ? matched.enabled : false;
+  if (matched !== undefined) {
+    return matched.enabled;
+  }
+  return DEFAULT_CORE_FEATURES[normalized] ?? false;
+};
+
+export const useFeatureConfig = <T = unknown>(code: string): T | null => {
+  const { features } = useTenant();
+  const matched = features?.find(
+    (f) => f.feature_code?.toUpperCase() === code?.toUpperCase()
+  );
+  return (matched?.config as T) ?? null;
 };

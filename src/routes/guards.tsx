@@ -4,6 +4,7 @@ import { useAuth } from "@/features/auth";
 import { Role, isKepalaRole } from "@/types/domain/enums";
 import { Spinner } from "@/components/ui/spinner";
 import { NoHalaqahView } from "@/features/halaqah";
+import { useFeature } from "@/lib/hooks/useFeature";
 
 /** Spinner terpusat untuk saat auth sedang di-resolve */
 export const LoadingScreen = () => (
@@ -72,4 +73,34 @@ export const MuhafizGuard = () => {
   }
 
   return <Outlet />;
+};
+
+/**
+ * Route guard: hanya bisa diakses jika tenant feature tertentu aktif.
+ * Jika tidak aktif, redirect ke dashboard pengguna yang bersangkutan.
+ */
+export const FeatureRouteGuard = ({
+  code,
+  redirectTo,
+  children,
+}: {
+  code: string;
+  redirectTo?: string;
+  children?: React.ReactNode;
+}) => {
+  const enabled = useFeature(code);
+  const { user } = useAuth();
+
+  if (!enabled) {
+    const fallbackPath =
+      redirectTo ||
+      (user?.role === Role.SUPERADMIN
+        ? "/superadmin"
+        : user && isKepalaRole(user.role)
+        ? "/kepala-muhafidz"
+        : "/muhafidz");
+    return <Navigate to={fallbackPath} replace />;
+  }
+
+  return children ? <>{children}</> : <Outlet />;
 };

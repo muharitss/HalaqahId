@@ -1,5 +1,6 @@
 import { lazy } from "react";
 import { type RouteObject } from "react-router-dom";
+import { FeatureRouteGuard } from "./guards";
 
 const SuperadminDashboard = lazy(() =>
   import("@/features/dashboard/pages/superadmin-dashboard").then((m) => ({ default: m.SuperadminDashboard }))
@@ -34,5 +35,12 @@ export const superadminRoutes: RouteObject[] = [
   { path: "/superadmin/settings", element: <SuperadminSettingsPage /> },
   { path: "/superadmin/settings/terminology", element: <TerminologySettingsPage /> },
   { path: "/superadmin/settings/trash", element: <TrashPage /> },
-  { path: "/superadmin/blog", element: <KelolaBlogPage /> },
+  {
+    path: "/superadmin/blog",
+    element: (
+      <FeatureRouteGuard code="BLOG">
+        <KelolaBlogPage />
+      </FeatureRouteGuard>
+    ),
+  },
 ];
