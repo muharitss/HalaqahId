@@ -12,8 +12,11 @@ export { useLogin } from "./mutations/useLogin";
 export { useRegisterAdmin } from "./mutations/useRegisterAdmin";
 export { useVerifyEmail } from "./mutations/useVerifyEmail";
 export { useResendVerification } from "./mutations/useResendVerification";
+export { useForgotPassword } from "./mutations/useForgotPassword";
+export { useResetPasswordPublic } from "./mutations/useResetPasswordPublic";
 export { useVerifyUser } from "./mutations/useVerifyUser";
 export { useResetPassword } from "./mutations/useResetPassword";
 export { useDeleteUser } from "./mutations/useDeleteUser";
 export { useImpersonateUser } from "./mutations/useImpersonateUser";
 export { useStopImpersonateUser } from "./mutations/useStopImpersonateUser";
+

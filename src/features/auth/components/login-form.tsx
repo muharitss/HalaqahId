@@ -156,6 +156,13 @@ export function LoginForm() {
                 <FormItem>
                   <div className="flex items-center justify-between">
                     <FormLabel>Password</FormLabel>
+                    <Link
+                      to="/forgot-password"
+                      className="text-xs font-medium text-primary hover:underline"
+                      tabIndex={-1}
+                    >
+                      Lupa Password?
+                    </Link>
                   </div>
                   <FormControl>
                     <div className="relative">

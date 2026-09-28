@@ -56,6 +56,34 @@ export const authService = {
     return response.data;
   },
 
+  forgotPassword: async (data: { email: string }): Promise<GlobalResponse<null>> => {
+    const response = await axiosClient.post<GlobalResponse<null>>(
+      "/halaqah/auth/forgot-password",
+      data
+    );
+    return response.data;
+  },
+
+  resetPasswordPublic: async (data: {
+    token: string;
+    password_baru: string;
+  }): Promise<GlobalResponse<null>> => {
+    const response = await axiosClient.post<GlobalResponse<null>>(
+      "/halaqah/auth/reset-password",
+      data
+    );
+    return response.data;
+  },
+
+  refreshToken: async (
+    refresh_token: string
+  ): Promise<GlobalResponse<{ token: string; refresh_token: string }>> => {
+    const response = await axiosClient.post<
+      GlobalResponse<{ token: string; refresh_token: string }>
+    >("/halaqah/auth/refresh", { refresh_token });
+    return response.data;
+  },
+
   // ── Superadmin User Management APIs ──
   
   getAllUsers: async (

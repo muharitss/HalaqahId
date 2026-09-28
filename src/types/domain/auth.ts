@@ -132,6 +132,7 @@ export interface AuthUser {
   has_halaqah?: boolean;
   is_verified?: boolean;
   token?: string;
+  refresh_token?: string;
   avatarUrl?: string;
   foto?: string | null;
   foto_url?: string | null;
