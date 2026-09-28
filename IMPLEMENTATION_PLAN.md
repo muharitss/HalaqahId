@@ -437,18 +437,18 @@
 **Objektif**: Halaman profil user yang lebih lengkap.
 
 **Tasks**:
-- [ ] Buat `src/features/profil/pages/UserProfilePage.tsx`:
+- [x] Buat `src/features/profil/pages/UserProfilePage.tsx`:
   - Tampilkan data dari UserProfile (nama_lengkap, foto, bio, dll)
   - Form edit profil
   - Upload foto profil
   - Untuk muhafiz: field spesialisasi, no_ijazah
-- [ ] Buat `src/features/profil/api/profile.api.ts`:
+- [x] Buat `src/features/profil/api/profile.api.ts`:
   - GET/PUT profile
   - Upload foto
-- [ ] Update `src/features/profil/pages/ProfilMuhafizPage.tsx`:
+- [x] Update `src/features/profil/pages/ProfilMuhafizPage.tsx`:
   - Integrasi dengan UserProfile API baru
   - Backward compat: jika UserProfile belum ada, tampilkan dari User.name
-- [ ] Buat komponen `src/features/profil/components/AvatarUpload.tsx`:
+- [x] Buat komponen `src/features/profil/components/AvatarUpload.tsx`:
   - Preview foto
   - Upload dengan crop/resize
 

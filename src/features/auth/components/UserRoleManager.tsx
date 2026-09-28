@@ -167,7 +167,7 @@ export function UserRoleManager({ user, onClose }: UserRoleManagerProps) {
             </p>
           </div>
         ) : (
-          <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
+          <div className="space-y-2 max-h-55 overflow-y-auto pr-1">
             {userRoles.map((ur) => (
               <div
                 key={ur.id_role}
@@ -350,7 +350,7 @@ export function UserRoleManager({ user, onClose }: UserRoleManagerProps) {
         open={!!roleToRemove}
         onOpenChange={(open) => !open && setRoleToRemove(null)}
       >
-        <AlertDialogContent className="sm:max-w-[420px]">
+        <AlertDialogContent className="sm:max-w-105">
           <AlertDialogHeader>
             <div className="h-10 w-10 rounded-full bg-destructive/10 text-destructive flex items-center justify-center mb-1">
               <AlertTriangle className="h-5 w-5" />

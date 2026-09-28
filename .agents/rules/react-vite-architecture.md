@@ -5,7 +5,7 @@ trigger: always_on
 ---
 description: React Vite Enterprise Architecture Standards (Feature-Driven)
 globs: ["src/**/*.ts", "src/**/*.tsx", "src/**/*.js", "src/**/*.jsx"]
-trigger: auto
+trigger: glob
 ---
 
 # React Vite Enterprise Architecture Standards

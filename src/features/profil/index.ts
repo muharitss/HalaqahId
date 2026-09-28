@@ -1,8 +1,10 @@
-export { default as ProfilMuhafizPage } from "./pages";
-export { profilService } from "./api";
-export { useProfilMuhafiz } from "./hooks/useProfilMuhafiz";
+export { UserProfilePage, ProfilMuhafizPage, default as ProfilPage } from "./pages";
+export * from "./api";
+export * from "./hooks/useUserProfile";
+export * from "./hooks/useProfilMuhafiz";
 export * from "./types";
+export * from "./components/AvatarUpload";
+export * from "./components/AvatarCard";
 export * from "./components/EditProfilForm";
 export * from "./components/GantiPasswordForm";
-export * from "./components/AvatarCard";
 export * from "./components/InfoHalaqahCard";

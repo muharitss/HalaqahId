@@ -24,6 +24,7 @@ export interface User {
 export interface UserProfile {
   id_user: number;
   name: string;
+  nama_lengkap?: string;
   email: string;
   role: Role;
   id_sekolah: number;
@@ -32,6 +33,12 @@ export interface UserProfile {
   id_halaqah: number | null;
   is_verified: boolean;
   nomor_telepon?: string | null;
+  no_telepon?: string | null;
+  foto?: string | null;
+  foto_url?: string | null;
+  bio?: string | null;
+  spesialisasi?: string | null;
+  no_ijazah?: string | null;
 }
 
 export interface LoginRequest {
@@ -126,6 +133,11 @@ export interface AuthUser {
   is_verified?: boolean;
   token?: string;
   avatarUrl?: string;
+  foto?: string | null;
+  foto_url?: string | null;
+  bio?: string | null;
+  spesialisasi?: string | null;
+  no_ijazah?: string | null;
   isImpersonating?: boolean;
   nomor_telepon?: string | null;
   halaqah?: {

@@ -170,13 +170,13 @@ export default function KelolaUserPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[20%] min-w-[150px]">Nama & Email</TableHead>
-                <TableHead className="w-[14%] min-w-[130px]">Nomor Telepon</TableHead>
-                <TableHead className="w-[13%] min-w-[110px]">Peran Sistem</TableHead>
-                <TableHead className="w-[21%] min-w-[160px]">Roles & Hak Akses</TableHead>
-                <TableHead className="w-[16%] min-w-[130px]">Lembaga / Sekolah</TableHead>
-                <TableHead className="w-[8%] min-w-[90px]">Status Email</TableHead>
-                <TableHead className="text-right w-[8%] min-w-[70px]">Aksi</TableHead>
+                <TableHead className="w-[20%] min-w-37.5">Nama & Email</TableHead>
+                <TableHead className="w-[14%] min-w-32.5">Nomor Telepon</TableHead>
+                <TableHead className="w-[13%] min-w-27.5">Peran Sistem</TableHead>
+                <TableHead className="w-[21%] min-w-40">Roles & Hak Akses</TableHead>
+                <TableHead className="w-[16%] min-w-32.5">Lembaga / Sekolah</TableHead>
+                <TableHead className="w-[8%] min-w-22.5">Status Email</TableHead>
+                <TableHead className="text-right w-[8%] min-w-17.5">Aksi</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -405,7 +405,7 @@ export default function KelolaUserPage() {
                     >
                       Sebelumnya
                     </Button>
-                    <span className="text-xs text-muted-foreground min-w-[45px] text-center">
+                    <span className="text-xs text-muted-foreground min-w-11.25 text-center">
                       {page} / {totalPages}
                     </span>
                     <Button
@@ -427,7 +427,7 @@ export default function KelolaUserPage() {
 
       {/* DIALOG RESET PASSWORD */}
       <Dialog open={isPasswordOpen} onOpenChange={setIsPasswordOpen}>
-        <DialogContent className="sm:max-w-[400px]">
+        <DialogContent className="sm:max-w-100">
           <DialogHeader>
             <DialogTitle>Reset Password Pengguna</DialogTitle>
             <DialogDescription>
@@ -483,7 +483,7 @@ export default function KelolaUserPage() {
 
       {/* DIALOG CONFIRM DELETE */}
       <Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
-        <DialogContent className="sm:max-w-[400px]">
+        <DialogContent className="sm:max-w-100">
           <DialogHeader>
             <DialogTitle className="text-destructive">Hapus Akun Pengguna</DialogTitle>
             <DialogDescription>
@@ -531,7 +531,7 @@ export default function KelolaUserPage() {
 
       {/* DIALOG KELOLA ROLE USER */}
       <Dialog open={isRoleManagerOpen} onOpenChange={setIsRoleManagerOpen}>
-        <DialogContent className="sm:max-w-[540px] max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-135 max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-lg">
               <ShieldCheck className="h-5 w-5 text-primary" />

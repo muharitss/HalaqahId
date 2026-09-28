@@ -30,12 +30,17 @@ const KelolaBlogPage = lazy(() =>
   import("@/features/blog/pages/KelolaBlogPage")
 );
 
+const ProfilPage = lazy(() =>
+  import("@/features/profil/pages/UserProfilePage").then((m) => ({ default: m.UserProfilePage }))
+);
+
 export const superadminRoutes: RouteObject[] = [
   { path: "/superadmin", element: <SuperadminDashboard /> },
   { path: "/superadmin/sekolah", element: <KelolaSekolahPage /> },
   { path: "/superadmin/users", element: <KelolaUserPage /> },
   { path: "/superadmin/roles", element: <KelolaRolePage /> },
   { path: "/superadmin/audit-logs", element: <KelolaAuditLogPage /> },
+  { path: "/superadmin/profil", element: <ProfilPage /> },
   { path: "/superadmin/settings", element: <SuperadminSettingsPage /> },
   { path: "/superadmin/settings/terminology", element: <TerminologySettingsPage /> },
   { path: "/superadmin/settings/trash", element: <TrashPage /> },
