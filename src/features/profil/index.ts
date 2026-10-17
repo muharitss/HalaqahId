@@ -1,4 +1,3 @@
-export { default as ProfilMuhafizPage } from "./pages";
 export { profilService } from "./api";
 export { useProfilMuhafiz } from "./hooks/useProfilMuhafiz";
 export * from "./types";

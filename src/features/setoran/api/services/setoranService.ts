@@ -12,6 +12,7 @@ export interface SetoranCheckParams {
   id_santri: number;
   tanggal: string; // format: YYYY-MM-DD
   id_sesi: number;
+  id_kategori?: number;
 }
 
 export interface SetoranCheckResult {

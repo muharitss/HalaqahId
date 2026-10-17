@@ -62,12 +62,16 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const userData: AuthUser = {
       ...response.data.user,
       token: response.data.token,
+      refresh_token: response.data.refresh_token,
       name: response.data.user.name || "User",
       isImpersonating: false,
     };
 
     set({ user: userData, isImpersonating: false });
     saveUserToStorage(userData);
+    if (response.data.refresh_token) {
+      localStorage.setItem("refresh_token", response.data.refresh_token);
+    }
 
     if (isKepalaRole(userData.role)) {
       saveSuperadminSession(userData);
@@ -79,6 +83,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     localStorage.removeItem("user");
     localStorage.removeItem("superadmin_session");
     localStorage.removeItem("token");
+    localStorage.removeItem("refresh_token");
     sessionStorage.clear();
     queryClient.clear();
   },
@@ -108,6 +113,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         const fullUser: AuthUser = {
           ...userData,
           token: parsedData.token,
+          refresh_token: parsedData.refresh_token,
           name: userData.name || "User",
           isImpersonating: parsedData.isImpersonating,
           originalUser: parsedData.originalUser,

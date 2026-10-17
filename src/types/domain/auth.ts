@@ -101,6 +101,7 @@ export interface AuthResponse {
       is_verified?: boolean;
     };
     token: string;
+    refresh_token?: string;
   };
 }
 
@@ -114,6 +115,7 @@ export interface AuthUser {
   has_halaqah?: boolean;
   is_verified?: boolean;
   token?: string;
+  refresh_token?: string;
   avatarUrl?: string;
   isImpersonating?: boolean;
   nomor_telepon?: string | null;

@@ -22,7 +22,7 @@ import {
 import { Loader2 } from "lucide-react";
 import { type Santri } from "@/features/santri/types";
 import { type Halaqah } from "@/features/halaqah/api/halaqahService";
-import { useTargetList } from "@/features/settings";
+import { useTargetList } from "@/features/settings/modules/target/hooks/useTarget";
 import { TIPE_TARGET_LABELS, SATUAN_TARGET_LABELS, type TargetSekolah } from "@/types/domain/target";
 import { Term } from "@/components/ui/Term";
 

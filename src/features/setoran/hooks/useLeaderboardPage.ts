@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLeaderboard } from "../api/queries/useLeaderboard";
-import { halaqahService } from "@/features/halaqah";
+import { halaqahManagementService as halaqahService } from "@/features/halaqah/api/halaqahManagementService";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
 import type { LeaderboardRecord } from "../api/services/setoranService";

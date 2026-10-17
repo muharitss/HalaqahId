@@ -1,6 +1,3 @@
-// Pages
-export { default } from "./pages";
-
 // Components
 export { AccessDenied } from "./components/AccessDenied";
 

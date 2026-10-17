@@ -39,7 +39,13 @@ export const getTenantSlugFromUrl = (): string => {
 export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const slug = useMemo(() => getTenantSlugFromUrl(), []);
+  const slug = useMemo(() => {
+    const s = getTenantSlugFromUrl();
+    try {
+      localStorage.setItem("tenant_slug", s);
+    } catch {}
+    return s;
+  }, []);
 
   // Fetch base tenant information
   const {
@@ -54,12 +60,13 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({
   });
 
   const tenant = tenantResponse?.data || null;
-  const activeTenantId = tenant?.id_tenant || 1;
+  const activeTenantId = tenant?.id_tenant ?? null;
 
   // Fetch branding info (parallel)
   const { data: brandResponse, isLoading: isLoadingBrand } = useQuery({
     queryKey: ["tenant-brand", activeTenantId],
-    queryFn: () => tenantApi.getBrand(activeTenantId),
+    queryFn: () => tenantApi.getBrand(activeTenantId!),
+    enabled: !!activeTenantId,
     staleTime: 1000 * 60 * 10,
   });
 
@@ -67,14 +74,16 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({
   const { data: terminologyResponse, isLoading: isLoadingTerminology } =
     useQuery({
       queryKey: ["tenant-terminology", activeTenantId],
-      queryFn: () => tenantApi.getTerminology(activeTenantId),
+      queryFn: () => tenantApi.getTerminology(activeTenantId!),
+      enabled: !!activeTenantId,
       staleTime: 1000 * 60 * 10,
     });
 
   // Fetch active features gating (parallel)
   const { data: featuresResponse, isLoading: isLoadingFeatures } = useQuery({
     queryKey: ["tenant-features", activeTenantId],
-    queryFn: () => tenantApi.getFeatures(activeTenantId),
+    queryFn: () => tenantApi.getFeatures(activeTenantId!),
+    enabled: !!activeTenantId,
     staleTime: 1000 * 60 * 10,
   });
 

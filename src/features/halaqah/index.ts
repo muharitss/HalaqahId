@@ -1,8 +1,3 @@
-// Pages
-export { KelolaHalaqahPage } from "./pages/kelola-halaqah-page";
-export { KelolaSesiPage } from "./pages/kelola-sesi-page";
-export { NoHalaqahView } from "./pages/NoHalaqah";
-
 // Modules
 export * from "./modules";
 

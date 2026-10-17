@@ -3,7 +3,7 @@ import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "@/features/auth";
 import { Role, isKepalaRole } from "@/types/domain/enums";
 import { Spinner } from "@/components/ui/spinner";
-import { NoHalaqahView } from "@/features/halaqah";
+import { NoHalaqahView } from "@/features/halaqah/pages/NoHalaqah";
 
 /** Spinner terpusat untuk saat auth sedang di-resolve */
 export const LoadingScreen = () => (

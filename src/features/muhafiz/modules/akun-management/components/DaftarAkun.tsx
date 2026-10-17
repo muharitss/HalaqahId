@@ -32,7 +32,7 @@ import { faWhatsapp } from "@fortawesome/free-brands-svg-icons";
 import type { MuhafizTableProps, AbsensiStatus } from "@/features/muhafiz/types";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { authService } from "@/features/auth";
+import { authService } from "@/features/auth/api/services/authService";
 import { getErrorMessage } from "@/utils/error";
 
 const formatWhatsApp = (phone: string | null | undefined) => {

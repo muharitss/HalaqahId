@@ -14,14 +14,14 @@ export default defineConfig({
   server: {
     proxy: {
       "/api": {
-        target: "https://halaqahid-be.vercel.app",
+        target: process.env.VITE_BACKEND_URL || "http://localhost:3000",
         changeOrigin: true,
         secure: false,
       },
     },
   },
   build: {
-    chunkSizeWarningLimit: 1000,
+    chunkSizeWarningLimit: 1500,
     rollupOptions: {
       output: {
         manualChunks: {

@@ -1,5 +1,5 @@
 import { setoranService } from "@/features/setoran/api/services/setoranService";
-import { halaqahService } from "@/features/halaqah/api/halaqahService";
+import { halaqahManagementService as halaqahService } from "@/features/halaqah/api/halaqahManagementService";
 import { transformSetoranData } from "@/features/setoran/utils/dataTransformer";
 import type {
   DateFilter,

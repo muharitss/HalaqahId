@@ -3,7 +3,8 @@ import { setoranService } from "@/features/setoran/api/services/setoranService";
 import { sanitizeDashboardData } from "@/features/setoran/utils/dataTransformer";
 import { santriService } from "@/features/santri";
 import { startOfWeek, startOfMonth, format } from "date-fns";
-import { akunService, halaqahService } from "@/features/shared";
+import { akunService } from "@/features/shared";
+import { halaqahManagementService as halaqahService } from "@/features/halaqah/api/halaqahManagementService";
 
 import type {
   AbsensiStat,

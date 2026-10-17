@@ -29,6 +29,8 @@ export interface SmartSetoranModeActions {
   setSelectedTanggal: (tanggal: string | null) => void;
   /** Panggil saat Sesi berubah */
   setSelectedSesiId: (id: number | null) => void;
+  /** Panggil saat Kategori berubah */
+  setSelectedKategoriId: (id: number | null) => void;
   /** Reset ke state awal (setelah submit sukses) */
   resetMode: () => void;
   /** Trigger pengecekan ulang secara manual */
@@ -46,6 +48,7 @@ export function useSmartSetoranMode(): SmartSetoranModeState &
   const [selectedSantriId, setSelectedSantriId] = useState<number | null>(null);
   const [selectedTanggal, setSelectedTanggal] = useState<string | null>(null);
   const [selectedSesiId, setSelectedSesiId] = useState<number | null>(null);
+  const [selectedKategoriId, setSelectedKategoriId] = useState<number | null>(null);
 
   const [mode, setMode] = useState<FormMode>("idle");
   const [isChecking, setIsChecking] = useState(false);
@@ -61,7 +64,12 @@ export function useSmartSetoranMode(): SmartSetoranModeState &
   // ─── Core check logic ────────────────────────────────────────────────────
 
   const runCheck = useCallback(
-    async (santriId: number, tanggal: string, sesiId: number) => {
+    async (
+      santriId: number,
+      tanggal: string,
+      sesiId: number,
+      kategoriId?: number | null,
+    ) => {
       // 1. Batalkan request sebelumnya (race condition prevention)
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
@@ -73,7 +81,12 @@ export function useSmartSetoranMode(): SmartSetoranModeState &
 
       try {
         const res = await setoranService.checkSetoran(
-          { id_santri: santriId, tanggal, id_sesi: sesiId },
+          {
+            id_santri: santriId,
+            tanggal,
+            id_sesi: sesiId,
+            ...(kategoriId ? { id_kategori: kategoriId } : {}),
+          },
           abortControllerRef.current.signal,
         );
 
@@ -112,7 +125,7 @@ export function useSmartSetoranMode(): SmartSetoranModeState &
       clearTimeout(debounceTimerRef.current);
     }
 
-    if (!selectedSantriId || !selectedTanggal || !selectedSesiId) {
+    if (!selectedSantriId || !selectedTanggal || !selectedSesiId || !selectedKategoriId) {
       // Belum lengkap — reset ke idle
       setMode("idle");
       setCheckError(null);
@@ -127,7 +140,7 @@ export function useSmartSetoranMode(): SmartSetoranModeState &
 
     // Debounce: tunggu 400ms setelah user berhenti mengubah
     debounceTimerRef.current = setTimeout(() => {
-      runCheck(selectedSantriId, selectedTanggal, selectedSesiId);
+      runCheck(selectedSantriId, selectedTanggal, selectedSesiId, selectedKategoriId);
     }, DEBOUNCE_MS);
 
     return () => {
@@ -135,7 +148,7 @@ export function useSmartSetoranMode(): SmartSetoranModeState &
         clearTimeout(debounceTimerRef.current);
       }
     };
-  }, [selectedSantriId, selectedTanggal, selectedSesiId, runCheck]);
+  }, [selectedSantriId, selectedTanggal, selectedSesiId, selectedKategoriId, runCheck]);
 
   // ─── Cleanup saat unmount ────────────────────────────────────────────────
 
@@ -160,10 +173,10 @@ export function useSmartSetoranMode(): SmartSetoranModeState &
   }, []);
 
   const retryCheck = useCallback(() => {
-    if (selectedSantriId && selectedTanggal && selectedSesiId) {
-      runCheck(selectedSantriId, selectedTanggal, selectedSesiId);
+    if (selectedSantriId && selectedTanggal && selectedSesiId && selectedKategoriId) {
+      runCheck(selectedSantriId, selectedTanggal, selectedSesiId, selectedKategoriId);
     }
-  }, [selectedSantriId, selectedTanggal, selectedSesiId, runCheck]);
+  }, [selectedSantriId, selectedTanggal, selectedSesiId, selectedKategoriId, runCheck]);
 
   return {
     // State
@@ -176,6 +189,7 @@ export function useSmartSetoranMode(): SmartSetoranModeState &
     setSelectedSantriId,
     setSelectedTanggal,
     setSelectedSesiId,
+    setSelectedKategoriId,
     resetMode,
     retryCheck,
   };

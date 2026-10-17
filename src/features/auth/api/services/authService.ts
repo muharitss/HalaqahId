@@ -34,11 +34,24 @@ export const authService = {
     return response.data;
   },
 
-  logout: (): void => {
-    localStorage.removeItem("user");
-    localStorage.removeItem("superadmin_session");
-    localStorage.removeItem("token");
-    sessionStorage.clear();
+  logout: async (): Promise<void> => {
+    try {
+      let refreshToken: string | null = null;
+      try {
+        const user = JSON.parse(localStorage.getItem("user") || "{}");
+        refreshToken = user.refresh_token || localStorage.getItem("refresh_token");
+      } catch {}
+
+      await axiosClient.post("/halaqah/auth/logout", { refresh_token: refreshToken });
+    } catch (e) {
+      console.warn("Backend logout call failed or offline:", e);
+    } finally {
+      localStorage.removeItem("user");
+      localStorage.removeItem("superadmin_session");
+      localStorage.removeItem("token");
+      localStorage.removeItem("refresh_token");
+      sessionStorage.clear();
+    }
   },
 
   verifyEmail: async (token: string): Promise<GlobalResponse<VerifyEmailResponse>> => {

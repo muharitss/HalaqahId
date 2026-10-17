@@ -97,6 +97,7 @@ export function SetoranForm({
   useEffect(() => smartMode.setSelectedSantriId(selectedSantriId ?? null), [selectedSantriId, smartMode.setSelectedSantriId]);
   useEffect(() => smartMode.setSelectedSesiId(selectedSesiId ?? null), [selectedSesiId, smartMode.setSelectedSesiId]);
   useEffect(() => smartMode.setSelectedTanggal(selectedTanggal ?? null), [selectedTanggal, smartMode.setSelectedTanggal]);
+  useEffect(() => smartMode.setSelectedKategoriId(selectedKategoriId ?? null), [selectedKategoriId, smartMode.setSelectedKategoriId]);
   useEffect(() => onModeChange?.(smartMode.mode), [smartMode.mode, onModeChange]);
   useEffect(() => onCheckingChange?.(smartMode.isChecking), [smartMode.isChecking, onCheckingChange]);
   useEffect(() => setBannerDismissed(false), [smartMode.mode]);
@@ -139,7 +140,9 @@ export function SetoranForm({
       const suratSelesai = suratParts[1]?.trim() || suratMulai;
       const ayatParts = (data.ayat || "1-1").split("-");
 
-      form.setValue("id_kategori", data.id_kategori);
+      if (form.getValues("id_kategori") !== data.id_kategori) {
+        form.setValue("id_kategori", data.id_kategori);
+      }
       form.setValue("juz", data.juz || 1);
       form.setValue("surat_mulai", suratMulai);
       form.setValue("surat_selesai", suratSelesai);

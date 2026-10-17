@@ -2,9 +2,10 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/features/auth/components/auth-provider";
 import { isKepalaRole } from "@/types/domain/enums";
-import { halaqahService, type Halaqah } from "@/features/halaqah/api/halaqahService";
+import { halaqahManagementService as halaqahService } from "@/features/halaqah/api/halaqahManagementService";
+import type { Halaqah } from "@/features/halaqah/types";
 import { akunService, type Muhafiz } from "@/features/muhafiz";
-import { sekolahService } from "@/features/sekolah";
+import { sekolahService } from "@/features/sekolah/api/services/sekolahService";
 import type { Sekolah } from "@/types/domain/sekolah";
 import { toast } from "sonner";
 

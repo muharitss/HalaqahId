@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { type AxiosRequestConfig } from "axios";
 
 const axiosClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL || "/api",
@@ -8,13 +8,43 @@ const axiosClient = axios.create({
   },
 });
 
-// Request interceptor untuk menambahkan token dari berbagai sumber
+// Helper untuk deteksi tenant slug dari URL / host jika belum tersimpan
+function resolveTenantSlug(): string {
+  try {
+    const stored = localStorage.getItem("tenant_slug");
+    if (stored) return stored;
+
+    const hostname = window.location.hostname;
+    const parts = hostname.split(".");
+    if (parts.length > 2) {
+      const subdomain = parts[0];
+      if (subdomain !== "www" && subdomain !== "app" && subdomain !== "admin") {
+        return subdomain;
+      }
+    }
+  } catch {}
+  return (import.meta.env.VITE_DEFAULT_TENANT_SLUG as string) || "default";
+}
+
+function clearAuthData() {
+  localStorage.removeItem("user");
+  localStorage.removeItem("superadmin_session");
+  localStorage.removeItem("token");
+  localStorage.removeItem("refresh_token");
+  sessionStorage.clear();
+}
+
+// Request interceptor untuk menambahkan token dan header tenant
 axiosClient.interceptors.request.use(
   (config) => {
-    // Coba ambil token dari localStorage dengan berbagai cara
-    let token = null;
-    
-    // Cara 1: Dari user object
+    // 1. Tambahkan header tenant
+    const tenantSlug = resolveTenantSlug();
+    if (tenantSlug) {
+      config.headers["x-tenant-slug"] = tenantSlug;
+    }
+
+    // 2. Ambil token dari localStorage
+    let token: string | null = null;
     const userStr = localStorage.getItem("user");
     if (userStr) {
       try {
@@ -24,13 +54,11 @@ axiosClient.interceptors.request.use(
         console.error("Gagal parse user:", e);
       }
     }
-    
-    // Cara 2: Dari token langsung (jika ada)
+
     if (!token) {
       token = localStorage.getItem("token");
     }
-    
-    // Cara 3: Dari superadmin session (untuk impersonate)
+
     if (!token) {
       const superadminStr = localStorage.getItem("superadmin_session");
       if (superadminStr) {
@@ -42,15 +70,11 @@ axiosClient.interceptors.request.use(
         }
       }
     }
-    
-    // Jika token ditemukan, tambahkan ke header
+
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
-      console.log("Token added to request:", config.url);
-    } else {
-      console.warn("No token found for request:", config.url);
     }
-    
+
     return config;
   },
   (error) => {
@@ -58,65 +82,124 @@ axiosClient.interceptors.request.use(
   }
 );
 
-// Response interceptor untuk handle error
+// Single-flight refresh token queue
+let isRefreshing = false;
+let failedQueue: Array<{
+  resolve: (value?: any) => void;
+  reject: (reason?: any) => void;
+}> = [];
+
+const processQueue = (error: any, token: string | null = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
+
+// Response interceptor untuk handle token refresh dan 401 error
 axiosClient.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      // Jangan redirect jika request-nya adalah login, atau jika user sedang di halaman publik (login/register/verify-email)
+  async (error) => {
+    const originalRequest = error.config as AxiosRequestConfig & { _retry?: boolean };
+
+    if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
       const pathname = window.location.pathname;
-      const isPublicPage = 
-        pathname === "/login" || 
+      const isPublicPage =
+        pathname === "/login" ||
         pathname.startsWith("/login/") ||
         pathname === "/register" ||
         pathname.startsWith("/register/") ||
         pathname === "/verify-email" ||
         pathname.startsWith("/verify-email/");
-        
-      const isLoginRequest = 
-        error.config?.url?.includes("/login") || 
-        error.config?.url?.includes("login");
 
-      if (isLoginRequest || isPublicPage) {
+      const isAuthAction =
+        originalRequest.url?.includes("/login") ||
+        originalRequest.url?.includes("/refresh") ||
+        originalRequest.url?.includes("/register");
+
+      if (isAuthAction || isPublicPage) {
         return Promise.reject(error);
       }
 
-      console.error("Unauthorized access - token mungkin expired");
-      
-      // Cek apakah ini karena impersonate session
-      const superadminStr = localStorage.getItem("superadmin_session");
-      if (superadminStr) {
-        // Jika ada superadmin session, coba restore
-        try {
-          const superadmin = JSON.parse(superadminStr);
-          // Set user back to superadmin
-          localStorage.setItem("user", JSON.stringify({
-            ...superadmin,
-            isImpersonating: false
-          }));
-          // Hapus session impersonate
-          localStorage.removeItem("superadmin_session");
-          
-          // Redirect ke halaman login dengan pesan
-          window.location.href = "/login?reason=session_expired";
-        } catch (error) {
-          // Jika gagal, logout semua secara aman
-          localStorage.removeItem("user");
-          localStorage.removeItem("superadmin_session");
-          localStorage.removeItem("token");
-          sessionStorage.clear();
-          window.location.href = "/login";
-          console.error("Gagal restore session:", error);
+      // Ambil refresh token
+      let refreshToken: string | null = null;
+      try {
+        const user = JSON.parse(localStorage.getItem("user") || "{}");
+        refreshToken = user.refresh_token || localStorage.getItem("refresh_token");
+      } catch {}
+
+      if (!refreshToken) {
+        clearAuthData();
+        window.location.href = "/login?reason=session_expired";
+        return Promise.reject(error);
+      }
+
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then((token) => {
+            if (originalRequest.headers) {
+              originalRequest.headers["Authorization"] = `Bearer ${token}`;
+            }
+            return axiosClient(originalRequest);
+          })
+          .catch((err) => Promise.reject(err));
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      try {
+        const refreshResponse = await axios.post(
+          `${axiosClient.defaults.baseURL}/halaqah/auth/refresh`,
+          { refresh_token: refreshToken },
+          { headers: { "Content-Type": "application/json" } }
+        );
+
+        const newAccessToken =
+          refreshResponse.data?.data?.token || refreshResponse.data?.token;
+        const newRefreshToken =
+          refreshResponse.data?.data?.refresh_token || refreshResponse.data?.refresh_token;
+
+        if (!newAccessToken) {
+          throw new Error("Token baru tidak ditemukan di response refresh");
         }
-      } else {
-        // Tidak ada superadmin session, logout biasa secara aman
-        localStorage.removeItem("user");
-        localStorage.removeItem("superadmin_session");
-        localStorage.removeItem("token");
-        sessionStorage.clear();
-        window.location.href = "/login";
+
+        // Simpan token baru
+        const userStr = localStorage.getItem("user");
+        if (userStr) {
+          try {
+            const userObj = JSON.parse(userStr);
+            userObj.token = newAccessToken;
+            if (newRefreshToken) userObj.refresh_token = newRefreshToken;
+            localStorage.setItem("user", JSON.stringify(userObj));
+          } catch {}
+        }
+        localStorage.setItem("token", newAccessToken);
+        if (newRefreshToken) {
+          localStorage.setItem("refresh_token", newRefreshToken);
+        }
+
+        processQueue(null, newAccessToken);
+        if (originalRequest.headers) {
+          originalRequest.headers["Authorization"] = `Bearer ${newAccessToken}`;
+        }
+        return axiosClient(originalRequest);
+      } catch (refreshErr) {
+        processQueue(refreshErr, null);
+        clearAuthData();
+        window.location.href = "/login?reason=session_expired";
+        return Promise.reject(refreshErr);
+      } finally {
+        isRefreshing = false;
       }
     }
+
     return Promise.reject(error);
   }
 );
