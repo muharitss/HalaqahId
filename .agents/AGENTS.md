@@ -104,3 +104,12 @@ src/features/<feature-name>/
 * **Backend Docs as Single Source of Truth**: Semua dokumentasi OpenAPI dan skema resmi backend berada di `../halaqahid-be/src/modules/<nama-modul>/docs/` (`<nama-modul>.docs.ts` dan `<nama-modul>.schemas.ts`).
 * **Wajib Mengikuti Rule**: Agent wajib membaca dan mematuhi ketentuan di [.agents/rules/api-backend-docs.md](file:///home/muharits/Programmer/halaqah/HalaqahId/.agents/rules/api-backend-docs.md) sebelum mulai mengimplementasikan service API, types, atau skema validasi Zod di frontend.
 
+---
+
+## 10. UI Components & Styling Standards (shadcn/ui)
+* **Wajib shadcn/ui Murni**: Semua komponen UI frontend wajib dibangun menggunakan shadcn/ui primitives di `src/components/ui/` (`@/components/ui/*`). Dilarang memakai tag HTML mentah jika padanan shadcn/ui ada.
+* **Icon Library Resmi**: Wajib menggunakan `lucide-react`. Dilarang menambah import icon FontAwesome (`@fortawesome/*`).
+* **Larangan CSS Framework Lain**: Dilarang memakai class DaisyUI (`btn`, `modal`, `badge`, dsb). Gunakan Tailwind utility classes dan tokens shadcn/ui.
+* **Toast & Alert**: Gunakan `sonner` (`toast`) dan `@/components/ui/alert`.
+* **Wajib Mengikuti Rule**: Agent wajib membaca dan mematuhi panduan detail di [.agents/rules/shadcn-ui.md](file:///home/muharits/Programmer/halaqah/HalaqahId/.agents/rules/shadcn-ui.md).
+
