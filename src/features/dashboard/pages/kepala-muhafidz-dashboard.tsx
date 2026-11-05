@@ -5,7 +5,7 @@ import { LaporanChartSection } from "@/features/setoran/modules/laporan";
 import { useDashboardData } from "../hooks/useDashboardData";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { UserX, Trophy } from "lucide-react";
+import { UserX, Trophy, BookOpen, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Term } from "@/components/ui/Term";
 import { useTerminology } from "@/hooks/useTerminology";
@@ -83,6 +83,31 @@ export function KepalaMuhafidzDashboard() {
           distribusiHalaqah={stats.distribusiHalaqah}
         />
       )}
+
+      {/* Widget Ringkasan Progress Hafalan */}
+      <Card className="border-primary/20 bg-primary/5 shadow-sm">
+        <CardContent className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+              <BookOpen className="h-5 w-5" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold tracking-tight">Peta Progress Hafalan 114 Surat</h3>
+              <p className="text-xs text-muted-foreground">
+                Pantau visualisasi capaian 30 Juz dan tingkat ketuntasan hafalan per santri secara komprehensif.
+              </p>
+            </div>
+          </div>
+          <Button
+            size="sm"
+            onClick={() => navigate("/kepala-muhafidz/progress")}
+            className="gap-1.5 shrink-0 text-xs"
+          >
+            Buka Peta Hafalan
+            <ArrowRight className="h-3.5 w-3.5" />
+          </Button>
+        </CardContent>
+      </Card>
 
       {/* 3. ALFA STUDENTS LIST */}
       <Card className="shadow-sm">

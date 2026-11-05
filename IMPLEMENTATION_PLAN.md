@@ -626,7 +626,7 @@
 **Objektif**: UI untuk manage rubrik penilaian.
 
 **Tasks**:
-- [ ] Buat `src/features/rubrik/`:
+- [x] Buat `src/features/rubrik/`:
   - `pages/KelolaRubrikPage.tsx`:
     - List rubrik template (tabel: nama, tipe, jumlah kriteria, is_default)
     - Create rubrik (dialog/page)
@@ -642,11 +642,11 @@
   - `api/rubrik.api.ts`
   - `hooks/useRubrik.ts`
   - `index.ts`
-- [ ] Tambah route:
+- [x] Tambah route:
   ```tsx
   { path: "/kepala-muhafidz/settings/rubrik", element: <KelolaRubrikPage /> }
   ```
-- [ ] Tambah menu di settings sidebar
+- [x] Tambah menu di settings sidebar
 
 **Files to create**:
 - `src/features/rubrik/` [NEW directory — semua file]
@@ -657,12 +657,12 @@
 **Objektif**: Form setoran mendukung penilaian rubrik.
 
 **Tasks**:
-- [ ] Update form setoran:
+- [x] Update form setoran:
   - Jika kategori setoran punya rubrik → tampilkan scoring form
   - Per kriteria: nama, slider/input nilai (dalam range skala_min - skala_max)
   - Auto-hitung nilai akhir (weighted average)
   - Tampilkan preview: "Tajwid: 3/4 (30%), Kelancaran: 3.5/4 (40%), ..."
-- [ ] Buat komponen `src/features/setoran/components/RubrikScoring.tsx`:
+- [x] Buat komponen `src/features/setoran/components/RubrikScoring.tsx`:
   ```tsx
   interface Props {
     rubrikId: number;
@@ -671,10 +671,10 @@
     onChange: (values: Record<number, number>) => void;
   }
   ```
-- [ ] Update list/detail setoran:
+- [x] Update list/detail setoran:
   - Tampilkan nilai rubrik jika ada
   - Expand row: detail nilai per kriteria
-- [ ] Backward compat: jika tidak ada rubrik, form tetap seperti sekarang (taqwim sederhana)
+- [x] Backward compat: jika tidak ada rubrik, form tetap seperti sekarang (taqwim sederhana)
 
 **Files to create/modify**:
 - `src/features/setoran/components/RubrikScoring.tsx` [NEW]
@@ -687,7 +687,7 @@
 **Objektif**: Visualisasi progress hafalan santri.
 
 **Tasks**:
-- [ ] Buat `src/features/progress/`:
+- [x] Buat `src/features/progress/`:
   - `pages/ProgressDashboard.tsx`:
     - Overview: total juz, total halaman, surat terbaru
     - Grid/list surat 1-114 dengan status warna:
@@ -702,12 +702,12 @@
     - Bar chart: setoran per hari/minggu
   - `api/progress.api.ts`
   - `hooks/useProgress.ts`
-- [ ] Tambah route:
+- [x] Tambah route:
   ```tsx
   { path: "/kepala-muhafidz/progress", element: <ProgressDashboard /> }
   { path: "/muhafidz/progress-hafalan", element: <ProgressDashboard /> }
   ```
-- [ ] Update dashboard: widget ringkasan progress
+- [x] Update dashboard: widget ringkasan progress
 
 **Files to create**:
 - `src/features/progress/` [NEW directory — semua file]
