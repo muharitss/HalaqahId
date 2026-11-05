@@ -90,6 +90,12 @@ export function AppSidebar() {
     ? [
         { name: "Dashboard", tooltip: "Dashboard", path: "/superadmin", icon: faChartPie },
         {
+          name: "Kelola Tenant",
+          tooltip: "Kelola Lembaga / Tenant",
+          path: "/superadmin/tenants",
+          icon: faBuilding,
+        },
+        {
           name: <>Kelola <Term code="SEKOLAH" /></>,
           tooltip: `Kelola ${labelSekolah}`,
           path: "/superadmin/sekolah",

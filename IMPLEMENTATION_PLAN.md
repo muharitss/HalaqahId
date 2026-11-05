@@ -762,7 +762,7 @@
 **Objektif**: UI untuk manage tenants.
 
 **Tasks**:
-- [ ] Buat `src/features/tenant/`:
+- [x] Buat `src/features/tenant/`:
   - `pages/KelolaTenantPage.tsx`:
     - List tenants (tabel: nama, slug, status, jumlah sekolah, jumlah user)
     - Create tenant (dialog)
@@ -777,7 +777,7 @@
     - List fitur dengan toggle on/off
   - `api/tenant-admin.api.ts`
   - `hooks/useTenants.ts`
-- [ ] Route:
+- [x] Route:
   ```tsx
   { path: "/superadmin/tenants", element: <KelolaTenantPage /> }
   { path: "/superadmin/tenants/:id", element: <TenantDetailPage /> }
@@ -793,7 +793,7 @@
 **Objektif**: Multi-step wizard untuk registrasi tenant baru.
 
 **Tasks**:
-- [ ] Buat `src/features/onboarding/`:
+- [x] Buat `src/features/onboarding/`:
   - `pages/OnboardingPage.tsx`:
     - Step 1: Info Tenant (nama, slug — dengan slug checker)
     - Step 2: Info Admin (nama, email, password)
@@ -810,12 +810,12 @@
     - Debounced API call
     - Green check / red X
   - `api/onboarding.api.ts`
-- [ ] Route:
+- [x] Route:
   ```tsx
   { path: "/register-tenant", element: <OnboardingPage /> }
   // Atau update existing /register
   ```
-- [ ] Design: premium, modern, welcoming onboarding experience
+- [x] Design: premium, modern, welcoming onboarding experience
 
 **Files to create**:
 - `src/features/onboarding/` [NEW directory]

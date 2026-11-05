@@ -33,6 +33,14 @@ export function RegisterPage() {
             <p className="text-text-secondary-light dark:text-text-secondary-dark">
               {appName ? `Buat akun admin untuk ${appName}.` : "Buat akun admin dan daftarkan institusi Anda."}
             </p>
+            <div className="pt-1">
+              <a
+                href="/register-tenant"
+                className="inline-flex items-center text-xs font-semibold text-primary hover:underline"
+              >
+                Ingin mendaftar sebagai lembaga/pondok baru mandiri? Klik di sini &rarr;
+              </a>
+            </div>
           </div>
 
           <RegisterForm />

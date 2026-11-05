@@ -3,9 +3,14 @@ export interface Tenant {
   nama_tenant: string;
   slug: string;
   status: "ACTIVE" | "SUSPENDED" | "TRIAL";
-  created_at: string;
-  updated_at: string;
-  deleted_at: string | null;
+  created_at?: string;
+  updated_at?: string;
+  deleted_at?: string | null;
+  brand?: TenantBrand | null;
+  _count?: {
+    users?: number;
+    sekolah?: number;
+  };
 }
 
 export interface TenantBrand {

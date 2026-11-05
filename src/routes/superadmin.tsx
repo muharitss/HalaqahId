@@ -34,8 +34,18 @@ const ProfilPage = lazy(() =>
   import("@/features/profil/pages/UserProfilePage").then((m) => ({ default: m.UserProfilePage }))
 );
 
+const KelolaTenantPage = lazy(() =>
+  import("@/features/tenant").then((m) => ({ default: m.KelolaTenantPage }))
+);
+const TenantDetailPage = lazy(() =>
+  import("@/features/tenant").then((m) => ({ default: m.TenantDetailPage }))
+);
+
 export const superadminRoutes: RouteObject[] = [
   { path: "/superadmin", element: <SuperadminDashboard /> },
+  { path: "/superadmin/tenants", element: <KelolaTenantPage /> },
+  { path: "/superadmin/tenants/:id", element: <TenantDetailPage /> },
+  { path: "/superadmin/tenants/:id/brand", element: <TenantDetailPage /> },
   { path: "/superadmin/sekolah", element: <KelolaSekolahPage /> },
   { path: "/superadmin/users", element: <KelolaUserPage /> },
   { path: "/superadmin/roles", element: <KelolaRolePage /> },

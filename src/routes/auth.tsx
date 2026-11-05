@@ -21,8 +21,23 @@ const ResetPasswordPage = lazy(() =>
     default: m.ResetPasswordPage,
   }))
 );
+const OnboardingPage = lazy(() =>
+  import("@/features/onboarding").then((m) => ({
+    default: m.OnboardingPage,
+  }))
+);
 
 export const authRoutes: RouteObject[] = [
+  {
+    path: "/register-tenant",
+    element: (
+      <GuestRoute>
+        <Suspense fallback={<LoadingScreen />}>
+          <OnboardingPage />
+        </Suspense>
+      </GuestRoute>
+    ),
+  },
   {
     path: "/login",
     element: (
