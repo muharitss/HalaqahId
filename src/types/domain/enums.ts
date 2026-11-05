@@ -128,3 +128,39 @@ export const KategoriSetoran = {
   HAFALAN: 'HAFALAN',
 } as const;
 export type KategoriSetoran = (typeof KategoriSetoran)[keyof typeof KategoriSetoran];
+
+export const HubunganWali = {
+  AYAH: 'AYAH',
+  IBU: 'IBU',
+  KAKEK: 'KAKEK',
+  NENEK: 'NENEK',
+  PAMAN: 'PAMAN',
+  WALI: 'WALI',
+  LAINNYA: 'LAINNYA',
+} as const;
+export type HubunganWali = (typeof HubunganWali)[keyof typeof HubunganWali];
+
+export const HUBUNGAN_WALI_LABELS: Record<HubunganWali, string> = {
+  [HubunganWali.AYAH]: 'Ayah',
+  [HubunganWali.IBU]: 'Ibu',
+  [HubunganWali.KAKEK]: 'Kakek',
+  [HubunganWali.NENEK]: 'Nenek',
+  [HubunganWali.PAMAN]: 'Paman',
+  [HubunganWali.WALI]: 'Wali',
+  [HubunganWali.LAINNYA]: 'Lainnya',
+};
+
+export const StatusSantri = {
+  AKTIF: 'AKTIF',
+  LULUS: 'LULUS',
+  KELUAR: 'KELUAR',
+  CUTI: 'CUTI',
+} as const;
+export type StatusSantri = (typeof StatusSantri)[keyof typeof StatusSantri];
+
+export const STATUS_SANTRI_LABELS: Record<StatusSantri, string> = {
+  [StatusSantri.AKTIF]: 'Aktif',
+  [StatusSantri.LULUS]: 'Lulus',
+  [StatusSantri.KELUAR]: 'Keluar',
+  [StatusSantri.CUTI]: 'Cuti',
+};

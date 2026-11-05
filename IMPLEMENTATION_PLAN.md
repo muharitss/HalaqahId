@@ -528,16 +528,16 @@
 **Objektif**: UI untuk manage data wali santri.
 
 **Tasks**:
-- [ ] Buat `src/features/santri/components/SantriWaliSection.tsx`:
+- [x] Buat `src/features/santri/components/SantriWaliSection.tsx`:
   - List wali santri (nama, hubungan, no telp, email, primary contact badge)
   - Add wali (inline form / dialog)
   - Edit wali
   - Delete wali (dengan konfirmasi)
   - Set primary contact
-- [ ] Update santri detail page: tambah tab/section "Data Wali"
-- [ ] Buat `src/features/santri/api/santri-wali.api.ts`:
+- [x] Update santri detail page: tambah tab/section "Data Wali"
+- [x] Buat `src/features/santri/api/santri-wali.api.ts`:
   - CRUD wali santri
-- [ ] Buat type `src/types/domain/santri-wali.ts`:
+- [x] Buat type `src/types/domain/santri-wali.ts`:
   ```ts
   export interface SantriWali {
     id_wali: number;
