@@ -47,7 +47,7 @@ export function ForgotPasswordForm() {
           <div className="mx-auto sm:mx-0 flex h-12 w-12 items-center justify-center rounded-full bg-green-100 dark:bg-green-950/40 text-green-600 dark:text-green-400">
             <CheckCircle2 className="h-6 w-6" />
           </div>
-          <CardTitle className="text-2xl font-bold tracking-tight">Periksa Email Anda</CardTitle>
+          <CardTitle className="text-2xl font-bold tracking-tight">Cek Email Anda</CardTitle>
           <CardDescription className="text-sm leading-relaxed">
             Jika alamat email <strong className="text-foreground">{submittedEmail}</strong> terdaftar di sistem, tautan pemulihan kata sandi telah dikirimkan.
           </CardDescription>

@@ -463,15 +463,15 @@
 **Objektif**: UI untuk forgot password & refresh token handling.
 
 **Tasks**:
-- [ ] Buat `src/features/auth/pages/ForgotPasswordPage.tsx`:
+- [x] Buat `src/features/auth/pages/ForgotPasswordPage.tsx`:
   - Form: email
   - Kirim request ke `/api/halaqah/auth/forgot-password`
   - Success message: "Cek email Anda"
-- [ ] Buat `src/features/auth/pages/ResetPasswordPage.tsx`:
+- [x] Buat `src/features/auth/pages/ResetPasswordPage.tsx`:
   - Form: password baru, konfirmasi password
   - Token dari URL query parameter
   - Submit ke `/api/halaqah/auth/reset-password`
-- [ ] Update axios interceptor untuk handle refresh token:
+- [x] Update axios interceptor untuk handle refresh token:
   ```ts
   // Jika response 401 (token expired):
   // 1. Call /api/halaqah/auth/refresh
@@ -479,12 +479,12 @@
   // 3. Retry original request
   // 4. Jika refresh juga gagal → redirect ke login
   ```
-- [ ] Tambah route:
+- [x] Tambah route:
   ```tsx
   { path: "/forgot-password", element: <ForgotPasswordPage /> }
   { path: "/reset-password", element: <ResetPasswordPage /> }
   ```
-- [ ] Update LoginPage: tambah link "Lupa Password?"
+- [x] Update LoginPage: tambah link "Lupa Password?"
 
 **Files to create/modify**:
 - `src/features/auth/pages/ForgotPasswordPage.tsx` [NEW]
@@ -501,21 +501,21 @@
 **Objektif**: UI untuk manage multiple muhafiz per halaqah.
 
 **Tasks**:
-- [ ] Update `src/features/halaqah/pages/KelolaHalaqahPage.tsx`:
+- [x] Update `src/features/halaqah/pages/KelolaHalaqahPage.tsx`:
   - Ubah dari select 1 muhafiz → multi-select dengan peran
   - Tampilkan list muhafiz di detail halaqah
-- [ ] Buat `src/features/halaqah/components/HalaqahMuhafizManager.tsx`:
+- [x] Buat `src/features/halaqah/components/HalaqahMuhafizManager.tsx`:
   - List muhafiz yang aktif (dengan peran: UTAMA, PENDAMPING, PENGGANTI)
   - Add muhafiz (dialog: pilih user + peran)
   - Change peran muhafiz
   - Remove muhafiz (dengan konfirmasi)
   - Badge: "Utama", "Pendamping", "Pengganti"
-- [ ] Update halaqah form:
+- [x] Update halaqah form:
   - Remove single muhafiz select
   - Tambah section "Muhafiz" dengan HalaqahMuhafizManager
-- [ ] Update API calls:
+- [x] Update API calls:
   - `src/features/halaqah/api/halaqah.api.ts` — tambah endpoint muhafiz management
-- [ ] Backward compat: jika API lama masih return `id_muhafiz`, tampilkan sebagai muhafiz utama
+- [x] Backward compat: jika API lama masih return `id_muhafiz`, tampilkan sebagai muhafiz utama
 
 **Files to create/modify**:
 - `src/features/halaqah/components/HalaqahMuhafizManager.tsx` [NEW]

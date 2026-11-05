@@ -1,4 +1,4 @@
-﻿export const Role = {
+export const Role = {
   SUPERADMIN: 'SUPERADMIN',
   ADMIN: 'ADMIN',
   KOORDINATOR_TAHFIZ: 'KOORDINATOR_TAHFIZ',
@@ -95,6 +95,13 @@ export const JenisHalaqah = {
   INTENSIF: 'INTENSIF',
 } as const;
 export type JenisHalaqah = (typeof JenisHalaqah)[keyof typeof JenisHalaqah];
+
+export const PeranMuhafiz = {
+  UTAMA: 'UTAMA',
+  PENDAMPING: 'PENDAMPING',
+  PENGGANTI: 'PENGGANTI',
+} as const;
+export type PeranMuhafiz = (typeof PeranMuhafiz)[keyof typeof PeranMuhafiz];
 
 export const KategoriTarget = {
   RINGAN: 'RINGAN',

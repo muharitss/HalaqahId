@@ -50,12 +50,15 @@ axiosClient.interceptors.request.use(
       }
     }
     
-    // Jika token ditemukan, tambahkan ke header
-    if (token) {
+    const isAuthBypassRequest =
+      config.url?.includes("/login") ||
+      config.url?.includes("/forgot-password") ||
+      config.url?.includes("/reset-password") ||
+      config.url?.includes("/refresh");
+
+    // Jika token ditemukan dan bukan auth bypass, tambahkan ke header
+    if (token && !isAuthBypassRequest) {
       config.headers.Authorization = `Bearer ${token}`;
-      console.log("Token added to request:", config.url);
-    } else {
-      console.warn("No token found for request:", config.url);
     }
     
     return config;
@@ -151,6 +154,9 @@ axiosClient.interceptors.response.use(
           console.error("Gagal membaca refresh token dari storage:", e);
         }
       }
+      if (!refreshToken) {
+        refreshToken = localStorage.getItem("refresh_token");
+      }
 
       if (!refreshToken || originalRequest?._retry) {
         performLogout();
@@ -163,6 +169,7 @@ axiosClient.interceptors.response.use(
         })
           .then((token) => {
             if (originalRequest) {
+              originalRequest.headers = originalRequest.headers || {};
               originalRequest.headers.Authorization = `Bearer ${token}`;
               return axiosClient(originalRequest);
             }
@@ -205,11 +212,15 @@ axiosClient.interceptors.response.use(
         if (localStorage.getItem("token")) {
           localStorage.setItem("token", newToken);
         }
+        if (localStorage.getItem("refresh_token")) {
+          localStorage.setItem("refresh_token", newRefreshToken);
+        }
 
         axiosClient.defaults.headers.common.Authorization = `Bearer ${newToken}`;
         processQueue(null, newToken);
 
         if (originalRequest) {
+          originalRequest.headers = originalRequest.headers || {};
           originalRequest.headers.Authorization = `Bearer ${newToken}`;
           return axiosClient(originalRequest);
         }

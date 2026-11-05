@@ -1,4 +1,20 @@
-﻿import type { Halaqah as DomainHalaqah, Santri as DomainSantri } from '@/types';
+import type {
+  Halaqah as DomainHalaqah,
+  Santri as DomainSantri,
+  HalaqahMuhafiz,
+  HalaqahMuhafizItem,
+  PeranMuhafiz,
+  AssignHalaqahMuhafizRequest,
+  UpdateHalaqahMuhafizRequest,
+} from '@/types';
+
+export type {
+  HalaqahMuhafiz,
+  HalaqahMuhafizItem,
+  PeranMuhafiz,
+  AssignHalaqahMuhafizRequest,
+  UpdateHalaqahMuhafizRequest,
+};
 
 export interface Halaqah extends DomainHalaqah {
   _count?: {
@@ -40,6 +56,7 @@ export interface DaftarHalaqahProps {
   onMoveSantri: (santri: Santri) => void;
   onEditSantri: (santri: Santri) => void;
   onDeleteSantri: (santri: Santri) => void;
+  onManageMuhafiz?: (halaqah: Halaqah) => void;
 }
 
 export interface EmptyStateProps {

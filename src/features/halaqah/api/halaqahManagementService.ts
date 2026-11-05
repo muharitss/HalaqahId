@@ -3,6 +3,11 @@ import { santriService } from "@/features/santri";
 import { type Halaqah } from "../types";
 import { type Santri } from "../types";
 import type { GlobalResponse } from "@/types/api/global-response";
+import type {
+  HalaqahMuhafiz,
+  AssignHalaqahMuhafizRequest,
+  UpdateHalaqahMuhafizRequest,
+} from "@/types";
 
 export const halaqahManagementService = {
   // Get all halaqah
@@ -66,6 +71,38 @@ export const halaqahManagementService = {
   // Restore halaqah
   restoreHalaqah: async (id: number): Promise<GlobalResponse<null>> => {
     const res = await axiosClient.patch<GlobalResponse<null>>(`/halaqah/restore/${id}`);
+    return res.data;
+  },
+
+  // ──────────────────── Halaqah Muhafiz (Multi-muhafiz) ────────────────────
+  getMuhafiz: async (idHalaqah: number): Promise<HalaqahMuhafiz[]> => {
+    const res = await axiosClient.get<GlobalResponse<HalaqahMuhafiz[]>>(`/halaqah/${idHalaqah}/muhafiz`);
+    const data = res.data?.data ?? res.data;
+    return Array.isArray(data) ? data : [];
+  },
+
+  assignMuhafiz: async (
+    idHalaqah: number,
+    data: AssignHalaqahMuhafizRequest
+  ): Promise<GlobalResponse<HalaqahMuhafiz>> => {
+    const res = await axiosClient.post<GlobalResponse<HalaqahMuhafiz>>(`/halaqah/${idHalaqah}/muhafiz`, data);
+    return res.data;
+  },
+
+  updateMuhafiz: async (
+    idHalaqah: number,
+    muhafizId: number,
+    data: UpdateHalaqahMuhafizRequest
+  ): Promise<GlobalResponse<HalaqahMuhafiz>> => {
+    const res = await axiosClient.put<GlobalResponse<HalaqahMuhafiz>>(`/halaqah/${idHalaqah}/muhafiz/${muhafizId}`, data);
+    return res.data;
+  },
+
+  removeMuhafiz: async (
+    idHalaqah: number,
+    muhafizId: number
+  ): Promise<GlobalResponse<null>> => {
+    const res = await axiosClient.delete<GlobalResponse<null>>(`/halaqah/${idHalaqah}/muhafiz/${muhafizId}`);
     return res.data;
   },
 

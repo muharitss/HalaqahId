@@ -18,6 +18,7 @@ export function useHalaqahManagement() {
   const [isSantriModalOpen, setIsSantriModalOpen] = useState(false);
   const [isDeleteSantriOpen, setIsDeleteSantriOpen] = useState(false);
   const [isMoveSantriOpen, setIsMoveSantriOpen] = useState(false);
+  const [isMuhafizModalOpen, setIsMuhafizModalOpen] = useState(false);
 
   // --- DATA FETCHING ---
   const { data = { halaqahs: [] as Halaqah[], santriMap: {} as Record<number, Santri[]> }, isLoading: isLoadingHalaqah, refetch: fetchData } = useQuery({
@@ -48,7 +49,13 @@ export function useHalaqahManagement() {
     queryClient.invalidateQueries({ queryKey: ["halaqah-management"] });
     setIsEditHalaqahOpen(false);
     setIsDeleteHalaqahOpen(false);
+    setIsMuhafizModalOpen(false);
   }, [queryClient]);
+
+  const handleOpenManageMuhafiz = useCallback((halaqah: Halaqah) => {
+    setSelectedHalaqah(halaqah);
+    setIsMuhafizModalOpen(true);
+  }, []);
 
   const handleOpenAddSantri = useCallback((halaqah: Halaqah) => {
     setSelectedHalaqah(halaqah);
@@ -165,6 +172,7 @@ export function useHalaqahManagement() {
     isSantriModalOpen,
     isDeleteSantriOpen,
     isMoveSantriOpen,
+    isMuhafizModalOpen,
     isSubmitting,
 
     setSelectedHalaqah,
@@ -174,10 +182,12 @@ export function useHalaqahManagement() {
     setIsSantriModalOpen,
     setIsDeleteSantriOpen,
     setIsMoveSantriOpen,
+    setIsMuhafizModalOpen,
 
     fetchData,
     handleOpenAddSantri,
     handleOpenEditSantri,
+    handleOpenManageMuhafiz,
     handleSaveSantri,
     handleDeleteSantriConfirm,
     handleMoveSantriConfirm,
