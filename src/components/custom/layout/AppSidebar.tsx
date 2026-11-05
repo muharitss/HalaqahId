@@ -154,6 +154,12 @@ export function AppSidebar() {
             icon: faClipboardCheck,
           },
           {
+            name: "Progress Hafalan",
+            tooltip: `Peta Progress Hafalan ${labelSantri}`,
+            path: "/kepala-muhafidz/progress",
+            icon: faBookOpen,
+          },
+          {
             name: "Leaderboard",
             tooltip: "Leaderboard",
             path: "/kepala-muhafidz/leaderboard",
@@ -204,6 +210,12 @@ export function AppSidebar() {
             tooltip: `Progres ${labelSantri}`,
             path: "/muhafidz/progres",
             icon: faChartPie,
+          },
+          {
+            name: "Peta Hafalan",
+            tooltip: `Peta Hafalan 114 Surat ${labelSantri}`,
+            path: "/muhafidz/progress-hafalan",
+            icon: faBookOpen,
           },
           {
             name: "Leaderboard",

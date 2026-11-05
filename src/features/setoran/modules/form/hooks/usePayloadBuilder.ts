@@ -74,6 +74,12 @@ export function buildPayload(
     start_ayat: finalStartAyat,
     end_surat_id: finalEndSuratId,
     end_ayat: finalEndAyat,
+    ...(values.nilai_kriteria && Object.keys(values.nilai_kriteria).length > 0 && {
+      nilai_kriteria: Object.entries(values.nilai_kriteria).map(([id_kriteria, nilai]) => ({
+        id_kriteria: Number(id_kriteria),
+        nilai: Number(nilai),
+      })),
+    }),
     ...(mushafSelection && {
       start_page: startPage,
       start_line: startLine,

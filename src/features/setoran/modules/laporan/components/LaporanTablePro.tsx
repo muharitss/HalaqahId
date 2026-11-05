@@ -58,6 +58,8 @@ interface SetoranRow {
   id_kategori: number;
   kategori: string;
   taqwim: number | null;
+  nilai?: number | null;
+  nilai_kriteria?: import("../../../types").SetoranNilaiKriteriaItem[];
   keterangan?: string;
   custom_values?: Record<string, any> | null;
 }
@@ -124,6 +126,8 @@ export function LaporanTablePro({
             id_kategori: s.id_kategori,
             kategori: kategoriName,
             taqwim: s.taqwim !== undefined ? s.taqwim : null,
+            nilai: s.nilai,
+            nilai_kriteria: s.nilai_kriteria,
             keterangan: s.keterangan || undefined,
             custom_values: s.custom_values || null,
           });
@@ -137,7 +141,11 @@ export function LaporanTablePro({
     return allRows.some((row) => row.taqwim !== null && row.taqwim !== undefined && row.taqwim !== 0);
   }, [allRows]);
 
-  const showEvaluasiColumn = customFields.length > 0 || hasHistoricalTaqwim;
+  const hasRubrikScore = useMemo(() => {
+    return allRows.some((row) => row.nilai_kriteria && row.nilai_kriteria.length > 0);
+  }, [allRows]);
+
+  const showEvaluasiColumn = customFields.length > 0 || hasHistoricalTaqwim || hasRubrikScore;
 
   const filteredRows = useMemo(() => {
     const q = search.toLowerCase();
@@ -384,6 +392,28 @@ export function LaporanTablePro({
                                       )
                                     )
                                   }
+
+                                  {row.nilai_kriteria && row.nilai_kriteria.length > 0 && (
+                                    <div className="flex flex-col items-end gap-1 mt-0.5">
+                                      <Badge
+                                        variant="outline"
+                                        className="text-[10px] py-0 px-1.5 h-4 bg-primary/10 text-primary border-primary/20 font-semibold"
+                                      >
+                                        Nilai: {row.nilai ?? row.nilai_kriteria.reduce((s, k) => s + k.nilai, 0) / row.nilai_kriteria.length}
+                                      </Badge>
+                                      <div className="text-[10px] text-muted-foreground flex flex-wrap justify-end gap-1 max-w-[200px]">
+                                        {row.nilai_kriteria.map((nk) => (
+                                          <span
+                                            key={nk.id_kriteria}
+                                            className="bg-muted/60 px-1 py-0.2 rounded text-[9px]"
+                                            title={`Skala: ${nk.kriteria?.skala_min ?? 1}-${nk.kriteria?.skala_max ?? 4}`}
+                                          >
+                                            {nk.kriteria?.nama || "Kriteria"}: <b>{nk.nilai}</b>
+                                          </span>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
 
                                   {row.keterangan && (
                                     <div className="text-[10px] text-muted-foreground mt-0.5 max-w-[150px] truncate" title={row.keterangan}>

@@ -2,6 +2,13 @@ import { z } from "zod";
 
 export const santriSchema = z.object({
   nama_santri: z.string().min(3, "Nama santri minimal 3 karakter"),
+  nomor_induk_santri: z
+    .string()
+    .max(50, "NIS maksimal 50 karakter")
+    .optional()
+    .nullable()
+    .or(z.literal("")),
+  status: z.enum(["AKTIF", "LULUS", "KELUAR", "CUTI"]).optional().default("AKTIF"),
   nomor_telepon: z
     .string()
     .min(10, "Nomor telepon minimal 10 digit")

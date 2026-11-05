@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { useSantriList, useCreateSantri, useUpdateSantri, useDeleteSantri } from "../../../api";
-import { type Santri, type CreateSantriData, type UpdateSantriData } from "@/features/santri/types";
+import { useSantriList, useCreateSantri, useUpdateSantri, useDeleteSantri, usePindahHalaqah } from "../../../api";
+import { type Santri, type CreateSantriData, type UpdateSantriData, type PindahHalaqahRequest } from "@/features/santri/types";
 import { getErrorMessage } from "@/utils/error";
 import { useParams } from "react-router-dom";
 import { useAuth } from "@/features/auth/components/auth-provider";
@@ -23,6 +23,7 @@ export const useSantri = () => {
   const createMutation = useCreateSantri(() => queryClient.invalidateQueries({ queryKey }));
   const updateMutation = useUpdateSantri(() => queryClient.invalidateQueries({ queryKey }));
   const deleteMutation = useDeleteSantri(() => queryClient.invalidateQueries({ queryKey }));
+  const pindahMutation = usePindahHalaqah(() => queryClient.invalidateQueries({ queryKey }));
 
   const createSantri = async (data: CreateSantriData) => {
     try {
@@ -48,7 +49,15 @@ export const useSantri = () => {
     }
   };
 
-  const isLoading = isLoadingSantri || createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
+  const pindahHalaqah = async (id: number, data: PindahHalaqahRequest) => {
+    try {
+      return await pindahMutation.mutateAsync({ id, data });
+    } catch (err: unknown) {
+      throw new Error(getErrorMessage(err, "Gagal memindahkan santri"));
+    }
+  };
+
+  const isLoading = isLoadingSantri || createMutation.isPending || updateMutation.isPending || deleteMutation.isPending || pindahMutation.isPending;
 
   return {
     santriList,
@@ -59,6 +68,7 @@ export const useSantri = () => {
     createSantri,
     updateSantri,
     deleteSantri,
+    pindahHalaqah,
     resetError: () => {},
     
     getSantriById: useCallback((id: number) => 

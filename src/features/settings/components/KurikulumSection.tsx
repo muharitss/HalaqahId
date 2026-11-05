@@ -5,6 +5,7 @@ import {
   Sliders,
   Target,
   GraduationCap,
+  ClipboardCheck,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { SettingItem } from "./SettingItem";
@@ -71,6 +72,16 @@ export function KurikulumSection({
       onClick: () => onNavigate("/kepala-muhafidz/settings/form-setoran"),
       keywords:
         "form setoran kolom kustom input nilai mutqin catatan ustadz kriteria centang",
+      visible: isKepala,
+    },
+    {
+      id: "rubrik-penilaian",
+      icon: <ClipboardCheck className="h-4 w-4" />,
+      title: "Rubrik Penilaian",
+      description: "Kelola template kriteria & bobot penilaian terstandar",
+      onClick: () => onNavigate("/kepala-muhafidz/settings/rubrik"),
+      keywords:
+        "rubrik penilaian template kriteria bobot tajwid kelancaran standar nilai scoring",
       visible: isKepala,
     },
     {

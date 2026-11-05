@@ -2,12 +2,15 @@ import axiosClient from "@/lib/axiosClient";
 import { getErrorMessage } from "@/utils/error";
 import { type ApiResponse } from "@/features/halaqah/api/halaqahService";
 import { type Sekolah, type UpdateSekolahRequest, type SekolahWithCount, type SekolahListResponse } from "@/types/domain/sekolah";
+import type { RubrikTemplate } from "@/features/rubrik/types";
 
 export interface KategoriSetoranResponse {
   id_kategori: number;
   nama_kategori: string;
   deskripsi: string | null;
   perlu_validasi_urutan?: boolean;
+  id_rubrik?: number | null;
+  rubrik?: RubrikTemplate | null;
 }
 
 export const sekolahService = {

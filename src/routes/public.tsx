@@ -1,6 +1,42 @@
-import { Navigate, type RouteObject } from "react-router-dom";
+import { lazy, Suspense } from "react";
+import { Navigate, Outlet, type RouteObject } from "react-router-dom";
+import { PortalProvider } from "@/features/portal/store/portal-context";
+
+const PortalLoginPage = lazy(() => import("@/features/portal/pages/PortalLoginPage"));
+const PortalDashboard = lazy(() => import("@/features/portal/pages/PortalDashboard"));
+
+// Portal wrapper with isolated parent auth context
+const PortalWrapper = () => (
+  <PortalProvider>
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+          <div className="h-8 w-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+        </div>
+      }
+    >
+      <Outlet />
+    </Suspense>
+  </PortalProvider>
+);
 
 export const publicRoutes: RouteObject[] = [
+  // ── Public: Portal Orang Tua (tanpa DashboardLayout) ─────────────────────
+  {
+    path: "/:slug/portal",
+    element: <PortalWrapper />,
+    children: [
+      {
+        index: true,
+        element: <PortalLoginPage />,
+      },
+      {
+        path: "dashboard",
+        element: <PortalDashboard />,
+      },
+    ],
+  },
+
   // ── Public: Display Portal (tidak butuh login) ───────────────────────────
   {
     path: "/display/:slug",

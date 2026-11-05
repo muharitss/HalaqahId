@@ -21,6 +21,9 @@ const KelolaSantriPage = lazy(() =>
 const ProgresSantriPage = lazy(() =>
   import("@/features/santri/pages/progres-santri-page").then((m) => ({ default: m.ProgresSantriPage }))
 );
+const ProgressDashboard = lazy(() =>
+  import("@/features/progress").then((m) => ({ default: m.ProgressDashboard }))
+);
 const TahfidzAi = lazy(() =>
   import("@/features/tahfidz-ai/components/TahfidzAi").then((m) => ({ default: m.TahfidzAi }))
 );
@@ -39,6 +42,7 @@ export const muhafizRoutes: RouteObject[] = [
       { path: "/muhafidz/setoran/mushaf", element: <MushafPage /> },
       { path: "/muhafidz/santri", element: <KelolaSantriPage /> },
       { path: "/muhafidz/progres", element: <ProgresSantriPage /> },
+      { path: "/muhafidz/progress-hafalan", element: <ProgressDashboard /> },
       { path: "/muhafidz/leaderboard", element: <LeaderboardPage role="muhafiz" /> },
       { path: "/muhafidz/tahfidzai", element: <TahfidzAi /> },
     ],

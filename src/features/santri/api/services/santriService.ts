@@ -1,6 +1,12 @@
 import axiosClient from "@/lib/axiosClient";
 import { getErrorMessage } from "@/utils/error";
-import { type Santri, type CreateSantriData, type UpdateSantriData } from "../../types";
+import {
+  type Santri,
+  type CreateSantriData,
+  type UpdateSantriData,
+  type RiwayatHalaqahItem,
+  type PindahHalaqahRequest,
+} from "../../types";
 
 export const santriService = {
   // 1. Create Santri
@@ -87,6 +93,26 @@ export const santriService = {
     } catch (error: unknown) {
       console.error("Error getByHalaqahId:", error);
       return []; 
+    }
+  },
+
+  // 7. Get Riwayat Halaqah Santri
+  async getRiwayatHalaqah(id: number): Promise<RiwayatHalaqahItem[]> {
+    try {
+      const response = await axiosClient.get(`/santri/${id}/riwayat-halaqah`);
+      return response.data.data;
+    } catch (error: unknown) {
+      throw new Error(getErrorMessage(error, "Gagal mengambil riwayat halaqah santri"));
+    }
+  },
+
+  // 8. Pindah Halaqah Santri
+  async pindahHalaqah(id: number, data: PindahHalaqahRequest): Promise<unknown> {
+    try {
+      const response = await axiosClient.post(`/santri/${id}/pindah-halaqah`, data);
+      return response.data.data;
+    } catch (error: unknown) {
+      throw new Error(getErrorMessage(error, "Gagal memindahkan santri"));
     }
   },
 };

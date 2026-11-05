@@ -562,12 +562,12 @@
 **Objektif**: Tambah field NIS dan status ke form/tabel santri.
 
 **Tasks**:
-- [ ] Update santri form `src/features/santri/`:
+- [x] Update santri form `src/features/santri/`:
   - Tambah field `nomor_induk_santri` (auto-generated atau manual input)
   - Tambah field `status` (AKTIF, LULUS, KELUAR, CUTI) — dropdown
   - Tampilkan NIS di tabel list santri
   - Filter by status
-- [ ] Update type `src/types/domain/santri.ts` (atau yang sesuai):
+- [x] Update type `src/types/domain/santri.ts` (atau yang sesuai):
   ```ts
   export interface Santri {
     // ...existing fields...
@@ -575,7 +575,7 @@
     status: 'AKTIF' | 'LULUS' | 'KELUAR' | 'CUTI';
   }
   ```
-- [ ] Update tabel santri:
+- [x] Update tabel santri:
   - Kolom NIS
   - Status badge (warna berbeda per status)
   - Filter dropdown status
@@ -591,15 +591,15 @@
 **Objektif**: Tampilan riwayat perpindahan halaqah santri.
 
 **Tasks**:
-- [ ] Buat `src/features/santri/components/RiwayatHalaqahSection.tsx`:
+- [x] Buat `src/features/santri/components/RiwayatHalaqahSection.tsx`:
   - Timeline view: tanggal, halaqah lama → halaqah baru, alasan, dipindahkan oleh
   - Chronological order (terbaru di atas)
-- [ ] Update santri detail: tambah tab "Riwayat Halaqah"
-- [ ] Buat aksi "Pindah Halaqah" di detail santri:
+- [x] Update santri detail: tambah tab "Riwayat Halaqah"
+- [x] Buat aksi "Pindah Halaqah" di detail santri:
   - Dialog: pilih halaqah tujuan, alasan
   - Konfirmasi
   - Auto-update halaqah santri + buat record riwayat
-- [ ] API calls:
+- [x] API calls:
   - `GET /api/santri/:id/riwayat-halaqah`
   - `POST /api/santri/:id/pindah-halaqah`
 
@@ -611,12 +611,12 @@
 
 ### Hari 15 — Review & Fix Minggu 1-3
 **Tasks**:
-- [ ] Review semua komponen baru
-- [ ] Fix responsive design
-- [ ] Fix accessibility (keyboard nav, screen reader)
-- [ ] Testing semua form validations
-- [ ] Cross-browser testing
-- [ ] Build verification: `npm run build` harus sukses tanpa error
+- [x] Review semua komponen baru
+- [x] Fix responsive design
+- [x] Fix accessibility (keyboard nav, screen reader)
+- [x] Testing semua form validations
+- [x] Cross-browser testing
+- [x] Build verification: `npm run build` harus sukses tanpa error
 
 ---
 

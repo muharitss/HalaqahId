@@ -40,8 +40,14 @@ const FormSetoranSettingsPage = lazy(() => import("@/features/settings/pages/For
 const TerminologySettingsPage = lazy(() =>
   import("@/features/settings/pages/TerminologySettingsPage")
 );
+const KelolaRubrikPage = lazy(() =>
+  import("@/features/rubrik").then((m) => ({ default: m.KelolaRubrikPage }))
+);
 const KelolaRolePage = lazy(() =>
   import("@/features/role").then((m) => ({ default: m.KelolaRolePage }))
+);
+const ProgressDashboard = lazy(() =>
+  import("@/features/progress").then((m) => ({ default: m.ProgressDashboard }))
 );
 const ProgresSantriPage = lazy(() =>
   import("@/features/santri/pages/progres-santri-page").then((m) => ({ default: m.ProgresSantriPage }))
@@ -83,6 +89,10 @@ export const kepalaRoutes: RouteObject[] = [
   {
     path: "/kepala-muhafidz/leaderboard",
     element: <LeaderboardPage role="admin" />,
+  },
+  {
+    path: "/kepala-muhafidz/progress",
+    element: <ProgressDashboard />,
   },
   {
     path: "/kepala-muhafidz/tahfidzai",
@@ -135,6 +145,10 @@ export const kepalaRoutes: RouteObject[] = [
   {
     path: "/kepala-muhafidz/settings/terminology",
     element: <TerminologySettingsPage />,
+  },
+  {
+    path: "/kepala-muhafidz/settings/rubrik",
+    element: <KelolaRubrikPage />,
   },
   {
     path: "/kepala-muhafidz/settings/roles",

@@ -1,8 +1,13 @@
 import type { TargetSekolah } from './target';
+import { StatusSantri, STATUS_SANTRI_LABELS } from './enums';
+
+export { StatusSantri, STATUS_SANTRI_LABELS };
 
 export interface Santri {
   id_santri: number;
   nama_santri: string;
+  nomor_induk_santri?: string | null;
+  status?: StatusSantri;
   nomor_telepon?: string | null;
   id_sekolah: number;
   id_target: number | null;
@@ -19,6 +24,8 @@ export interface Santri {
 
 export interface CreateSantriRequest {
   nama_santri: string;
+  nomor_induk_santri?: string | null;
+  status?: StatusSantri;
   nomor_telepon?: string;
   id_target?: number | null;
   id_halaqah: number;
@@ -26,6 +33,8 @@ export interface CreateSantriRequest {
 
 export interface UpdateSantriRequest {
   nama_santri?: string;
+  nomor_induk_santri?: string | null;
+  status?: StatusSantri;
   nomor_telepon?: string;
   id_target?: number | null;
   id_halaqah?: number;
