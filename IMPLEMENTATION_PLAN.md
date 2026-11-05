@@ -718,7 +718,7 @@
 **Objektif**: Standalone page untuk orang tua melihat progress anak.
 
 **Tasks**:
-- [ ] Buat `src/features/portal/`:
+- [x] Buat `src/features/portal/`:
   - `pages/PortalLoginPage.tsx`:
     - Form: Pilih sekolah (by slug), NIS, No Telepon Wali
     - Kirim verifikasi ke backend
@@ -733,13 +733,13 @@
   - `api/portal.api.ts`
   - `hooks/usePortal.ts`
   - `store/portal-context.tsx`
-- [ ] Route (public, tanpa DashboardLayout):
+- [x] Route (public, tanpa DashboardLayout):
   ```tsx
   { path: "/:slug/portal", element: <PortalLoginPage /> }
   { path: "/:slug/portal/dashboard", element: <PortalDashboard /> }
   ```
-- [ ] Design: clean, mobile-first, sederhana untuk orang tua
-- [ ] Tidak menggunakan DashboardLayout — standalone layout khusus portal
+- [x] Design: clean, mobile-first, sederhana untuk orang tua
+- [x] Tidak menggunakan DashboardLayout — standalone layout khusus portal
 
 **Files to create**:
 - `src/features/portal/` [NEW directory — semua file]
@@ -748,11 +748,11 @@
 
 ### Hari 20 — Review & Fix Minggu 4
 **Tasks**:
-- [ ] Rubrik form testing
-- [ ] Progress grid testing
-- [ ] Portal testing (mobile responsive)
-- [ ] Build verification
-- [ ] Performance check (bundle size)
+- [x] Rubrik form testing
+- [x] Progress grid testing
+- [x] Portal testing (mobile responsive)
+- [x] Build verification
+- [x] Performance check (bundle size)
 
 ---
 
