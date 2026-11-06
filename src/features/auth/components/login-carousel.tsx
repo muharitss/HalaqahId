@@ -37,7 +37,7 @@ export function LoginCarousel() {
       };
     }
     return list;
-  }, [brand?.login_background_url]);
+  }, [brand]);
 
   useEffect(() => {
     const interval = setInterval(() => {

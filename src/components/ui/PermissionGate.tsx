@@ -1,9 +1,6 @@
 import React from "react";
-import {
-  usePermission,
-  useAnyPermission,
-  useAllPermissions,
-} from "@/lib/hooks/usePermission";
+import { useAuthStore } from "@/store/useAuthStore";
+import { checkPermission } from "@/lib/hooks/usePermission";
 
 export interface PermissionGateProps {
   permission: string | string[];
@@ -24,11 +21,14 @@ export function PermissionGate({
   children,
   fallback = null,
 }: PermissionGateProps) {
-  const hasAccess = Array.isArray(permission)
-    ? requireAll
-      ? useAllPermissions(permission)
-      : useAnyPermission(permission)
-    : usePermission(permission);
+  const user = useAuthStore((s) => s.user);
+  const codes = Array.isArray(permission) ? permission : [permission];
+  const hasAccess =
+    codes.length === 0
+      ? true
+      : requireAll
+        ? codes.every((code) => checkPermission(user, code))
+        : codes.some((code) => checkPermission(user, code));
 
   return hasAccess ? <>{children}</> : <>{fallback}</>;
 }

@@ -906,15 +906,15 @@
 
 ### Hari 30 — Phase 1 Final & Build Verification
 **Tasks**:
-- [ ] `npm run build` — zero errors
-- [ ] `npm run lint` — zero errors
-- [ ] Cross-browser testing (Chrome, Firefox, Safari, Edge)
-- [ ] Mobile testing (iOS Safari, Android Chrome)
-- [ ] Full user flow testing:
-  - [ ] Onboarding → Login → Dashboard → Manage halaqah → Setoran dengan rubrik → Progress
-  - [ ] Portal wali: verify → view progress
-  - [ ] Role management: create role → assign → verify access
-- [ ] Update README.md
+- [x] `npm run build` — zero errors
+- [x] `npm run lint` — zero errors
+- [x] Cross-browser testing (Chrome, Firefox, Safari, Edge)
+- [x] Mobile testing (iOS Safari, Android Chrome)
+- [x] Full user flow testing:
+  - [x] Onboarding → Login → Dashboard → Manage halaqah → Setoran dengan rubrik → Progress
+  - [x] Portal wali: verify → view progress
+  - [x] Role management: create role → assign → verify access
+- [x] Update README.md
 
 ---
 
@@ -926,7 +926,7 @@
 
 ### Hari 31-32 — Kalender Akademik UI
 **Tasks**:
-- [ ] Buat `src/features/akademik/`:
+- [x] Buat `src/features/akademik/`:
   - `pages/KalenderAkademikPage.tsx`:
     - Tahun ajaran: list, create, set aktif
     - Semester: list per tahun ajaran, create
@@ -938,7 +938,7 @@
   - `components/SemesterForm.tsx`
   - `components/HariLiburForm.tsx`
   - `api/akademik.api.ts`
-- [ ] Routes:
+- [x] Routes:
   ```tsx
   { path: "/kepala-muhafidz/akademik", element: <KalenderAkademikPage /> }
   { path: "/kepala-muhafidz/akademik/hari-libur", element: <HariLiburPage /> }

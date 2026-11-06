@@ -65,8 +65,6 @@ export default function KelolaMuhafizPage() {
     setCurrentPage(1);
   }, [searchTerm]);
 
-  if (!user || !isKepalaRole(user.role)) return <AccessDenied />;
-
   const filteredMuhafizList = useMemo(() => {
     return muhafizList.filter((m: Muhafiz) => {
       if (!selectedSesi) return true;
@@ -87,6 +85,8 @@ export default function KelolaMuhafizPage() {
       ? filteredMuhafiz
       : filteredMuhafiz.slice((currentPage - 1) * 10, currentPage * 10);
   }, [filteredMuhafiz, showAll, currentPage]);
+
+  if (!user || !isKepalaRole(user.role)) return <AccessDenied />;
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">

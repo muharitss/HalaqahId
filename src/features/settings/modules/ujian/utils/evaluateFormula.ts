@@ -25,12 +25,12 @@ export function evaluateFormula(
 
   const keys = Object.keys(fullContext).sort((a, b) => b.length - a.length);
   for (const key of keys) {
-    const escapedKey = key.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
+    const escapedKey = key.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&");
     const regex = new RegExp(`\\b${escapedKey}\\b`, "g");
     exprStr = exprStr.replace(regex, fullContext[key].toString());
   }
 
-  const tokens = exprStr.match(/(\d+(\.\d+)?|\+|\-|\*|\/|\(|\))/g) || [];
+  const tokens = exprStr.match(/(\d+(\.\d+)?|[+\-*/()])/g) || [];
   const values: number[] = [];
   const ops: string[] = [];
 

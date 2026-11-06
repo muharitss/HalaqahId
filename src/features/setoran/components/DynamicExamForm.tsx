@@ -7,9 +7,11 @@ import {
   type ExamSchedule,
   type ExamTemplate,
   type SubmitExamResponse,
+  type SubmitExamPayload,
   ujianService,
 } from "../api/ujian-api";
 import { surahNumberToName } from "@/utils/mushafUtils";
+import { RubrikScoring } from "./RubrikScoring";
 
 const ALL_SURAHS = Array.from({ length: 114 }, (_, i) => {
   const num = i + 1;
@@ -92,6 +94,9 @@ const toTemplateFromSchedule = (schedule?: ExamSchedule): ExamTemplate | null =>
     jenis_ujian: schedule.template.jenis_ujian,
     exam_mode: schedule.template.jenis_ujian,
     tipe_ujian: schedule.template.tipe_ujian,
+    metode_penilaian: schedule.template.metode_penilaian || "FORMULA",
+    id_rubrik: schedule.template.id_rubrik,
+    rubrik: schedule.template.rubrik,
     filter_jenis_kategori: schedule.template.filter_jenis_kategori,
     jumlah_soal: schedule.template.jumlah_soal,
     soal_acak_tanpa_detail: schedule.template.soal_acak_tanpa_detail,
@@ -107,6 +112,7 @@ export function DynamicExamForm({ santriList, sesiList: _sesiList, onSuccess }: 
   const [selectedSantriId, setSelectedSantriId] = useState<number | null>(null);
   const [selectedJadwalId, setSelectedJadwalId] = useState<number | null>(null);
   const [singlePassInputs, setSinglePassInputs] = useState<Record<string, ExamInputValue>>({});
+  const [rubrikValues, setRubrikValues] = useState<Record<number, number>>({});
   const [multiSoalQuestions, setMultiSoalQuestions] = useState<MultiSoalQuestion[]>([]);
   const [activeQuestionIndex, setActiveQuestionIndex] = useState(0);
   const [catatanUjian, setCatatanUjian] = useState("");
@@ -192,6 +198,14 @@ export function DynamicExamForm({ santriList, sesiList: _sesiList, onSuccess }: 
   useEffect(() => {
     if (!template) return;
 
+    if (template.metode_penilaian === "RUBRIK" && template.rubrik?.kriteria) {
+      const initialRubrik: Record<number, number> = {};
+      template.rubrik.kriteria.forEach((k) => {
+        initialRubrik[k.id_kriteria] = k.skala_min;
+      });
+      setRubrikValues(initialRubrik);
+    }
+
     if (template.jenis_ujian === "SINGLE_PASS") {
       setSinglePassInputs(createInitialInputs(template));
     } else {
@@ -244,7 +258,24 @@ export function DynamicExamForm({ santriList, sesiList: _sesiList, onSuccess }: 
 
   // ── 8. DYNAMIC REAL-TIME SCORE PREVIEW ──
   const previewScore = useMemo(() => {
-    if (!template || !template.formula_expression) return 0;
+    if (!template) return 0;
+
+    if (template.metode_penilaian === "RUBRIK") {
+      const kriteria = template.rubrik?.kriteria || [];
+      if (kriteria.length === 0) return 0;
+      let weightedSum = 0;
+      let maxWeightedSum = 0;
+      for (const k of kriteria) {
+        const val = rubrikValues[k.id_kriteria] ?? k.skala_min;
+        const weight = k.bobot || 1;
+        weightedSum += val * weight;
+        maxWeightedSum += (k.skala_max > 0 ? k.skala_max : 100) * weight;
+      }
+      const pct = maxWeightedSum > 0 ? (weightedSum / maxWeightedSum) * 100 : 0;
+      return Math.round(pct * 100) / 100;
+    }
+
+    if (!template.formula_expression) return 0;
 
     const context: Record<string, number> = {};
 
@@ -291,7 +322,7 @@ export function DynamicExamForm({ santriList, sesiList: _sesiList, onSuccess }: 
     } catch {
       return 0;
     }
-  }, [template, singlePassInputs, multiSoalQuestions]);
+  }, [template, singlePassInputs, multiSoalQuestions, rubrikValues]);
 
   // ── 9. SUBMIT RESULT ──
   const handleSubmit = async () => {
@@ -302,27 +333,32 @@ export function DynamicExamForm({ santriList, sesiList: _sesiList, onSuccess }: 
 
     setLoading(true);
     try {
-      let payload: any = {
+      const payload: SubmitExamPayload = {
         id_jadwal: selectedJadwalId,
         id_santri: selectedSantriId,
         catatan: catatanUjian || undefined,
         tipe_percobaan: "UTAMA",
+        nilai_kriteria:
+          template?.metode_penilaian === "RUBRIK"
+            ? (template.rubrik?.kriteria || []).map((k) => ({
+                id_kriteria: k.id_kriteria,
+                nilai: rubrikValues[k.id_kriteria] ?? k.skala_min,
+              }))
+            : undefined,
+        input_data: template?.jenis_ujian === "SINGLE_PASS" ? singlePassInputs : {},
+        questions:
+          template?.jenis_ujian !== "SINGLE_PASS"
+            ? multiSoalQuestions.map((q) => ({
+                nomor_soal: q.nomor_soal,
+                deskripsi_soal: q.materi_soal,
+                start_surat_id: template?.soal_acak_tanpa_detail ? undefined : q.start_surat_id,
+                start_ayat: template?.soal_acak_tanpa_detail ? undefined : q.start_ayat,
+                end_surat_id: template?.soal_acak_tanpa_detail ? undefined : q.end_surat_id,
+                end_ayat: template?.soal_acak_tanpa_detail ? undefined : q.end_ayat,
+                input_data: q.input_values,
+              }))
+            : undefined,
       };
-
-      if (template?.jenis_ujian === "SINGLE_PASS") {
-        payload.input_data = singlePassInputs;
-      } else {
-        payload.input_data = {};
-        payload.questions = multiSoalQuestions.map(q => ({
-          nomor_soal: q.nomor_soal,
-          deskripsi_soal: q.materi_soal,
-          start_surat_id: template?.soal_acak_tanpa_detail ? undefined : q.start_surat_id,
-          start_ayat: template?.soal_acak_tanpa_detail ? undefined : q.start_ayat,
-          end_surat_id: template?.soal_acak_tanpa_detail ? undefined : q.end_surat_id,
-          end_ayat: template?.soal_acak_tanpa_detail ? undefined : q.end_ayat,
-          input_data: q.input_values,
-        }));
-      }
 
       const res = await ujianService.submitExam(payload);
       if (res.success && res.data) {
@@ -374,6 +410,29 @@ export function DynamicExamForm({ santriList, sesiList: _sesiList, onSuccess }: 
               </p>
             </div>
           </div>
+
+          {template?.metode_penilaian === "RUBRIK" && template.rubrik?.kriteria && (
+            <div className="bg-background rounded-xl p-5 border space-y-3 shadow-xs">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                <Check className="h-4 w-4 text-primary" /> Rincian Nilai Rubrik Penilaian ({template.rubrik.nama})
+              </h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
+                {template.rubrik.kriteria.map((k) => (
+                  <div key={k.id_kriteria} className="p-3 rounded-lg bg-muted/20 border text-xs flex justify-between items-center">
+                    <div>
+                      <p className="font-semibold text-foreground">{k.nama}</p>
+                      <p className="text-[10px] text-muted-foreground">Bobot: {k.bobot}%</p>
+                    </div>
+                    <span className="text-base font-extrabold text-primary ml-2">
+                      {rubrikValues[k.id_kriteria] ?? k.skala_min}
+                      <span className="text-[10px] text-muted-foreground font-normal"> / {k.skala_max}</span>
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="bg-muted/30 rounded-xl p-5 space-y-2 border border-dashed text-xs">
             <h4 className="font-bold text-sm text-foreground flex items-center gap-2">
               <Check className="h-4 w-4 text-emerald-500" /> Hasil Penilaian Sistem
@@ -579,7 +638,18 @@ export function DynamicExamForm({ santriList, sesiList: _sesiList, onSuccess }: 
       {/* ── EXAM GRADING FORM AREA ── */}
       {template && (
         <div className="space-y-6 animate-in fade-in duration-300">
-          {template.jenis_ujian === "SINGLE_PASS" ? (
+          {template.metode_penilaian === "RUBRIK" ? (
+            /* ── RUBRIK SCORING UI ── */
+            <div className="space-y-4">
+              <RubrikScoring
+                rubrikId={template.id_rubrik || undefined}
+                rubrikNama={template.rubrik?.nama}
+                kriteria={template.rubrik?.kriteria || []}
+                values={rubrikValues}
+                onChange={setRubrikValues}
+              />
+            </div>
+          ) : template.jenis_ujian === "SINGLE_PASS" ? (
             /* ── SINGLE_PASS UI ── */
             <Card className="border border-primary/10 shadow-sm overflow-hidden">
               <div className="bg-primary/5 px-6 py-3 border-b flex items-center justify-between">

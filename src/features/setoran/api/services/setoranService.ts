@@ -45,15 +45,11 @@ export const setoranService = {
     params: SetoranCheckParams,
     signal?: AbortSignal,
   ): Promise<ApiResponse<SetoranCheckResult>> => {
-    try {
-      const response = await axiosClient.get<ApiResponse<SetoranCheckResult>>(
-        "/setoran/check",
-        { params, signal },
-      );
-      return response.data;
-    } catch (error: unknown) {
-      throw error;
-    }
+    const response = await axiosClient.get<ApiResponse<SetoranCheckResult>>(
+      "/setoran/check",
+      { params, signal },
+    );
+    return response.data;
   },
 
   // GET /setoran/leaderboard

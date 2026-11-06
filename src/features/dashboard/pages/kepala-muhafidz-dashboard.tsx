@@ -1,6 +1,9 @@
+import { useMemo } from "react";
+import { format } from "date-fns";
 import { ActivityChart } from "../components/ActivityChart";
 import { AttendanceDonutChart } from "../components/AttendanceDonutChart";
 import { JuzDistributionChart } from "../components/JuzDistributionChart";
+import { KepalaMuhafidzKpiCards } from "../components/KepalaMuhafidzKpiCards";
 import { LaporanChartSection } from "@/features/setoran/modules/laporan";
 import { useDashboardData } from "../hooks/useDashboardData";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -30,8 +33,39 @@ export function KepalaMuhafidzDashboard() {
     totalAbsensi,
     alfaStudents,
     stats,
+    setoranData,
     juzDistribution,
   } = useDashboardData();
+
+  const todayStr = useMemo(() => format(new Date(), "yyyy-MM-dd"), []);
+
+  const todaySetoranCount = useMemo(() => {
+    return (setoranData || []).filter((s) => {
+      const d = s.tanggal_setoran ? new Date(s.tanggal_setoran).toISOString().split("T")[0] : "";
+      return d === todayStr;
+    }).length;
+  }, [setoranData, todayStr]);
+
+  const { avgJuz, activeSetorCount } = useMemo(() => {
+    const totalSantri = juzDistribution.total_santri || 0;
+    const belum = juzDistribution.belum_setoran || 0;
+    const totalJuzSum = (juzDistribution.distribution || []).reduce(
+      (sum, item) => sum + item.juz * item.total_santri,
+      0
+    );
+    const avg = totalSantri > 0 ? (totalJuzSum / totalSantri).toFixed(1) : "0.0";
+    return {
+      avgJuz: avg,
+      activeSetorCount: Math.max(0, totalSantri - belum),
+    };
+  }, [juzDistribution]);
+
+  const todayAttendance = useMemo(() => {
+    const hadir = absensiStats.find((s) => s.status === "HADIR")?.count || 0;
+    const total = totalAbsensi || 0;
+    const pct = total > 0 ? Math.round((hadir / total) * 100) : 0;
+    return { hadir, total, percentage: pct };
+  }, [absensiStats, totalAbsensi]);
 
   return (
     <div className="space-y-6">
@@ -52,6 +86,16 @@ export function KepalaMuhafidzDashboard() {
           Lihat Leaderboard
         </Button>
       </div>
+
+      {/* KPI Cards: Progress Hafalan Rata-Rata, Absensi Hari Ini, Setoran Hari Ini, Total Santri */}
+      <KepalaMuhafidzKpiCards
+        avgJuz={avgJuz}
+        activeSetorCount={activeSetorCount}
+        totalSantri={juzDistribution.total_santri || 0}
+        todaySetoranCount={todaySetoranCount}
+        todayAttendance={todayAttendance}
+        isLoading={loading.setoran || loading.absensi || loading.juz}
+      />
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
         <ActivityChart

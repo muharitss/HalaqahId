@@ -254,7 +254,7 @@ export function HalaqahMuhafizManager({
         toast.error(msg);
       }
     } else {
-      let updated = currentList.map((m) => {
+      const updated = currentList.map((m) => {
         if (m.id_user === target.id_user) {
           return { ...m, peran: newRole };
         }

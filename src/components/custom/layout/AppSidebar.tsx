@@ -17,6 +17,7 @@ import {
   faTrophy,
   faGraduationCap,
   faBullseye,
+  faCalendarDays,
 } from "@fortawesome/free-solid-svg-icons";
 import {
   Sidebar,
@@ -153,6 +154,12 @@ export function AppSidebar() {
             icon: faBook,
           },
           { name: "Kelola Sesi", tooltip: "Kelola Sesi", path: "/kepala-muhafidz/sesi", icon: faClock },
+          {
+            name: "Kalender Akademik",
+            tooltip: "Kalender Akademik & Hari Libur",
+            path: "/kepala-muhafidz/akademik",
+            icon: faCalendarDays,
+          },
           {
             name: "Lihat Laporan",
             tooltip: "Lihat Laporan",

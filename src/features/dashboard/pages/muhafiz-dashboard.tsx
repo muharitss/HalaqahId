@@ -25,6 +25,22 @@ import { type DriveStep } from "driver.js";
 import { Term } from "@/components/ui/Term";
 import { useTerminology } from "@/hooks/useTerminology";
 
+import { useQuery } from "@tanstack/react-query";
+import axiosClient from "@/lib/axiosClient";
+import { PengumumanRecentCard, type PengumumanItem } from "../components/PengumumanRecentCard";
+
+interface RecentSetoranItem {
+  id_setoran: number;
+  santriName?: string;
+  tanggal_setoran: string;
+  juz: number;
+  surat: string | number;
+  ayat: string | number;
+  taqwim: number;
+  keterangan?: string;
+  kategori?: { nama_kategori?: string } | string;
+}
+
 export function MuhafizDashboard() {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -49,6 +65,20 @@ export function MuhafizDashboard() {
     absensiView,
     setAbsensiView,
   } = useMuhafizDashboard();
+
+  // Fetch active announcements/notifications
+  const { data: pengumumanList = [], isLoading: isPengumumanLoading } = useQuery<PengumumanItem[]>({
+    queryKey: ["muhafiz-dashboard-pengumuman"],
+    queryFn: async () => {
+      try {
+        const res = await axiosClient.get("/pengumuman", { params: { active_only: true } });
+        const payload = res.data;
+        return Array.isArray(payload?.data) ? payload.data : Array.isArray(payload) ? payload : [];
+      } catch {
+        return [];
+      }
+    },
+  });
 
   const steps: DriveStep[] = [
     {
@@ -282,6 +312,9 @@ export function MuhafizDashboard() {
         </Card>
       </div>
 
+      {/* ANNOUNCEMENT CARD (IF ACTIVE) */}
+      <PengumumanRecentCard items={pengumumanList} isLoading={isPengumumanLoading} />
+
       {/* 3. CHARTS SECTION */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5" data-tour="dashboard-charts">
         <ActivityChart
@@ -383,7 +416,7 @@ export function MuhafizDashboard() {
               </div>
             ) : (
               <div className="divide-y max-h-[250px] sm:max-h-[400px] overflow-y-auto scrollbar-thin">
-                {recentSetorans.map((setoran: any) => (
+                {recentSetorans.map((setoran: RecentSetoranItem) => (
                   <div
                     key={setoran.id_setoran}
                     className="p-4 hover:bg-muted/30 transition-colors duration-200 flex items-start justify-between gap-4"
@@ -396,10 +429,14 @@ export function MuhafizDashboard() {
                         <Badge
                           variant="outline"
                           className={`text-[9px] px-1.5 py-0.5 font-bold tracking-wide uppercase ${getCategoryColor(
-                            setoran.kategori?.nama_kategori || setoran.kategori || ""
+                            typeof setoran.kategori === "string"
+                              ? setoran.kategori
+                              : (setoran.kategori as { nama_kategori?: string } | undefined)?.nama_kategori || ""
                           )}`}
                         >
-                          {setoran.kategori?.nama_kategori || setoran.kategori || "Hafalan"}
+                          {typeof setoran.kategori === "string"
+                            ? setoran.kategori || "Hafalan"
+                            : (setoran.kategori as { nama_kategori?: string } | undefined)?.nama_kategori || "Hafalan"}
                         </Badge>
                       </div>
 

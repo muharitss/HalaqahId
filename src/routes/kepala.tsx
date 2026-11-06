@@ -52,11 +52,25 @@ const ProgressDashboard = lazy(() =>
 const ProgresSantriPage = lazy(() =>
   import("@/features/santri/pages/progres-santri-page").then((m) => ({ default: m.ProgresSantriPage }))
 );
+const KalenderAkademikPage = lazy(() =>
+  import("@/features/akademik").then((m) => ({ default: m.KalenderAkademikPage }))
+);
+const HariLiburPage = lazy(() =>
+  import("@/features/akademik").then((m) => ({ default: m.HariLiburPage }))
+);
 
 export const kepalaRoutes: RouteObject[] = [
   {
     path: "/kepala-muhafidz",
     element: <KepalaMuhafidzDashboard />,
+  },
+  {
+    path: "/kepala-muhafidz/akademik",
+    element: <KalenderAkademikPage />,
+  },
+  {
+    path: "/kepala-muhafidz/akademik/hari-libur",
+    element: <HariLiburPage />,
   },
   {
     path: "/kepala-muhafidz/muhafiz",
