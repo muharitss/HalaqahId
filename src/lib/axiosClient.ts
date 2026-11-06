@@ -27,6 +27,9 @@ axiosClient.interceptors.request.use(
       try {
         const user = JSON.parse(userStr);
         token = user.token;
+        if (user.id_sekolah) {
+          config.headers["X-Sekolah-Id"] = String(user.id_sekolah);
+        }
       } catch (e) {
         console.error("Gagal parse user:", e);
       }

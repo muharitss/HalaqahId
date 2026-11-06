@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { AppSidebar } from "@/components/custom/layout/AppSidebar";
 import { MobileDock } from "@/components/custom/layout/MobileDock";
 import { ThemeToggle } from "@/components/custom/theme/ThemeToggle";
+import { SekolahSwitcher } from "@/components/ui/SekolahSwitcher";
 import { useAuth } from "@/features/auth/components/auth-provider";
 import { Outlet, useNavigate } from "react-router-dom";
 import { PageSkeleton } from "@/components/custom/loading/PageSkeleton";
@@ -84,6 +85,7 @@ export default function DashboardLayout() {
           </div>
 
           <div className="flex items-center gap-1 sm:gap-3">
+            <SekolahSwitcher />
             <ThemeToggle />
 
             <button

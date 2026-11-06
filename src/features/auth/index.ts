@@ -6,10 +6,12 @@ export { LoginForm } from "./components/login-form";
 export { RegisterForm } from "./components/register-form";
 export { ForgotPasswordForm } from "./components/forgot-password-form";
 export { ResetPasswordForm } from "./components/reset-password-form";
-export { useAuth, AuthProvider } from "./components/auth-provider";
+export { AuthProvider } from "./components/auth-provider";
 export { UserRoleManager } from "./components/UserRoleManager";
+export { UserSchoolManager } from "./components/UserSchoolManager";
 
 // Hooks
+export { useAuth } from "./hooks/useAuth";
 export { useLoginForm } from "./hooks/useLoginForm";
 export { useRegisterForm } from "./hooks/useRegisterForm";
 export { useForgotPasswordForm } from "./hooks/useForgotPasswordForm";

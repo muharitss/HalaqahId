@@ -10,6 +10,7 @@ import {
   ChartLegendContent,
   type ChartConfig,
 } from "@/components/ui/chart";
+import { JENIS_LEMBAGA_LABEL } from "@/types/domain/sekolah";
 
 interface JenisData {
   name: string;
@@ -23,6 +24,14 @@ interface JenisLembagaChartProps {
 
 const COLORS: Record<string, string> = {
   PESANTREN: "#10b981",
+  RUMAH_TAHFIDZ: "#06b6d4",
+  TPQ: "#f59e0b",
+  MASJID: "#14b8a6",
+  SEKOLAH_FORMAL: "#3b82f6",
+  KOMUNITAS: "#8b5cf6",
+  PRIVAT: "#ec4899",
+  YAYASAN: "#6366f1",
+  LAINNYA: "#94a3b8",
   MADRASAH: "#3b82f6",
   SEKOLAH_UMUM: "#8b5cf6",
   TPA: "#f59e0b",
@@ -30,10 +39,7 @@ const COLORS: Record<string, string> = {
 };
 
 const LABELS: Record<string, string> = {
-  PESANTREN: "Pesantren",
-  MADRASAH: "Madrasah",
-  SEKOLAH_UMUM: "Sekolah Umum",
-  TPA: "TPA",
+  ...JENIS_LEMBAGA_LABEL,
   Lainnya: "Lainnya",
 };
 

@@ -76,6 +76,20 @@ export function useKelolaUser() {
     setSelectedUserForRole(null);
   };
 
+  // School Manager Dialog States
+  const [isSchoolManagerOpen, setIsSchoolManagerOpen] = useState(false);
+  const [selectedUserForSchool, setSelectedUserForSchool] = useState<GlobalUser | null>(null);
+
+  const handleOpenSchoolManager = (user: GlobalUser) => {
+    setSelectedUserForSchool(user);
+    setIsSchoolManagerOpen(true);
+  };
+
+  const handleCloseSchoolManager = () => {
+    setIsSchoolManagerOpen(false);
+    setSelectedUserForSchool(null);
+  };
+
   const handleSetSearch = (val: string) => {
     setSearch(val);
     setPage(1);
@@ -235,6 +249,12 @@ export function useKelolaUser() {
     setSelectedUserForRole,
     handleOpenRoleManager,
     handleCloseRoleManager,
+    isSchoolManagerOpen,
+    setIsSchoolManagerOpen,
+    selectedUserForSchool,
+    setSelectedUserForSchool,
+    handleOpenSchoolManager,
+    handleCloseSchoolManager,
     handleImpersonate,
     handleVerifyEmail,
     handleResetPassword,

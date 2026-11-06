@@ -20,6 +20,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faWhatsapp } from "@fortawesome/free-brands-svg-icons";
 import { useKelolaUser } from "../hooks/useKelolaUser";
 import { UserRoleManager } from "../components/UserRoleManager";
+import { UserSchoolManager } from "../components/UserSchoolManager";
 import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
@@ -93,6 +94,11 @@ export default function KelolaUserPage() {
     selectedUserForRole,
     handleOpenRoleManager,
     handleCloseRoleManager,
+    isSchoolManagerOpen,
+    setIsSchoolManagerOpen,
+    selectedUserForSchool,
+    handleOpenSchoolManager,
+    handleCloseSchoolManager,
     handleImpersonate,
     handleVerifyEmail,
     handleResetPassword,
@@ -279,12 +285,24 @@ export default function KelolaUserPage() {
                     </TableCell>
                     <TableCell>
                       {u.sekolah ? (
-                        <div className="flex items-center gap-1.5 text-sm">
-                          <Building className="text-slate-400 h-4 w-4" />
-                          {u.sekolah.nama_sekolah}
+                        <div
+                          className="flex items-center gap-1.5 text-sm cursor-pointer hover:text-primary transition-colors group"
+                          onClick={() => handleOpenSchoolManager(u)}
+                          title="Klik untuk kelola penugasan sekolah"
+                        >
+                          <Building className="text-slate-400 group-hover:text-primary h-4 w-4 shrink-0" />
+                          <span className="group-hover:underline truncate">{u.sekolah.nama_sekolah}</span>
                         </div>
                       ) : (
-                        <span className="text-xs text-muted-foreground italic">Platform (Global)</span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 text-[11px] px-2 text-muted-foreground hover:text-primary hover:bg-primary/5 border border-dashed border-muted-foreground/30"
+                          onClick={() => handleOpenSchoolManager(u)}
+                        >
+                          <Building className="h-3 w-3 mr-1" />
+                          + Sekolah
+                        </Button>
                       )}
                     </TableCell>
                     <TableCell>
@@ -313,6 +331,13 @@ export default function KelolaUserPage() {
                           >
                             <ShieldCheck className="mr-2 h-4 w-4 text-primary" />
                             Kelola Role
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleOpenSchoolManager(u)}
+                            className="cursor-pointer"
+                          >
+                            <Building className="mr-2 h-4 w-4 text-primary" />
+                            Kelola Sekolah
                           </DropdownMenuItem>
                           {u.id_user !== currentUser?.id_user && u.role !== "SUPERADMIN" && (
                             <DropdownMenuItem
@@ -546,6 +571,28 @@ export default function KelolaUserPage() {
             <UserRoleManager
               user={selectedUserForRole}
               onClose={handleCloseRoleManager}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* DIALOG KELOLA SEKOLAH USER */}
+      <Dialog open={isSchoolManagerOpen} onOpenChange={setIsSchoolManagerOpen}>
+        <DialogContent className="sm:max-w-135 max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-lg">
+              <Building className="h-5 w-5 text-primary" />
+              Kelola Penugasan Sekolah
+            </DialogTitle>
+            <DialogDescription>
+              Atur lembaga tempat pengguna bertugas dan tentukan sekolah aktif utama.
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedUserForSchool && (
+            <UserSchoolManager
+              user={selectedUserForSchool}
+              onClose={handleCloseSchoolManager}
             />
           )}
         </DialogContent>

@@ -1,4 +1,4 @@
-import { type Sekolah } from "@/types/domain/sekolah";
+import { type Sekolah, JENIS_LEMBAGA_LABEL } from "@/types/domain/sekolah";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Building2, MapPin, Mail, Key, Phone, MessageCircle, Eye, Target, User, ExternalLink } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -9,12 +9,7 @@ interface ProfilSekolahInfoProps {
   sekolah: Sekolah;
 }
 
-const JENIS_LEMBAGA_LABEL: Record<string, string> = {
-  PESANTREN: "Pesantren",
-  MADRASAH: "Madrasah",
-  SEKOLAH_UMUM: "Sekolah Umum",
-  TPA: "TPA / TPQ",
-};
+
 
 function InfoRow({ icon, label, value }: { icon: React.ReactNode; label: string; value?: string | null }) {
   if (!value) return null;

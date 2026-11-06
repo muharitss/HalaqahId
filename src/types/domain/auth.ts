@@ -1,5 +1,6 @@
 import { type Role } from './enums';
 import { type LoginFormValues } from '@/features/auth';
+import { type UserSekolahItem } from './sekolah';
 
 export interface User {
   id_user: number;
@@ -161,6 +162,10 @@ export interface AuthContextType {
   user: AuthUser | null;
   permissions: string[];
   roles: string[];
+  sekolahList: UserSekolahItem[];
+  activeSekolah: UserSekolahItem["sekolah"] | null;
+  switchSekolah: (id_sekolah: number) => Promise<void>;
+  fetchUserSchools: () => Promise<void>;
   login: (values: LoginFormValues) => Promise<void>;
   logout: () => void;
   isLoading: boolean;

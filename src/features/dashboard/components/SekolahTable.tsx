@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/table";
 import { Search, ChevronLeft, ChevronRight, School } from "lucide-react";
 import type { SekolahWithCount, JenisLembaga } from "@/types/domain/sekolah";
+import { JENIS_LEMBAGA_LABEL, JENIS_LEMBAGA_OPTIONS } from "@/types/domain/sekolah";
 
 interface SekolahTableProps {
   sekolahList: SekolahWithCount[];
@@ -36,12 +37,7 @@ interface SekolahTableProps {
   onDetail: (sekolah: SekolahWithCount) => void;
 }
 
-const JENIS_LABEL: Record<string, string> = {
-  PESANTREN: "Pesantren",
-  MADRASAH: "Madrasah",
-  SEKOLAH_UMUM: "Sekolah Umum",
-  TPA: "TPA",
-};
+
 
 export function SekolahTable({
   sekolahList,
@@ -82,10 +78,11 @@ export function SekolahTable({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="ALL">Semua Jenis</SelectItem>
-              <SelectItem value="PESANTREN">Pesantren</SelectItem>
-              <SelectItem value="MADRASAH">Madrasah</SelectItem>
-              <SelectItem value="SEKOLAH_UMUM">Sekolah Umum</SelectItem>
-              <SelectItem value="TPA">TPA</SelectItem>
+              {JENIS_LEMBAGA_OPTIONS.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
 
@@ -160,7 +157,7 @@ export function SekolahTable({
                 <TableCell className="hidden md:table-cell">
                   {s.jenis_lembaga ? (
                     <Badge variant="secondary" className="text-xs font-normal">
-                      {JENIS_LABEL[s.jenis_lembaga] ?? s.jenis_lembaga}
+                      {JENIS_LEMBAGA_LABEL[s.jenis_lembaga] ?? s.jenis_lembaga}
                     </Badge>
                   ) : (
                     <span className="text-xs text-muted-foreground">-</span>

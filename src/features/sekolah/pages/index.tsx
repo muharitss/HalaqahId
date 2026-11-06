@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus, faBuilding, faPen, faTrash, faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 import { sekolahService } from "../api";
-import { type Sekolah } from "@/types/domain/sekolah";
+import { type Sekolah, JENIS_LEMBAGA_OPTIONS } from "@/types/domain/sekolah";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -311,10 +311,11 @@ export default function KelolaSekolahPage() {
                     <SelectValue placeholder="Pilih jenis lembaga" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="PESANTREN">Pesantren</SelectItem>
-                    <SelectItem value="MADRASAH">Madrasah</SelectItem>
-                    <SelectItem value="SEKOLAH_UMUM">Sekolah Umum</SelectItem>
-                    <SelectItem value="TPA">TPA</SelectItem>
+                    {JENIS_LEMBAGA_OPTIONS.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -428,10 +429,11 @@ export default function KelolaSekolahPage() {
                   <SelectValue placeholder="Pilih jenis lembaga" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="PESANTREN">Pesantren</SelectItem>
-                  <SelectItem value="MADRASAH">Madrasah</SelectItem>
-                  <SelectItem value="SEKOLAH_UMUM">Sekolah Umum</SelectItem>
-                  <SelectItem value="TPA">TPA</SelectItem>
+                  {JENIS_LEMBAGA_OPTIONS.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

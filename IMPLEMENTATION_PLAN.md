@@ -826,25 +826,27 @@
 **Objektif**: User bisa di-assign ke banyak sekolah dan switch antar sekolah.
 
 **Tasks**:
-- [ ] Buat `src/components/ui/SekolahSwitcher.tsx`:
+- [x] Buat `src/components/ui/SekolahSwitcher.tsx`:
   - Dropdown di header/sidebar
   - List sekolah yang di-assign ke user
   - Active sekolah indicator
   - Switch sekolah → update context, refetch data
-- [ ] Update `useAuth` hook:
+- [x] Update `useAuth` hook:
   - `activeSekolah`: sekolah yang sedang aktif
   - `sekolahList`: list semua sekolah user
   - `switchSekolah(id)`: switch sekolah aktif
-- [ ] Update semua data fetching hooks:
+- [x] Update semua data fetching hooks:
   - Include `id_sekolah` dari active sekolah
-- [ ] Update `KelolaUserPage`:
+- [x] Update `KelolaUserPage`:
   - Tambah section "Sekolah" di user detail
   - Assign/remove user dari sekolah
 
 **Files to create/modify**:
 - `src/components/ui/SekolahSwitcher.tsx` [NEW]
-- `src/features/auth/hooks/useAuth.ts` [MODIFY]
+- `src/features/auth/hooks/useAuth.ts` [NEW]
 - `src/layouts/DashboardLayout.tsx` [MODIFY — add switcher]
+- `src/features/auth/components/UserSchoolManager.tsx` [NEW]
+- `src/features/auth/pages/KelolaUserPage.tsx` [MODIFY]
 
 ---
 
@@ -852,15 +854,15 @@
 
 ### Hari 26 — JenisLembaga Enum Update
 **Tasks**:
-- [ ] Update type `JenisLembaga`:
+- [x] Update type `JenisLembaga`:
   ```ts
   export type JenisLembaga = 
     | 'PESANTREN' | 'RUMAH_TAHFIDZ' | 'TPQ' | 'MASJID'
     | 'SEKOLAH_FORMAL' | 'KOMUNITAS' | 'PRIVAT' | 'YAYASAN' | 'LAINNYA';
   ```
-- [ ] Update form sekolah: semua opsi baru tersedia
-- [ ] Update display: mapping label yang proper
-- [ ] Backward compat: handle value lama (MADRASAH, SEKOLAH_UMUM, TPA)
+- [x] Update form sekolah: semua opsi baru tersedia
+- [x] Update display: mapping label yang proper
+- [x] Backward compat: handle value lama (MADRASAH, SEKOLAH_UMUM, TPA)
 
 ---
 

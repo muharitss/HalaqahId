@@ -1,4 +1,72 @@
-export type JenisLembaga = "PESANTREN" | "MADRASAH" | "SEKOLAH_UMUM" | "TPA";
+export type JenisLembaga =
+  | "PESANTREN"
+  | "RUMAH_TAHFIDZ"
+  | "TPQ"
+  | "MASJID"
+  | "SEKOLAH_FORMAL"
+  | "KOMUNITAS"
+  | "PRIVAT"
+  | "YAYASAN"
+  | "LAINNYA"
+  // Backward compatibility
+  | "MADRASAH"
+  | "SEKOLAH_UMUM"
+  | "TPA";
+
+export const JENIS_LEMBAGA_OPTIONS = [
+  { value: "PESANTREN", label: "Pesantren" },
+  { value: "RUMAH_TAHFIDZ", label: "Rumah Tahfidz" },
+  { value: "TPQ", label: "TPQ" },
+  { value: "MASJID", label: "Masjid" },
+  { value: "SEKOLAH_FORMAL", label: "Sekolah Formal" },
+  { value: "KOMUNITAS", label: "Komunitas" },
+  { value: "PRIVAT", label: "Privat" },
+  { value: "YAYASAN", label: "Yayasan" },
+  { value: "LAINNYA", label: "Lainnya" },
+] as const;
+
+export const JENIS_LEMBAGA_LABEL: Record<string, string> = {
+  PESANTREN: "Pesantren",
+  RUMAH_TAHFIDZ: "Rumah Tahfidz",
+  TPQ: "TPQ",
+  MASJID: "Masjid",
+  SEKOLAH_FORMAL: "Sekolah Formal",
+  KOMUNITAS: "Komunitas",
+  PRIVAT: "Privat",
+  YAYASAN: "Yayasan",
+  LAINNYA: "Lainnya",
+  // Backward compatibility
+  MADRASAH: "Madrasah",
+  SEKOLAH_UMUM: "Sekolah Umum",
+  TPA: "TPA / TPQ",
+};
+
+export interface UserSekolahItem {
+  id_user_sekolah?: number;
+  id_user: number;
+  id_sekolah: number;
+  is_primary: boolean;
+  tanggal_mulai?: string | null;
+  tanggal_selesai?: string | null;
+  created_at?: string;
+  sekolah: {
+    id_sekolah: number;
+    nama_sekolah: string;
+    nama_singkat?: string | null;
+    logo_url?: string | null;
+    slug?: string | null;
+    alamat?: string | null;
+    kota?: string | null;
+    provinsi?: string | null;
+  };
+}
+
+export interface AssignUserSekolahPayload {
+  id_sekolah: number;
+  is_primary?: boolean;
+  tanggal_mulai?: string;
+  tanggal_selesai?: string | null;
+}
 
 // ─── SOP Config Types ──────────────────────────────────────────────────────
 

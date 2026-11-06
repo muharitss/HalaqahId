@@ -3,12 +3,17 @@ import { type LoginFormValues } from "@/features/auth/validation/auth.schema";
 import { authService } from "@/features/auth/api/services/authService";
 import { Role, isKepalaRole } from "@/types/domain/enums";
 import { type AuthUser } from "@/types/domain/auth";
+import { type UserSekolahItem } from "@/types/domain/sekolah";
+import { sekolahService } from "@/features/sekolah";
 import { queryClient } from "@/lib/react-query";
+import { toast } from "sonner";
 
 interface AuthState {
   user: AuthUser | null;
   isLoading: boolean;
   isImpersonating: boolean;
+  sekolahList: UserSekolahItem[];
+  activeSekolah: UserSekolahItem["sekolah"] | null;
   login: (values: LoginFormValues) => Promise<void>;
   logout: () => void;
   refreshUser: () => Promise<void>;
@@ -16,6 +21,8 @@ interface AuthState {
   stopImpersonating: () => Promise<void>;
   isAdmin: () => boolean;
   isKepala: () => boolean;
+  switchSekolah: (id_sekolah: number) => Promise<void>;
+  fetchUserSchools: () => Promise<void>;
 }
 
 const extractTenantIdFromToken = (token?: string): number | null => {
@@ -75,15 +82,95 @@ const getInitialUser = (): AuthUser | null => {
   }
 };
 
+const getInitialSekolahList = (): UserSekolahItem[] => {
+  try {
+    const saved = localStorage.getItem("user_sekolah_list");
+    return saved ? (JSON.parse(saved) as UserSekolahItem[]) : [];
+  } catch {
+    return [];
+  }
+};
+
 const initialUser = getInitialUser();
+const initialSekolahList = getInitialSekolahList();
+const initialActiveSekolah =
+  initialSekolahList.find((s) => s.id_sekolah === initialUser?.id_sekolah)?.sekolah ||
+  initialSekolahList.find((s) => s.is_primary)?.sekolah ||
+  (initialSekolahList.length > 0 ? initialSekolahList[0].sekolah : null);
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: initialUser,
   isLoading: !initialUser,
   isImpersonating: initialUser?.isImpersonating || false,
+  sekolahList: initialSekolahList,
+  activeSekolah: initialActiveSekolah,
 
   isAdmin: () => get().user?.role === Role.SUPERADMIN,
   isKepala: () => (get().user ? isKepalaRole(get().user!.role) : false),
+
+  fetchUserSchools: async () => {
+    const currentUser = get().user;
+    if (!currentUser?.id_user) return;
+    try {
+      const response = await sekolahService.getUserSchools(currentUser.id_user);
+      const list = response.data || [];
+      const active =
+        list.find((s) => s.id_sekolah === currentUser.id_sekolah)?.sekolah ||
+        list.find((s) => s.is_primary)?.sekolah ||
+        (list.length > 0 ? list[0].sekolah : null);
+      set({ sekolahList: list, activeSekolah: active });
+      localStorage.setItem("user_sekolah_list", JSON.stringify(list));
+    } catch (error) {
+      console.warn("Gagal memuat daftar sekolah user:", error);
+    }
+  },
+
+  switchSekolah: async (id_sekolah: number) => {
+    const currentUser = get().user;
+    if (!currentUser?.id_user) return;
+    try {
+      const res = await sekolahService.switchUserSchool(currentUser.id_user, id_sekolah);
+      const switchedData = res.data;
+      const newToken = switchedData?.token || currentUser.token;
+
+      const updatedUser: AuthUser = {
+        ...currentUser,
+        id_sekolah,
+        token: newToken,
+      };
+
+      const updatedList = get().sekolahList.map((item) => ({
+        ...item,
+        is_primary: item.id_sekolah === id_sekolah,
+      }));
+
+      const active =
+        switchedData?.sekolah ||
+        updatedList.find((s) => s.id_sekolah === id_sekolah)?.sekolah ||
+        null;
+
+      set({
+        user: updatedUser,
+        sekolahList: updatedList,
+        activeSekolah: active,
+      });
+
+      saveUserToStorage(updatedUser);
+      localStorage.setItem("user_sekolah_list", JSON.stringify(updatedList));
+      if (newToken) {
+        localStorage.setItem("token", newToken);
+      }
+
+      queryClient.clear();
+      toast.success(
+        `Berhasil beralih ke ${active?.nama_sekolah || "sekolah terpilih"}`
+      );
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : "Gagal beralih sekolah";
+      toast.error(msg);
+      throw error;
+    }
+  },
 
   login: async (values: LoginFormValues) => {
     const response = await authService.login(values);
@@ -115,11 +202,20 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     if (isKepalaRole(userData.role)) {
       saveSuperadminSession(userData);
     }
+
+    await get().fetchUserSchools();
   },
 
   logout: () => {
-    set({ user: null, isLoading: false, isImpersonating: false });
+    set({
+      user: null,
+      isLoading: false,
+      isImpersonating: false,
+      sekolahList: [],
+      activeSekolah: null,
+    });
     localStorage.removeItem("user");
+    localStorage.removeItem("user_sekolah_list");
     localStorage.removeItem("superadmin_session");
     localStorage.removeItem("token");
     sessionStorage.clear();
@@ -166,6 +262,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         if (isKepalaRole(userData?.role)) {
           saveSuperadminSession(fullUser);
         }
+
+        await get().fetchUserSchools();
       } catch (error: unknown) {
         console.error("Failed to fetch user from API:", error);
         // Clear session if API fetch fails with 401 (token expired/invalid)
