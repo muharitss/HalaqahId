@@ -52,6 +52,7 @@ export const useDashboardData = () => {
     alfaStudents: alfaData?.alfaStudents || [],
     muhafizList: initialData?.muhafiz || [],
     stats,
+    setoranData,
     juzDistribution: juzDistributionData || { distribution: [], belum_setoran: 0, total_santri: 0 }
   };
 };

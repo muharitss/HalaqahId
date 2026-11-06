@@ -2,8 +2,18 @@ import axiosClient from "@/lib/axiosClient";
 import { getErrorMessage } from "@/utils/error";
 import { type ApiResponse } from "@/features/halaqah/api/halaqahService";
 import { surahNumberToName } from "@/utils/mushafUtils";
+import type { RubrikKriteria } from "@/features/rubrik/types";
 
 export type ExamMode = "MULTI_SOAL" | "SINGLE_PASS";
+
+export type ExamRubrikKriteria = RubrikKriteria;
+
+export interface ExamRubrikDetail {
+  id_rubrik: number;
+  nama: string;
+  deskripsi?: string;
+  kriteria: RubrikKriteria[];
+}
 
 export interface ExamTemplate {
   id_template: number;
@@ -13,6 +23,9 @@ export interface ExamTemplate {
   jenis_ujian: ExamMode;
   exam_mode?: ExamMode; // backward compatibility
   tipe_ujian?: "PEKANAN" | "BULANAN" | "HARIAN" | "KUSTOM";
+  metode_penilaian?: "FORMULA" | "RUBRIK";
+  id_rubrik?: number | null;
+  rubrik?: ExamRubrikDetail | null;
   filter_jenis_kategori?: string[];
   jumlah_soal?: number;
   soal_acak_tanpa_detail?: boolean;
@@ -46,6 +59,9 @@ export interface ExamSchedule {
   template?: {
     nama_template: string;
     jenis_ujian: ExamMode;
+    metode_penilaian?: "FORMULA" | "RUBRIK";
+    id_rubrik?: number | null;
+    rubrik?: ExamRubrikDetail | null;
     input_schema: any;
     formula_expression: string;
     tipe_ujian?: "PEKANAN" | "BULANAN" | "HARIAN" | "KUSTOM";
@@ -64,7 +80,12 @@ export interface SubmitExamPayload {
   catatan?: string;
   tipe_percobaan?: "UTAMA" | "REMEDIAL" | "SUSULAN";
   id_parent_hasil?: number;
-  input_data: Record<string, any>;
+  input_data?: Record<string, any>;
+  nilai_kriteria?: Array<{
+    id_kriteria: number;
+    nilai: number;
+    catatan?: string;
+  }>;
   questions?: Array<{
     nomor_soal: number;
     start_surat_id?: number;
@@ -141,7 +162,16 @@ export interface ExamSession {
       default?: any;
     }>;
     formula_expression: string;
+    metode_penilaian?: "FORMULA" | "RUBRIK";
+    rubrik?: ExamRubrikDetail | null;
   };
+  nilai_rubrik?: Array<{
+    id_nilai_rubrik?: number;
+    id_kriteria: number;
+    nilai: number;
+    catatan?: string | null;
+    kriteria?: ExamRubrikKriteria;
+  }>;
   jawaban_soal: Array<{
     id_jawaban: number;
     id_sesi_ujian: number;
@@ -321,7 +351,23 @@ export const ujianService = {
               exam_mode: session.jadwal?.template?.jenis_ujian || "SINGLE_PASS",
               input_schema: session.jadwal?.template?.input_schema || [],
               formula_expression: session.jadwal?.template?.formula_expression || "",
+              metode_penilaian: session.jadwal?.template?.metode_penilaian || "FORMULA",
+              rubrik: session.jadwal?.template?.rubrik,
             },
+            nilai_rubrik: (session.nilai_rubrik || []).map((nr: any) => ({
+              id_nilai_rubrik: nr.id_nilai_rubrik,
+              id_kriteria: nr.id_kriteria,
+              nilai: nr.nilai,
+              catatan: nr.catatan,
+              kriteria: nr.kriteria ? {
+                id_kriteria: nr.kriteria.id_kriteria,
+                nama: nr.kriteria.nama,
+                bobot: nr.kriteria.bobot,
+                skala_min: nr.kriteria.skala_min,
+                skala_max: nr.kriteria.skala_max,
+                deskripsi: nr.kriteria.deskripsi,
+              } : undefined,
+            })),
             jawaban_soal: (session.detail_jawaban || []).map((j: any) => ({
               id_jawaban: j.id_detail,
               id_sesi_ujian: j.id_hasil,

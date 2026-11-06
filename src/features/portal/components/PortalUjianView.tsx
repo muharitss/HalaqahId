@@ -23,7 +23,7 @@ export function PortalUjianView({ data, isLoading }: PortalUjianViewProps) {
 
   if (records.length === 0) {
     return (
-      <Card className="p-12 text-center bg-white shadow-2xs">
+      <Card className="p-12 text-center bg-card shadow-2xs">
         <div className="flex flex-col items-center justify-center gap-2">
           <Award className="h-10 w-10 text-muted-foreground/50" />
           <h3 className="font-semibold text-base">Belum Ada Hasil Ujian</h3>
@@ -57,7 +57,7 @@ export function PortalUjianView({ data, isLoading }: PortalUjianViewProps) {
           return (
             <Card
               key={item.id_hasil}
-              className="bg-white border-border/80 shadow-2xs overflow-hidden"
+              className="bg-card border-border/80 shadow-2xs overflow-hidden"
             >
               <CardContent className="p-4 sm:p-5 space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border/50 pb-3">
@@ -120,7 +120,7 @@ export function PortalUjianView({ data, isLoading }: PortalUjianViewProps) {
                 </div>
 
                 {item.catatan && (
-                  <div className="p-2.5 rounded-lg bg-slate-50 border text-xs text-muted-foreground">
+                  <div className="p-2.5 rounded-lg bg-muted/40 border text-xs text-muted-foreground">
                     <span className="font-semibold text-foreground">Catatan Penguji: </span>
                     {item.catatan}
                   </div>

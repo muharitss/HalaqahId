@@ -7,6 +7,7 @@ export { DeleteTemplateDialog } from "./components/DeleteTemplateDialog";
 export { ExamCalendar } from "./components/ExamCalendar";
 export { ExamTemplateForm } from "./components/ExamTemplateForm";
 export { ExamTemplateTable } from "./components/ExamTemplateTable";
+export { ExamReportView } from "./components/ExamReportView";
 export { JadwalDialogs } from "./components/JadwalDialogs";
 
 // Utils

@@ -34,7 +34,7 @@ export function PortalLayout({
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col antialiased">
       {/* Top Header */}
-      <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-sm border-b shadow-xs">
+      <header className="sticky top-0 z-30 bg-background/95 backdrop-blur-sm border-b shadow-xs">
         <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
             <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
@@ -78,7 +78,7 @@ export function PortalLayout({
       </main>
 
       {/* Footer */}
-      <footer className="border-t bg-white py-4 mt-auto">
+      <footer className="border-t bg-card py-4 mt-auto">
         <div className="max-w-4xl mx-auto px-4 text-center text-xs text-muted-foreground">
           <p>Portal Monitoring Hafalan Santri &mdash; Ditenagai oleh Halaqah.id</p>
         </div>

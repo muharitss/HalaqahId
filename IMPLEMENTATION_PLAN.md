@@ -868,16 +868,16 @@
 
 ### Hari 27 — Dashboard Enhancement
 **Tasks**:
-- [ ] Update `SuperadminDashboard`:
+- [x] Update `SuperadminDashboard`:
   - Widget: jumlah tenant, total sekolah, total santri, total user
   - Chart: pertumbuhan tenant per bulan
   - Recent activity: tenant baru, login terbaru
-- [ ] Update `KepalaMuhafidzDashboard`:
+- [x] Update `KepalaMuhafidzDashboard`:
   - Widget: progress hafalan rata-rata
   - Widget: absensi hari ini ringkasan
   - Widget: setoran hari ini ringkasan
   - Chart: trend setoran minggu ini
-- [ ] Update `MuhafizDashboard`:
+- [x] Update `MuhafizDashboard`:
   - Progress hafalan santri-santri
   - Quick action: catat setoran, catat absensi
   - Notifikasi/pengumuman terbaru (jika feature enabled)
@@ -886,21 +886,21 @@
 
 ### Hari 28 — Ujian Enhancement UI
 **Tasks**:
-- [ ] Update ujian form: support rubrik-based scoring
+- [x] Update ujian form: support rubrik-based scoring
   - Jika template `metode_penilaian = 'RUBRIK'` → tampilkan rubrik scoring
-- [ ] Update ujian hasil: tampilkan detail nilai rubrik
-- [ ] Update ujian report: include perbandingan rubrik
+- [x] Update ujian hasil: tampilkan detail nilai rubrik
+- [x] Update ujian report: include perbandingan rubrik
 
 ---
 
 ### Hari 29 — Accessibility & Responsive Polish
 **Tasks**:
-- [ ] Review semua halaman baru: keyboard navigation
-- [ ] Screen reader testing: aria labels, roles
-- [ ] Mobile responsive: portal wali, form setoran rubrik
-- [ ] Dark mode compatibility: semua warna tenant theme
-- [ ] Performance: lazy load semua page baru
-- [ ] Bundle analysis: pastikan bundle size masih reasonable
+- [x] Review semua halaman baru: keyboard navigation
+- [x] Screen reader testing: aria labels, roles
+- [x] Mobile responsive: portal wali, form setoran rubrik
+- [x] Dark mode compatibility: semua warna tenant theme
+- [x] Performance: lazy load semua page baru
+- [x] Bundle analysis: pastikan bundle size masih reasonable
 
 ---
 

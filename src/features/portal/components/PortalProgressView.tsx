@@ -57,7 +57,7 @@ export function PortalProgressView({ progress, isLoading }: PortalProgressViewPr
               <Sparkles className="h-5 w-5 text-primary" />
               <CardTitle className="text-base sm:text-lg">Ringkasan Hafalan Santri</CardTitle>
             </div>
-            <Badge variant="outline" className="bg-white/80 font-semibold text-primary border-primary/30">
+            <Badge variant="outline" className="bg-background/80 font-semibold text-primary border-primary/30">
               {percentage}% Al-Qur'an
             </Badge>
           </div>
@@ -76,7 +76,7 @@ export function PortalProgressView({ progress, isLoading }: PortalProgressViewPr
 
           {/* Quick Metrics */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
-            <div className="bg-white/90 p-3 rounded-xl border border-border/60 shadow-2xs">
+            <div className="bg-card/90 p-3 rounded-xl border border-border/60 shadow-2xs">
               <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                 <Layers className="h-3.5 w-3.5 text-primary" />
                 <span>Juz Selesai</span>
@@ -86,7 +86,7 @@ export function PortalProgressView({ progress, isLoading }: PortalProgressViewPr
               </p>
             </div>
 
-            <div className="bg-white/90 p-3 rounded-xl border border-border/60 shadow-2xs">
+            <div className="bg-card/90 p-3 rounded-xl border border-border/60 shadow-2xs">
               <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                 <BookOpen className="h-3.5 w-3.5 text-emerald-600" />
                 <span>Halaman</span>
@@ -96,7 +96,7 @@ export function PortalProgressView({ progress, isLoading }: PortalProgressViewPr
               </p>
             </div>
 
-            <div className="bg-white/90 p-3 rounded-xl border border-border/60 shadow-2xs">
+            <div className="bg-card/90 p-3 rounded-xl border border-border/60 shadow-2xs">
               <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                 <BookCheck className="h-3.5 w-3.5 text-blue-600" />
                 <span>Total Ayat</span>
@@ -106,7 +106,7 @@ export function PortalProgressView({ progress, isLoading }: PortalProgressViewPr
               </p>
             </div>
 
-            <div className="bg-white/90 p-3 rounded-xl border border-border/60 shadow-2xs">
+            <div className="bg-card/90 p-3 rounded-xl border border-border/60 shadow-2xs">
               <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                 <CheckCircle2 className="h-3.5 w-3.5 text-green-600" />
                 <span>Surat Selesai</span>
@@ -171,7 +171,7 @@ export function PortalProgressView({ progress, isLoading }: PortalProgressViewPr
               placeholder="Cari surat..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-8 text-xs h-9 bg-white"
+              className="pl-8 text-xs h-9 bg-background"
             />
           </div>
         </div>
@@ -217,7 +217,7 @@ export function PortalProgressView({ progress, isLoading }: PortalProgressViewPr
 
         {/* Cards Grid */}
         {filteredRecords.length === 0 ? (
-          <Card className="p-8 text-center bg-white shadow-2xs">
+          <Card className="p-8 text-center bg-card shadow-2xs">
             <p className="text-sm text-muted-foreground">Tidak ada data surat yang cocok.</p>
           </Card>
         ) : (
@@ -230,7 +230,7 @@ export function PortalProgressView({ progress, isLoading }: PortalProgressViewPr
               return (
                 <div
                   key={item.id_progress || item.surat_ke}
-                  className={`p-3.5 rounded-xl border transition-colors bg-white shadow-2xs flex flex-col justify-between ${
+                  className={`p-3.5 rounded-xl border transition-colors bg-card shadow-2xs flex flex-col justify-between ${
                     isLancar
                       ? "border-emerald-300 ring-1 ring-emerald-100"
                       : isSelesai

@@ -76,7 +76,7 @@ export function PortalDashboard() {
     >
       <div className="space-y-6">
         {/* Student Profile Overview Banner */}
-        <Card className="bg-white border-border/80 shadow-2xs overflow-hidden">
+        <Card className="bg-card border-border/80 shadow-2xs overflow-hidden">
           <CardContent className="p-4 sm:p-5">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="space-y-1">
@@ -120,10 +120,10 @@ export function PortalDashboard() {
 
         {/* Tab Navigation & Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full space-y-4">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 h-auto p-1 bg-slate-200/70 rounded-xl gap-1">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 h-auto p-1 bg-muted rounded-xl gap-1">
             <TabsTrigger
               value="progress"
-              className="py-2.5 text-xs font-semibold data-[state=active]:bg-white data-[state=active]:shadow-xs rounded-lg flex items-center gap-1.5"
+              className="py-2.5 text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-xs rounded-lg flex items-center gap-1.5"
             >
               <BookOpen className="h-4 w-4" />
               <span>Progress Hafalan</span>
@@ -131,7 +131,7 @@ export function PortalDashboard() {
 
             <TabsTrigger
               value="setoran"
-              className="py-2.5 text-xs font-semibold data-[state=active]:bg-white data-[state=active]:shadow-xs rounded-lg flex items-center gap-1.5"
+              className="py-2.5 text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-xs rounded-lg flex items-center gap-1.5"
             >
               <History className="h-4 w-4" />
               <span>Riwayat Setoran</span>
@@ -139,7 +139,7 @@ export function PortalDashboard() {
 
             <TabsTrigger
               value="absensi"
-              className="py-2.5 text-xs font-semibold data-[state=active]:bg-white data-[state=active]:shadow-xs rounded-lg flex items-center gap-1.5"
+              className="py-2.5 text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-xs rounded-lg flex items-center gap-1.5"
             >
               <CalendarCheck className="h-4 w-4" />
               <span>Absensi</span>
@@ -147,7 +147,7 @@ export function PortalDashboard() {
 
             <TabsTrigger
               value="ujian"
-              className="py-2.5 text-xs font-semibold data-[state=active]:bg-white data-[state=active]:shadow-xs rounded-lg flex items-center gap-1.5"
+              className="py-2.5 text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-xs rounded-lg flex items-center gap-1.5"
             >
               <Award className="h-4 w-4" />
               <span>Hasil Ujian</span>

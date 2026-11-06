@@ -113,7 +113,10 @@ export function RubrikScoring({
               >
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
-                    <Label className="text-xs font-semibold cursor-pointer">
+                    <Label
+                      htmlFor={`rubrik-input-${item.id_kriteria}`}
+                      className="text-xs font-semibold cursor-pointer"
+                    >
                       {item.nama}
                     </Label>
                     <div className="text-[10px] text-muted-foreground">
@@ -123,6 +126,8 @@ export function RubrikScoring({
 
                   <div className="flex items-center gap-1.5">
                     <Input
+                      id={`rubrik-input-${item.id_kriteria}`}
+                      aria-label={`Nilai angka kriteria ${item.nama}`}
                       type="number"
                       min={min}
                       max={max}
@@ -140,6 +145,7 @@ export function RubrikScoring({
                 {/* Range Slider for fast input */}
                 <div className="space-y-1">
                   <input
+                    aria-label={`Slider kriteria ${item.nama}`}
                     type="range"
                     min={min}
                     max={max}
@@ -148,7 +154,7 @@ export function RubrikScoring({
                     onChange={(e) =>
                       handleScoreChange(item.id_kriteria, parseFloat(e.target.value), min, max)
                     }
-                    className="w-full h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
+                    className="w-full h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                   />
                   <div className="flex justify-between text-[10px] text-muted-foreground px-0.5">
                     <span>Min ({min})</span>

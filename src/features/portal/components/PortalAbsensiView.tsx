@@ -45,7 +45,7 @@ export function PortalAbsensiView({
   return (
     <div className="space-y-5">
       {/* Attendance Summary Banner */}
-      <Card className="bg-white border-border/80 shadow-2xs">
+      <Card className="bg-card border-border/80 shadow-2xs">
         <CardContent className="p-4 sm:p-5 space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -95,7 +95,7 @@ export function PortalAbsensiView({
 
       {/* List Records */}
       {records.length === 0 ? (
-        <Card className="p-10 text-center bg-white shadow-2xs">
+        <Card className="p-10 text-center bg-card shadow-2xs">
           <p className="text-sm text-muted-foreground">Belum ada riwayat absensi halaqah tercatat.</p>
         </Card>
       ) : (
@@ -109,7 +109,7 @@ export function PortalAbsensiView({
             return (
               <div
                 key={item.id_absensi}
-                className="p-3.5 rounded-xl border bg-white flex items-center justify-between gap-3 shadow-2xs"
+                className="p-3.5 rounded-xl border bg-card flex items-center justify-between gap-3 shadow-2xs"
               >
                 <div className="space-y-0.5">
                   <p className="font-semibold text-sm text-foreground">

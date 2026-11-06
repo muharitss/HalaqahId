@@ -37,7 +37,7 @@ export function PortalSetoranHistory({
 
   if (records.length === 0) {
     return (
-      <Card className="p-12 text-center bg-white shadow-2xs">
+      <Card className="p-12 text-center bg-card shadow-2xs">
         <div className="flex flex-col items-center justify-center gap-2">
           <BookOpen className="h-10 w-10 text-muted-foreground/50" />
           <h3 className="font-semibold text-base">Belum Ada Riwayat Setoran</h3>
@@ -77,7 +77,7 @@ export function PortalSetoranHistory({
           return (
             <Card
               key={item.id_setoran}
-              className="bg-white border-border/70 hover:border-border transition-all shadow-2xs overflow-hidden"
+              className="bg-card border-border/70 hover:border-border transition-all shadow-2xs overflow-hidden"
             >
               <CardContent className="p-4 space-y-3">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border/50 pb-2">

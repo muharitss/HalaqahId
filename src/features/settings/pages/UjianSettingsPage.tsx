@@ -5,6 +5,7 @@ import {
   AlertCircle,
   Calendar as CalendarIcon,
   FileText,
+  BarChart3,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -13,6 +14,7 @@ import {
   ExamTemplateTable,
   ExamCalendar,
   ExamTemplateForm,
+  ExamReportView,
   JadwalDialogs,
   DeleteTemplateDialog,
 } from "../modules";
@@ -190,6 +192,15 @@ export default function UjianSettingsPage() {
             <CalendarIcon className="h-3.5 w-3.5 mr-1.5" />
             Kalender Jadwal
           </Button>
+          <Button
+            variant={activeTab === "laporan" ? "default" : "ghost"}
+            size="sm"
+            onClick={() => setActiveTab("laporan")}
+            className="text-xs font-bold h-8"
+          >
+            <BarChart3 className="h-3.5 w-3.5 mr-1.5" />
+            Laporan & Rubrik
+          </Button>
         </div>
       </div>
 
@@ -230,7 +241,7 @@ export default function UjianSettingsPage() {
             handleOpenDelete={handleOpenDelete}
           />
         </>
-      ) : (
+      ) : activeTab === "calendar" ? (
         <ExamCalendar
           currentMonth={currentMonth}
           setCurrentMonth={setCurrentMonth}
@@ -240,6 +251,8 @@ export default function UjianSettingsPage() {
           handleDayClick={handleDayClick}
           handleScheduleClick={handleScheduleClick}
         />
+      ) : (
+        <ExamReportView schedules={schedules} />
       )}
 
       {/* JADWAL DIALOGS (CREATE & EDIT) */}
