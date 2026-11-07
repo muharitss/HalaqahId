@@ -948,7 +948,7 @@
 
 ### Hari 33-34 — Program & Level Tahfidz UI
 **Tasks**:
-- [ ] Buat `src/features/program/`:
+- [x] Buat `src/features/program/`:
   - `pages/KelolaProgramPage.tsx`:
     - List program
     - Create/edit program
@@ -956,14 +956,17 @@
   - `components/LevelEditor.tsx`:
     - Sortable list of levels
     - Per level: nama, target juz min/max
+  - Routes:
+    - `/kepala-muhafidz/akademik/program`
+    - `/kepala-muhafidz/program`
 
 ---
 
 ### Hari 35-36 — Riwayat Akademik & Kenaikan Level
 **Tasks**:
-- [ ] Buat `src/features/santri/components/RiwayatAkademikSection.tsx`:
+- [x] Buat `src/features/santri/components/RiwayatAkademikSection.tsx`:
   - Timeline: tahun ajaran, halaqah, level, status
-- [ ] Buat batch action: "Naik Tahun Ajaran":
+- [x] Buat batch action: "Naik Tahun Ajaran":
   - Pilih santri (bulk select)
   - Tentukan status (NAIK, TETAP, LULUS, KELUAR)
   - Konfirmasi
@@ -975,7 +978,7 @@
 
 ### Hari 37-38 — Izin Santri Management
 **Tasks**:
-- [ ] Buat `src/features/izin/`:
+- [x] Buat `src/features/izin/`:
   - `pages/KelolaIzinPage.tsx`:
     - List izin (filter: status, santri, tanggal)
     - Create izin
@@ -987,7 +990,7 @@
 
 ### Hari 39-40 — Pengumuman System
 **Tasks**:
-- [ ] Buat `src/features/pengumuman/`:
+- [x] Buat `src/features/pengumuman/`:
   - `pages/KelolaPengumumanPage.tsx`:
     - List pengumuman, create, edit, delete
     - Target: All, Halaqah tertentu, Level tertentu, Santri tertentu

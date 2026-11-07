@@ -5,3 +5,6 @@ export { useCreateSantriWali } from "./useCreateSantriWali";
 export { useUpdateSantriWali } from "./useUpdateSantriWali";
 export { useDeleteSantriWali } from "./useDeleteSantriWali";
 export { usePindahHalaqah } from "./usePindahHalaqah";
+export { useBatchNaikTahun } from "./useBatchNaikTahun";
+export { useNaikLevel } from "./useNaikLevel";
+

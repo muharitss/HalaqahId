@@ -9,6 +9,7 @@ import {
   Edit,
   Clock,
   Sparkles,
+  GraduationCap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -154,6 +155,13 @@ export function KalenderAkademikPage() {
         </div>
 
         <div className="flex items-center gap-3">
+          <Link to="/kepala-muhafidz/akademik/program">
+            <Button variant="outline" size="sm" className="gap-2">
+              <GraduationCap className="h-4 w-4" />
+              Program & Level
+            </Button>
+          </Link>
+
           <Link to="/kepala-muhafidz/akademik/hari-libur">
             <Button variant="outline" size="sm" className="gap-2">
               <CalendarCheck className="h-4 w-4" />

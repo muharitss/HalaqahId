@@ -33,6 +33,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import React, { useEffect } from "react";
+import { Megaphone, FileCheck2 } from "lucide-react";
 import { isKepalaRole, Role } from "@/types/domain/enums";
 
 import { useTenant } from "@/store/tenant-context";
@@ -161,6 +162,18 @@ export function AppSidebar() {
             icon: faCalendarDays,
           },
           {
+            name: "Program Tahfidz",
+            tooltip: "Program & Level Tahfidz",
+            path: "/kepala-muhafidz/akademik/program",
+            icon: faGraduationCap,
+          },
+          {
+            name: <>Izin <Term code="SANTRI" /></>,
+            tooltip: `Kelola Izin ${labelSantri}`,
+            path: "/kepala-muhafidz/izin",
+            icon: FileCheck2,
+          },
+          {
             name: "Lihat Laporan",
             tooltip: "Lihat Laporan",
             path: "/kepala-muhafidz/laporan",
@@ -192,6 +205,12 @@ export function AppSidebar() {
             icon: faBullseye,
             featureCode: "TARGET",
           },
+          {
+            name: "Pengumuman",
+            tooltip: "Kelola Pengumuman",
+            path: "/kepala-muhafidz/pengumuman",
+            icon: Megaphone,
+          },
         ]
       : [
           {
@@ -205,6 +224,12 @@ export function AppSidebar() {
             tooltip: "Absensi Hari Ini",
             path: "/muhafidz/absensi",
             icon: faClipboardCheck,
+          },
+          {
+            name: <>Izin <Term code="SANTRI" /></>,
+            tooltip: `Kelola Izin ${labelSantri}`,
+            path: "/muhafidz/izin",
+            icon: FileCheck2,
           },
           {
             name: "Input Setoran",
@@ -235,6 +260,12 @@ export function AppSidebar() {
             tooltip: "Leaderboard",
             path: "/muhafidz/leaderboard",
             icon: faTrophy,
+          },
+          {
+            name: "Pengumuman",
+            tooltip: "Pusat Pengumuman",
+            path: "/muhafidz/pengumuman",
+            icon: Megaphone,
           },
         ];
 
@@ -302,7 +333,15 @@ export function AppSidebar() {
                       tooltip={item.tooltip || (typeof item.name === "string" ? item.name : undefined)}
                     >
                       <Link to={item.path}>
-                        <FontAwesomeIcon icon={item.icon} />
+                        {typeof item.icon === "object" && item.icon !== null && "prefix" in item.icon ? (
+                          <FontAwesomeIcon icon={item.icon} />
+                        ) : typeof item.icon === "function" ? (
+                          <item.icon className="h-4 w-4 shrink-0" />
+                        ) : React.isValidElement(item.icon) ? (
+                          item.icon
+                        ) : (
+                          <FontAwesomeIcon icon={item.icon} />
+                        )}
                         <span>{item.name}</span>
                       </Link>
                     </SidebarMenuButton>

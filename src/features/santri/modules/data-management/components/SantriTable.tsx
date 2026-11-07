@@ -1,5 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Table,
   TableBody,
@@ -37,6 +38,9 @@ interface SantriTableProps {
   searchTerm: string;
   isAdmin: boolean;
   halaqahList: Halaqah[];
+  selectedIds?: number[];
+  onToggleSelect?: (id: number) => void;
+  onToggleSelectAll?: () => void;
   onEdit: (santri: Santri) => void;
   onDelete: (santri: Santri) => void;
   onViewDetail?: (santri: Santri) => void;
@@ -49,12 +53,17 @@ export function SantriTable({
   searchTerm,
   isAdmin,
   halaqahList,
+  selectedIds = [],
+  onToggleSelect,
+  onToggleSelectAll,
   onEdit,
   onDelete,
   onViewDetail,
   onPindahHalaqah,
   onManageWali,
 }: SantriTableProps) {
+  const isAllSelected = data.length > 0 && data.every((s) => selectedIds.includes(s.id_santri));
+  const isSomeSelected = data.some((s) => selectedIds.includes(s.id_santri)) && !isAllSelected;
   const renderTargetBadge = (target?: TargetSekolah | null) => {
     if (!target) {
       return (
@@ -116,6 +125,15 @@ export function SantriTable({
       <Table>
         <TableHeader>
           <TableRow className="bg-muted/50 hover:bg-muted/50">
+            {onToggleSelect && (
+              <TableHead className="w-[40px] px-3">
+                <Checkbox
+                  checked={isAllSelected ? true : isSomeSelected ? "indeterminate" : false}
+                  onCheckedChange={onToggleSelectAll}
+                  aria-label="Pilih semua santri"
+                />
+              </TableHead>
+            )}
             <TableHead className="font-bold text-foreground w-[12%] min-w-[110px]">
               NIS
             </TableHead>
@@ -143,7 +161,7 @@ export function SantriTable({
           {data.length === 0 ? (
             <TableRow>
               <TableCell
-                colSpan={isAdmin ? 7 : 6}
+                colSpan={(isAdmin ? 7 : 6) + (onToggleSelect ? 1 : 0)}
                 className="text-center py-12 text-muted-foreground"
               >
                 {searchTerm ? (
@@ -157,12 +175,26 @@ export function SantriTable({
               </TableCell>
             </TableRow>
           ) : (
-            data.map((santri) => (
-              <TableRow
-                key={santri.id_santri}
-                className="hover:bg-muted/30 transition-colors"
-              >
-                <TableCell className="font-mono text-xs font-medium text-muted-foreground">
+            data.map((santri) => {
+              const isSelected = selectedIds.includes(santri.id_santri);
+
+              return (
+                <TableRow
+                  key={santri.id_santri}
+                  className={`hover:bg-muted/30 transition-colors ${
+                    isSelected ? "bg-primary/5 hover:bg-primary/10" : ""
+                  }`}
+                >
+                  {onToggleSelect && (
+                    <TableCell className="w-[40px] px-3">
+                      <Checkbox
+                        checked={isSelected}
+                        onCheckedChange={() => onToggleSelect(santri.id_santri)}
+                        aria-label={`Pilih ${santri.nama_santri}`}
+                      />
+                    </TableCell>
+                  )}
+                  <TableCell className="font-mono text-xs font-medium text-muted-foreground">
                   {santri.nomor_induk_santri ? (
                     <span className="text-foreground">{santri.nomor_induk_santri}</span>
                   ) : (
@@ -249,8 +281,9 @@ export function SantriTable({
                   </DropdownMenu>
                 </TableCell>
               </TableRow>
-            ))
-          )}
+            );
+          })
+        )}
         </TableBody>
       </Table>
     </div>

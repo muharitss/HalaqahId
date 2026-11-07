@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -17,7 +18,8 @@ import { useAuth } from "@/features/auth/components/auth-provider";
 import { Role } from "@/types/domain/enums";
 import { useTour } from "@/hooks/useTour";
 import { type DriveStep } from "driver.js";
-import { HelpCircle, Users, Plus, Search, Filter } from "lucide-react";
+import { HelpCircle, Users, Plus, Search, Filter, GraduationCap } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 import { KelolaSantri } from "@/components/custom/typed-text";
 import { Term } from "@/components/ui/Term";
@@ -33,6 +35,7 @@ import {
 import { SantriWaliSection } from "../components/SantriWaliSection";
 import { SantriDetailModal } from "../components/SantriDetailModal";
 import { PindahHalaqahDialog } from "../components/PindahHalaqahDialog";
+import { BatchNaikTahunModal } from "../components/BatchNaikTahunModal";
 
 export function KelolaSantriPage() {
   const { user } = useAuth();
@@ -71,9 +74,15 @@ export function KelolaSantriPage() {
   const [isWaliModalOpen, setIsWaliModalOpen] = useState(false);
   const [selectedSantriForWali, setSelectedSantriForWali] = useState<Santri | null>(null);
 
+  // Batch naik tahun state
+  const [isBatchNaikTahunOpen, setIsBatchNaikTahunOpen] = useState(false);
+  const [selectedSantriIds, setSelectedSantriIds] = useState<number[]>([]);
+
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const [showAll, setShowAll] = useState(false);
+
+  const queryClient = useQueryClient();
 
   const steps: DriveStep[] = [
     {
@@ -155,6 +164,29 @@ export function KelolaSantriPage() {
     [filteredSantri, showAll, currentPage]
   );
 
+  const handleToggleSelect = useCallback((id: number) => {
+    setSelectedSantriIds((prev) =>
+      prev.includes(id) ? prev.filter((sid) => sid !== id) : [...prev, id]
+    );
+  }, []);
+
+  const handleToggleSelectAll = useCallback(() => {
+    const displayedIds = displayedSantri.map((s) => s.id_santri);
+    const isAllDisplayedSelected =
+      displayedIds.length > 0 && displayedIds.every((id) => selectedSantriIds.includes(id));
+
+    if (isAllDisplayedSelected) {
+      setSelectedSantriIds((prev) => prev.filter((id) => !displayedIds.includes(id)));
+    } else {
+      setSelectedSantriIds((prev) => Array.from(new Set([...prev, ...displayedIds])));
+    }
+  }, [displayedSantri, selectedSantriIds]);
+
+  const selectedSantriObjects = useMemo(
+    () => santriList.filter((s: Santri) => selectedSantriIds.includes(s.id_santri)),
+    [santriList, selectedSantriIds]
+  );
+
   const handleEdit = useCallback((santri: Santri) => {
     setSelectedSantri(santri);
     setIsModalOpen(true);
@@ -231,14 +263,37 @@ export function KelolaSantriPage() {
             </Button>
           </div>
         </div>
-        <PermissionGate permission="santri.create">
-          <div className="shrink-0" data-tour="kelola-santri-add-btn">
-            <Button onClick={() => setIsModalOpen(true)}>
-              <Plus className="mr-2 h-4 w-4" />
-              Tambah <Term code="SANTRI" />
+        <div className="flex items-center gap-2">
+          <PermissionGate permission={["santri.update", "santri:edit-all"]}>
+            <Button
+              variant="outline"
+              onClick={() => setIsBatchNaikTahunOpen(true)}
+              disabled={selectedSantriIds.length === 0}
+              className="relative text-xs sm:text-sm"
+              title={
+                selectedSantriIds.length === 0
+                  ? "Pilih minimal 1 santri dari tabel untuk proses naik tahun ajaran"
+                  : `Proses ${selectedSantriIds.length} santri terpilih`
+              }
+            >
+              <GraduationCap className="mr-2 h-4 w-4" />
+              Naik Tahun Ajaran
+              {selectedSantriIds.length > 0 && (
+                <Badge variant="secondary" className="ml-2 px-1.5 py-0.5 text-xs font-semibold">
+                  {selectedSantriIds.length}
+                </Badge>
+              )}
             </Button>
-          </div>
-        </PermissionGate>
+          </PermissionGate>
+          <PermissionGate permission="santri.create">
+            <div className="shrink-0" data-tour="kelola-santri-add-btn">
+              <Button onClick={() => setIsModalOpen(true)}>
+                <Plus className="mr-2 h-4 w-4" />
+                Tambah <Term code="SANTRI" />
+              </Button>
+            </div>
+          </PermissionGate>
+        </div>
       </div>
 
       <div className="rounded-xl border bg-card shadow-sm overflow-hidden">
@@ -274,12 +329,48 @@ export function KelolaSantriPage() {
           </div>
         </div>
 
+        {/* Selected Santri Batch Action Bar */}
+        {selectedSantriIds.length > 0 && (
+          <div className="bg-primary/10 border-b border-primary/20 px-4 sm:px-6 py-2.5 flex items-center justify-between gap-3 text-xs sm:text-sm">
+            <div className="flex items-center gap-2 font-medium text-foreground">
+              <Badge variant="secondary" className="font-semibold">
+                {selectedSantriIds.length}
+              </Badge>
+              <span>{labelSantri} dipilih</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <PermissionGate permission={["santri.update", "santri:edit-all"]}>
+                <Button
+                  size="sm"
+                  variant="default"
+                  className="h-8 gap-1.5 text-xs"
+                  onClick={() => setIsBatchNaikTahunOpen(true)}
+                >
+                  <GraduationCap className="h-3.5 w-3.5" />
+                  Proses Naik Tahun Ajaran ({selectedSantriIds.length})
+                </Button>
+              </PermissionGate>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-8 text-xs text-muted-foreground"
+                onClick={() => setSelectedSantriIds([])}
+              >
+                Batal
+              </Button>
+            </div>
+          </div>
+        )}
+
         <div data-tour="kelola-santri-table">
           <SantriTable 
             data={displayedSantri}
             searchTerm={searchTerm}
             isAdmin={isAdmin}
             halaqahList={halaqahList} 
+            selectedIds={selectedSantriIds}
+            onToggleSelect={handleToggleSelect}
+            onToggleSelectAll={handleToggleSelectAll}
             onEdit={handleEdit}
             onDelete={handleDelete}
             onViewDetail={handleViewDetail}
@@ -413,6 +504,20 @@ export function KelolaSantriPage() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Modal Batch Naik Tahun Ajaran */}
+      <BatchNaikTahunModal
+        isOpen={isBatchNaikTahunOpen}
+        onClose={() => setIsBatchNaikTahunOpen(false)}
+        selectedSantri={selectedSantriObjects}
+        halaqahList={halaqahList}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ["santri"] });
+          queryClient.invalidateQueries({ queryKey: ["halaqah"] });
+          queryClient.invalidateQueries({ queryKey: ["riwayat-akademik"] });
+          setSelectedSantriIds([]);
+        }}
+      />
     </div>
   );
 }

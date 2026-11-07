@@ -20,10 +20,12 @@ import {
   Calendar,
   Pencil,
   ArrowRightLeft,
+  GraduationCap,
 } from "lucide-react";
 import { type Santri, STATUS_SANTRI_LABELS, type StatusSantri } from "../types";
 import { SantriWaliSection } from "./SantriWaliSection";
 import { RiwayatHalaqahSection } from "./RiwayatHalaqahSection";
+import { RiwayatAkademikSection } from "./RiwayatAkademikSection";
 
 interface HalaqahOption {
   id_halaqah: number;
@@ -36,7 +38,7 @@ export interface SantriDetailModalProps {
   onClose: () => void;
   santri: Santri | null;
   halaqahList: HalaqahOption[];
-  initialTab?: "profil" | "wali" | "riwayat";
+  initialTab?: "profil" | "wali" | "riwayat" | "akademik";
   onEditClick?: (santri: Santri) => void;
   onPindahHalaqahClick?: (santri: Santri) => void;
 }
@@ -137,7 +139,7 @@ export function SantriDetailModal({
 
         <div className="flex-1 overflow-y-auto p-6 pt-3">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 h-auto p-1 gap-1">
               <TabsTrigger value="profil" className="gap-2 text-xs sm:text-sm">
                 <User className="h-4 w-4" />
                 Profil & Detail
@@ -149,6 +151,10 @@ export function SantriDetailModal({
               <TabsTrigger value="riwayat" className="gap-2 text-xs sm:text-sm">
                 <History className="h-4 w-4" />
                 Riwayat <Term code="HALAQAH" />
+              </TabsTrigger>
+              <TabsTrigger value="akademik" className="gap-2 text-xs sm:text-sm">
+                <GraduationCap className="h-4 w-4" />
+                Riwayat Akademik
               </TabsTrigger>
             </TabsList>
 
@@ -219,6 +225,13 @@ export function SantriDetailModal({
                 santriId={santri.id_santri}
                 santriName={santri.nama_santri}
                 onPindahHalaqahClick={() => onPindahHalaqahClick?.(santri)}
+              />
+            </TabsContent>
+
+            <TabsContent value="akademik" className="pt-2">
+              <RiwayatAkademikSection
+                santriId={santri.id_santri}
+                santriName={santri.nama_santri}
               />
             </TabsContent>
           </Tabs>

@@ -6,6 +6,10 @@ import {
   type UpdateSantriData,
   type RiwayatHalaqahItem,
   type PindahHalaqahRequest,
+  type RiwayatAkademikItem,
+  type NaikLevelRequest,
+  type BatchNaikTahunRequest,
+  type BatchNaikTahunResponse,
 } from "../../types";
 
 export const santriService = {
@@ -113,6 +117,36 @@ export const santriService = {
       return response.data.data;
     } catch (error: unknown) {
       throw new Error(getErrorMessage(error, "Gagal memindahkan santri"));
+    }
+  },
+
+  // 9. Get Riwayat Akademik Santri
+  async getRiwayatAkademik(id: number): Promise<RiwayatAkademikItem[]> {
+    try {
+      const response = await axiosClient.get(`/santri/${id}/riwayat-akademik`);
+      return response.data.data;
+    } catch (error: unknown) {
+      throw new Error(getErrorMessage(error, "Gagal mengambil riwayat akademik santri"));
+    }
+  },
+
+  // 10. Naik Level Santri
+  async naikLevel(id: number, data: NaikLevelRequest): Promise<unknown> {
+    try {
+      const response = await axiosClient.post(`/santri/${id}/naik-level`, data);
+      return response.data.data;
+    } catch (error: unknown) {
+      throw new Error(getErrorMessage(error, "Gagal menaikkan level santri"));
+    }
+  },
+
+  // 11. Batch Naik Tahun Ajaran & Level
+  async batchNaikTahun(data: BatchNaikTahunRequest): Promise<BatchNaikTahunResponse> {
+    try {
+      const response = await axiosClient.post("/batch/naik-tahun", data);
+      return response.data.data;
+    } catch (error: unknown) {
+      throw new Error(getErrorMessage(error, "Gagal memproses batch kenaikan tahun ajaran"));
     }
   },
 };

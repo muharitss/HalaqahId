@@ -22,6 +22,10 @@ const PERMISSION_ALIASES: Record<string, string[]> = {
 
   "user.manage": ["muhafiz:manage", "user:manage", "user.manage"],
   "muhafiz.manage": ["muhafiz:manage", "user:manage", "muhafiz.manage"],
+
+  "izin.apply": ["izin:apply", "izin.apply"],
+  "izin.view": ["izin:view", "izin.view"],
+  "izin.approve": ["izin:approve", "izin.approve"],
 };
 
 /**

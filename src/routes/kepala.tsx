@@ -13,6 +13,9 @@ const KelolaSesiPage = lazy(() =>
   import("@/features/halaqah/pages/kelola-sesi-page").then((m) => ({ default: m.KelolaSesiPage }))
 );
 const AbsensiPage = lazy(() => import("@/features/absensi/pages/AbsensiPage"));
+const KelolaIzinPage = lazy(() =>
+  import("@/features/izin").then((m) => ({ default: m.KelolaIzinPage }))
+);
 const SetoranPage = lazy(() =>
   import("@/features/setoran/pages/input-setoran-page").then((m) => ({ default: m.InputSetoranPage }))
 );
@@ -58,11 +61,21 @@ const KalenderAkademikPage = lazy(() =>
 const HariLiburPage = lazy(() =>
   import("@/features/akademik").then((m) => ({ default: m.HariLiburPage }))
 );
+const KelolaProgramPage = lazy(() =>
+  import("@/features/program").then((m) => ({ default: m.KelolaProgramPage }))
+);
+const KelolaPengumumanPage = lazy(() =>
+  import("@/features/pengumuman").then((m) => ({ default: m.KelolaPengumumanPage }))
+);
 
 export const kepalaRoutes: RouteObject[] = [
   {
     path: "/kepala-muhafidz",
     element: <KepalaMuhafidzDashboard />,
+  },
+  {
+    path: "/kepala-muhafidz/pengumuman",
+    element: <KelolaPengumumanPage />,
   },
   {
     path: "/kepala-muhafidz/akademik",
@@ -71,6 +84,14 @@ export const kepalaRoutes: RouteObject[] = [
   {
     path: "/kepala-muhafidz/akademik/hari-libur",
     element: <HariLiburPage />,
+  },
+  {
+    path: "/kepala-muhafidz/akademik/program",
+    element: <KelolaProgramPage />,
+  },
+  {
+    path: "/kepala-muhafidz/program",
+    element: <KelolaProgramPage />,
   },
   {
     path: "/kepala-muhafidz/muhafiz",
@@ -87,6 +108,10 @@ export const kepalaRoutes: RouteObject[] = [
   {
     path: "/kepala-muhafidz/absensi",
     element: <AbsensiPage />,
+  },
+  {
+    path: "/kepala-muhafidz/izin",
+    element: <KelolaIzinPage />,
   },
   {
     path: "/kepala-muhafidz/setoran",
