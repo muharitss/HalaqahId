@@ -8,7 +8,7 @@ import { RecentActivityCard } from "../components/RecentActivityCard";
 import { SekolahDetailSheet } from "../components/SekolahDetailSheet";
 import type { SekolahWithCount, JenisLembaga } from "@/types/domain/sekolah";
 import { useQuery } from "@tanstack/react-query";
-import { sekolahService } from "@/features/sekolah";
+import { sekolahService } from "@/features/sekolah/api/services/sekolahService";
 import { SystemHealthPanel } from "../components/SystemHealthPanel";
 import { tenantAdminApi } from "@/features/tenant/api/tenant-admin.api";
 import { useAuditLogs } from "@/features/auth/api/queries/useAuditLogs";

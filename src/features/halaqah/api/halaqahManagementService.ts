@@ -1,5 +1,5 @@
 import axiosClient from "@/lib/axiosClient";
-import { santriService } from "@/features/santri";
+import { santriService } from "@/features/santri/api/services/santriService";
 import { type Halaqah } from "../types";
 import { type Santri } from "../types";
 import type { GlobalResponse } from "@/types/api/global-response";

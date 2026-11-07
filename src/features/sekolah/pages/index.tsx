@@ -4,7 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus, faBuilding, faPen, faTrash, faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
-import { sekolahService } from "../api";
+import { sekolahService } from "../api/services/sekolahService";
 import { type Sekolah, JENIS_LEMBAGA_OPTIONS } from "@/types/domain/sekolah";
 import { toast } from "sonner";
 import {

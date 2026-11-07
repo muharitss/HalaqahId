@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { useSekolahQueryList } from "../api";
+import { useSekolahQueryList } from "../api/queries/useSekolahQueryList";
 import type { SekolahWithCount, JenisLembaga } from "@/types/domain/sekolah";
 
 const PAGE_SIZE = 10;

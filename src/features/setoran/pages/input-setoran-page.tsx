@@ -17,7 +17,7 @@ import { DynamicExamForm } from "../components/DynamicExamForm";
 import { Setoran } from "@/components/custom/typed-text";
 import { type FormMode } from "../hooks/useSmartSetoranMode";
 import { ModeBadge } from "../components/SetoranModeBanner";
-import { useAuth } from "@/features/auth";
+import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useTour } from "@/hooks/useTour";
 import { type DriveStep } from "driver.js";
 import { FeatureGate } from "@/components/ui/FeatureGate";

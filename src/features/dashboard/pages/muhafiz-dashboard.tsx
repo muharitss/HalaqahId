@@ -19,7 +19,7 @@ import { ActivityChart } from "../components/ActivityChart";
 import { AttendanceDonutChart } from "../components/AttendanceDonutChart";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
-import { useAuth } from "@/features/auth";
+import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useTour } from "@/hooks/useTour";
 import { type DriveStep } from "driver.js";
 import { Term } from "@/components/ui/Term";

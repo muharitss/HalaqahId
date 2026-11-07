@@ -17,7 +17,7 @@ import { useAbsensiPdf } from "../hooks/useAbsensiPdf";
 import { PdfPreviewDialog } from "@/components/custom/pdf-preview-dialog";
 import { type AbsensiStatusType, absensiStatusSchema } from "../validation/absensi.schema";
 import { absensiKeys } from "../api/queries/queryKeys";
-import { useAuth } from "@/features/auth";
+import { useAuth } from "@/features/auth/hooks/useAuth";
 import { type MonthlyAbsensiData } from "../types";
 import { getErrorMessage } from "@/utils/error";
 

@@ -4,7 +4,7 @@ import { absensiService } from "../services/absensiService";
 import { type CreateAbsensiSantriRequest as AbsensiPayload } from "@/types/domain/absensi";
 import { getErrorMessage } from "@/utils/error";
 import { absensiKeys } from "../queries/queryKeys";
-import { useAuth } from "@/features/auth";
+import { useAuth } from "@/features/auth/hooks/useAuth";
 
 export const useAbsensiMutation = () => {
   const queryClient = useQueryClient();

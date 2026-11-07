@@ -3,7 +3,7 @@ import { useAbsensi } from "./absensi-provider";
 import { AbsensiFilter } from "./absensi-filter";
 import { AbsensiInputTable } from "./absensi-input-table";
 import { AbsensiRekapTable } from "./absensi-rekap-table";
-import { useAuth } from "@/features/auth";
+import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useTour } from "@/hooks/useTour";
 import { type DriveStep } from "driver.js";
 import { HelpCircle } from "lucide-react";

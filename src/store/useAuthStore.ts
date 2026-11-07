@@ -4,7 +4,7 @@ import { authService } from "@/features/auth/api/services/authService";
 import { Role, isKepalaRole } from "@/types/domain/enums";
 import { type AuthUser } from "@/types/domain/auth";
 import { type UserSekolahItem } from "@/types/domain/sekolah";
-import { sekolahService } from "@/features/sekolah";
+import { sekolahService } from "@/features/sekolah/api/services/sekolahService";
 import { queryClient } from "@/lib/react-query";
 import { toast } from "sonner";
 
@@ -100,7 +100,7 @@ const initialActiveSekolah =
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: initialUser,
-  isLoading: !initialUser,
+  isLoading: false,
   isImpersonating: initialUser?.isImpersonating || false,
   sekolahList: initialSekolahList,
   activeSekolah: initialActiveSekolah,

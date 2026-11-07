@@ -3,7 +3,7 @@ import { AppSidebar } from "@/components/custom/layout/AppSidebar";
 import { MobileDock } from "@/components/custom/layout/MobileDock";
 import { ThemeToggle } from "@/components/custom/theme/ThemeToggle";
 import { SekolahSwitcher } from "@/components/ui/SekolahSwitcher";
-import { NotificationBell } from "@/features/pengumuman";
+import { NotificationBell } from "@/features/pengumuman/components/NotificationBell";
 import { useAuth } from "@/features/auth/components/auth-provider";
 import { Outlet, useNavigate } from "react-router-dom";
 import { PageSkeleton } from "@/components/custom/loading/PageSkeleton";
@@ -16,7 +16,7 @@ import { Separator } from "@/components/ui/separator";
 import { useIsMobile } from "@/utils/use-mobile";
 import { isKepalaRole, Role } from "@/types/domain/enums";
 import { useQuery } from "@tanstack/react-query";
-import { sekolahService } from "@/features/sekolah";
+import { sekolahService } from "@/features/sekolah/api/services/sekolahService";
 import { useTenant } from "@/store/tenant-context";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";

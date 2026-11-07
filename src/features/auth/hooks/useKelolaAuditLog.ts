@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useAuditLogs } from "../api";
+import { useAuditLogs } from "../api/queries/useAuditLogs";
 import { useSekolahQueryList } from "@/features/sekolah";
 import { type AuditLog } from "../types";
 

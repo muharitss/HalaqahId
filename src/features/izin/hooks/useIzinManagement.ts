@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { santriService } from "@/features/santri";
+import { santriService } from "@/features/santri/api/services/santriService";
 import { useAuthStore } from "@/store/useAuthStore";
 import { usePermission } from "@/lib/hooks/usePermission";
 import { isKepalaRole, Role } from "@/types/domain/enums";
