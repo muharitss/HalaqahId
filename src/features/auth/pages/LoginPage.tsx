@@ -20,8 +20,8 @@ export function LoginPage() {
         <LoginCarousel />
       </div>
 
-      <div className="relative flex w-full flex-col items-center justify-center p-6 dark:bg-background-dark lg:w-1/2 overflow-y-auto">
-        <div className="mx-auto w-full max-w-md space-y-8 py-10">
+      <div className="relative flex w-full flex-col items-center justify-center p-6 dark:bg-background-dark lg:w-1/2 overflow-y-auto min-h-screen">
+        <div className="mx-auto w-full max-w-md space-y-8 py-10 flex-1 flex flex-col justify-center">
           <div className="lg:hidden pb-2">
             <LoginHeader variant="mobile" />
           </div>

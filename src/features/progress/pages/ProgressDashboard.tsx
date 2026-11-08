@@ -15,7 +15,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   AlertDialog,
@@ -27,7 +26,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { RefreshCw, BookOpen, BarChart3, Users, Sparkles } from "lucide-react";
+import { RefreshCw, BookOpen, BarChart3, Users } from "lucide-react";
 import { Term } from "@/components/ui/Term";
 import { toast } from "sonner";
 import { getErrorMessage } from "@/utils/error";
@@ -127,10 +126,6 @@ export function ProgressDashboard() {
             <h1 className="text-xl md:text-2xl font-bold tracking-tight">
               Progress Hafalan <Term code="SANTRI" />
             </h1>
-            <Badge variant="secondary" className="gap-1 text-xs">
-              <Sparkles className="h-3 w-3 text-primary" />
-              114 Surat
-            </Badge>
           </div>
           <p className="text-xs md:text-sm text-muted-foreground">
             Visualisasi peta capaian hafalan 30 Juz dan 114 surat Al-Quran per <Term code="SANTRI" />.
