@@ -11,7 +11,7 @@ export const getTenantSlugFromUrl = (): string | null => {
   // 2. Backward compatibility: single tenant mode
   const isSingleMode = import.meta.env.VITE_TENANT_MODE === "single";
   if (isSingleMode) {
-    return import.meta.env.VITE_DEFAULT_TENANT_SLUG || null;
+    return import.meta.env.VITE_DEFAULT_TENANT_SLUG || "default";
   }
 
   // 3. Subdomain resolving
@@ -24,16 +24,42 @@ export const getTenantSlugFromUrl = (): string | null => {
       return parts[0].toLowerCase();
     }
 
-    // Handle production multi-level domain (e.g., pesantren-a.halaqah.id)
-    if (parts.length > 2) {
+    const isPlatformDomain =
+      hostname.endsWith(".vercel.app") ||
+      hostname.endsWith(".pages.dev") ||
+      hostname.endsWith(".railway.app") ||
+      hostname.endsWith(".render.com") ||
+      hostname.endsWith(".netlify.app");
+
+    const reservedSubdomains = [
+      "www",
+      "app",
+      "admin",
+      "api",
+      "portal",
+      "staging",
+      "halaqah-id",
+      "halaqahid",
+      "halaqahid-be",
+    ];
+
+    // On platform domains (*.vercel.app), project name is parts[parts.length - 3]
+    // Subdomain only exists if parts.length > 3 (e.g. tenant.project.vercel.app)
+    if (isPlatformDomain) {
+      if (parts.length > 3) {
+        const subdomain = parts[0].toLowerCase();
+        if (!reservedSubdomains.includes(subdomain)) {
+          return subdomain;
+        }
+      }
+    } else if (parts.length > 2) {
       const subdomain = parts[0].toLowerCase();
-      const reservedSubdomains = ["www", "app", "admin", "api", "portal", "staging"];
       if (!reservedSubdomains.includes(subdomain)) {
         return subdomain;
       }
     }
   }
 
-  // 4. No explicit tenant on root or reserved domains
-  return null;
+  // 4. Fallback to default tenant slug
+  return import.meta.env.VITE_DEFAULT_TENANT_SLUG || "default";
 };
