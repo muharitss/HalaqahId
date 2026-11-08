@@ -40,9 +40,10 @@ export function useLoginForm() {
     } catch (error: unknown) {
       const errorMessage = getErrorMessage(error, "Terjadi kesalahan saat login");
       setBackendError(errorMessage);
+      const lower = typeof errorMessage === "string" ? errorMessage.toLowerCase() : "";
       if (
-        errorMessage.toLowerCase().includes("verifikasi") || 
-        errorMessage.toLowerCase().includes("verify")
+        lower.includes("verifikasi") || 
+        lower.includes("verify")
       ) {
         setShowResend(true);
       }
@@ -72,6 +73,7 @@ export function useLoginForm() {
   };
 
   const isTenantMismatch = Boolean(
+    typeof backendError === "string" &&
     backendError &&
     (backendError.toLowerCase().includes("tenant") ||
      backendError.toLowerCase().includes("tidak terdaftar pada tenant") ||
