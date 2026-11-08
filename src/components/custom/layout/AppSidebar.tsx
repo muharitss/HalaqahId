@@ -15,6 +15,9 @@ import {
   faClock,
   faGear,
   faTrophy,
+  faGraduationCap,
+  faBullseye,
+  faCalendarDays,
 } from "@fortawesome/free-solid-svg-icons";
 import {
   Sidebar,
@@ -29,12 +32,15 @@ import {
   SidebarGroupContent,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { useEffect } from "react";
+import React, { useEffect } from "react";
+import { Megaphone, FileCheck2 } from "lucide-react";
 import { isKepalaRole, Role } from "@/types/domain/enums";
 
 import { useTenant } from "@/store/tenant-context";
 import { useTerminology } from "@/lib/hooks/useTerminology";
 import { Term } from "@/components/ui/Term";
+import { FeatureGate } from "@/components/ui/FeatureGate";
+import { PermissionGate } from "@/components/ui/PermissionGate";
 
 export function AppSidebar() {
   const { user, logout, stopImpersonating, isImpersonating } = useAuth();
@@ -73,9 +79,24 @@ export function AppSidebar() {
   const labelMuhafiz = useTerminology("MUHAFIZ");
   const labelSekolah = useTerminology("SEKOLAH");
 
-  const menuItems = isSuperAdmin
+  interface MenuItem {
+    name: React.ReactNode;
+    tooltip?: string;
+    path: string;
+    icon: any;
+    featureCode?: string;
+    permission?: string | string[];
+  }
+
+  const menuItems: MenuItem[] = isSuperAdmin
     ? [
         { name: "Dashboard", tooltip: "Dashboard", path: "/superadmin", icon: faChartPie },
+        {
+          name: "Kelola Tenant",
+          tooltip: "Kelola Lembaga / Tenant",
+          path: "/superadmin/tenants",
+          icon: faBuilding,
+        },
         {
           name: <>Kelola <Term code="SEKOLAH" /></>,
           tooltip: `Kelola ${labelSekolah}`,
@@ -87,6 +108,14 @@ export function AppSidebar() {
           tooltip: "Kelola Pengguna",
           path: "/superadmin/users",
           icon: faUsers,
+          permission: "user.manage",
+        },
+        {
+          name: "Kelola Role",
+          tooltip: "Kelola Role & Perizinan",
+          path: "/superadmin/roles",
+          icon: faUserShield,
+          permission: "user.manage",
         },
         {
           name: "Audit Logs",
@@ -99,6 +128,7 @@ export function AppSidebar() {
           tooltip: "Kelola Blog",
           path: "/superadmin/blog",
           icon: faBook,
+          featureCode: "BLOG",
         },
       ]
     : user && isKepalaRole(user.role)
@@ -109,6 +139,14 @@ export function AppSidebar() {
             tooltip: `Kelola ${labelMuhafiz}`,
             path: "/kepala-muhafidz/muhafiz",
             icon: faUserTie,
+            permission: "user.manage",
+          },
+          {
+            name: "Kelola Role",
+            tooltip: "Kelola Role & Perizinan",
+            path: "/kepala-muhafidz/settings/roles",
+            icon: faUserShield,
+            permission: "user.manage",
           },
           {
             name: <>Kelola <Term code="HALAQAH" /></>,
@@ -118,16 +156,60 @@ export function AppSidebar() {
           },
           { name: "Kelola Sesi", tooltip: "Kelola Sesi", path: "/kepala-muhafidz/sesi", icon: faClock },
           {
+            name: "Kalender Akademik",
+            tooltip: "Kalender Akademik & Hari Libur",
+            path: "/kepala-muhafidz/akademik",
+            icon: faCalendarDays,
+          },
+          {
+            name: "Program Tahfidz",
+            tooltip: "Program & Level Tahfidz",
+            path: "/kepala-muhafidz/akademik/program",
+            icon: faGraduationCap,
+          },
+          {
+            name: <>Izin <Term code="SANTRI" /></>,
+            tooltip: `Kelola Izin ${labelSantri}`,
+            path: "/kepala-muhafidz/izin",
+            icon: FileCheck2,
+          },
+          {
             name: "Lihat Laporan",
             tooltip: "Lihat Laporan",
             path: "/kepala-muhafidz/laporan",
             icon: faClipboardCheck,
           },
           {
+            name: "Progress Hafalan",
+            tooltip: `Peta Progress Hafalan ${labelSantri}`,
+            path: "/kepala-muhafidz/progress",
+            icon: faBookOpen,
+          },
+          {
             name: "Leaderboard",
             tooltip: "Leaderboard",
             path: "/kepala-muhafidz/leaderboard",
             icon: faTrophy,
+          },
+          {
+            name: "Ujian",
+            tooltip: "Ujian",
+            path: "/kepala-muhafidz/settings/ujian",
+            icon: faGraduationCap,
+            featureCode: "UJIAN",
+          },
+          {
+            name: "Target",
+            tooltip: "Target",
+            path: "/kepala-muhafidz/settings/target",
+            icon: faBullseye,
+            featureCode: "TARGET",
+          },
+          {
+            name: "Pengumuman",
+            tooltip: "Kelola Pengumuman",
+            path: "/kepala-muhafidz/pengumuman",
+            icon: Megaphone,
           },
         ]
       : [
@@ -142,6 +224,12 @@ export function AppSidebar() {
             tooltip: "Absensi Hari Ini",
             path: "/muhafidz/absensi",
             icon: faClipboardCheck,
+          },
+          {
+            name: <>Izin <Term code="SANTRI" /></>,
+            tooltip: `Kelola Izin ${labelSantri}`,
+            path: "/muhafidz/izin",
+            icon: FileCheck2,
           },
           {
             name: "Input Setoran",
@@ -162,10 +250,22 @@ export function AppSidebar() {
             icon: faChartPie,
           },
           {
+            name: "Peta Hafalan",
+            tooltip: `Peta Hafalan 114 Surat ${labelSantri}`,
+            path: "/muhafidz/progress-hafalan",
+            icon: faBookOpen,
+          },
+          {
             name: "Leaderboard",
             tooltip: "Leaderboard",
             path: "/muhafidz/leaderboard",
             icon: faTrophy,
+          },
+          {
+            name: "Pengumuman",
+            tooltip: "Pusat Pengumuman",
+            path: "/muhafidz/pengumuman",
+            icon: Megaphone,
           },
         ];
 
@@ -225,20 +325,46 @@ export function AppSidebar() {
                   : location.pathname === item.path ||
                     location.pathname.startsWith(item.path + "/");
 
-                return (
+                let node = (
                   <SidebarMenuItem key={item.path}>
                     <SidebarMenuButton
                       asChild
                       isActive={isActive}
-                      tooltip={item.tooltip || (item.name as any)}
+                      tooltip={item.tooltip || (typeof item.name === "string" ? item.name : undefined)}
                     >
                       <Link to={item.path}>
-                        <FontAwesomeIcon icon={item.icon} />
+                        {typeof item.icon === "object" && item.icon !== null && "prefix" in item.icon ? (
+                          <FontAwesomeIcon icon={item.icon} />
+                        ) : typeof item.icon === "function" ? (
+                          <item.icon className="h-4 w-4 shrink-0" />
+                        ) : React.isValidElement(item.icon) ? (
+                          item.icon
+                        ) : (
+                          <FontAwesomeIcon icon={item.icon} />
+                        )}
                         <span>{item.name}</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 );
+
+                if (item.featureCode) {
+                  node = (
+                    <FeatureGate key={`feature-${item.path}`} code={item.featureCode}>
+                      {node}
+                    </FeatureGate>
+                  );
+                }
+
+                if (item.permission) {
+                  node = (
+                    <PermissionGate key={`perm-${item.path}`} permission={item.permission}>
+                      {node}
+                    </PermissionGate>
+                  );
+                }
+
+                return node;
               })}
             </SidebarMenu>
           </SidebarGroupContent>

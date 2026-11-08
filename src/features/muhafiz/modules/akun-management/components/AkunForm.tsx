@@ -30,7 +30,7 @@ const akunSchema = z.object({
     .regex(/^[0-9]+$/, "Nomor telepon hanya boleh berisi angka")
     .optional()
     .or(z.literal("")),
-  password: z.string().min(6, "Password minimal 6 karakter"),
+  password: z.string().min(8, "Password minimal 8 karakter"),
 });
 
 type AkunFormValues = z.infer<typeof akunSchema>;
@@ -139,7 +139,7 @@ export function AkunForm({ onSuccess }: AkunFormProps) {
             id="password"
             type={showPassword ? "text" : "password"}
             {...register("password")}
-            placeholder="Minimal 6 karakter"
+            placeholder="Minimal 8 karakter"
             disabled={isLoading}
             className="pr-10"
           />

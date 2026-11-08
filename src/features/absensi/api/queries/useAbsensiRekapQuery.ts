@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { absensiService } from "../services/absensiService";
-import { useAuth } from "@/features/auth";
+import { useAuth } from "@/features/auth/hooks/useAuth";
 import { absensiKeys } from "./queryKeys";
 import { type MonthlyAbsensiData } from "../../types";
 

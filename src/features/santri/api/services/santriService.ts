@@ -1,6 +1,16 @@
 import axiosClient from "@/lib/axiosClient";
 import { getErrorMessage } from "@/utils/error";
-import { type Santri, type CreateSantriData, type UpdateSantriData } from "../../types";
+import {
+  type Santri,
+  type CreateSantriData,
+  type UpdateSantriData,
+  type RiwayatHalaqahItem,
+  type PindahHalaqahRequest,
+  type RiwayatAkademikItem,
+  type NaikLevelRequest,
+  type BatchNaikTahunRequest,
+  type BatchNaikTahunResponse,
+} from "../../types";
 
 export const santriService = {
   // 1. Create Santri
@@ -13,11 +23,20 @@ export const santriService = {
     }
   },
 
-  // 2. Get Santri List (Auto-Filter berdasarkan role)
+  // 2. Get Santri List (Auto-Filter berdasarkan role, loops through pages if total > 100)
   async getAll(): Promise<Santri[]> {
     try {
-      const response = await axiosClient.get("/santri", { params: { limit: 1000 } });
-      return response.data.data;
+      let page = 1;
+      let allData: Santri[] = [];
+      let totalPages = 1;
+      do {
+        const response = await axiosClient.get("/santri", { params: { page, limit: 100 } });
+        const items = response.data?.data || [];
+        allData = allData.concat(items);
+        totalPages = response.data?.pagination?.totalPages || 1;
+        page++;
+      } while (page <= totalPages && page <= 100);
+      return allData;
     } catch (error: unknown) {
       throw new Error(getErrorMessage(error, "Gagal mengambil data santri"));
     }
@@ -77,16 +96,69 @@ export const santriService = {
   async getByHalaqahId(idHalaqah: number): Promise<Santri[]> {
     try {
       const response = await axiosClient.get(`/halaqah/${idHalaqah}`);
-      const data = response.data.data;
+      const data = response.data?.data || response.data;
 
       if (data && Array.isArray(data.santri)) {
-        return data.santri;
+        return data.santri.map((s: any) => ({
+          ...s,
+          id_halaqah: s.id_halaqah ?? idHalaqah,
+        }));
       }
       
       return []; 
     } catch (error: unknown) {
       console.error("Error getByHalaqahId:", error);
       return []; 
+    }
+  },
+
+  // 7. Get Riwayat Halaqah Santri
+  async getRiwayatHalaqah(id: number): Promise<RiwayatHalaqahItem[]> {
+    try {
+      const response = await axiosClient.get(`/santri/${id}/riwayat-halaqah`);
+      return response.data.data;
+    } catch (error: unknown) {
+      throw new Error(getErrorMessage(error, "Gagal mengambil riwayat halaqah santri"));
+    }
+  },
+
+  // 8. Pindah Halaqah Santri
+  async pindahHalaqah(id: number, data: PindahHalaqahRequest): Promise<unknown> {
+    try {
+      const response = await axiosClient.post(`/santri/${id}/pindah-halaqah`, data);
+      return response.data.data;
+    } catch (error: unknown) {
+      throw new Error(getErrorMessage(error, "Gagal memindahkan santri"));
+    }
+  },
+
+  // 9. Get Riwayat Akademik Santri
+  async getRiwayatAkademik(id: number): Promise<RiwayatAkademikItem[]> {
+    try {
+      const response = await axiosClient.get(`/santri/${id}/riwayat-akademik`);
+      return response.data.data;
+    } catch (error: unknown) {
+      throw new Error(getErrorMessage(error, "Gagal mengambil riwayat akademik santri"));
+    }
+  },
+
+  // 10. Naik Level Santri
+  async naikLevel(id: number, data: NaikLevelRequest): Promise<unknown> {
+    try {
+      const response = await axiosClient.post(`/santri/${id}/naik-level`, data);
+      return response.data.data;
+    } catch (error: unknown) {
+      throw new Error(getErrorMessage(error, "Gagal menaikkan level santri"));
+    }
+  },
+
+  // 11. Batch Naik Tahun Ajaran & Level
+  async batchNaikTahun(data: BatchNaikTahunRequest): Promise<BatchNaikTahunResponse> {
+    try {
+      const response = await axiosClient.post("/batch/naik-tahun", data);
+      return response.data.data;
+    } catch (error: unknown) {
+      throw new Error(getErrorMessage(error, "Gagal memproses batch kenaikan tahun ajaran"));
     }
   },
 };

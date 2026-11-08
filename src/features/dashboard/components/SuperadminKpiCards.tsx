@@ -1,11 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { School, Users, LayoutGrid, UserCheck } from "lucide-react";
+import { School, Users, Building2, UserCheck } from "lucide-react";
 
 interface KpiData {
+  totalTenant?: number;
   totalSekolah: number;
   totalSantri: number;
-  totalHalaqah: number;
+  totalHalaqah?: number;
   totalUser: number;
 }
 
@@ -16,9 +17,15 @@ interface SuperadminKpiCardsProps {
 
 const cards = [
   {
+    key: "totalTenant" as const,
+    label: "Jumlah Tenant",
+    desc: "Institusi / Organisasi",
+    icon: Building2,
+  },
+  {
     key: "totalSekolah" as const,
     label: "Total Sekolah",
-    desc: "Tenant aktif di platform",
+    desc: "Unit sekolah terdaftar",
     icon: School,
   },
   {
@@ -28,15 +35,9 @@ const cards = [
     icon: Users,
   },
   {
-    key: "totalHalaqah" as const,
-    label: "Total Halaqah",
-    desc: "Kelompok belajar aktif",
-    icon: LayoutGrid,
-  },
-  {
     key: "totalUser" as const,
     label: "Total Pengguna",
-    desc: "Admin & Muhafiz",
+    desc: "Admin, Muhafiz & Staff",
     icon: UserCheck,
   },
 ];
@@ -55,7 +56,7 @@ export function SuperadminKpiCards({ kpi, isLoading }: SuperadminKpiCardsProps) 
               <Skeleton className="h-8 w-24 mt-1" />
             ) : (
               <div className="text-2xl font-bold">
-                {kpi[key].toLocaleString("id-ID")}
+                {(kpi[key] ?? 0).toLocaleString("id-ID")}
               </div>
             )}
             <p className="text-xs text-muted-foreground mt-1">{desc}</p>

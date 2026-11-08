@@ -1,44 +1,93 @@
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/features/auth/components/auth-provider";
-import { profilService } from "../api";
-import type { ProfilFormValues, GantiPasswordFormValues } from "../types";
+import {
+  useUserProfile,
+  useUpdateUserProfile,
+  useUploadAvatar,
+  useGantiPassword,
+} from "./useUserProfile";
+import type { ProfilFormValues, GantiPasswordFormValues, UserProfileData } from "../types";
 
 export function useProfilMuhafiz() {
-  const { user, refreshUser } = useAuth();
+  const { user: authUser, refreshUser } = useAuth();
+  const { data: profileData, isLoading: isLoadingProfile, refetch } = useUserProfile();
 
-  // Memuat data profil terbaru dari backend saat halaman dibuka
+  const updateProfileMutation = useUpdateUserProfile();
+  const uploadAvatarMutation = useUploadAvatar();
+  const gantiPasswordMutation = useGantiPassword();
+
+  // Sinkronisasi user data saat hook dimuat
   useEffect(() => {
     refreshUser();
   }, [refreshUser]);
 
+  // Merge profile data with auth user fallback
+  const user: UserProfileData | null = profileData
+    ? {
+        ...profileData,
+        nama_lengkap: profileData.nama_lengkap || profileData.name || authUser?.name || "",
+        name: profileData.name || profileData.nama_lengkap || authUser?.name || "",
+        email: profileData.email || authUser?.email || "",
+        role: profileData.role || authUser?.role || "MUHAFIZ",
+        foto: profileData.foto || profileData.foto_url || profileData.avatarUrl || authUser?.avatarUrl || null,
+        foto_url: profileData.foto_url || profileData.foto || profileData.avatarUrl || authUser?.avatarUrl || null,
+        bio: profileData.bio ?? authUser?.bio ?? null,
+        nomor_telepon: profileData.nomor_telepon ?? authUser?.nomor_telepon ?? null,
+        spesialisasi: profileData.spesialisasi ?? authUser?.spesialisasi ?? null,
+        no_ijazah: profileData.no_ijazah ?? authUser?.no_ijazah ?? null,
+        id_sekolah: profileData.id_sekolah ?? authUser?.id_sekolah ?? null,
+        id_tenant: profileData.id_tenant ?? authUser?.id_tenant ?? null,
+        is_verified: profileData.is_verified ?? authUser?.is_verified ?? false,
+        has_halaqah: profileData.has_halaqah ?? authUser?.has_halaqah ?? false,
+        id_halaqah: profileData.id_halaqah ?? authUser?.id_halaqah ?? null,
+        halaqah: profileData.halaqah ?? authUser?.halaqah ?? null,
+      }
+    : authUser
+    ? {
+        id_user: authUser.id_user,
+        nama_lengkap: authUser.name || "",
+        name: authUser.name || "",
+        email: authUser.email || "",
+        role: authUser.role,
+        foto: authUser.foto || authUser.foto_url || authUser.avatarUrl || null,
+        foto_url: authUser.foto_url || authUser.foto || authUser.avatarUrl || null,
+        avatarUrl: authUser.avatarUrl || authUser.foto_url || authUser.foto || null,
+        bio: authUser.bio || null,
+        nomor_telepon: authUser.nomor_telepon || null,
+        spesialisasi: authUser.spesialisasi || null,
+        no_ijazah: authUser.no_ijazah || null,
+        id_sekolah: authUser.id_sekolah || null,
+        id_tenant: authUser.id_tenant || null,
+        is_verified: authUser.is_verified,
+        has_halaqah: authUser.has_halaqah,
+        id_halaqah: authUser.id_halaqah,
+        halaqah: authUser.halaqah,
+      }
+    : null;
+
   // ── Edit Profil State ────────────────────────────────────────────────────
   const [isEditingProfil, setIsEditingProfil] = useState(false);
-  const [isSubmittingProfil, setIsSubmittingProfil] = useState(false);
 
   // ── Ganti Password State ─────────────────────────────────────────────────
   const [isEditingPassword, setIsEditingPassword] = useState(false);
-  const [isSubmittingPassword, setIsSubmittingPassword] = useState(false);
 
   // ── Actions: Profil ──────────────────────────────────────────────────────
-
   const handleUpdateProfil = async (values: ProfilFormValues) => {
     if (!user?.id_user) return;
 
-    setIsSubmittingProfil(true);
     try {
-      await profilService.updateProfil(user.id_user, {
+      await updateProfileMutation.mutateAsync({
         name: values.name,
-        nomor_telepon: values.nomor_telepon || undefined,
+        nama_lengkap: values.nama_lengkap || values.name,
+        nomor_telepon: values.nomor_telepon || null,
+        bio: values.bio || null,
+        spesialisasi: values.spesialisasi || null,
+        no_ijazah: values.no_ijazah || null,
       });
-      toast.success("Profil berhasil diperbarui!");
-      await refreshUser(); // sinkronisasi ke auth context & navbar
       setIsEditingProfil(false);
-    } catch (error: unknown) {
-      const msg = error instanceof Error ? error.message : "Terjadi kesalahan";
-      toast.error(msg);
-    } finally {
-      setIsSubmittingProfil(false);
+    } catch {
+      // Error handled by mutation toast
     }
   };
 
@@ -46,8 +95,30 @@ export function useProfilMuhafiz() {
     setIsEditingProfil(false);
   };
 
-  // ── Actions: Password ────────────────────────────────────────────────────
+  // ── Actions: Avatar ──────────────────────────────────────────────────────
+  const handleUploadAvatar = async (file: File) => {
+    try {
+      await uploadAvatarMutation.mutateAsync(file);
+      await refetch();
+    } catch {
+      // Error handled by mutation toast
+    }
+  };
 
+  const handleRemoveAvatar = async () => {
+    try {
+      await updateProfileMutation.mutateAsync({
+        foto: null,
+        foto_url: null,
+      });
+      toast.success("Foto profil berhasil dihapus");
+      await refetch();
+    } catch {
+      // Error handled by mutation toast
+    }
+  };
+
+  // ── Actions: Password ────────────────────────────────────────────────────
   const handleGantiPassword = async (values: GantiPasswordFormValues) => {
     if (!user?.id_user) return;
 
@@ -56,19 +127,11 @@ export function useProfilMuhafiz() {
       return;
     }
 
-    setIsSubmittingPassword(true);
     try {
-      await profilService.gantiPassword(user.id_user, {
-        password_lama: values.password_lama,
-        password_baru: values.password_baru,
-      });
-      toast.success("Password berhasil diganti!");
+      await gantiPasswordMutation.mutateAsync(values);
       setIsEditingPassword(false);
-    } catch (error: unknown) {
-      const msg = error instanceof Error ? error.message : "Terjadi kesalahan";
-      toast.error(msg);
-    } finally {
-      setIsSubmittingPassword(false);
+    } catch {
+      // Error handled by mutation toast
     }
   };
 
@@ -78,17 +141,23 @@ export function useProfilMuhafiz() {
 
   return {
     user,
+    isLoadingProfile,
 
-    // Profil
+    // Profil state & actions
     isEditingProfil,
-    isSubmittingProfil,
+    isSubmittingProfil: updateProfileMutation.isPending,
     setIsEditingProfil,
     handleUpdateProfil,
     handleCancelEditProfil,
 
-    // Password
+    // Avatar actions
+    isUploadingAvatar: uploadAvatarMutation.isPending,
+    handleUploadAvatar,
+    handleRemoveAvatar,
+
+    // Password state & actions
     isEditingPassword,
-    isSubmittingPassword,
+    isSubmittingPassword: gantiPasswordMutation.isPending,
     setIsEditingPassword,
     handleGantiPassword,
     handleCancelEditPassword,

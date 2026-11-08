@@ -1,13 +1,23 @@
 import axiosClient from "@/lib/axiosClient";
 import { getErrorMessage } from "@/utils/error";
 import { type ApiResponse } from "@/features/halaqah/api/halaqahService";
-import { type Sekolah, type UpdateSekolahRequest, type SekolahWithCount, type SekolahListResponse } from "@/types/domain/sekolah";
+import {
+  type Sekolah,
+  type UpdateSekolahRequest,
+  type SekolahWithCount,
+  type SekolahListResponse,
+  type UserSekolahItem,
+  type AssignUserSekolahPayload,
+} from "@/types/domain/sekolah";
+import type { RubrikTemplate } from "@/features/rubrik/types";
 
 export interface KategoriSetoranResponse {
   id_kategori: number;
   nama_kategori: string;
   deskripsi: string | null;
   perlu_validasi_urutan?: boolean;
+  id_rubrik?: number | null;
+  rubrik?: RubrikTemplate | null;
 }
 
 export const sekolahService = {
@@ -189,6 +199,69 @@ export const sekolahService = {
       return res.data;
     } catch (error: unknown) {
       throw new Error(getErrorMessage(error, "Gagal mengambil data distribusi juz"));
+    }
+  },
+
+  // ── Penugasan Multi-Sekolah Pengguna ──
+  getUserSchools: async (userId: number): Promise<ApiResponse<UserSekolahItem[]>> => {
+    try {
+      const res = await axiosClient.get<ApiResponse<UserSekolahItem[]>>(`/users/${userId}/sekolah`);
+      return res.data;
+    } catch (error: unknown) {
+      throw new Error(getErrorMessage(error, "Gagal mengambil daftar sekolah pengguna"));
+    }
+  },
+
+  assignUserSchool: async (
+    userId: number,
+    data: AssignUserSekolahPayload
+  ): Promise<ApiResponse<UserSekolahItem>> => {
+    try {
+      const res = await axiosClient.post<ApiResponse<UserSekolahItem>>(`/users/${userId}/sekolah`, data);
+      return res.data;
+    } catch (error: unknown) {
+      throw new Error(getErrorMessage(error, "Gagal menugaskan pengguna ke sekolah"));
+    }
+  },
+
+  switchUserSchool: async (
+    userId: number,
+    id_sekolah: number
+  ): Promise<ApiResponse<UserSekolahItem & { token: string }>> => {
+    try {
+      const res = await axiosClient.put<ApiResponse<UserSekolahItem & { token: string }>>(
+        `/users/${userId}/sekolah/switch`,
+        { id_sekolah }
+      );
+      return res.data;
+    } catch (error: unknown) {
+      throw new Error(getErrorMessage(error, "Gagal beralih sekolah"));
+    }
+  },
+
+  setPrimarySchool: async (
+    userId: number,
+    id_sekolah: number
+  ): Promise<ApiResponse<UserSekolahItem & { token: string }>> => {
+    try {
+      const res = await axiosClient.put<ApiResponse<UserSekolahItem & { token: string }>>(
+        `/users/${userId}/sekolah/${id_sekolah}/primary`
+      );
+      return res.data;
+    } catch (error: unknown) {
+      throw new Error(getErrorMessage(error, "Gagal menjadikan sekolah utama"));
+    }
+  },
+
+  removeUserSchool: async (
+    userId: number,
+    id_sekolah: number
+  ): Promise<ApiResponse<null>> => {
+    try {
+      const res = await axiosClient.delete<ApiResponse<null>>(`/users/${userId}/sekolah/${id_sekolah}`);
+      return res.data;
+    } catch (error: unknown) {
+      throw new Error(getErrorMessage(error, "Gagal menghapus penugasan sekolah pengguna"));
     }
   }
 };

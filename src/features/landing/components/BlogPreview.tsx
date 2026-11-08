@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, Calendar, User, Clock } from "lucide-react";
-import axiosClient from "@/lib/axiosClient";
+import { blogService } from "@/features/blog/api";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
@@ -24,9 +24,9 @@ export const BlogPreview: React.FC = () => {
   useEffect(() => {
     const fetchLatestPosts = async () => {
       try {
-        const res = await axiosClient.get("/blog/posts?limit=3");
-        if (res.data && res.data.success && res.data.data.posts) {
-          setPosts(res.data.data.posts);
+        const res = await blogService.getPosts({ limit: 3 });
+        if (res && res.success && res.data?.posts) {
+          setPosts(res.data.posts);
         }
       } catch (error) {
         console.error("Gagal mengambil preview artikel blog:", error);

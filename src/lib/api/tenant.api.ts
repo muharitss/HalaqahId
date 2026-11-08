@@ -31,4 +31,15 @@ export const tenantApi = {
     }>(`/tenant/${id}/features`);
     return response.data;
   },
+
+  updateTerminology: async (
+    id: number,
+    data: { kode_entity: string; label_custom: string | null }
+  ) => {
+    const response = await axiosClient.put<{
+      success: boolean;
+      data: TenantTerminology;
+    }>(`/tenant/${id}/terminology`, data);
+    return response.data;
+  },
 };

@@ -4,8 +4,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus, faBuilding, faPen, faTrash, faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
-import { sekolahService } from "../api";
-import { type Sekolah } from "@/types/domain/sekolah";
+import { sekolahService } from "../api/services/sekolahService";
+import { type Sekolah, JENIS_LEMBAGA_OPTIONS } from "@/types/domain/sekolah";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -89,7 +89,11 @@ export default function KelolaSekolahPage() {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const res = await sekolahService.createSekolah(formData);
+      const payload = {
+        ...formData,
+        jenis_lembaga: formData.jenis_lembaga ? formData.jenis_lembaga : undefined,
+      };
+      const res = await sekolahService.createSekolah(payload as any);
       if (res.success) {
         toast.success("Sekolah & Admin berhasil dibuat!");
         setIsAddOpen(false);
@@ -129,7 +133,7 @@ export default function KelolaSekolahPage() {
     try {
       const res = await sekolahService.updateSekolah(selectedSekolah.id_sekolah, {
         nama_sekolah: editFormData.nama_sekolah,
-        jenis_lembaga: editFormData.jenis_lembaga as any,
+        jenis_lembaga: editFormData.jenis_lembaga ? (editFormData.jenis_lembaga as any) : undefined,
         alamat: editFormData.alamat,
       });
       if (res.success) {
@@ -311,10 +315,11 @@ export default function KelolaSekolahPage() {
                     <SelectValue placeholder="Pilih jenis lembaga" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="PESANTREN">Pesantren</SelectItem>
-                    <SelectItem value="MADRASAH">Madrasah</SelectItem>
-                    <SelectItem value="SEKOLAH_UMUM">Sekolah Umum</SelectItem>
-                    <SelectItem value="TPA">TPA</SelectItem>
+                    {JENIS_LEMBAGA_OPTIONS.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -363,8 +368,8 @@ export default function KelolaSekolahPage() {
                     id="admin_password"
                     type={showPassword ? "text" : "password"}
                     required
-                    minLength={6}
-                    placeholder="Minimal 6 karakter"
+                    minLength={8}
+                    placeholder="Minimal 8 karakter"
                     value={formData.admin_password}
                     onChange={(e) => setFormData({ ...formData, admin_password: e.target.value })}
                     className="pr-10"
@@ -428,10 +433,11 @@ export default function KelolaSekolahPage() {
                   <SelectValue placeholder="Pilih jenis lembaga" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="PESANTREN">Pesantren</SelectItem>
-                  <SelectItem value="MADRASAH">Madrasah</SelectItem>
-                  <SelectItem value="SEKOLAH_UMUM">Sekolah Umum</SelectItem>
-                  <SelectItem value="TPA">TPA</SelectItem>
+                  {JENIS_LEMBAGA_OPTIONS.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

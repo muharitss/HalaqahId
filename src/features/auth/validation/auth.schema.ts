@@ -19,5 +19,22 @@ export const registerAdminSchema = z
     path: ["confirmPassword"],
   });
 
+export const forgotPasswordSchema = z.object({
+  email: z.string().min(1, "Email wajib diisi").email("Format email tidak valid"),
+});
+
+export const resetPasswordPublicSchema = z
+  .object({
+    password_baru: z.string().min(8, "Password baru minimal 8 karakter"),
+    confirmPassword: z.string().min(1, "Konfirmasi password wajib diisi"),
+  })
+  .refine((data) => data.password_baru === data.confirmPassword, {
+    message: "Password tidak cocok",
+    path: ["confirmPassword"],
+  });
+
 export type LoginFormValues = z.infer<typeof loginSchema>;
 export type RegisterFormValues = z.infer<typeof registerAdminSchema>;
+export type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>;
+export type ResetPasswordPublicFormValues = z.infer<typeof resetPasswordPublicSchema>;
+

@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { useSekolahQueryList } from "../api";
+import { useSekolahQueryList } from "../api/queries/useSekolahQueryList";
 import type { SekolahWithCount, JenisLembaga } from "@/types/domain/sekolah";
 
 const PAGE_SIZE = 10;
@@ -32,20 +32,10 @@ export const useSekolahList = () => {
 
   // Chart data: distribusi jenis lembaga
   const jenisDistribusi = useMemo(() => {
-    const counts: Record<string, number> = {
-      PESANTREN: 0,
-      MADRASAH: 0,
-      SEKOLAH_UMUM: 0,
-      TPA: 0,
-      Lainnya: 0,
-    };
+    const counts: Record<string, number> = {};
     sekolahList.forEach((s) => {
-      const jenis = s.jenis_lembaga;
-      if (jenis && jenis in counts) {
-        counts[jenis]++;
-      } else {
-        counts["Lainnya"]++;
-      }
+      const jenis = s.jenis_lembaga || "Lainnya";
+      counts[jenis] = (counts[jenis] || 0) + 1;
     });
     return Object.entries(counts)
       .filter(([, v]) => v > 0)

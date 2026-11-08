@@ -1,9 +1,10 @@
 import React from "react";
 import { Navigate, Outlet } from "react-router-dom";
-import { useAuth } from "@/features/auth";
+import { useAuth } from "@/features/auth/hooks/useAuth";
 import { Role, isKepalaRole } from "@/types/domain/enums";
 import { Spinner } from "@/components/ui/spinner";
-import { NoHalaqahView } from "@/features/halaqah";
+import { NoHalaqahView } from "@/features/halaqah/pages/NoHalaqah";
+import { useFeature } from "@/lib/hooks/useFeature";
 
 /** Spinner terpusat untuk saat auth sedang di-resolve */
 export const LoadingScreen = () => (
@@ -16,7 +17,13 @@ export const LoadingScreen = () => (
  * Route guard: hanya bisa diakses oleh user yang SUDAH login.
  * Jika `allowedRoles` diberikan, juga cek apakah role user diizinkan.
  */
-export const ProtectedRoute = ({ allowedRoles }: { allowedRoles?: Role[] }) => {
+export const ProtectedRoute = ({
+  allowedRoles,
+  children,
+}: {
+  allowedRoles?: Role[];
+  children?: React.ReactNode;
+}) => {
   const { user, isLoading } = useAuth();
 
   if (isLoading) return <LoadingScreen />;
@@ -26,14 +33,14 @@ export const ProtectedRoute = ({ allowedRoles }: { allowedRoles?: Role[] }) => {
   if (allowedRoles && !allowedRoles.includes(user.role)) {
     if (user.role === Role.SUPERADMIN)
       return <Navigate to="/superadmin" replace />;
-    return isKepalaRole(user.role) ? (
-      <Navigate to="/kepala-muhafidz" replace />
-    ) : (
-      <Navigate to="/muhafidz" replace />
-    );
+    if (isKepalaRole(user.role))
+      return <Navigate to="/kepala-muhafidz" replace />;
+    if (user.role === Role.MUHAFIZ)
+      return <Navigate to="/muhafidz" replace />;
+    return <Navigate to="/login?reason=unauthorized" replace />;
   }
 
-  return <Outlet />;
+  return children ? <>{children}</> : <Outlet />;
 };
 
 /**
@@ -57,7 +64,9 @@ export const RoleRedirect = () => {
     return <Navigate to="/superadmin" replace />;
   if (user && isKepalaRole(user.role))
     return <Navigate to="/kepala-muhafidz" replace />;
-  return <Navigate to="/muhafidz" replace />;
+  if (user?.role === Role.MUHAFIZ)
+    return <Navigate to="/muhafidz" replace />;
+  return <Navigate to="/login?reason=invalid_role" replace />;
 };
 
 /**
@@ -72,4 +81,34 @@ export const MuhafizGuard = () => {
   }
 
   return <Outlet />;
+};
+
+/**
+ * Route guard: hanya bisa diakses jika tenant feature tertentu aktif.
+ * Jika tidak aktif, redirect ke dashboard pengguna yang bersangkutan.
+ */
+export const FeatureRouteGuard = ({
+  code,
+  redirectTo,
+  children,
+}: {
+  code: string;
+  redirectTo?: string;
+  children?: React.ReactNode;
+}) => {
+  const enabled = useFeature(code);
+  const { user } = useAuth();
+
+  if (!enabled) {
+    const fallbackPath =
+      redirectTo ||
+      (user?.role === Role.SUPERADMIN
+        ? "/superadmin"
+        : user && isKepalaRole(user.role)
+        ? "/kepala-muhafidz"
+        : "/muhafidz");
+    return <Navigate to={fallbackPath} replace />;
+  }
+
+  return children ? <>{children}</> : <Outlet />;
 };

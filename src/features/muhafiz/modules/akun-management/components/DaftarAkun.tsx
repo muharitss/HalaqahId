@@ -32,8 +32,9 @@ import { faWhatsapp } from "@fortawesome/free-brands-svg-icons";
 import type { MuhafizTableProps, AbsensiStatus } from "@/features/muhafiz/types";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { authService } from "@/features/auth";
+import { authService } from "@/features/auth/api/services/authService";
 import { getErrorMessage } from "@/utils/error";
+import { Term } from "@/components/ui/Term";
 
 const formatWhatsApp = (phone: string | null | undefined) => {
   if (!phone) return "#";
@@ -70,9 +71,9 @@ export function DaftarAkun({
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/50">
-              <TableHead className="w-20">Muhafiz</TableHead>
+              <TableHead className="w-20"><Term code="MUHAFIZ" /></TableHead>
               <TableHead>Nomor Telepon</TableHead>
-              <TableHead>Halaqah</TableHead>
+              <TableHead><Term code="HALAQAH" /></TableHead>
               <TableHead className="text-right">Aksi</TableHead>
             </TableRow>
           </TableHeader>
@@ -97,13 +98,13 @@ export function DaftarAkun({
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-muted">
           <FontAwesomeIcon icon={faUserTie} className="h-8 w-8 text-muted-foreground" />
         </div>
-        <h2 className="mt-4 text-xl font-bold tracking-tight">Belum ada muhafidz</h2>
+        <h2 className="mt-4 text-xl font-bold tracking-tight">Belum ada <Term code="MUHAFIZ" /></h2>
         <p className="mb-6 mt-2 text-sm md:text-base text-muted-foreground max-w-sm mx-auto">
-          Daftar pengampu halaqah akan muncul di sini setelah Anda menambahkannya melalui tombol di atas atau tombol di bawah ini.
+          Daftar pengampu <Term code="HALAQAH" /> akan muncul di sini setelah Anda menambahkannya melalui tombol di atas atau tombol di bawah ini.
         </p>
         <Button onClick={onCreateClick}>
           <FontAwesomeIcon icon={faPlus} className="mr-2 h-4 w-4" />
-          Tambah Muhafidz
+          Tambah <Term code="MUHAFIZ" />
         </Button>
       </div>
     );
@@ -114,9 +115,9 @@ export function DaftarAkun({
       <Table>
         <TableHeader>
           <TableRow className="bg-muted/30 hover:bg-muted/30">
-            <TableHead className="font-bold text-xs md:text-sm py-4 w-[35%] min-w-[150px]">Informasi Muhafidz</TableHead>
+            <TableHead className="font-bold text-xs md:text-sm py-4 w-[35%] min-w-[150px]">Informasi <Term code="MUHAFIZ" /></TableHead>
             <TableHead className="font-bold text-xs md:text-sm py-4 w-[25%] min-w-[140px]">Nomor Telepon</TableHead>
-            <TableHead className="text-right font-bold text-xs md:text-sm py-4 pr-10 w-[30%] min-w-[120px]">Halaqah</TableHead>
+            <TableHead className="text-right font-bold text-xs md:text-sm py-4 pr-10 w-[30%] min-w-[120px]"><Term code="HALAQAH" /></TableHead>
             <TableHead className="text-right font-bold text-xs md:text-sm py-4 pr-4 w-[10%] min-w-[80px]">Aksi</TableHead>
           </TableRow>
         </TableHeader>
@@ -162,7 +163,7 @@ export function DaftarAkun({
                     {muhafiz.halaqah ? (
                       <div className="text-primary text-xs md:text-sm font-bold flex items-center gap-1.5">
                         <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-                        {muhafiz.halaqah.name_halaqah}
+                        {muhafiz.halaqah.name_halaqah || (muhafiz.halaqah as any).nama_halaqah}
                       </div>
                     ) : (
                       <div className="text-destructive text-xs md:text-sm font-semibold flex items-center gap-1.5">

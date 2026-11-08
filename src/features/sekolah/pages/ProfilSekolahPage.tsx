@@ -15,11 +15,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Term } from "@/components/ui/Term";
+import { useTerminology } from "@/hooks/useTerminology";
 
 export default function ProfilSekolahPage() {
   const { sekolah, loading, saving, updateProfile } = useProfilSekolah();
   const [isEditOpen, setIsEditOpen] = useState(false);
   const navigate = useNavigate();
+  const labelSekolah = useTerminology("SEKOLAH");
 
   if (loading) {
     return (
@@ -34,7 +37,7 @@ export default function ProfilSekolahPage() {
       <Alert variant="destructive">
         <AlertCircle className="h-4 w-4" />
         <AlertTitle>Error</AlertTitle>
-        <AlertDescription>Gagal memuat profil sekolah.</AlertDescription>
+        <AlertDescription>Gagal memuat profil {labelSekolah.toLowerCase()}.</AlertDescription>
       </Alert>
     );
   }
@@ -50,9 +53,9 @@ export default function ProfilSekolahPage() {
         </button>
         <div className="flex flex-1 flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Profil Sekolah</h1>
+            <h1 className="text-2xl font-bold tracking-tight">Profil <Term code="SEKOLAH" /></h1>
             <p className="text-muted-foreground">
-              Kelola informasi dan profil sekolah Anda.
+              Kelola informasi dan profil {labelSekolah.toLowerCase()} Anda.
             </p>
           </div>
 
@@ -65,9 +68,9 @@ export default function ProfilSekolahPage() {
             </DialogTrigger>
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
-              <DialogTitle>Edit Profil Sekolah</DialogTitle>
+              <DialogTitle>Edit Profil <Term code="SEKOLAH" /></DialogTitle>
               <DialogDescription>
-                Ubah informasi nama dan alamat sekolah Anda di sini.
+                Ubah informasi nama dan alamat {labelSekolah.toLowerCase()} Anda di sini.
               </DialogDescription>
             </DialogHeader>
             <div className="py-4 max-h-[70vh] overflow-y-auto pr-2">

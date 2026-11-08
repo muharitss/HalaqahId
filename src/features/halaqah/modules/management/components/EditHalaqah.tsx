@@ -16,7 +16,7 @@ export function EditHalaqah({ halaqah, isOpen, onClose, onSuccess }: EditHalaqah
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl">
             <FontAwesomeIcon icon={faEdit} className="text-primary" />
@@ -34,6 +34,8 @@ export function EditHalaqah({ halaqah, isOpen, onClose, onSuccess }: EditHalaqah
               name_halaqah: halaqah.name_halaqah,
               id_muhafiz: halaqah.id_muhafiz,
               sesi_halaqahs: halaqah.sesi_halaqahs,
+              muhafiz: halaqah.muhafiz,
+              muhafiz_list: halaqah.muhafiz_list,
             }}
             onSuccess={() => {
               onSuccess();

@@ -56,7 +56,8 @@ export function RiwayatSetoran({ data }: RiwayatSetoranProps) {
             <TableBody>
               {data.length > 0 ? (
                 data.map((s, idx) => {
-                  const kategoriKey = s.kategori?.toUpperCase() || "";
+                  const kategoriNama = typeof s.kategori === "string" ? s.kategori : (s.kategori as any)?.nama_kategori || "";
+                  const kategoriKey = kategoriNama.toUpperCase();
                   const kategoriConfig = KATEGORI_CONFIG[kategoriKey];
 
                   return (
@@ -93,7 +94,7 @@ export function RiwayatSetoran({ data }: RiwayatSetoranProps) {
                             kategoriConfig?.className || "bg-muted text-muted-foreground border-border"
                           )}
                         >
-                          {s.kategori}
+                          {kategoriNama || "-"}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-[11px] text-muted-foreground max-w-[200px] truncate py-3">

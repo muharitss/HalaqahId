@@ -1,4 +1,4 @@
-﻿export const Role = {
+export const Role = {
   SUPERADMIN: 'SUPERADMIN',
   ADMIN: 'ADMIN',
   KOORDINATOR_TAHFIZ: 'KOORDINATOR_TAHFIZ',
@@ -43,6 +43,15 @@ export const Permission = {
   SESI_HALAQAH_DELETE: 'sesi-halaqah:delete',
   // User Management
   MUHAFIZ_MANAGE: 'muhafiz:manage',
+  // Izin Santri
+  IZIN_APPLY: 'izin:apply',
+  IZIN_VIEW: 'izin:view',
+  IZIN_APPROVE: 'izin:approve',
+  // Fitur Ujian & Evaluasi
+  UJIAN_MANAGE: 'ujian:manage',
+  UJIAN_CREATE: 'ujian:create',
+  UJIAN_VIEW_ALL: 'ujian:view-all',
+  UJIAN_VIEW_OWN: 'ujian:view-own',
 } as const;
 export type Permission = (typeof Permission)[keyof typeof Permission];
 
@@ -60,6 +69,8 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     Permission.SETORAN_CREATE_ALL, Permission.SETORAN_VIEW_ALL,
     Permission.SESI_HALAQAH_CREATE, Permission.SESI_HALAQAH_VIEW, Permission.SESI_HALAQAH_EDIT, Permission.SESI_HALAQAH_DELETE,
     Permission.MUHAFIZ_MANAGE,
+    Permission.IZIN_APPLY, Permission.IZIN_VIEW, Permission.IZIN_APPROVE,
+    Permission.UJIAN_MANAGE, Permission.UJIAN_CREATE, Permission.UJIAN_VIEW_ALL, Permission.UJIAN_VIEW_OWN,
   ],
   [Role.KOORDINATOR_TAHFIZ]: [
     Permission.HALAQAH_CREATE, Permission.HALAQAH_VIEW_ALL, Permission.HALAQAH_EDIT_ALL, Permission.HALAQAH_DELETE_ALL,
@@ -68,7 +79,8 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     Permission.ABSENSI_MUHAFIZ_MANAGE,
     Permission.SETORAN_CREATE_ALL, Permission.SETORAN_VIEW_ALL,
     Permission.SESI_HALAQAH_CREATE, Permission.SESI_HALAQAH_VIEW, Permission.SESI_HALAQAH_EDIT, Permission.SESI_HALAQAH_DELETE,
-    Permission.MUHAFIZ_MANAGE,
+    Permission.IZIN_APPLY, Permission.IZIN_VIEW, Permission.IZIN_APPROVE,
+    Permission.UJIAN_MANAGE, Permission.UJIAN_CREATE, Permission.UJIAN_VIEW_ALL, Permission.UJIAN_VIEW_OWN,
   ],
   [Role.MUHAFIZ]: [
     Permission.HALAQAH_VIEW_OWN,
@@ -76,12 +88,14 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     Permission.ABSENSI_SANTRI_CREATE_OWN, Permission.ABSENSI_SANTRI_VIEW_OWN, Permission.ABSENSI_SANTRI_EDIT_OWN,
     Permission.SETORAN_CREATE_OWN, Permission.SETORAN_VIEW_OWN,
     Permission.SESI_HALAQAH_VIEW,
+    Permission.IZIN_APPLY, Permission.IZIN_VIEW,
+    Permission.UJIAN_VIEW_OWN, Permission.UJIAN_CREATE,
   ],
 };
 
 /** Cek apakah sebuah Role memiliki Permission tertentu */
 export function hasPermission(role: Role, permission: Permission): boolean {
-  return ROLE_PERMISSIONS[role].includes(permission);
+  return ROLE_PERMISSIONS[role]?.includes(permission) ?? false;
 }
 
 /** Cek apakah Role termasuk "kepala" (bukan MUHAFIZ) â€” untuk navigasi dashboard */
@@ -95,6 +109,13 @@ export const JenisHalaqah = {
   INTENSIF: 'INTENSIF',
 } as const;
 export type JenisHalaqah = (typeof JenisHalaqah)[keyof typeof JenisHalaqah];
+
+export const PeranMuhafiz = {
+  UTAMA: 'UTAMA',
+  PENDAMPING: 'PENDAMPING',
+  PENGGANTI: 'PENGGANTI',
+} as const;
+export type PeranMuhafiz = (typeof PeranMuhafiz)[keyof typeof PeranMuhafiz];
 
 export const KategoriTarget = {
   RINGAN: 'RINGAN',
@@ -121,3 +142,46 @@ export const KategoriSetoran = {
   HAFALAN: 'HAFALAN',
 } as const;
 export type KategoriSetoran = (typeof KategoriSetoran)[keyof typeof KategoriSetoran];
+
+export const HubunganWali = {
+  AYAH: 'AYAH',
+  IBU: 'IBU',
+  KAKEK: 'KAKEK',
+  NENEK: 'NENEK',
+  PAMAN: 'PAMAN',
+  WALI: 'WALI',
+  LAINNYA: 'LAINNYA',
+} as const;
+export type HubunganWali = (typeof HubunganWali)[keyof typeof HubunganWali];
+
+export const HUBUNGAN_WALI_LABELS: Record<HubunganWali, string> = {
+  [HubunganWali.AYAH]: 'Ayah',
+  [HubunganWali.IBU]: 'Ibu',
+  [HubunganWali.KAKEK]: 'Kakek',
+  [HubunganWali.NENEK]: 'Nenek',
+  [HubunganWali.PAMAN]: 'Paman',
+  [HubunganWali.WALI]: 'Wali',
+  [HubunganWali.LAINNYA]: 'Lainnya',
+};
+
+export const StatusSantri = {
+  AKTIF: 'AKTIF',
+  LULUS: 'LULUS',
+  KELUAR: 'KELUAR',
+  CUTI: 'CUTI',
+} as const;
+export type StatusSantri = (typeof StatusSantri)[keyof typeof StatusSantri];
+
+export const STATUS_SANTRI_LABELS: Record<StatusSantri, string> = {
+  [StatusSantri.AKTIF]: 'Aktif',
+  [StatusSantri.LULUS]: 'Lulus',
+  [StatusSantri.KELUAR]: 'Keluar',
+  [StatusSantri.CUTI]: 'Cuti',
+};
+
+export {
+  JenisIzin,
+  JENIS_IZIN_LABELS,
+  StatusIzin,
+  STATUS_IZIN_LABELS,
+} from './izin';

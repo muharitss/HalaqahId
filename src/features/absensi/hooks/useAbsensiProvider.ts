@@ -134,13 +134,17 @@ export function useAbsensiProvider() {
     const draftEntries = Object.entries(attendanceMap);
     if (draftEntries.length === 0) return;
 
-    const payloads = draftEntries.map(([id, status]) => ({
-      id_santri: Number(id),
-      id_sesi: urlState.selectedSesi!,
-      status,
-      tanggal: format(urlState.selectedDate, "yyyy-MM-dd"),
-      keterangan: "-",
-    }));
+    const payloads = draftEntries.map(([id, status]) => {
+      const santriId = Number(id);
+      const existingRec = sesiAbsensiRecords.find((r) => r.id_santri === santriId);
+      return {
+        id_santri: santriId,
+        id_sesi: urlState.selectedSesi!,
+        status,
+        tanggal: format(urlState.selectedDate, "yyyy-MM-dd"),
+        ...(existingRec?.keterangan ? { keterangan: existingRec.keterangan } : {}),
+      };
+    });
 
     // Client-side Zod validation
     const validation = bulkCreateAbsensiSantriSchema.safeParse(payloads);

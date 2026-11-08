@@ -19,7 +19,7 @@ import {
   UserCheck,
   Hash,
 } from "lucide-react";
-import type { SekolahWithCount } from "@/types/domain/sekolah";
+import { type SekolahWithCount, JENIS_LEMBAGA_LABEL } from "@/types/domain/sekolah";
 
 interface SekolahDetailSheetProps {
   sekolah: SekolahWithCount | null;
@@ -27,12 +27,7 @@ interface SekolahDetailSheetProps {
   onOpenChange: (open: boolean) => void;
 }
 
-const JENIS_LABEL: Record<string, string> = {
-  PESANTREN: "Pesantren",
-  MADRASAH: "Madrasah",
-  SEKOLAH_UMUM: "Sekolah Umum",
-  TPA: "TPA",
-};
+
 
 type LucideIcon = React.ComponentType<React.SVGProps<SVGSVGElement>>;
 
@@ -96,7 +91,7 @@ export function SekolahDetailSheet({
               )}
               {sekolah.jenis_lembaga && (
                 <Badge variant="secondary" className="mt-1 text-xs font-normal">
-                  {JENIS_LABEL[sekolah.jenis_lembaga] ?? sekolah.jenis_lembaga}
+                  {JENIS_LEMBAGA_LABEL[sekolah.jenis_lembaga] ?? sekolah.jenis_lembaga}
                 </Badge>
               )}
             </div>

@@ -108,7 +108,7 @@
 **Objektif**: App bisa resolve tenant dan menyimpan konteks tenant.
 
 **Tasks**:
-- [ ] Buat type `src/types/domain/tenant.ts`:
+- [x] Buat type `src/types/domain/tenant.ts`:
   ```ts
   export interface Tenant {
     id_tenant: number;
@@ -139,14 +139,14 @@
     config: Record<string, unknown> | null;
   }
   ```
-- [ ] Buat `src/store/tenant-context.tsx`:
+- [x] Buat `src/store/tenant-context.tsx`:
   ```tsx
   // TenantProvider: resolve tenant dari slug, simpan di context
   // useTenant(): { tenant, brand, terminology, features, isLoading }
   // useTerminology(code): return label_custom || label_default
   // useFeature(code): return boolean
   ```
-- [ ] Buat `src/lib/api/tenant.api.ts`:
+- [x] Buat `src/lib/api/tenant.api.ts`:
   ```ts
   export const tenantApi = {
     resolve: (slug: string) => axios.get(`/api/tenant/${slug}`),
@@ -155,8 +155,8 @@
     getFeatures: (id: number) => axios.get(`/api/tenant/${id}/features`),
   };
   ```
-- [ ] Update `src/config/` (jika ada) untuk include tenant slug config
-- [ ] Backward compat: jika TENANT_MODE=single, gunakan default tenant
+- [x] Update `src/config/` (jika ada) untuk include tenant slug config
+- [x] Backward compat: jika TENANT_MODE=single, gunakan default tenant
 
 **Files to create/modify**:
 - `src/types/domain/tenant.ts` [NEW]
@@ -170,7 +170,7 @@
 **Objektif**: UI menggunakan branding tenant (logo, warna, nama).
 
 **Tasks**:
-- [ ] Buat `src/lib/hooks/useTenantTheme.ts`:
+- [x] Buat `src/lib/hooks/useTenantTheme.ts`:
   - Terapkan warna primer/sekunder dari TenantBrand ke CSS variables
   ```ts
   useEffect(() => {
@@ -182,21 +182,21 @@
     }
   }, [brand]);
   ```
-- [ ] Update `src/index.css`: tambah CSS variables untuk tenant theming
+- [x] Update `src/index.css`: tambah CSS variables untuk tenant theming
   ```css
   :root {
-    --color-primary: #4F46E5;     /* default, overridden by tenant */
-    --color-secondary: #7C3AED;   /* default, overridden by tenant */
+    --color-primary: oklch(0.648 0.2 131.684);    /* default, overridden by tenant */
+    --color-secondary: oklch(0.967 0.001 286.375);  /* default, overridden by tenant */
   }
   ```
-- [ ] Update `DashboardLayout`:
+- [x] Update `DashboardLayout`:
   - Logo dari `brand.logo_url` (fallback ke logo default)
   - Nama aplikasi dari `brand.nama_aplikasi` (fallback ke "Halaqah.id")
   - Copyright dari `brand.copyright_text`
-- [ ] Update login page:
+- [x] Update login page:
   - Background dari `brand.login_background_url`
   - Logo dari `brand.logo_url`
-- [ ] Update favicon dinamis dari `brand.favicon_url`
+- [x] Update favicon dinamis dari `brand.favicon_url`
 
 **Files to create/modify**:
 - `src/lib/hooks/useTenantTheme.ts` [NEW]
@@ -210,38 +210,42 @@
 **Objektif**: Label entity bisa dikustomisasi per-tenant.
 
 **Tasks**:
-- [ ] Buat `src/lib/hooks/useTerminology.ts`:
+- [x] Buat `src/lib/hooks/useTerminology.ts` & `src/hooks/useTerminology.ts`:
   ```ts
-  export function useTerminology(kode: string): string {
+  export function useTerminology(kode: string, fallback?: string): string {
     const { terminology } = useTenant();
     const term = terminology.find(t => t.kode_entity === kode);
-    return term?.label_custom || term?.label_default || kode;
+    return term?.label_custom || term?.label_default || fallback || kode;
   }
   
   // Contoh: useTerminology('SANTRI') → "Santri" atau "Murid" atau "Siswa"
   // useTerminology('HALAQAH') → "Halaqah" atau "Kelas" atau "Kelompok"
   // useTerminology('MUHAFIZ') → "Muhafiz" atau "Ustadz" atau "Guru"
   ```
-- [ ] Buat komponen `src/components/ui/Term.tsx`:
+- [x] Buat komponen `src/components/ui/Term.tsx`:
   ```tsx
   export function Term({ code }: { code: string }) {
     const label = useTerminology(code);
     return <>{label}</>;
   }
   ```
-- [ ] Update seluruh halaman yang punya label hardcoded:
+- [x] Update seluruh halaman yang punya label hardcoded:
   - "Santri" → `<Term code="SANTRI" />`
   - "Halaqah" → `<Term code="HALAQAH" />`
   - "Muhafiz" → `<Term code="MUHAFIZ" />`
   - "Sekolah" → `<Term code="SEKOLAH" />`
-- [ ] **Catatan**: Tidak perlu sekaligus semua, mulai dari:
+- [x] **Catatan**: Tidak perlu sekaligus semua, mulai dari:
   - Sidebar/navigation labels
   - Page titles
   - Form labels utama
+  - Pengaturan Terminologi Lembaga (UI & API)
 
 **Files to create/modify**:
 - `src/lib/hooks/useTerminology.ts` [NEW]
+- `src/hooks/useTerminology.ts` [NEW]
 - `src/components/ui/Term.tsx` [NEW]
+- `src/features/settings/modules/terminology/` [NEW]
+- `src/features/settings/pages/TerminologySettingsPage.tsx` [NEW]
 - Multiple pages [MODIFY — gradual]
 
 ---
@@ -250,11 +254,11 @@
 **Objektif**: Login/Register mendukung tenant context.
 
 **Tasks**:
-- [ ] Update `src/features/auth/`:
+- [x] Update `src/features/auth/`:
   - Login form: kirim `X-Tenant-Slug` header
   - Register form: kirim `id_tenant` atau slug
   - Token storage: simpan `id_tenant` dari JWT
-- [ ] Update `src/lib/api/` (axios instance):
+- [x] Update `src/lib/api/` (axios instance):
   - Interceptor: otomatis tambahkan `X-Tenant-Slug` header dari tenant context
   ```ts
   axios.interceptors.request.use((config) => {
@@ -265,10 +269,10 @@
     return config;
   });
   ```
-- [ ] Update `useAuth` hook:
+- [x] Update `useAuth` hook:
   - Tambah `id_tenant` ke user state
   - Handle tenant mismatch (user login ke tenant yang salah)
-- [ ] Update type `src/types/domain/enums.ts`:
+- [x] Update type `src/types/domain/enums.ts`:
   - Ensure Role type masih compatible
 
 **Files to modify**:
@@ -283,7 +287,7 @@
 **Objektif**: UI component render berdasarkan tenant features.
 
 **Tasks**:
-- [ ] Buat `src/lib/hooks/useFeature.ts`:
+- [x] Buat `src/lib/hooks/useFeature.ts`:
   ```ts
   export function useFeature(code: string): boolean {
     const { features } = useTenant();
@@ -295,7 +299,7 @@
     return features.find(f => f.feature_code === code)?.config as T ?? null;
   }
   ```
-- [ ] Buat komponen `src/components/ui/FeatureGate.tsx`:
+- [x] Buat komponen `src/components/ui/FeatureGate.tsx`:
   ```tsx
   export function FeatureGate({ code, children, fallback }: {
     code: string;
@@ -306,13 +310,13 @@
     return enabled ? <>{children}</> : (fallback ?? null);
   }
   ```
-- [ ] Update sidebar/navigation: hide menu items untuk fitur yang disabled
+- [x] Update sidebar/navigation: hide menu items untuk fitur yang disabled
   ```tsx
   <FeatureGate code="UJIAN">
     <SidebarItem label="Ujian" />
   </FeatureGate>
   ```
-- [ ] Feature codes yang di-gate:
+- [x] Feature codes yang di-gate:
   - `UJIAN` — menu ujian
   - `RUBRIK` — rubrik scoring
   - `TARGET` — target hafalan
@@ -332,8 +336,8 @@
 **Objektif**: UI elements render berdasarkan permissions dari DB.
 
 **Tasks**:
-- [ ] Update `useAuth` hook: tambah `permissions: string[]` dan `roles: string[]`
-- [ ] Buat `src/lib/hooks/usePermission.ts`:
+- [x] Update `useAuth` hook: tambah `permissions: string[]` dan `roles: string[]`
+- [x] Buat `src/lib/hooks/usePermission.ts`:
   ```ts
   export function usePermission(code: string): boolean {
     const { user } = useAuth();
@@ -345,7 +349,7 @@
     return codes.some(code => user?.permissions.includes(code));
   }
   ```
-- [ ] Buat komponen `src/components/ui/PermissionGate.tsx`:
+- [x] Buat komponen `src/components/ui/PermissionGate.tsx`:
   ```tsx
   export function PermissionGate({ permission, children }: {
     permission: string | string[];
@@ -357,7 +361,7 @@
     return has ? <>{children}</> : null;
   }
   ```
-- [ ] Update UI elements yang perlu permission check:
+- [x] Update UI elements yang perlu permission check:
   - Button "Tambah Santri" → `<PermissionGate permission="santri.create">`
   - Button "Edit Halaqah" → `<PermissionGate permission="halaqah.update">`
   - Menu "Kelola User" → `<PermissionGate permission="user.manage">`
@@ -373,7 +377,7 @@
 **Objektif**: UI untuk manage roles & permissions per-tenant.
 
 **Tasks**:
-- [ ] Buat `src/features/role/`:
+- [x] Buat `src/features/role/`:
   - `pages/KelolaRolePage.tsx`
     - List roles (system vs custom)
     - Create custom role (dialog)
@@ -389,12 +393,12 @@
     - Get/Update permissions
   - `hooks/useRoles.ts`
     - React Query hooks for role data
-- [ ] Tambah route di `src/routes/index.tsx`:
+- [x] Tambah route di `src/routes/index.tsx`:
   ```tsx
   { path: "/superadmin/roles", element: <KelolaRolePage /> }
   { path: "/kepala-muhafidz/settings/roles", element: <KelolaRolePage /> }
   ```
-- [ ] Tambah menu item di sidebar
+- [x] Tambah menu item di sidebar
 
 **Files to create**:
 - `src/features/role/` [NEW directory]
@@ -411,14 +415,14 @@
 **Objektif**: Assign roles ke users melalui UI.
 
 **Tasks**:
-- [ ] Update `src/features/auth/pages/KelolaUserPage.tsx`:
+- [x] Update `src/features/auth/pages/KelolaUserPage.tsx`:
   - Tambah kolom "Roles" di tabel user
   - Dialog/sheet: assign role ke user (multi-select)
   - Badge untuk setiap role yang dimiliki user
-- [ ] Update user detail/edit form:
+- [x] Update user detail/edit form:
   - Multi-select roles (dari daftar role tenant)
   - Primary role indicator
-- [ ] Buat `src/features/auth/components/UserRoleManager.tsx`:
+- [x] Buat `src/features/auth/components/UserRoleManager.tsx`:
   - List current roles
   - Add role (select dropdown)
   - Remove role (with confirmation)
@@ -433,18 +437,18 @@
 **Objektif**: Halaman profil user yang lebih lengkap.
 
 **Tasks**:
-- [ ] Buat `src/features/profil/pages/UserProfilePage.tsx`:
+- [x] Buat `src/features/profil/pages/UserProfilePage.tsx`:
   - Tampilkan data dari UserProfile (nama_lengkap, foto, bio, dll)
   - Form edit profil
   - Upload foto profil
   - Untuk muhafiz: field spesialisasi, no_ijazah
-- [ ] Buat `src/features/profil/api/profile.api.ts`:
+- [x] Buat `src/features/profil/api/profile.api.ts`:
   - GET/PUT profile
   - Upload foto
-- [ ] Update `src/features/profil/pages/ProfilMuhafizPage.tsx`:
+- [x] Update `src/features/profil/pages/ProfilMuhafizPage.tsx`:
   - Integrasi dengan UserProfile API baru
   - Backward compat: jika UserProfile belum ada, tampilkan dari User.name
-- [ ] Buat komponen `src/features/profil/components/AvatarUpload.tsx`:
+- [x] Buat komponen `src/features/profil/components/AvatarUpload.tsx`:
   - Preview foto
   - Upload dengan crop/resize
 
@@ -459,15 +463,15 @@
 **Objektif**: UI untuk forgot password & refresh token handling.
 
 **Tasks**:
-- [ ] Buat `src/features/auth/pages/ForgotPasswordPage.tsx`:
+- [x] Buat `src/features/auth/pages/ForgotPasswordPage.tsx`:
   - Form: email
   - Kirim request ke `/api/halaqah/auth/forgot-password`
   - Success message: "Cek email Anda"
-- [ ] Buat `src/features/auth/pages/ResetPasswordPage.tsx`:
+- [x] Buat `src/features/auth/pages/ResetPasswordPage.tsx`:
   - Form: password baru, konfirmasi password
   - Token dari URL query parameter
   - Submit ke `/api/halaqah/auth/reset-password`
-- [ ] Update axios interceptor untuk handle refresh token:
+- [x] Update axios interceptor untuk handle refresh token:
   ```ts
   // Jika response 401 (token expired):
   // 1. Call /api/halaqah/auth/refresh
@@ -475,12 +479,12 @@
   // 3. Retry original request
   // 4. Jika refresh juga gagal → redirect ke login
   ```
-- [ ] Tambah route:
+- [x] Tambah route:
   ```tsx
   { path: "/forgot-password", element: <ForgotPasswordPage /> }
   { path: "/reset-password", element: <ResetPasswordPage /> }
   ```
-- [ ] Update LoginPage: tambah link "Lupa Password?"
+- [x] Update LoginPage: tambah link "Lupa Password?"
 
 **Files to create/modify**:
 - `src/features/auth/pages/ForgotPasswordPage.tsx` [NEW]
@@ -497,21 +501,21 @@
 **Objektif**: UI untuk manage multiple muhafiz per halaqah.
 
 **Tasks**:
-- [ ] Update `src/features/halaqah/pages/KelolaHalaqahPage.tsx`:
+- [x] Update `src/features/halaqah/pages/KelolaHalaqahPage.tsx`:
   - Ubah dari select 1 muhafiz → multi-select dengan peran
   - Tampilkan list muhafiz di detail halaqah
-- [ ] Buat `src/features/halaqah/components/HalaqahMuhafizManager.tsx`:
+- [x] Buat `src/features/halaqah/components/HalaqahMuhafizManager.tsx`:
   - List muhafiz yang aktif (dengan peran: UTAMA, PENDAMPING, PENGGANTI)
   - Add muhafiz (dialog: pilih user + peran)
   - Change peran muhafiz
   - Remove muhafiz (dengan konfirmasi)
   - Badge: "Utama", "Pendamping", "Pengganti"
-- [ ] Update halaqah form:
+- [x] Update halaqah form:
   - Remove single muhafiz select
   - Tambah section "Muhafiz" dengan HalaqahMuhafizManager
-- [ ] Update API calls:
+- [x] Update API calls:
   - `src/features/halaqah/api/halaqah.api.ts` — tambah endpoint muhafiz management
-- [ ] Backward compat: jika API lama masih return `id_muhafiz`, tampilkan sebagai muhafiz utama
+- [x] Backward compat: jika API lama masih return `id_muhafiz`, tampilkan sebagai muhafiz utama
 
 **Files to create/modify**:
 - `src/features/halaqah/components/HalaqahMuhafizManager.tsx` [NEW]
@@ -524,16 +528,16 @@
 **Objektif**: UI untuk manage data wali santri.
 
 **Tasks**:
-- [ ] Buat `src/features/santri/components/SantriWaliSection.tsx`:
+- [x] Buat `src/features/santri/components/SantriWaliSection.tsx`:
   - List wali santri (nama, hubungan, no telp, email, primary contact badge)
   - Add wali (inline form / dialog)
   - Edit wali
   - Delete wali (dengan konfirmasi)
   - Set primary contact
-- [ ] Update santri detail page: tambah tab/section "Data Wali"
-- [ ] Buat `src/features/santri/api/santri-wali.api.ts`:
+- [x] Update santri detail page: tambah tab/section "Data Wali"
+- [x] Buat `src/features/santri/api/santri-wali.api.ts`:
   - CRUD wali santri
-- [ ] Buat type `src/types/domain/santri-wali.ts`:
+- [x] Buat type `src/types/domain/santri-wali.ts`:
   ```ts
   export interface SantriWali {
     id_wali: number;
@@ -558,12 +562,12 @@
 **Objektif**: Tambah field NIS dan status ke form/tabel santri.
 
 **Tasks**:
-- [ ] Update santri form `src/features/santri/`:
+- [x] Update santri form `src/features/santri/`:
   - Tambah field `nomor_induk_santri` (auto-generated atau manual input)
   - Tambah field `status` (AKTIF, LULUS, KELUAR, CUTI) — dropdown
   - Tampilkan NIS di tabel list santri
   - Filter by status
-- [ ] Update type `src/types/domain/santri.ts` (atau yang sesuai):
+- [x] Update type `src/types/domain/santri.ts` (atau yang sesuai):
   ```ts
   export interface Santri {
     // ...existing fields...
@@ -571,7 +575,7 @@
     status: 'AKTIF' | 'LULUS' | 'KELUAR' | 'CUTI';
   }
   ```
-- [ ] Update tabel santri:
+- [x] Update tabel santri:
   - Kolom NIS
   - Status badge (warna berbeda per status)
   - Filter dropdown status
@@ -587,15 +591,15 @@
 **Objektif**: Tampilan riwayat perpindahan halaqah santri.
 
 **Tasks**:
-- [ ] Buat `src/features/santri/components/RiwayatHalaqahSection.tsx`:
+- [x] Buat `src/features/santri/components/RiwayatHalaqahSection.tsx`:
   - Timeline view: tanggal, halaqah lama → halaqah baru, alasan, dipindahkan oleh
   - Chronological order (terbaru di atas)
-- [ ] Update santri detail: tambah tab "Riwayat Halaqah"
-- [ ] Buat aksi "Pindah Halaqah" di detail santri:
+- [x] Update santri detail: tambah tab "Riwayat Halaqah"
+- [x] Buat aksi "Pindah Halaqah" di detail santri:
   - Dialog: pilih halaqah tujuan, alasan
   - Konfirmasi
   - Auto-update halaqah santri + buat record riwayat
-- [ ] API calls:
+- [x] API calls:
   - `GET /api/santri/:id/riwayat-halaqah`
   - `POST /api/santri/:id/pindah-halaqah`
 
@@ -607,12 +611,12 @@
 
 ### Hari 15 — Review & Fix Minggu 1-3
 **Tasks**:
-- [ ] Review semua komponen baru
-- [ ] Fix responsive design
-- [ ] Fix accessibility (keyboard nav, screen reader)
-- [ ] Testing semua form validations
-- [ ] Cross-browser testing
-- [ ] Build verification: `npm run build` harus sukses tanpa error
+- [x] Review semua komponen baru
+- [x] Fix responsive design
+- [x] Fix accessibility (keyboard nav, screen reader)
+- [x] Testing semua form validations
+- [x] Cross-browser testing
+- [x] Build verification: `npm run build` harus sukses tanpa error
 
 ---
 
@@ -622,7 +626,7 @@
 **Objektif**: UI untuk manage rubrik penilaian.
 
 **Tasks**:
-- [ ] Buat `src/features/rubrik/`:
+- [x] Buat `src/features/rubrik/`:
   - `pages/KelolaRubrikPage.tsx`:
     - List rubrik template (tabel: nama, tipe, jumlah kriteria, is_default)
     - Create rubrik (dialog/page)
@@ -638,11 +642,11 @@
   - `api/rubrik.api.ts`
   - `hooks/useRubrik.ts`
   - `index.ts`
-- [ ] Tambah route:
+- [x] Tambah route:
   ```tsx
   { path: "/kepala-muhafidz/settings/rubrik", element: <KelolaRubrikPage /> }
   ```
-- [ ] Tambah menu di settings sidebar
+- [x] Tambah menu di settings sidebar
 
 **Files to create**:
 - `src/features/rubrik/` [NEW directory — semua file]
@@ -653,12 +657,12 @@
 **Objektif**: Form setoran mendukung penilaian rubrik.
 
 **Tasks**:
-- [ ] Update form setoran:
+- [x] Update form setoran:
   - Jika kategori setoran punya rubrik → tampilkan scoring form
   - Per kriteria: nama, slider/input nilai (dalam range skala_min - skala_max)
   - Auto-hitung nilai akhir (weighted average)
   - Tampilkan preview: "Tajwid: 3/4 (30%), Kelancaran: 3.5/4 (40%), ..."
-- [ ] Buat komponen `src/features/setoran/components/RubrikScoring.tsx`:
+- [x] Buat komponen `src/features/setoran/components/RubrikScoring.tsx`:
   ```tsx
   interface Props {
     rubrikId: number;
@@ -667,10 +671,10 @@
     onChange: (values: Record<number, number>) => void;
   }
   ```
-- [ ] Update list/detail setoran:
+- [x] Update list/detail setoran:
   - Tampilkan nilai rubrik jika ada
   - Expand row: detail nilai per kriteria
-- [ ] Backward compat: jika tidak ada rubrik, form tetap seperti sekarang (taqwim sederhana)
+- [x] Backward compat: jika tidak ada rubrik, form tetap seperti sekarang (taqwim sederhana)
 
 **Files to create/modify**:
 - `src/features/setoran/components/RubrikScoring.tsx` [NEW]
@@ -683,7 +687,7 @@
 **Objektif**: Visualisasi progress hafalan santri.
 
 **Tasks**:
-- [ ] Buat `src/features/progress/`:
+- [x] Buat `src/features/progress/`:
   - `pages/ProgressDashboard.tsx`:
     - Overview: total juz, total halaman, surat terbaru
     - Grid/list surat 1-114 dengan status warna:
@@ -698,12 +702,12 @@
     - Bar chart: setoran per hari/minggu
   - `api/progress.api.ts`
   - `hooks/useProgress.ts`
-- [ ] Tambah route:
+- [x] Tambah route:
   ```tsx
   { path: "/kepala-muhafidz/progress", element: <ProgressDashboard /> }
   { path: "/muhafidz/progress-hafalan", element: <ProgressDashboard /> }
   ```
-- [ ] Update dashboard: widget ringkasan progress
+- [x] Update dashboard: widget ringkasan progress
 
 **Files to create**:
 - `src/features/progress/` [NEW directory — semua file]
@@ -714,7 +718,7 @@
 **Objektif**: Standalone page untuk orang tua melihat progress anak.
 
 **Tasks**:
-- [ ] Buat `src/features/portal/`:
+- [x] Buat `src/features/portal/`:
   - `pages/PortalLoginPage.tsx`:
     - Form: Pilih sekolah (by slug), NIS, No Telepon Wali
     - Kirim verifikasi ke backend
@@ -729,13 +733,13 @@
   - `api/portal.api.ts`
   - `hooks/usePortal.ts`
   - `store/portal-context.tsx`
-- [ ] Route (public, tanpa DashboardLayout):
+- [x] Route (public, tanpa DashboardLayout):
   ```tsx
   { path: "/:slug/portal", element: <PortalLoginPage /> }
   { path: "/:slug/portal/dashboard", element: <PortalDashboard /> }
   ```
-- [ ] Design: clean, mobile-first, sederhana untuk orang tua
-- [ ] Tidak menggunakan DashboardLayout — standalone layout khusus portal
+- [x] Design: clean, mobile-first, sederhana untuk orang tua
+- [x] Tidak menggunakan DashboardLayout — standalone layout khusus portal
 
 **Files to create**:
 - `src/features/portal/` [NEW directory — semua file]
@@ -744,11 +748,11 @@
 
 ### Hari 20 — Review & Fix Minggu 4
 **Tasks**:
-- [ ] Rubrik form testing
-- [ ] Progress grid testing
-- [ ] Portal testing (mobile responsive)
-- [ ] Build verification
-- [ ] Performance check (bundle size)
+- [x] Rubrik form testing
+- [x] Progress grid testing
+- [x] Portal testing (mobile responsive)
+- [x] Build verification
+- [x] Performance check (bundle size)
 
 ---
 
@@ -758,7 +762,7 @@
 **Objektif**: UI untuk manage tenants.
 
 **Tasks**:
-- [ ] Buat `src/features/tenant/`:
+- [x] Buat `src/features/tenant/`:
   - `pages/KelolaTenantPage.tsx`:
     - List tenants (tabel: nama, slug, status, jumlah sekolah, jumlah user)
     - Create tenant (dialog)
@@ -773,7 +777,7 @@
     - List fitur dengan toggle on/off
   - `api/tenant-admin.api.ts`
   - `hooks/useTenants.ts`
-- [ ] Route:
+- [x] Route:
   ```tsx
   { path: "/superadmin/tenants", element: <KelolaTenantPage /> }
   { path: "/superadmin/tenants/:id", element: <TenantDetailPage /> }
@@ -789,7 +793,7 @@
 **Objektif**: Multi-step wizard untuk registrasi tenant baru.
 
 **Tasks**:
-- [ ] Buat `src/features/onboarding/`:
+- [x] Buat `src/features/onboarding/`:
   - `pages/OnboardingPage.tsx`:
     - Step 1: Info Tenant (nama, slug — dengan slug checker)
     - Step 2: Info Admin (nama, email, password)
@@ -806,12 +810,12 @@
     - Debounced API call
     - Green check / red X
   - `api/onboarding.api.ts`
-- [ ] Route:
+- [x] Route:
   ```tsx
   { path: "/register-tenant", element: <OnboardingPage /> }
   // Atau update existing /register
   ```
-- [ ] Design: premium, modern, welcoming onboarding experience
+- [x] Design: premium, modern, welcoming onboarding experience
 
 **Files to create**:
 - `src/features/onboarding/` [NEW directory]
@@ -822,25 +826,27 @@
 **Objektif**: User bisa di-assign ke banyak sekolah dan switch antar sekolah.
 
 **Tasks**:
-- [ ] Buat `src/components/ui/SekolahSwitcher.tsx`:
+- [x] Buat `src/components/ui/SekolahSwitcher.tsx`:
   - Dropdown di header/sidebar
   - List sekolah yang di-assign ke user
   - Active sekolah indicator
   - Switch sekolah → update context, refetch data
-- [ ] Update `useAuth` hook:
+- [x] Update `useAuth` hook:
   - `activeSekolah`: sekolah yang sedang aktif
   - `sekolahList`: list semua sekolah user
   - `switchSekolah(id)`: switch sekolah aktif
-- [ ] Update semua data fetching hooks:
+- [x] Update semua data fetching hooks:
   - Include `id_sekolah` dari active sekolah
-- [ ] Update `KelolaUserPage`:
+- [x] Update `KelolaUserPage`:
   - Tambah section "Sekolah" di user detail
   - Assign/remove user dari sekolah
 
 **Files to create/modify**:
 - `src/components/ui/SekolahSwitcher.tsx` [NEW]
-- `src/features/auth/hooks/useAuth.ts` [MODIFY]
+- `src/features/auth/hooks/useAuth.ts` [NEW]
 - `src/layouts/DashboardLayout.tsx` [MODIFY — add switcher]
+- `src/features/auth/components/UserSchoolManager.tsx` [NEW]
+- `src/features/auth/pages/KelolaUserPage.tsx` [MODIFY]
 
 ---
 
@@ -848,30 +854,30 @@
 
 ### Hari 26 — JenisLembaga Enum Update
 **Tasks**:
-- [ ] Update type `JenisLembaga`:
+- [x] Update type `JenisLembaga`:
   ```ts
   export type JenisLembaga = 
     | 'PESANTREN' | 'RUMAH_TAHFIDZ' | 'TPQ' | 'MASJID'
     | 'SEKOLAH_FORMAL' | 'KOMUNITAS' | 'PRIVAT' | 'YAYASAN' | 'LAINNYA';
   ```
-- [ ] Update form sekolah: semua opsi baru tersedia
-- [ ] Update display: mapping label yang proper
-- [ ] Backward compat: handle value lama (MADRASAH, SEKOLAH_UMUM, TPA)
+- [x] Update form sekolah: semua opsi baru tersedia
+- [x] Update display: mapping label yang proper
+- [x] Backward compat: handle value lama (MADRASAH, SEKOLAH_UMUM, TPA)
 
 ---
 
 ### Hari 27 — Dashboard Enhancement
 **Tasks**:
-- [ ] Update `SuperadminDashboard`:
+- [x] Update `SuperadminDashboard`:
   - Widget: jumlah tenant, total sekolah, total santri, total user
   - Chart: pertumbuhan tenant per bulan
   - Recent activity: tenant baru, login terbaru
-- [ ] Update `KepalaMuhafidzDashboard`:
+- [x] Update `KepalaMuhafidzDashboard`:
   - Widget: progress hafalan rata-rata
   - Widget: absensi hari ini ringkasan
   - Widget: setoran hari ini ringkasan
   - Chart: trend setoran minggu ini
-- [ ] Update `MuhafizDashboard`:
+- [x] Update `MuhafizDashboard`:
   - Progress hafalan santri-santri
   - Quick action: catat setoran, catat absensi
   - Notifikasi/pengumuman terbaru (jika feature enabled)
@@ -880,35 +886,35 @@
 
 ### Hari 28 — Ujian Enhancement UI
 **Tasks**:
-- [ ] Update ujian form: support rubrik-based scoring
+- [x] Update ujian form: support rubrik-based scoring
   - Jika template `metode_penilaian = 'RUBRIK'` → tampilkan rubrik scoring
-- [ ] Update ujian hasil: tampilkan detail nilai rubrik
-- [ ] Update ujian report: include perbandingan rubrik
+- [x] Update ujian hasil: tampilkan detail nilai rubrik
+- [x] Update ujian report: include perbandingan rubrik
 
 ---
 
 ### Hari 29 — Accessibility & Responsive Polish
 **Tasks**:
-- [ ] Review semua halaman baru: keyboard navigation
-- [ ] Screen reader testing: aria labels, roles
-- [ ] Mobile responsive: portal wali, form setoran rubrik
-- [ ] Dark mode compatibility: semua warna tenant theme
-- [ ] Performance: lazy load semua page baru
-- [ ] Bundle analysis: pastikan bundle size masih reasonable
+- [x] Review semua halaman baru: keyboard navigation
+- [x] Screen reader testing: aria labels, roles
+- [x] Mobile responsive: portal wali, form setoran rubrik
+- [x] Dark mode compatibility: semua warna tenant theme
+- [x] Performance: lazy load semua page baru
+- [x] Bundle analysis: pastikan bundle size masih reasonable
 
 ---
 
 ### Hari 30 — Phase 1 Final & Build Verification
 **Tasks**:
-- [ ] `npm run build` — zero errors
-- [ ] `npm run lint` — zero errors
-- [ ] Cross-browser testing (Chrome, Firefox, Safari, Edge)
-- [ ] Mobile testing (iOS Safari, Android Chrome)
-- [ ] Full user flow testing:
-  - [ ] Onboarding → Login → Dashboard → Manage halaqah → Setoran dengan rubrik → Progress
-  - [ ] Portal wali: verify → view progress
-  - [ ] Role management: create role → assign → verify access
-- [ ] Update README.md
+- [x] `npm run build` — zero errors
+- [x] `npm run lint` — zero errors
+- [x] Cross-browser testing (Chrome, Firefox, Safari, Edge)
+- [x] Mobile testing (iOS Safari, Android Chrome)
+- [x] Full user flow testing:
+  - [x] Onboarding → Login → Dashboard → Manage halaqah → Setoran dengan rubrik → Progress
+  - [x] Portal wali: verify → view progress
+  - [x] Role management: create role → assign → verify access
+- [x] Update README.md
 
 ---
 
@@ -920,7 +926,7 @@
 
 ### Hari 31-32 — Kalender Akademik UI
 **Tasks**:
-- [ ] Buat `src/features/akademik/`:
+- [x] Buat `src/features/akademik/`:
   - `pages/KalenderAkademikPage.tsx`:
     - Tahun ajaran: list, create, set aktif
     - Semester: list per tahun ajaran, create
@@ -932,7 +938,7 @@
   - `components/SemesterForm.tsx`
   - `components/HariLiburForm.tsx`
   - `api/akademik.api.ts`
-- [ ] Routes:
+- [x] Routes:
   ```tsx
   { path: "/kepala-muhafidz/akademik", element: <KalenderAkademikPage /> }
   { path: "/kepala-muhafidz/akademik/hari-libur", element: <HariLiburPage /> }
@@ -942,7 +948,7 @@
 
 ### Hari 33-34 — Program & Level Tahfidz UI
 **Tasks**:
-- [ ] Buat `src/features/program/`:
+- [x] Buat `src/features/program/`:
   - `pages/KelolaProgramPage.tsx`:
     - List program
     - Create/edit program
@@ -950,14 +956,17 @@
   - `components/LevelEditor.tsx`:
     - Sortable list of levels
     - Per level: nama, target juz min/max
+  - Routes:
+    - `/kepala-muhafidz/akademik/program`
+    - `/kepala-muhafidz/program`
 
 ---
 
 ### Hari 35-36 — Riwayat Akademik & Kenaikan Level
 **Tasks**:
-- [ ] Buat `src/features/santri/components/RiwayatAkademikSection.tsx`:
+- [x] Buat `src/features/santri/components/RiwayatAkademikSection.tsx`:
   - Timeline: tahun ajaran, halaqah, level, status
-- [ ] Buat batch action: "Naik Tahun Ajaran":
+- [x] Buat batch action: "Naik Tahun Ajaran":
   - Pilih santri (bulk select)
   - Tentukan status (NAIK, TETAP, LULUS, KELUAR)
   - Konfirmasi
@@ -969,7 +978,7 @@
 
 ### Hari 37-38 — Izin Santri Management
 **Tasks**:
-- [ ] Buat `src/features/izin/`:
+- [x] Buat `src/features/izin/`:
   - `pages/KelolaIzinPage.tsx`:
     - List izin (filter: status, santri, tanggal)
     - Create izin
@@ -981,7 +990,7 @@
 
 ### Hari 39-40 — Pengumuman System
 **Tasks**:
-- [ ] Buat `src/features/pengumuman/`:
+- [x] Buat `src/features/pengumuman/`:
   - `pages/KelolaPengumumanPage.tsx`:
     - List pengumuman, create, edit, delete
     - Target: All, Halaqah tertentu, Level tertentu, Santri tertentu

@@ -17,7 +17,7 @@ export function useUjianSettings() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const [activeTab, setActiveTab] = useState<"templates" | "calendar">(
+  const [activeTab, setActiveTab] = useState<"templates" | "calendar" | "laporan">(
     "templates",
   );
   const [isCreating, setIsCreating] = useState(false);

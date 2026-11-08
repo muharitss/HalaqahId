@@ -1,4 +1,4 @@
-import { type Sekolah } from "@/types/domain/sekolah";
+import { type Sekolah, JENIS_LEMBAGA_LABEL } from "@/types/domain/sekolah";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Building2, MapPin, Mail, Key, Phone, MessageCircle, Eye, Target, User, ExternalLink } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -9,12 +9,7 @@ interface ProfilSekolahInfoProps {
   sekolah: Sekolah;
 }
 
-const JENIS_LEMBAGA_LABEL: Record<string, string> = {
-  PESANTREN: "Pesantren",
-  MADRASAH: "Madrasah",
-  SEKOLAH_UMUM: "Sekolah Umum",
-  TPA: "TPA / TPQ",
-};
+
 
 function InfoRow({ icon, label, value }: { icon: React.ReactNode; label: string; value?: string | null }) {
   if (!value) return null;
@@ -178,38 +173,38 @@ export const ProfilSekolahInfo = ({ sekolah }: ProfilSekolahInfoProps) => {
         </Card>
       )}
 
-      {/* Card: Slug Portal Publik */}
+      {/* Card: Link Display TV Publik */}
       <Card className="border-0 shadow-sm ring-1 ring-border/50">
         <CardHeader className="pb-2">
           <CardTitle className="text-base flex items-center gap-2">
-            <Key className="w-4 h-4" /> Slug Portal Publik
+            <Key className="w-4 h-4" /> Link Display TV Publik
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          {sekolah.slug ? (
+          {sekolah.display_token ? (
             <>
               <div className="bg-muted/50 p-3 rounded-md font-mono text-sm border">
-                {sekolah.slug}
+                {sekolah.display_token}
               </div>
               <a
-                href={`${window.location.origin}/display/${sekolah.slug}`}
+                href={`${window.location.origin}/display/${sekolah.display_token}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 text-sm text-primary hover:underline break-all"
               >
                 <ExternalLink className="w-3.5 h-3.5 shrink-0" />
-                {window.location.origin}/display/{sekolah.slug}
+                {window.location.origin}/display/{sekolah.display_token}
               </a>
             </>
           ) : (
             <div className="bg-muted/30 p-3 rounded-md border border-dashed">
               <p className="text-sm text-muted-foreground italic">
-                Slug belum diatur. Klik <strong>Edit Profil</strong> dan simpan untuk men-generate slug otomatis dari nama sekolah.
+                Display token belum diatur.
               </p>
             </div>
           )}
           <p className="text-xs text-muted-foreground">
-            Link ini digunakan wali santri untuk mengakses portal informasi publik sekolah Anda.
+            Link ini digunakan untuk menampilkan layar TV display publik sekolah Anda.
           </p>
         </CardContent>
       </Card>

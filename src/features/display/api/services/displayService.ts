@@ -25,8 +25,17 @@ export const displayService = {
     return response.data.data || [];
   },
 
-  getSantriDetail: async (slug: string, id: number | string): Promise<SantriDetailData> => {
-    const response = await axiosClient.get(`/display/${slug}/santri/${id}`);
+  getSantriDetail: async (
+    slug: string,
+    id: number | string,
+    month?: number | string,
+    year?: number | string,
+  ): Promise<SantriDetailData> => {
+    const params = new URLSearchParams();
+    if (month !== undefined && month !== null && month !== "") params.append("month", String(month));
+    if (year !== undefined && year !== null && year !== "") params.append("year", String(year));
+    const qs = params.toString() ? `?${params.toString()}` : "";
+    const response = await axiosClient.get(`/display/${slug}/santri/${id}${qs}`);
     return response.data.data;
   }
 };

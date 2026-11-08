@@ -27,6 +27,9 @@ export {
   EditSetoranModal,
 } from "./modules";
 
+// Components
+export { RubrikScoring } from "./components/RubrikScoring";
+
 // Types
 export type {
   SetoranPayload,

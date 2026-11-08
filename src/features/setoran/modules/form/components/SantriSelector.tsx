@@ -14,26 +14,31 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+import { Term } from "@/components/ui/Term";
+import { useTerminology } from "@/hooks/useTerminology";
+
 interface SantriSelectorProps {
   form: any;
   santriList: Santri[];
 }
 
 export function SantriSelector({ form, santriList }: SantriSelectorProps) {
+  const labelSantri = useTerminology("SANTRI");
+
   return (
     <FormField
       control={form.control}
       name="id_santri"
       render={({ field }) => (
         <FormItem>
-          <FormLabel>Santri</FormLabel>
+          <FormLabel><Term code="SANTRI" /></FormLabel>
           <Select
             onValueChange={(v) => field.onChange(Number(v))}
             value={field.value?.toString()}
           >
             <FormControl>
               <SelectTrigger>
-                <SelectValue placeholder="Pilih Santri" />
+                <SelectValue placeholder={`Pilih ${labelSantri}`} />
               </SelectTrigger>
             </FormControl>
             <SelectContent>

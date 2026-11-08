@@ -2,12 +2,12 @@ import { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUsers, faUserTie, faSearch } from "@fortawesome/free-solid-svg-icons"; // Import icon tambahan
 import { faWhatsapp } from "@fortawesome/free-brands-svg-icons";
-import { MoreVertical, Edit2, Trash2, ArrowRightLeft, UserPlus } from "lucide-react"; 
+import { MoreVertical, Edit2, Trash2, ArrowRightLeft, UserPlus, UserCheck } from "lucide-react"; 
 import { Input } from "@/components/ui/input";
 import { 
   Accordion, 
   AccordionContent, 
-  AccordionItem, 
+  AccordionItem,
   AccordionTrigger 
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
@@ -29,7 +29,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PermissionGate } from "@/components/ui/PermissionGate";
 import type { DaftarHalaqahProps } from "@/features/halaqah/types";
+import { RoleBadge } from "@/features/halaqah/components";
 
 // ---------------------------------------------------------------------------
 // Sub-komponen: HalaqahItem (Mempunyai state pagination santri internal sendiri)
@@ -44,6 +46,7 @@ interface HalaqahItemProps {
   onMoveSantri: (s: any) => void;
   onEditSantri: (s: any) => void;
   onDeleteSantri: (s: any) => void;
+  onManageMuhafiz: (h: any) => void;
   formatWhatsApp: (phone: string | null | undefined) => string;
 }
 
@@ -56,6 +59,7 @@ function HalaqahItem({
   onMoveSantri,
   onEditSantri,
   onDeleteSantri,
+  onManageMuhafiz,
   formatWhatsApp,
 }: HalaqahItemProps) {
   const [currentPage, setCurrentPage] = useState(1);
@@ -69,6 +73,12 @@ function HalaqahItem({
   const displayedSantri = showAll
     ? daftarSantri
     : daftarSantri.slice((currentPage - 1) * 10, currentPage * 10);
+
+  const muhafizList = (h.muhafiz_list && h.muhafiz_list.length > 0)
+    ? h.muhafiz_list
+    : h.muhafiz?.name
+      ? [{ id_user: h.muhafiz.id_user, name: h.muhafiz.name, email: h.muhafiz.email, peran: "UTAMA" as const }]
+      : [];
 
   return (
     <AccordionItem 
@@ -84,10 +94,22 @@ function HalaqahItem({
             </div>
             <div className="text-left">
               <h3 className="font-bold text-base md:text-lg leading-tight">{h.name_halaqah}</h3>
-              <div className="flex items-center gap-2 mt-1 text-xs md:text-sm text-muted-foreground">
-                <span className="flex items-center gap-1">
+              <div className="flex items-center gap-2 mt-1 text-xs md:text-sm text-muted-foreground flex-wrap">
+                <span className="flex items-center gap-1.5">
                   <FontAwesomeIcon icon={faUserTie} className="text-[10px]" />
-                  {h.muhafiz?.name || "Tanpa Muhafiz"}
+                  {muhafizList.length > 0 ? (
+                    <>
+                      <span>{muhafizList[0].name}</span>
+                      <RoleBadge role={muhafizList[0].peran || "UTAMA"} />
+                      {muhafizList.length > 1 && (
+                        <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4">
+                          +{muhafizList.length - 1} lainnya
+                        </Badge>
+                      )}
+                    </>
+                  ) : (
+                    <span>Tanpa Muhafiz</span>
+                  )}
                 </span>
                 <span className="flex items-center gap-1">
                   <FontAwesomeIcon icon={faUsers} className="text-[10px]" />
@@ -100,6 +122,47 @@ function HalaqahItem({
       </AccordionTrigger>
       
       <AccordionContent className="px-0 pt-0 pb-4">
+        {/* Section: Tim Muhafiz */}
+        <div className="mb-4 bg-muted/20 border rounded-lg p-3">
+          <div className="flex justify-between items-center mb-2.5">
+            <div className="flex items-center gap-2">
+              <FontAwesomeIcon icon={faUserTie} className="text-primary text-xs" />
+              <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                Tim Muhafiz ({muhafizList.length})
+              </h4>
+            </div>
+            <PermissionGate permission="halaqah.update">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onManageMuhafiz(h)}
+                className="h-7 text-xs gap-1.5 px-2.5"
+              >
+                <UserCheck className="h-3.5 w-3.5" />
+                Kelola Muhafiz
+              </Button>
+            </PermissionGate>
+          </div>
+          {muhafizList.length === 0 ? (
+            <p className="text-xs text-muted-foreground italic">Belum ada muhafiz yang ditugaskan</p>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+              {muhafizList.map((m: any, idx: number) => (
+                <div
+                  key={m.id_user || idx}
+                  className="flex items-center justify-between p-2.5 rounded-md border bg-background text-xs shadow-2xs"
+                >
+                  <div className="truncate mr-2">
+                    <p className="font-semibold text-foreground truncate">{m.name}</p>
+                    {m.email && <p className="text-[11px] text-muted-foreground truncate">{m.email}</p>}
+                  </div>
+                  <RoleBadge role={m.peran || "UTAMA"} />
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
         <div className="flex justify-between items-center py-3 border-t border-dashed mb-2 px-1">
           <h4 className="text-[10px] md:text-xs font-bold uppercase tracking-wider text-muted-foreground">
             Daftar Anggota
@@ -114,21 +177,33 @@ function HalaqahItem({
             <DropdownMenuContent align="end" className="w-48">
               <DropdownMenuLabel>Aksi Halaqah</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => onAddSantri(h)} className="cursor-pointer">
-                <UserPlus className="mr-2 h-4 w-4" /> 
-                <span>Tambah Santri</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onEdit(h)} className="cursor-pointer">
-                <Edit2 className="mr-2 h-4 w-4" />
-                <span>Edit Data</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem 
-                onClick={() => onDelete(h)} 
-                className="cursor-pointer text-destructive focus:text-destructive"
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                <span>Hapus Halaqah</span>
-              </DropdownMenuItem>
+              <PermissionGate permission="halaqah.update">
+                <DropdownMenuItem onClick={() => onManageMuhafiz(h)} className="cursor-pointer">
+                  <UserCheck className="mr-2 h-4 w-4" />
+                  <span>Kelola Muhafiz</span>
+                </DropdownMenuItem>
+              </PermissionGate>
+              <PermissionGate permission="santri.create">
+                <DropdownMenuItem onClick={() => onAddSantri(h)} className="cursor-pointer">
+                  <UserPlus className="mr-2 h-4 w-4" /> 
+                  <span>Tambah Santri</span>
+                </DropdownMenuItem>
+              </PermissionGate>
+              <PermissionGate permission="halaqah.update">
+                <DropdownMenuItem onClick={() => onEdit(h)} className="cursor-pointer">
+                  <Edit2 className="mr-2 h-4 w-4" />
+                  <span>Edit Data</span>
+                </DropdownMenuItem>
+              </PermissionGate>
+              <PermissionGate permission="halaqah.delete">
+                <DropdownMenuItem 
+                  onClick={() => onDelete(h)} 
+                  className="cursor-pointer text-destructive focus:text-destructive"
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  <span>Hapus Halaqah</span>
+                </DropdownMenuItem>
+              </PermissionGate>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -182,28 +257,32 @@ function HalaqahItem({
                         <DropdownMenuContent align="end" className="w-40">
                           <DropdownMenuLabel>Aksi Santri</DropdownMenuLabel>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem 
-                            onClick={() => onMoveSantri(s)} 
-                            className="cursor-pointer text-blue-600 focus:text-blue-600"
-                          >
-                            <ArrowRightLeft className="mr-2 h-4 w-4" />
-                            <span>Pindah Halaqah</span>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            onClick={() => onEditSantri(s)} 
-                            className="cursor-pointer"
-                          >
-                            <Edit2 className="mr-2 h-4 w-4" />
-                            <span>Edit Profil</span>
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem 
-                            onClick={() => onDeleteSantri(s)} 
-                            className="cursor-pointer text-destructive focus:text-destructive"
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            <span>Hapus Santri</span>
-                          </DropdownMenuItem>
+                          <PermissionGate permission="santri.update">
+                            <DropdownMenuItem 
+                              onClick={() => onMoveSantri(s)} 
+                              className="cursor-pointer text-blue-600 focus:text-blue-600"
+                            >
+                              <ArrowRightLeft className="mr-2 h-4 w-4" />
+                              <span>Pindah Halaqah</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              onClick={() => onEditSantri(s)} 
+                              className="cursor-pointer"
+                            >
+                              <Edit2 className="mr-2 h-4 w-4" />
+                              <span>Edit Profil</span>
+                            </DropdownMenuItem>
+                          </PermissionGate>
+                          <PermissionGate permission="santri.delete">
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem 
+                              onClick={() => onDeleteSantri(s)} 
+                              className="cursor-pointer text-destructive focus:text-destructive"
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              <span>Hapus Santri</span>
+                            </DropdownMenuItem>
+                          </PermissionGate>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
@@ -291,6 +370,7 @@ export function DaftarHalaqah({
   onMoveSantri, 
   onEditSantri, 
   onDeleteSantri, 
+  onManageMuhafiz,
   isLoading, 
   santriMap,
   onAddSantri
@@ -315,8 +395,11 @@ export function DaftarHalaqah({
   if (isLoading) return <HalaqahLoadingSkeleton />;
 
   const filteredHalaqahs = halaqahs.filter((h) => {
-    const nameMatch = h.name_halaqah.toLowerCase().includes(searchTerm.toLowerCase());
-    const muhafizMatch = (h.muhafiz?.name || "").toLowerCase().includes(searchTerm.toLowerCase());
+    const term = searchTerm.toLowerCase();
+    const nameMatch = h.name_halaqah.toLowerCase().includes(term);
+    const muhafizMatch =
+      (h.muhafiz?.name || "").toLowerCase().includes(term) ||
+      (h.muhafiz_list || []).some((m) => m.name.toLowerCase().includes(term));
     return nameMatch || muhafizMatch;
   });
 
@@ -351,6 +434,7 @@ export function DaftarHalaqah({
               onMoveSantri={onMoveSantri}
               onEditSantri={onEditSantri}
               onDeleteSantri={onDeleteSantri}
+              onManageMuhafiz={onManageMuhafiz || onEdit}
               formatWhatsApp={formatWhatsApp}
             />
           ))}

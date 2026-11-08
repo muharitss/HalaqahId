@@ -188,8 +188,9 @@ export const RekapAbsensiAsatidz = ({ muhafizList, sesiList }: Props) => {
                 muhafizList.map((m) => {
                   const grandTotals = { HADIR: 0, IZIN: 0, SAKIT: 0, ALFA: 0, TERLAMBAT: 0 };
                   relevantSesi.forEach((sesi) => {
+                    const sesiList = m.halaqah?.sesi_halaqahs || m.halaqah?.halaqah_sesi;
                     const hasSesi = sesi.id_sesi === 0 || (
-                      m.halaqah?.sesi_halaqahs?.some((s) => s.id_sesi === sesi.id_sesi)
+                      sesiList?.some((s) => s.id_sesi === sesi.id_sesi)
                     ) || false;
                     if (hasSesi) {
                       const t = calculateTotal(m.id_user, sesi.id_sesi);
@@ -211,8 +212,9 @@ export const RekapAbsensiAsatidz = ({ muhafizList, sesiList }: Props) => {
                       {daysInMonth.map((date) => {
                         const dateStr = format(date, "yyyy-MM-dd");
                         return relevantSesi.map((sesi) => {
+                          const sesiList = m.halaqah?.sesi_halaqahs || m.halaqah?.halaqah_sesi;
                           const hasSesi = sesi.id_sesi === 0 || (
-                            m.halaqah?.sesi_halaqahs?.some((s) => s.id_sesi === sesi.id_sesi)
+                            sesiList?.some((s) => s.id_sesi === sesi.id_sesi)
                           ) || false;
                           const status = hasSesi ? getStatus(m.id_user, dateStr, sesi.id_sesi) : undefined;
                           return (

@@ -1,7 +1,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { type Sekolah, type UpdateSekolahRequest } from "@/types/domain/sekolah";
+import { type Sekolah, type UpdateSekolahRequest, JENIS_LEMBAGA_OPTIONS } from "@/types/domain/sekolah";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -32,7 +32,18 @@ const formSchema = z.object({
   jabatan_kepala: z.string().optional(),
   foto_kepala_url: z.string().optional(),
   // Profil lembaga
-  jenis_lembaga: z.enum(["PESANTREN", "MADRASAH", "SEKOLAH_UMUM", "TPA", ""]).optional(),
+  jenis_lembaga: z.enum([
+    "PESANTREN",
+    "RUMAH_TAHFIDZ",
+    "TPQ",
+    "MASJID",
+    "SEKOLAH_FORMAL",
+    "KOMUNITAS",
+    "PRIVAT",
+    "YAYASAN",
+    "LAINNYA",
+    "",
+  ]).optional(),
   jenjang: z.string().optional(),
   deskripsi: z.string().optional(),
   visi: z.string().optional(),
@@ -68,7 +79,7 @@ export const ProfilSekolahForm = ({ sekolah, onSubmit, saving, onSuccess }: Prof
       kepala_sekolah: sekolah.kepala_sekolah ?? "",
       jabatan_kepala: sekolah.jabatan_kepala ?? "",
       foto_kepala_url: sekolah.foto_kepala_url ?? "",
-      jenis_lembaga: sekolah.jenis_lembaga ?? "",
+      jenis_lembaga: (sekolah.jenis_lembaga as any) ?? "",
       jenjang: sekolah.jenjang ?? "",
       deskripsi: sekolah.deskripsi ?? "",
       visi: sekolah.visi ?? "",
@@ -77,7 +88,11 @@ export const ProfilSekolahForm = ({ sekolah, onSubmit, saving, onSuccess }: Prof
   });
 
   const handleSubmit = async (values: FormValues) => {
-    const success = await onSubmit(values as UpdateSekolahRequest);
+    const payload: UpdateSekolahRequest = {
+      ...values,
+      jenis_lembaga: values.jenis_lembaga ? (values.jenis_lembaga as any) : undefined,
+    };
+    const success = await onSubmit(payload);
     if (success && onSuccess) {
       onSuccess();
     }
@@ -263,10 +278,11 @@ export const ProfilSekolahForm = ({ sekolah, onSubmit, saving, onSuccess }: Prof
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="PESANTREN">Pesantren</SelectItem>
-                      <SelectItem value="MADRASAH">Madrasah</SelectItem>
-                      <SelectItem value="SEKOLAH_UMUM">Sekolah Umum</SelectItem>
-                      <SelectItem value="TPA">TPA / TPQ</SelectItem>
+                      {JENIS_LEMBAGA_OPTIONS.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                   <FormMessage />

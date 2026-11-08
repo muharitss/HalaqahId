@@ -4,7 +4,7 @@ import { absensiService } from "../services/absensiService";
 import { type CreateAbsensiSantriRequest as AbsensiPayload } from "@/types/domain/absensi";
 import { getErrorMessage } from "@/utils/error";
 import { absensiKeys } from "../queries/queryKeys";
-import { useAuth } from "@/features/auth";
+import { useAuth } from "@/features/auth/hooks/useAuth";
 
 export const useAbsensiMutation = () => {
   const queryClient = useQueryClient();
@@ -12,7 +12,7 @@ export const useAbsensiMutation = () => {
 
   const mutation = useMutation({
     mutationFn: async (payloads: AbsensiPayload[]) => {
-      await Promise.all(payloads.map((p) => absensiService.catatAbsensi(p)));
+      await absensiService.catatAbsensi(payloads);
     },
     onSuccess: (_, variables) => {
       toast.success("Berhasil menyimpan absensi");

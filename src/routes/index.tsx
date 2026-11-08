@@ -3,7 +3,7 @@ import { createBrowserRouter } from "react-router-dom";
 
 // Layout & Guards
 import DashboardLayout from "@/layouts/DashboardLayout";
-import { ProtectedRoute, RoleRedirect } from "./guards";
+import { ProtectedRoute, RoleRedirect, LoadingScreen } from "./guards";
 import { Role } from "@/types/domain/enums";
 
 // Domain Routes
@@ -70,7 +70,7 @@ export const router = createBrowserRouter([
   {
     path: "*",
     element: (
-      <Suspense fallback={<div className="min-h-screen" />}>
+      <Suspense fallback={<LoadingScreen />}>
         <NotFoundPage />
       </Suspense>
     ),

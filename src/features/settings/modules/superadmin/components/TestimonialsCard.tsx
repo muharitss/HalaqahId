@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import axiosClient from "@/lib/axiosClient";
+import { landingService } from "@/features/landing/api";
 
 interface Testimonial {
   id: string;
@@ -51,9 +51,9 @@ export function TestimonialsCard() {
   const fetchTestimonials = async () => {
     setLoading(true);
     try {
-      const res = await axiosClient.get("/landing/admin/sections");
-      if (res.data && res.data.success) {
-        const sections = res.data.data;
+      const res = await landingService.getAdminSections();
+      if (res && res.success) {
+        const sections = res.data;
         const testimonialsSec = sections.find((s: any) => s.section_key === "testimonials");
         if (testimonialsSec && testimonialsSec.content) {
           const contentData = testimonialsSec.content;
@@ -78,7 +78,7 @@ export function TestimonialsCard() {
 
   const saveToBackend = async (data: Testimonial[]) => {
     try {
-      await axiosClient.put("/landing/admin/sections/testimonials", {
+      await landingService.updateAdminSection("testimonials", {
         title: "TESTIMONI PENGGUNA",
         subtitle: "Apa Kata Mereka yang Telah Menggunakan HalaqahId?",
         content: data,

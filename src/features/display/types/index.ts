@@ -76,7 +76,7 @@ export interface SetoranRecord {
   surat: string;
   juz: number | null;
   ayat: string;
-  kategori: string;
+  kategori: string | { nama_kategori: string };
   keterangan?: string;
 }
 

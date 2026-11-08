@@ -1,4 +1,4 @@
-﻿import {
+import {
   ChevronLeft,
   GraduationCap,
   Calendar as CalendarIcon,
@@ -530,7 +530,7 @@ export function ExamTemplateForm({
                 </Badge>
               ) : (
                 <Badge variant="destructive" className="text-[9px] font-bold">
-                  âš ï¸ {simulationResult.error}
+                  <X className="h-3 w-3 mr-1 inline" /> {simulationResult.error}
                 </Badge>
               )}
             </CardHeader>

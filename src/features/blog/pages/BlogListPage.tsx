@@ -4,7 +4,7 @@ import { SEO } from "@/components/custom/seo/SEO";
 import { Header } from "@/features/landing/components/Header";
 import { Footer } from "@/features/landing/components/Footer";
 import { Search, Calendar, User, Clock, ChevronRight } from "lucide-react";
-import axiosClient from "@/lib/axiosClient";
+import { blogService } from "../api";
 
 interface BlogPost {
   id_post: number;
@@ -51,11 +51,11 @@ export default function BlogListPage() {
     const fetchMetadata = async () => {
       try {
         const [catRes, tagRes] = await Promise.all([
-          axiosClient.get("/blog/categories"),
-          axiosClient.get("/blog/tags"),
+          blogService.getCategories(),
+          blogService.getTags(),
         ]);
-        if (catRes.data && catRes.data.success) setCategories(catRes.data.data);
-        if (tagRes.data && tagRes.data.success) setTags(tagRes.data.data);
+        if (catRes && catRes.success) setCategories(catRes.data);
+        if (tagRes && tagRes.success) setTags(tagRes.data);
       } catch (e) {
         console.error("Gagal memuat metadata blog:", e);
       }
@@ -74,10 +74,10 @@ export default function BlogListPage() {
         if (categoryQuery) params.category = categoryQuery;
         if (tagQuery) params.tag = tagQuery;
 
-        const res = await axiosClient.get("/blog/posts", { params });
-        if (res.data && res.data.success) {
-          setPosts(res.data.data.posts);
-          setTotal(res.data.data.total);
+        const res = await blogService.getPosts(params);
+        if (res && res.success) {
+          setPosts(res.data.posts);
+          setTotal(res.data.total);
         }
       } catch (e) {
         console.error("Gagal memuat daftar artikel:", e);

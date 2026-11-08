@@ -1,38 +1,95 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPlus, faSearch } from "@fortawesome/free-solid-svg-icons";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useQuery } from "@tanstack/react-query";
+import { halaqahManagementService } from "@/features/halaqah/api/halaqahManagementService";
+import { type Halaqah } from "@/features/halaqah/types";
 import { useSantri, SantriTable, SantriModal } from "../modules";
-import type { Santri, CreateSantriData, UpdateSantriData } from "../types";
+import type { Santri, CreateSantriData, UpdateSantriData, StatusSantri } from "../types";
 import { useAuth } from "@/features/auth/components/auth-provider";
 import { Role } from "@/types/domain/enums";
 import { useTour } from "@/hooks/useTour";
 import { type DriveStep } from "driver.js";
-import { HelpCircle } from "lucide-react";
+import { HelpCircle, Users, Plus, Search, Filter, GraduationCap } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 import { KelolaSantri } from "@/components/custom/typed-text";
+import { Term } from "@/components/ui/Term";
+import { useTerminology } from "@/hooks/useTerminology";
+import { PermissionGate } from "@/components/ui/PermissionGate";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { SantriWaliSection } from "../components/SantriWaliSection";
+import { SantriDetailModal } from "../components/SantriDetailModal";
+import { PindahHalaqahDialog } from "../components/PindahHalaqahDialog";
+import { BatchNaikTahunModal } from "../components/BatchNaikTahunModal";
 
 export function KelolaSantriPage() {
   const { user } = useAuth();
   const isAdmin = user?.role === Role.SUPERADMIN || user?.role === Role.ADMIN || user?.role === Role.KOORDINATOR_TAHFIZ;
   
   const { santriList, isLoading, createSantri, updateSantri, deleteSantri } = useSantri();
+  const labelSantri = useTerminology("SANTRI");
+  const labelHalaqah = useTerminology("HALAQAH");
+
+  // Halaqah list for filtering & relations
+  const { data: halaqahList = [] } = useQuery<Halaqah[]>({
+    queryKey: ["halaqah", "all-list"],
+    queryFn: async () => {
+      try {
+        return await halaqahManagementService.getAllHalaqah();
+      } catch {
+        return [];
+      }
+    },
+  });
   
   const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedSantri, setSelectedSantri] = useState<Santri | null>(null);
+
+  // Detail & Riwayat modal state
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [selectedSantriForDetail, setSelectedSantriForDetail] = useState<Santri | null>(null);
+
+  // Pindah halaqah dialog state
+  const [isPindahDialogOpen, setIsPindahDialogOpen] = useState(false);
+  const [selectedSantriForPindah, setSelectedSantriForPindah] = useState<Santri | null>(null);
+
+  // Wali dialog standalone state
+  const [isWaliModalOpen, setIsWaliModalOpen] = useState(false);
+  const [selectedSantriForWali, setSelectedSantriForWali] = useState<Santri | null>(null);
+
+  // Batch naik tahun state
+  const [isBatchNaikTahunOpen, setIsBatchNaikTahunOpen] = useState(false);
+  const [selectedSantriIds, setSelectedSantriIds] = useState<number[]>([]);
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const [showAll, setShowAll] = useState(false);
 
+  const queryClient = useQueryClient();
+
   const steps: DriveStep[] = [
     {
       element: '[data-tour="kelola-santri-header"]',
       popover: {
-        title: "Kelola Santri 👥",
-        description: "Selamat datang! Halaman ini digunakan untuk melihat dan mengelola daftar santri aktif di halaqah Anda.",
+        title: `Kelola ${labelSantri}`,
+        description: `lihat dan kelola daftar ${labelSantri.toLowerCase()} aktif di ${labelHalaqah.toLowerCase()} Anda.`,
         side: "bottom",
         align: "start"
       }
@@ -40,8 +97,8 @@ export function KelolaSantriPage() {
     {
       element: '[data-tour="kelola-santri-add-btn"]',
       popover: {
-        title: "Tambah Santri Baru ➕",
-        description: "Klik tombol ini untuk mendaftarkan santri baru ke halaqah Anda dengan menentukan nama, nomor telepon orang tua, dan target hafalan.",
+        title: `Tambah ${labelSantri} Baru`,
+        description: `daftarkan ${labelSantri.toLowerCase()} baru ke ${labelHalaqah.toLowerCase()} Anda dan tentukan nama, NIS, nomor telepon orang tua, dan target hafalan.`,
         side: "bottom",
         align: "end"
       }
@@ -49,8 +106,8 @@ export function KelolaSantriPage() {
     {
       element: '[data-tour="kelola-santri-search-bar"]',
       popover: {
-        title: "Cari Nama Santri 🔍",
-        description: "Ketikkan nama santri di sini untuk menyaring tabel dan mencari santri secara instan.",
+        title: `Cari Nama & NIS ${labelSantri}`,
+        description: `Ketikkan nama atau NIS ${labelSantri.toLowerCase()} di sini untuk menyaring tabel secara instan.`,
         side: "bottom",
         align: "start"
       }
@@ -58,8 +115,8 @@ export function KelolaSantriPage() {
     {
       element: '[data-tour="kelola-santri-table"]',
       popover: {
-        title: "Tabel Data Santri 📋",
-        description: "Menampilkan rincian profil santri, nama halaqah, target aktif, serta aksi Edit data atau Hapus data santri.",
+        title: `Tabel Data ${labelSantri} `,
+        description: `Menampilkan NIS, profil ${labelSantri.toLowerCase()}, status, nama ${labelHalaqah.toLowerCase()}, target aktif, serta opsi aksi.`,
         side: "top",
         align: "center"
       }
@@ -74,17 +131,24 @@ export function KelolaSantriPage() {
     ready: !isLoading
   });
 
-  // Reset page when search term changes
+  // Reset page when search term or status filter changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm]);
+  }, [searchTerm, statusFilter]);
 
   const filteredSantri = useMemo(
     () =>
-      santriList.filter((s: Santri) =>
-        s.nama_santri.toLowerCase().includes(searchTerm.toLowerCase())
-      ),
-    [santriList, searchTerm]
+      santriList.filter((s: Santri) => {
+        const query = searchTerm.toLowerCase();
+        const matchesSearch =
+          s.nama_santri.toLowerCase().includes(query) ||
+          (s.nomor_induk_santri && s.nomor_induk_santri.toLowerCase().includes(query)) ||
+          (s.nomor_telepon && s.nomor_telepon.includes(query));
+        const matchesStatus =
+          statusFilter === "ALL" || (s.status ?? "AKTIF") === statusFilter;
+        return matchesSearch && matchesStatus;
+      }),
+    [santriList, searchTerm, statusFilter]
   );
 
   const totalPages = useMemo(
@@ -100,28 +164,70 @@ export function KelolaSantriPage() {
     [filteredSantri, showAll, currentPage]
   );
 
+  const handleToggleSelect = useCallback((id: number) => {
+    setSelectedSantriIds((prev) =>
+      prev.includes(id) ? prev.filter((sid) => sid !== id) : [...prev, id]
+    );
+  }, []);
+
+  const handleToggleSelectAll = useCallback(() => {
+    const displayedIds = displayedSantri.map((s) => s.id_santri);
+    const isAllDisplayedSelected =
+      displayedIds.length > 0 && displayedIds.every((id) => selectedSantriIds.includes(id));
+
+    if (isAllDisplayedSelected) {
+      setSelectedSantriIds((prev) => prev.filter((id) => !displayedIds.includes(id)));
+    } else {
+      setSelectedSantriIds((prev) => Array.from(new Set([...prev, ...displayedIds])));
+    }
+  }, [displayedSantri, selectedSantriIds]);
+
+  const selectedSantriObjects = useMemo(
+    () => santriList.filter((s: Santri) => selectedSantriIds.includes(s.id_santri)),
+    [santriList, selectedSantriIds]
+  );
+
   const handleEdit = useCallback((santri: Santri) => {
     setSelectedSantri(santri);
     setIsModalOpen(true);
   }, []);
 
+  const handleViewDetail = useCallback((santri: Santri) => {
+    setSelectedSantriForDetail(santri);
+    setIsDetailModalOpen(true);
+  }, []);
+
+  const handlePindahHalaqah = useCallback((santri: Santri) => {
+    setSelectedSantriForPindah(santri);
+    setIsPindahDialogOpen(true);
+  }, []);
+
+  const handleManageWali = useCallback((santri: Santri) => {
+    setSelectedSantriForWali(santri);
+    setIsWaliModalOpen(true);
+  }, []);
+
   const handleDelete = useCallback(
     async (santri: Santri) => {
-      if (confirm(`Yakin ingin menghapus santri ${santri.nama_santri}?`)) {
+      if (confirm(`Yakin ingin menghapus ${labelSantri.toLowerCase()} ${santri.nama_santri}?`)) {
         await deleteSantri(santri.id_santri);
       }
     },
-    [deleteSantri]
+    [deleteSantri, labelSantri]
   );
 
   const handleSave = async (data: {
     nama_santri: string;
+    nomor_induk_santri?: string | null;
+    status?: StatusSantri;
     nomor_telepon?: string | null;
     id_target: number | null;
     id_halaqah: number | undefined;
   }) => {
-    const payload = {
+    const payload: CreateSantriData = {
       nama_santri: data.nama_santri,
+      nomor_induk_santri: data.nomor_induk_santri || null,
+      status: data.status || "AKTIF",
       nomor_telepon: data.nomor_telepon || "",
       id_target: data.id_target,
       id_halaqah: data.id_halaqah || 0,
@@ -129,7 +235,7 @@ export function KelolaSantriPage() {
     if (selectedSantri) {
       await updateSantri(selectedSantri.id_santri, payload as UpdateSantriData);
     } else {
-      await createSantri(payload as CreateSantriData);
+      await createSantri(payload);
     }
     setIsModalOpen(false);
     setSelectedSantri(null);
@@ -151,41 +257,125 @@ export function KelolaSantriPage() {
               variant="ghost"
               size="icon"
               className="h-6 w-6 text-muted-foreground hover:text-primary rounded-full"
-              title="Mulai Panduan Kelola Santri"
+              title={`Mulai Panduan Kelola ${labelSantri}`}
             >
               <HelpCircle className="h-4 w-4" />
             </Button>
           </div>
         </div>
-        <div className="shrink-0" data-tour="kelola-santri-add-btn">
-          <Button onClick={() => setIsModalOpen(true)}>
-            <FontAwesomeIcon icon={faPlus} className="mr-2" />
-            Tambah Santri
-          </Button>
+        <div className="flex items-center gap-2">
+          <PermissionGate permission={["santri.update", "santri:edit-all"]}>
+            <Button
+              variant="outline"
+              onClick={() => setIsBatchNaikTahunOpen(true)}
+              disabled={selectedSantriIds.length === 0}
+              className="relative text-xs sm:text-sm"
+              title={
+                selectedSantriIds.length === 0
+                  ? "Pilih minimal 1 santri dari tabel untuk proses naik tahun ajaran"
+                  : `Proses ${selectedSantriIds.length} santri terpilih`
+              }
+            >
+              <GraduationCap className="mr-2 h-4 w-4" />
+              Naik Tahun Ajaran
+              {selectedSantriIds.length > 0 && (
+                <Badge variant="secondary" className="ml-2 px-1.5 py-0.5 text-xs font-semibold">
+                  {selectedSantriIds.length}
+                </Badge>
+              )}
+            </Button>
+          </PermissionGate>
+          <PermissionGate permission="santri.create">
+            <div className="shrink-0" data-tour="kelola-santri-add-btn">
+              <Button onClick={() => setIsModalOpen(true)}>
+                <Plus className="mr-2 h-4 w-4" />
+                Tambah <Term code="SANTRI" />
+              </Button>
+            </div>
+          </PermissionGate>
         </div>
       </div>
 
       <div className="rounded-xl border bg-card shadow-sm overflow-hidden">
-        <div className="p-6 border-b flex flex-col sm:flex-row justify-between items-center gap-4">
-          <div className="relative w-full sm:w-72" data-tour="kelola-santri-search-bar">
-            <FontAwesomeIcon icon={faSearch} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <Input 
-              placeholder="Cari nama santri..." 
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9"
-            />
+        <div className="p-4 sm:p-6 border-b flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
+            {/* Search Input */}
+            <div className="relative w-full sm:w-72" data-tour="kelola-santri-search-bar">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
+              <Input 
+                placeholder={`Cari nama atau NIS ${labelSantri.toLowerCase()}...`} 
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-9 text-xs sm:text-sm"
+              />
+            </div>
+
+            {/* Status Filter */}
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <Filter className="h-4 w-4 text-muted-foreground hidden sm:inline" />
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-full sm:w-40 text-xs sm:text-sm">
+                  <SelectValue placeholder="Semua Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">Semua Status</SelectItem>
+                  <SelectItem value="AKTIF">Aktif</SelectItem>
+                  <SelectItem value="LULUS">Lulus</SelectItem>
+                  <SelectItem value="KELUAR">Keluar</SelectItem>
+                  <SelectItem value="CUTI">Cuti</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
+
+        {/* Selected Santri Batch Action Bar */}
+        {selectedSantriIds.length > 0 && (
+          <div className="bg-primary/10 border-b border-primary/20 px-4 sm:px-6 py-2.5 flex items-center justify-between gap-3 text-xs sm:text-sm">
+            <div className="flex items-center gap-2 font-medium text-foreground">
+              <Badge variant="secondary" className="font-semibold">
+                {selectedSantriIds.length}
+              </Badge>
+              <span>{labelSantri} dipilih</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <PermissionGate permission={["santri.update", "santri:edit-all"]}>
+                <Button
+                  size="sm"
+                  variant="default"
+                  className="h-8 gap-1.5 text-xs"
+                  onClick={() => setIsBatchNaikTahunOpen(true)}
+                >
+                  <GraduationCap className="h-3.5 w-3.5" />
+                  Proses Naik Tahun Ajaran ({selectedSantriIds.length})
+                </Button>
+              </PermissionGate>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-8 text-xs text-muted-foreground"
+                onClick={() => setSelectedSantriIds([])}
+              >
+                Batal
+              </Button>
+            </div>
+          </div>
+        )}
 
         <div data-tour="kelola-santri-table">
           <SantriTable 
             data={displayedSantri}
             searchTerm={searchTerm}
             isAdmin={isAdmin}
-            halaqahList={[]} 
+            halaqahList={halaqahList} 
+            selectedIds={selectedSantriIds}
+            onToggleSelect={handleToggleSelect}
+            onToggleSelectAll={handleToggleSelectAll}
             onEdit={handleEdit}
             onDelete={handleDelete}
+            onViewDetail={handleViewDetail}
+            onPindahHalaqah={handlePindahHalaqah}
+            onManageWali={handleManageWali}
           />
         </div>
 
@@ -194,12 +384,12 @@ export function KelolaSantriPage() {
           <div className="p-4 border-t flex flex-col sm:flex-row items-center justify-between gap-4 bg-muted/10">
             <div className="text-xs text-muted-foreground">
               {showAll ? (
-                <span>Menampilkan semua <strong>{filteredSantri.length}</strong> santri</span>
+                <span>Menampilkan semua <strong>{filteredSantri.length}</strong> {labelSantri.toLowerCase()}</span>
               ) : (
                 <span>
                   Menampilkan <strong>{Math.min((currentPage - 1) * 10 + 1, filteredSantri.length)}</strong> -{" "}
                   <strong>{Math.min(currentPage * 10, filteredSantri.length)}</strong> dari{" "}
-                  <strong>{filteredSantri.length}</strong> santri
+                  <strong>{filteredSantri.length}</strong> {labelSantri.toLowerCase()}
                 </span>
               )}
             </div>
@@ -246,14 +436,87 @@ export function KelolaSantriPage() {
         )}
       </div>
 
+      {/* Modal Tambah / Edit Santri */}
       <SantriModal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         onSave={handleSave}
         selectedSantri={selectedSantri}
         isAdmin={isAdmin}
-        halaqahList={[]}
+        halaqahList={halaqahList}
         isSubmitting={isLoading}
+        onPindahHalaqahClick={handlePindahHalaqah}
+      />
+
+      {/* Modal Detail & Riwayat Santri */}
+      <SantriDetailModal
+        isOpen={isDetailModalOpen}
+        onClose={() => {
+          setIsDetailModalOpen(false);
+          setSelectedSantriForDetail(null);
+        }}
+        santri={selectedSantriForDetail}
+        halaqahList={halaqahList}
+        onEditClick={(santri) => {
+          setIsDetailModalOpen(false);
+          handleEdit(santri);
+        }}
+        onPindahHalaqahClick={(santri) => {
+          setIsDetailModalOpen(false);
+          handlePindahHalaqah(santri);
+        }}
+      />
+
+      {/* Dialog Pindah Halaqah */}
+      <PindahHalaqahDialog
+        isOpen={isPindahDialogOpen}
+        onClose={() => {
+          setIsPindahDialogOpen(false);
+          setSelectedSantriForPindah(null);
+        }}
+        santri={selectedSantriForPindah}
+        halaqahList={halaqahList}
+      />
+
+      {/* Dialog Kelola Wali Standalone */}
+      <Dialog
+        open={isWaliModalOpen}
+        onOpenChange={(open) => {
+          setIsWaliModalOpen(open);
+          if (!open) setSelectedSantriForWali(null);
+        }}
+      >
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5 text-primary" />
+              Kelola Data Wali &mdash; {selectedSantriForWali?.nama_santri}
+            </DialogTitle>
+            <DialogDescription>
+              Daftar orang tua atau wali untuk {labelSantri.toLowerCase()} ini.
+            </DialogDescription>
+          </DialogHeader>
+          {selectedSantriForWali && (
+            <SantriWaliSection
+              santriId={selectedSantriForWali.id_santri}
+              santriName={selectedSantriForWali.nama_santri}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal Batch Naik Tahun Ajaran */}
+      <BatchNaikTahunModal
+        isOpen={isBatchNaikTahunOpen}
+        onClose={() => setIsBatchNaikTahunOpen(false)}
+        selectedSantri={selectedSantriObjects}
+        halaqahList={halaqahList}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ["santri"] });
+          queryClient.invalidateQueries({ queryKey: ["halaqah"] });
+          queryClient.invalidateQueries({ queryKey: ["riwayat-akademik"] });
+          setSelectedSantriIds([]);
+        }}
       />
     </div>
   );

@@ -20,7 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import axiosClient from "@/lib/axiosClient";
+import { blogService } from "../api";
 import { TiptapEditor } from "../components/TiptapEditor";
 
 interface BlogPost {
@@ -101,14 +101,14 @@ export default function KelolaBlogPage() {
     setLoading(true);
     try {
       const [postRes, catRes, tagRes] = await Promise.all([
-        axiosClient.get("/blog/admin/posts"),
-        axiosClient.get("/blog/categories"),
-        axiosClient.get("/blog/tags"),
+        blogService.getAdminPosts(),
+        blogService.getCategories(),
+        blogService.getTags(),
       ]);
 
-      if (postRes.data && postRes.data.success) setPosts(postRes.data.data);
-      if (catRes.data && catRes.data.success) setCategories(catRes.data.data);
-      if (tagRes.data && tagRes.data.success) setTags(tagRes.data.data);
+      if (postRes && postRes.success) setPosts(postRes.data);
+      if (catRes && catRes.success) setCategories(catRes.data);
+      if (tagRes && tagRes.success) setTags(tagRes.data);
     } catch (e) {
       toast.error("Gagal mengambil data dari database");
     } finally {
@@ -199,10 +199,10 @@ export default function KelolaBlogPage() {
 
     try {
       if (editingPostId) {
-        await axiosClient.put(`/blog/admin/posts/${editingPostId}`, payload);
+        await blogService.updateAdminPost(editingPostId, payload);
         toast.success("Artikel berhasil diperbarui!");
       } else {
-        await axiosClient.post("/blog/admin/posts", payload);
+        await blogService.createAdminPost(payload);
         toast.success("Artikel baru berhasil dibuat!");
       }
       fetchData();
@@ -215,7 +215,7 @@ export default function KelolaBlogPage() {
   const handleDeletePost = async (id: number) => {
     if (!confirm("Apakah Anda yakin ingin menghapus artikel ini?")) return;
     try {
-      await axiosClient.delete(`/blog/admin/posts/${id}`);
+      await blogService.deleteAdminPost(id);
       toast.success("Artikel berhasil dihapus");
       fetchData();
     } catch (e) {
@@ -225,7 +225,7 @@ export default function KelolaBlogPage() {
 
   const handleRestorePost = async (id: number) => {
     try {
-      await axiosClient.post(`/blog/admin/posts/${id}/restore`);
+      await blogService.restoreAdminPost(id);
       toast.success("Artikel berhasil dipulihkan");
       fetchData();
     } catch (e) {
@@ -238,10 +238,9 @@ export default function KelolaBlogPage() {
     e.preventDefault();
     if (!catName || !catSlug) return;
     try {
-      await axiosClient.post("/blog/admin/categories", {
-        name: catName,
+      await blogService.createAdminCategory({
+        nama: catName,
         slug: catSlug,
-        description: catDesc,
       });
       toast.success("Kategori baru berhasil ditambahkan!");
       setCatName("");
@@ -256,7 +255,7 @@ export default function KelolaBlogPage() {
   const handleDeleteCategory = async (id: number) => {
     if (!confirm("Hapus kategori ini?")) return;
     try {
-      await axiosClient.delete(`/blog/admin/categories/${id}`);
+      await blogService.deleteAdminCategory(id);
       toast.success("Kategori berhasil dihapus");
       fetchData();
     } catch (e) {
@@ -269,8 +268,8 @@ export default function KelolaBlogPage() {
     e.preventDefault();
     if (!tagName || !tagSlug) return;
     try {
-      await axiosClient.post("/blog/admin/tags", {
-        name: tagName,
+      await blogService.createAdminTag({
+        nama: tagName,
         slug: tagSlug,
       });
       toast.success("Tag baru berhasil ditambahkan!");
@@ -285,7 +284,7 @@ export default function KelolaBlogPage() {
   const handleDeleteTag = async (id: number) => {
     if (!confirm("Hapus tag ini?")) return;
     try {
-      await axiosClient.delete(`/blog/admin/tags/${id}`);
+      await blogService.deleteAdminTag(id);
       toast.success("Tag berhasil dihapus");
       fetchData();
     } catch (e) {

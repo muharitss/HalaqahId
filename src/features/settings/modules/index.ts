@@ -4,3 +4,4 @@ export * from "./kategori";
 export * from "./ujian";
 export * from "./form-setoran";
 export * from "./superadmin";
+export * from "./terminology";

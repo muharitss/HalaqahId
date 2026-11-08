@@ -1,5 +1,6 @@
 import { type Role } from './enums';
 import { type LoginFormValues } from '@/features/auth';
+import { type UserSekolahItem } from './sekolah';
 
 export interface User {
   id_user: number;
@@ -9,6 +10,7 @@ export interface User {
   role: Role;
   is_verified: boolean;
   id_sekolah?: number | null;
+  id_tenant?: number | null;
   deleted_at?: string | null;
   has_halaqah?: boolean;
   id_halaqah?: number | null;
@@ -23,13 +25,21 @@ export interface User {
 export interface UserProfile {
   id_user: number;
   name: string;
+  nama_lengkap?: string;
   email: string;
   role: Role;
   id_sekolah: number;
+  id_tenant?: number | null;
   has_halaqah: boolean;
   id_halaqah: number | null;
   is_verified: boolean;
   nomor_telepon?: string | null;
+  no_telepon?: string | null;
+  foto?: string | null;
+  foto_url?: string | null;
+  bio?: string | null;
+  spesialisasi?: string | null;
+  no_ijazah?: string | null;
 }
 
 export interface LoginRequest {
@@ -48,6 +58,7 @@ export interface RegisterMuhafizRequest {
   password: string;
   role?: 'MUHAFIZ' | 'KOORDINATOR_TAHFIZ';
   id_sekolah?: number;
+  id_tenant?: number;
   nomor_telepon?: string;
 }
 
@@ -57,6 +68,8 @@ export interface RegisterAdminRequest {
   password: string;
   nama_sekolah: string;
   alamat?: string;
+  id_tenant?: number;
+  tenant_slug?: string;
 }
 
 export interface RegisterAdminResponse {
@@ -82,6 +95,7 @@ export interface ImpersonateResponse {
     email: string;
     role: Role;
     id_sekolah: number;
+    id_tenant?: number | null;
   };
   token: string;
 }
@@ -96,11 +110,15 @@ export interface AuthResponse {
       name: string;
       role: Role;
       id_sekolah?: number | null;
+      id_tenant?: number | null;
       id_halaqah?: number | null;
       has_halaqah?: boolean;
       is_verified?: boolean;
+      roles?: string[];
+      permissions?: string[];
     };
     token: string;
+    refresh_token?: string;
   };
 }
 
@@ -110,11 +128,18 @@ export interface AuthUser {
   role: Role;
   name: string;
   id_sekolah?: number | null;
+  id_tenant?: number | null;
   id_halaqah?: number | null;
   has_halaqah?: boolean;
   is_verified?: boolean;
   token?: string;
+  refresh_token?: string;
   avatarUrl?: string;
+  foto?: string | null;
+  foto_url?: string | null;
+  bio?: string | null;
+  spesialisasi?: string | null;
+  no_ijazah?: string | null;
   isImpersonating?: boolean;
   nomor_telepon?: string | null;
   halaqah?: {
@@ -122,16 +147,25 @@ export interface AuthUser {
     name_halaqah: string;
     id_muhafiz?: number;
   } | null;
+  roles?: string[];
+  permissions?: string[];
   originalUser?: {
     id_user: number;
     role: Role;
     name: string;
     token: string;
+    id_tenant?: number | null;
   };
 }
 
 export interface AuthContextType {
   user: AuthUser | null;
+  permissions: string[];
+  roles: string[];
+  sekolahList: UserSekolahItem[];
+  activeSekolah: UserSekolahItem["sekolah"] | null;
+  switchSekolah: (id_sekolah: number) => Promise<void>;
+  fetchUserSchools: () => Promise<void>;
   login: (values: LoginFormValues) => Promise<void>;
   logout: () => void;
   isLoading: boolean;

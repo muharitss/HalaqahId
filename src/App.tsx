@@ -11,6 +11,7 @@ import { router } from "@/routes";
 import { Toaster } from "@/components/ui/sonner";
 import { AnalyticsWrapper } from "@/components/custom/seo/AnalyticsWrapper";
 import { useTenantTheme } from "@/hooks/useTenantTheme";
+import { ErrorBoundary } from "@/components/custom/ErrorBoundary";
 import "./App.css";
 
 const TenantThemeWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -31,7 +32,9 @@ function App() {
             <TenantThemeWrapper>
               {/* AuthProvider wraps the application to preserve compatability facades */}
               <AuthProvider>
-                <RouterProvider router={router} />
+                <ErrorBoundary>
+                  <RouterProvider router={router} />
+                </ErrorBoundary>
                 <Toaster
                   position="top-center"
                   richColors

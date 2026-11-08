@@ -13,8 +13,10 @@ const STATUS_CONFIG = {
 
 export function useSantriDetail() {
   const { id, slug } = useParams<{ id: string; slug: string }>();
-  const { data, isLoading, isError, refetch } = useSantriDetailQuery(slug, id);
   const [viewDate, setViewDate] = useState<Date>(new Date());
+  const month = viewDate.getMonth() + 1;
+  const year = viewDate.getFullYear();
+  const { data, isLoading, isError, refetch } = useSantriDetailQuery(slug, id, month, year);
 
   const daysInMonth = useMemo(() => {
     return eachDayOfInterval({

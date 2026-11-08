@@ -8,19 +8,23 @@ export function useTenantTheme() {
   useEffect(() => {
     if (brand?.warna_primer) {
       document.documentElement.style.setProperty("--primary", brand.warna_primer);
+      document.documentElement.style.setProperty("--color-primary", brand.warna_primer);
       document.documentElement.style.setProperty("--sidebar-primary", brand.warna_primer);
       document.documentElement.style.setProperty("--ring", brand.warna_primer);
     } else {
       // Reset to default green oklch value from index.css if not present
       document.documentElement.style.removeProperty("--primary");
+      document.documentElement.style.removeProperty("--color-primary");
       document.documentElement.style.removeProperty("--sidebar-primary");
       document.documentElement.style.removeProperty("--ring");
     }
 
     if (brand?.warna_sekunder) {
       document.documentElement.style.setProperty("--secondary", brand.warna_sekunder);
+      document.documentElement.style.setProperty("--color-secondary", brand.warna_sekunder);
     } else {
       document.documentElement.style.removeProperty("--secondary");
+      document.documentElement.style.removeProperty("--color-secondary");
     }
   }, [brand?.warna_primer, brand?.warna_sekunder]);
 

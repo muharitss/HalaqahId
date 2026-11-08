@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { systemSettingsService } from "@/features/settings/api/services/systemSettingsService";
 import { toast } from "sonner";
-import axiosClient from "@/lib/axiosClient";
+import { landingService, seoService } from "@/features/landing/api";
 import type { LandingSection, RedirectRule } from "../types/superadmin.types";
 
 export type { LandingSection, RedirectRule };
@@ -58,9 +58,9 @@ export function useSuperadminSettings() {
 
   const fetchRedirects = async () => {
     try {
-      const res = await axiosClient.get("/seo/redirects");
-      if (res.data && res.data.success) {
-        setRedirects(res.data.data);
+      const res = await seoService.getRedirects();
+      if (res && res.success) {
+        setRedirects(res.data);
       }
     } catch (e) {
       console.error("Gagal memuat pengalihan URL");
@@ -69,9 +69,9 @@ export function useSuperadminSettings() {
 
   const fetchLandingSections = async () => {
     try {
-      const res = await axiosClient.get("/landing/admin/sections");
-      if (res.data && res.data.success) {
-        setLandingSections(res.data.data);
+      const res = await landingService.getAdminSections();
+      if (res && res.success) {
+        setLandingSections(res.data);
       }
     } catch (e) {
       console.error("Gagal memuat section landing page");
@@ -116,14 +116,14 @@ export function useSuperadminSettings() {
 
     try {
       if (editingRedirectId) {
-        await axiosClient.put(`/seo/redirects/${editingRedirectId}`, {
+        await seoService.updateRedirect(editingRedirectId, {
           from_path: fromPath,
           to_path: toPath,
           status_code: parseInt(statusCode),
         });
         toast.success("Redireksi berhasil diperbarui!");
       } else {
-        await axiosClient.post("/seo/redirects", {
+        await seoService.createRedirect({
           from_path: fromPath,
           to_path: toPath,
           status_code: parseInt(statusCode),
@@ -143,7 +143,7 @@ export function useSuperadminSettings() {
   const handleDeleteRedirect = async (id: number) => {
     if (!confirm("Hapus aturan redireksi ini?")) return;
     try {
-      await axiosClient.delete(`/seo/redirects/${id}`);
+      await seoService.deleteRedirect(id);
       toast.success("Redireksi berhasil dihapus");
       fetchRedirects();
     } catch (e) {
@@ -173,7 +173,7 @@ export function useSuperadminSettings() {
     if (!editingSectionKey) return;
 
     try {
-      await axiosClient.put(`/landing/admin/sections/${editingSectionKey}`, {
+      await landingService.updateAdminSection(editingSectionKey, {
         title: sectTitle,
         subtitle: sectSubtitle,
         is_active: sectActive,

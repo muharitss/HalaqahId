@@ -1,5 +1,7 @@
 import { lazy } from "react";
 import { type RouteObject } from "react-router-dom";
+import { FeatureRouteGuard, ProtectedRoute } from "./guards";
+import { Role } from "@/types/domain/enums";
 
 const KepalaMuhafidzDashboard = lazy(() =>
   import("@/features/dashboard/pages/kepala-muhafidz-dashboard").then((m) => ({ default: m.KepalaMuhafidzDashboard }))
@@ -12,6 +14,9 @@ const KelolaSesiPage = lazy(() =>
   import("@/features/halaqah/pages/kelola-sesi-page").then((m) => ({ default: m.KelolaSesiPage }))
 );
 const AbsensiPage = lazy(() => import("@/features/absensi/pages/AbsensiPage"));
+const KelolaIzinPage = lazy(() =>
+  import("@/features/izin").then((m) => ({ default: m.KelolaIzinPage }))
+);
 const SetoranPage = lazy(() =>
   import("@/features/setoran/pages/input-setoran-page").then((m) => ({ default: m.InputSetoranPage }))
 );
@@ -36,8 +41,32 @@ const KategoriSettingsPage = lazy(() => import("@/features/settings/pages/Katego
 const TargetSettingsPage = lazy(() => import("@/features/settings/pages/TargetSettingsPage"));
 const UjianSettingsPage = lazy(() => import("@/features/settings/pages/UjianSettingsPage"));
 const FormSetoranSettingsPage = lazy(() => import("@/features/settings/pages/FormSetoranSettingsPage"));
+const TerminologySettingsPage = lazy(() =>
+  import("@/features/settings/pages/TerminologySettingsPage")
+);
+const KelolaRubrikPage = lazy(() =>
+  import("@/features/rubrik").then((m) => ({ default: m.KelolaRubrikPage }))
+);
+const KelolaRolePage = lazy(() =>
+  import("@/features/role").then((m) => ({ default: m.KelolaRolePage }))
+);
+const ProgressDashboard = lazy(() =>
+  import("@/features/progress").then((m) => ({ default: m.ProgressDashboard }))
+);
 const ProgresSantriPage = lazy(() =>
   import("@/features/santri/pages/progres-santri-page").then((m) => ({ default: m.ProgresSantriPage }))
+);
+const KalenderAkademikPage = lazy(() =>
+  import("@/features/akademik").then((m) => ({ default: m.KalenderAkademikPage }))
+);
+const HariLiburPage = lazy(() =>
+  import("@/features/akademik").then((m) => ({ default: m.HariLiburPage }))
+);
+const KelolaProgramPage = lazy(() =>
+  import("@/features/program").then((m) => ({ default: m.KelolaProgramPage }))
+);
+const KelolaPengumumanPage = lazy(() =>
+  import("@/features/pengumuman").then((m) => ({ default: m.KelolaPengumumanPage }))
 );
 
 export const kepalaRoutes: RouteObject[] = [
@@ -46,8 +75,32 @@ export const kepalaRoutes: RouteObject[] = [
     element: <KepalaMuhafidzDashboard />,
   },
   {
+    path: "/kepala-muhafidz/pengumuman",
+    element: <KelolaPengumumanPage />,
+  },
+  {
+    path: "/kepala-muhafidz/akademik",
+    element: <KalenderAkademikPage />,
+  },
+  {
+    path: "/kepala-muhafidz/akademik/hari-libur",
+    element: <HariLiburPage />,
+  },
+  {
+    path: "/kepala-muhafidz/akademik/program",
+    element: <KelolaProgramPage />,
+  },
+  {
+    path: "/kepala-muhafidz/program",
+    element: <KelolaProgramPage />,
+  },
+  {
     path: "/kepala-muhafidz/muhafiz",
-    element: <KelolaMuhafizPage />,
+    element: (
+      <ProtectedRoute allowedRoles={[Role.SUPERADMIN, Role.ADMIN]}>
+        <KelolaMuhafizPage />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/kepala-muhafidz/halaqah",
@@ -60,6 +113,10 @@ export const kepalaRoutes: RouteObject[] = [
   {
     path: "/kepala-muhafidz/absensi",
     element: <AbsensiPage />,
+  },
+  {
+    path: "/kepala-muhafidz/izin",
+    element: <KelolaIzinPage />,
   },
   {
     path: "/kepala-muhafidz/setoran",
@@ -76,6 +133,10 @@ export const kepalaRoutes: RouteObject[] = [
   {
     path: "/kepala-muhafidz/leaderboard",
     element: <LeaderboardPage role="admin" />,
+  },
+  {
+    path: "/kepala-muhafidz/progress",
+    element: <ProgressDashboard />,
   },
   {
     path: "/kepala-muhafidz/tahfidzai",
@@ -107,15 +168,43 @@ export const kepalaRoutes: RouteObject[] = [
   },
   {
     path: "/kepala-muhafidz/settings/target",
-    element: <TargetSettingsPage />,
+    element: (
+      <FeatureRouteGuard code="TARGET">
+        <TargetSettingsPage />
+      </FeatureRouteGuard>
+    ),
   },
   {
     path: "/kepala-muhafidz/settings/ujian",
-    element: <UjianSettingsPage />,
+    element: (
+      <FeatureRouteGuard code="UJIAN">
+        <UjianSettingsPage />
+      </FeatureRouteGuard>
+    ),
   },
   {
     path: "/kepala-muhafidz/settings/form-setoran",
     element: <FormSetoranSettingsPage />,
+  },
+  {
+    path: "/kepala-muhafidz/settings/terminology",
+    element: (
+      <ProtectedRoute allowedRoles={[Role.SUPERADMIN, Role.ADMIN]}>
+        <TerminologySettingsPage />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/kepala-muhafidz/settings/rubrik",
+    element: <KelolaRubrikPage />,
+  },
+  {
+    path: "/kepala-muhafidz/settings/roles",
+    element: (
+      <ProtectedRoute allowedRoles={[Role.SUPERADMIN, Role.ADMIN]}>
+        <KelolaRolePage />
+      </ProtectedRoute>
+    ),
   },
 
   // Kontrol per-halaqah

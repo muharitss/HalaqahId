@@ -1,8 +1,8 @@
 import { useState, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { halaqahManagementService } from "@/features/halaqah/api/halaqahManagementService";
-import { type Halaqah } from "@/features/halaqah/types";
-import { type Santri } from "@/features/halaqah/types";
+import { type Halaqah, type Santri } from "@/features/halaqah/types";
+import { type StatusSantri } from "@/features/santri/types";
 import { toast } from "sonner";
 
 export function useHalaqahManagement() {
@@ -18,6 +18,7 @@ export function useHalaqahManagement() {
   const [isSantriModalOpen, setIsSantriModalOpen] = useState(false);
   const [isDeleteSantriOpen, setIsDeleteSantriOpen] = useState(false);
   const [isMoveSantriOpen, setIsMoveSantriOpen] = useState(false);
+  const [isMuhafizModalOpen, setIsMuhafizModalOpen] = useState(false);
 
   // --- DATA FETCHING ---
   const { data = { halaqahs: [] as Halaqah[], santriMap: {} as Record<number, Santri[]> }, isLoading: isLoadingHalaqah, refetch: fetchData } = useQuery({
@@ -48,7 +49,13 @@ export function useHalaqahManagement() {
     queryClient.invalidateQueries({ queryKey: ["halaqah-management"] });
     setIsEditHalaqahOpen(false);
     setIsDeleteHalaqahOpen(false);
+    setIsMuhafizModalOpen(false);
   }, [queryClient]);
+
+  const handleOpenManageMuhafiz = useCallback((halaqah: Halaqah) => {
+    setSelectedHalaqah(halaqah);
+    setIsMuhafizModalOpen(true);
+  }, []);
 
   const handleOpenAddSantri = useCallback((halaqah: Halaqah) => {
     setSelectedHalaqah(halaqah);
@@ -64,12 +71,16 @@ export function useHalaqahManagement() {
   const saveSantriMutation = useMutation({
     mutationFn: async (data: {
       nama_santri: string | FormDataEntryValue | null;
+      nomor_induk_santri?: string | null;
+      status?: StatusSantri;
       nomor_telepon?: string | FormDataEntryValue | null;
       id_target: number | null;
       id_halaqah: number | undefined;
     }) => {
       const payload = {
         nama_santri: String(data.nama_santri),
+        nomor_induk_santri: data.nomor_induk_santri !== undefined ? data.nomor_induk_santri : (selectedSantri?.nomor_induk_santri ?? null),
+        status: data.status !== undefined ? data.status : (selectedSantri?.status ?? "AKTIF"),
         nomor_telepon: data.nomor_telepon ? String(data.nomor_telepon) : "",
         id_target: data.id_target,
         id_halaqah: data.id_halaqah || selectedHalaqah?.id_halaqah || 0,
@@ -112,6 +123,8 @@ export function useHalaqahManagement() {
       if (!selectedSantri) throw new Error("No selected santri");
       await halaqahManagementService.updateSantri(santriId, {
         nama_santri: selectedSantri.nama_santri,
+        nomor_induk_santri: selectedSantri.nomor_induk_santri,
+        status: selectedSantri.status,
         nomor_telepon: selectedSantri.nomor_telepon || "",
         id_target: selectedSantri.id_target,
         id_halaqah: targetHalaqahId,
@@ -131,6 +144,8 @@ export function useHalaqahManagement() {
   const handleSaveSantri = useCallback(
     async (data: {
       nama_santri: string;
+      nomor_induk_santri?: string | null;
+      status?: StatusSantri;
       nomor_telepon?: string | null;
       id_target: number | null;
       id_halaqah: number | undefined;
@@ -165,6 +180,7 @@ export function useHalaqahManagement() {
     isSantriModalOpen,
     isDeleteSantriOpen,
     isMoveSantriOpen,
+    isMuhafizModalOpen,
     isSubmitting,
 
     setSelectedHalaqah,
@@ -174,10 +190,12 @@ export function useHalaqahManagement() {
     setIsSantriModalOpen,
     setIsDeleteSantriOpen,
     setIsMoveSantriOpen,
+    setIsMuhafizModalOpen,
 
     fetchData,
     handleOpenAddSantri,
     handleOpenEditSantri,
+    handleOpenManageMuhafiz,
     handleSaveSantri,
     handleDeleteSantriConfirm,
     handleMoveSantriConfirm,

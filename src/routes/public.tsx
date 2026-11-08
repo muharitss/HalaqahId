@@ -1,14 +1,78 @@
-import { Navigate, type RouteObject } from "react-router-dom";
+/* eslint-disable react-refresh/only-export-components */
+import { lazy, Suspense } from "react";
+import { Navigate, Outlet, type RouteObject } from "react-router-dom";
+import { PortalProvider } from "@/features/portal/store/portal-context";
+
+const PortalLoginPage = lazy(() => import("@/features/portal/pages/PortalLoginPage"));
+const PortalDashboard = lazy(() => import("@/features/portal/pages/PortalDashboard"));
+const PublicDisplay = lazy(() => import("@/features/display/pages/PublicDisplay"));
+const SantriDetail = lazy(() => import("@/features/display/pages/SantriDetail"));
+import { DisplayProvider } from "@/features/display";
+
+// Portal wrapper with isolated parent auth context
+const PortalWrapper = () => (
+  <PortalProvider>
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+          <div className="h-8 w-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+        </div>
+      }
+    >
+      <Outlet />
+    </Suspense>
+  </PortalProvider>
+);
 
 export const publicRoutes: RouteObject[] = [
+  // ── Public: Portal Orang Tua (tanpa DashboardLayout) ─────────────────────
+  {
+    path: "/:slug/portal",
+    element: <PortalWrapper />,
+    children: [
+      {
+        index: true,
+        element: <PortalLoginPage />,
+      },
+      {
+        path: "dashboard",
+        element: <PortalDashboard />,
+      },
+    ],
+  },
+
   // ── Public: Display Portal (tidak butuh login) ───────────────────────────
   {
     path: "/display/:slug",
-    element: <Navigate to="/login" replace />,
+    element: (
+      <DisplayProvider>
+        <Suspense
+          fallback={
+            <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+              <div className="h-8 w-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+            </div>
+          }
+        >
+          <PublicDisplay />
+        </Suspense>
+      </DisplayProvider>
+    ),
   },
   {
     path: "/display/:slug/santri/:id",
-    element: <Navigate to="/login" replace />,
+    element: (
+      <DisplayProvider>
+        <Suspense
+          fallback={
+            <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+              <div className="h-8 w-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+            </div>
+          }
+        >
+          <SantriDetail />
+        </Suspense>
+      </DisplayProvider>
+    ),
   },
 
   // ── Public: Landing & SEO Pages (tidak butuh login) ──────────────────────

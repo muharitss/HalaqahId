@@ -1,28 +1,43 @@
 import axiosClient from "@/lib/axiosClient";
-import { santriService } from "@/features/santri";
+import { santriService } from "@/features/santri/api/services/santriService";
 import { type Halaqah } from "../types";
 import { type Santri } from "../types";
 import type { GlobalResponse } from "@/types/api/global-response";
+import type {
+  HalaqahMuhafiz,
+  AssignHalaqahMuhafizRequest,
+  UpdateHalaqahMuhafizRequest,
+} from "@/types";
 
 export const halaqahManagementService = {
-  // Get all halaqah
+  // Get all halaqah (loops through pages if full list requested)
   getAllHalaqah: async (params?: { page?: number; limit?: number }): Promise<Halaqah[]> => {
-    const finalParams = { limit: 1000, ...params };
-    const response = await axiosClient.get<any>("/halaqah", { params: finalParams });
-    const resData = response.data;
+    const extractItems = (resData: any): Halaqah[] => {
+      if (resData?.data) {
+        if (Array.isArray(resData.data)) return resData.data;
+        if (resData.data.data && Array.isArray(resData.data.data)) return resData.data.data;
+      }
+      if (Array.isArray(resData)) return resData;
+      return [];
+    };
 
-    if (resData?.data) {
-      if (Array.isArray(resData.data)) {
-        return resData.data;
-      }
-      if (resData.data.data && Array.isArray(resData.data.data)) {
-        return resData.data.data;
-      }
+    if (params?.page) {
+      const response = await axiosClient.get<any>("/halaqah", { params: { limit: 100, ...params } });
+      return extractItems(response.data);
     }
-    if (Array.isArray(resData)) {
-      return resData;
-    }
-    return [];
+
+    let page = 1;
+    let allData: Halaqah[] = [];
+    let totalPages = 1;
+    do {
+      const response = await axiosClient.get<any>("/halaqah", { params: { page, limit: 100 } });
+      const items = extractItems(response.data);
+      allData = allData.concat(items);
+      totalPages = response.data?.pagination?.totalPages || 1;
+      page++;
+    } while (page <= totalPages && page <= 100);
+
+    return allData;
   },
 
   // Get all santri
@@ -66,6 +81,38 @@ export const halaqahManagementService = {
   // Restore halaqah
   restoreHalaqah: async (id: number): Promise<GlobalResponse<null>> => {
     const res = await axiosClient.patch<GlobalResponse<null>>(`/halaqah/restore/${id}`);
+    return res.data;
+  },
+
+  // ──────────────────── Halaqah Muhafiz (Multi-muhafiz) ────────────────────
+  getMuhafiz: async (idHalaqah: number): Promise<HalaqahMuhafiz[]> => {
+    const res = await axiosClient.get<GlobalResponse<HalaqahMuhafiz[]>>(`/halaqah/${idHalaqah}/muhafiz`);
+    const data = res.data?.data ?? res.data;
+    return Array.isArray(data) ? data : [];
+  },
+
+  assignMuhafiz: async (
+    idHalaqah: number,
+    data: AssignHalaqahMuhafizRequest
+  ): Promise<GlobalResponse<HalaqahMuhafiz>> => {
+    const res = await axiosClient.post<GlobalResponse<HalaqahMuhafiz>>(`/halaqah/${idHalaqah}/muhafiz`, data);
+    return res.data;
+  },
+
+  updateMuhafiz: async (
+    idHalaqah: number,
+    muhafizId: number,
+    data: UpdateHalaqahMuhafizRequest
+  ): Promise<GlobalResponse<HalaqahMuhafiz>> => {
+    const res = await axiosClient.put<GlobalResponse<HalaqahMuhafiz>>(`/halaqah/${idHalaqah}/muhafiz/${muhafizId}`, data);
+    return res.data;
+  },
+
+  removeMuhafiz: async (
+    idHalaqah: number,
+    muhafizId: number
+  ): Promise<GlobalResponse<null>> => {
+    const res = await axiosClient.delete<GlobalResponse<null>>(`/halaqah/${idHalaqah}/muhafiz/${muhafizId}`);
     return res.data;
   },
 

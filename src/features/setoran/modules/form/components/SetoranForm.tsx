@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useMemo, useEffect, useRef } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Form } from "@/components/ui/form";
 import { type Santri } from "@/features/santri/types";
 import { type SesiHalaqah } from "@/types/domain/sesi-halaqah";
 import { type SetoranPayload, type MushafSelection } from "../../../types";
 import { setoranService } from "../../../api/services/setoranService";
+import { sekolahService, type KategoriSetoranResponse } from "@/features/sekolah";
 import { useSmartSetoranMode } from "../../../hooks/useSmartSetoranMode";
 import { useFormInit } from "../hooks/useFormInit";
 import { useDynamicSchema } from "../hooks/useDynamicSchema";
@@ -28,6 +30,7 @@ import { DynamicFields } from "./DynamicFields";
 import { KeteranganInput } from "./KeteranganInput";
 import { FormFooter } from "./FormFooter";
 import { CheckErrorBanner, CheckingIndicator, EditModeBanner } from "../../../components/SetoranModeBanner";
+import { RubrikScoring } from "../../../components/RubrikScoring";
 
 
 interface SetoranFormProps {
@@ -55,6 +58,16 @@ export function SetoranForm({
   const smartMode = useSmartSetoranMode();
   const { customFields } = useDynamicSchema();
   const { form } = useFormInit(customFields);
+
+  const [rubrikScores, setRubrikScores] = useState<Record<number, number>>({});
+
+  const { data: kategoriList = [] } = useQuery<KategoriSetoranResponse[]>({
+    queryKey: ["kategori-setoran"],
+    queryFn: async () => {
+      const res = await sekolahService.getKategori();
+      return res.data || [];
+    },
+  });
 
   const isRestoringDraft = useRef(
     typeof window !== "undefined"
@@ -93,6 +106,36 @@ export function SetoranForm({
   const selectedSesiId = form.watch("id_sesi");
   const selectedTanggal = form.watch("tanggal_setoran");
   const selectedKategoriId = form.watch("id_kategori"); // angkat ke variabel agar tidak dipanggil dalam dep array
+
+  const selectedKategoriObj = useMemo(() => {
+    return kategoriList.find((k) => k.id_kategori === selectedKategoriId);
+  }, [kategoriList, selectedKategoriId]);
+
+  const activeRubrik = selectedKategoriObj?.rubrik;
+  const rubrikKriteria = useMemo(() => activeRubrik?.kriteria || [], [activeRubrik]);
+  const hasRubrik = rubrikKriteria.length > 0;
+
+  useEffect(() => {
+    if (hasRubrik) {
+      setRubrikScores((prev) => {
+        const next = { ...prev };
+        let changed = false;
+        for (const k of rubrikKriteria) {
+          if (next[k.id_kriteria] === undefined) {
+            next[k.id_kriteria] = k.skala_max;
+            changed = true;
+          }
+        }
+        if (changed || !form.getValues("nilai_kriteria")) {
+          form.setValue("nilai_kriteria", next);
+        }
+        return next;
+      });
+    } else {
+      setRubrikScores({});
+      form.setValue("nilai_kriteria", undefined);
+    }
+  }, [selectedKategoriId, hasRubrik, rubrikKriteria]);
 
   useEffect(() => smartMode.setSelectedSantriId(selectedSantriId ?? null), [selectedSantriId, smartMode.setSelectedSantriId]);
   useEffect(() => smartMode.setSelectedSesiId(selectedSesiId ?? null), [selectedSesiId, smartMode.setSelectedSesiId]);
@@ -148,6 +191,14 @@ export function SetoranForm({
       form.setValue("taqwim", data.taqwim || undefined);
       form.setValue("keterangan", data.keterangan || "");
       if (data.custom_values) form.setValue("custom_values", data.custom_values as any);
+      if (data.nilai_kriteria && Array.isArray(data.nilai_kriteria)) {
+        const loaded: Record<number, number> = {};
+        for (const nk of data.nilai_kriteria) {
+          loaded[nk.id_kriteria] = nk.nilai;
+        }
+        setRubrikScores(loaded);
+        form.setValue("nilai_kriteria", loaded);
+      }
       form.trigger();
     } else if (smartMode.mode === "create" && prevMode.current === "edit") {
       form.setValue("juz", 1);
@@ -157,6 +208,8 @@ export function SetoranForm({
       form.setValue("ayat_selesai", undefined as any);
       form.setValue("taqwim", undefined);
       form.setValue("keterangan", "");
+      setRubrikScores({});
+      form.setValue("nilai_kriteria", undefined);
       setMushafSelection(null);
     }
 
@@ -218,6 +271,8 @@ export function SetoranForm({
         keterangan: "",
         custom_values: {},
       });
+      setRubrikScores({});
+      form.setValue("nilai_kriteria", undefined);
       setMushafSelection(null);
       smartMode.retryCheck();
     }
@@ -285,6 +340,20 @@ export function SetoranForm({
 
         {/* Range Input */}
         <RangeInput form={form} setMushafSelection={setMushafSelection} />
+
+        {/* Rubrik Scoring (jika kategori memiliki rubrik penilaian) */}
+        {hasRubrik && activeRubrik && (
+          <RubrikScoring
+            rubrikId={activeRubrik.id_rubrik}
+            rubrikNama={activeRubrik.nama}
+            kriteria={rubrikKriteria}
+            values={rubrikScores}
+            onChange={(newScores) => {
+              setRubrikScores(newScores);
+              form.setValue("nilai_kriteria", newScores);
+            }}
+          />
+        )}
 
         {/* Dynamic Fields */}
         <DynamicFields form={form} customFields={customFields} />

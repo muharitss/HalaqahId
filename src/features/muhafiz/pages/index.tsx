@@ -20,9 +20,11 @@ import { AccessDenied } from "../components/AccessDenied";
 import { isKepalaRole } from "@/types/domain/enums";
 import { type Muhafiz } from "../types";
 import { type SesiHalaqah } from "@/types/domain/sesi-halaqah";
+import { useTerminology } from "@/hooks/useTerminology";
 
 export default function KelolaMuhafizPage() {
   const { user } = useAuth();
+  const labelMuhafiz = useTerminology("MUHAFIZ");
   const {
     muhafizList,
     activeMuhafizIds,
@@ -63,12 +65,11 @@ export default function KelolaMuhafizPage() {
     setCurrentPage(1);
   }, [searchTerm]);
 
-  if (!user || !isKepalaRole(user.role)) return <AccessDenied />;
-
   const filteredMuhafizList = useMemo(() => {
     return muhafizList.filter((m: Muhafiz) => {
       if (!selectedSesi) return true;
-      return m.halaqah?.sesi_halaqahs?.some((s: { id_sesi: number }) => s.id_sesi === selectedSesi) ?? false;
+      const sesiList = m.halaqah?.sesi_halaqahs || m.halaqah?.halaqah_sesi;
+      return sesiList?.some((s: { id_sesi: number }) => s.id_sesi === selectedSesi) ?? false;
     });
   }, [muhafizList, selectedSesi]);
 
@@ -85,6 +86,8 @@ export default function KelolaMuhafizPage() {
       ? filteredMuhafiz
       : filteredMuhafiz.slice((currentPage - 1) * 10, currentPage * 10);
   }, [filteredMuhafiz, showAll, currentPage]);
+
+  if (!user || !isKepalaRole(user.role)) return <AccessDenied />;
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
@@ -146,12 +149,12 @@ export default function KelolaMuhafizPage() {
               <div className="p-4 border-t flex flex-col sm:flex-row items-center justify-between gap-4 bg-muted/10">
                 <div className="text-xs text-muted-foreground">
                   {showAll ? (
-                    <span>Menampilkan semua <strong>{filteredMuhafiz.length}</strong> muhafidz</span>
+                    <span>Menampilkan semua <strong>{filteredMuhafiz.length}</strong> {labelMuhafiz.toLowerCase()}</span>
                   ) : (
                     <span>
                       Menampilkan <strong>{Math.min((currentPage - 1) * 10 + 1, filteredMuhafiz.length)}</strong> -{" "}
                       <strong>{Math.min(currentPage * 10, filteredMuhafiz.length)}</strong> dari{" "}
-                      <strong>{filteredMuhafiz.length}</strong> muhafidz
+                      <strong>{filteredMuhafiz.length}</strong> {labelMuhafiz.toLowerCase()}
                     </span>
                   )}
                 </div>

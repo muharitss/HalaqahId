@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
-import axiosClient from "@/lib/axiosClient";
+import { landingService } from "../api";
 import { SEO } from "@/components/custom/seo/SEO";
 import { Header } from "../components/Header";
 import { Hero } from "../components/Hero";
@@ -86,10 +86,10 @@ export default function LandingPage() {
     // Fetch landing page configs from DB if they exist
     const fetchSections = async () => {
       try {
-        const res = await axiosClient.get("/landing/sections");
-        if (res.data && res.data.success) {
+        const res = await landingService.getSections();
+        if (res && res.success) {
           const map: Record<string, any> = {};
-          res.data.data.forEach((sec: any) => {
+          res.data.forEach((sec: any) => {
             map[sec.section_key] = sec;
           });
           setDbSections(map);

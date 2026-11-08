@@ -4,7 +4,7 @@ import { absensiService } from "../services/absensiService";
 import { getErrorMessage } from "@/utils/error";
 import { absensiKeys } from "../queries/queryKeys";
 import { type AbsensiStatusType, createAbsensiSantriSchema } from "../../validation/absensi.schema";
-import { useAuth } from "@/features/auth";
+import { useAuth } from "@/features/auth/hooks/useAuth";
 
 export interface RekapCellPayload {
   id_santri: number;

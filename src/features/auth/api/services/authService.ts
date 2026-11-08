@@ -25,7 +25,7 @@ export const authService = {
   },
 
   registerAdmin: async (
-    data: Omit<RegisterFormValues, "confirmPassword">
+    data: Omit<RegisterFormValues, "confirmPassword"> & { id_tenant?: number; tenant_slug?: string }
   ): Promise<GlobalResponse<RegisterAdminResponse>> => {
     const response = await axiosClient.post<GlobalResponse<RegisterAdminResponse>>(
       "/halaqah/auth/register-admin",
@@ -35,9 +35,21 @@ export const authService = {
   },
 
   logout: (): void => {
+    const userStr = localStorage.getItem("user");
+    let refreshToken = localStorage.getItem("refresh_token");
+    if (userStr) {
+      try {
+        const u = JSON.parse(userStr);
+        if (u.refresh_token) refreshToken = u.refresh_token;
+      } catch {}
+    }
+    if (refreshToken) {
+      axiosClient.post("/halaqah/auth/logout", { refresh_token: refreshToken }).catch(() => {});
+    }
     localStorage.removeItem("user");
     localStorage.removeItem("superadmin_session");
     localStorage.removeItem("token");
+    localStorage.removeItem("refresh_token");
     sessionStorage.clear();
   },
 
@@ -53,6 +65,34 @@ export const authService = {
       "/halaqah/auth/resend-verification",
       { email }
     );
+    return response.data;
+  },
+
+  forgotPassword: async (data: { email: string }): Promise<GlobalResponse<null>> => {
+    const response = await axiosClient.post<GlobalResponse<null>>(
+      "/halaqah/auth/forgot-password",
+      data
+    );
+    return response.data;
+  },
+
+  resetPasswordPublic: async (data: {
+    token: string;
+    password_baru: string;
+  }): Promise<GlobalResponse<null>> => {
+    const response = await axiosClient.post<GlobalResponse<null>>(
+      "/halaqah/auth/reset-password",
+      data
+    );
+    return response.data;
+  },
+
+  refreshToken: async (
+    refresh_token: string
+  ): Promise<GlobalResponse<{ token: string; refresh_token: string }>> => {
+    const response = await axiosClient.post<
+      GlobalResponse<{ token: string; refresh_token: string }>
+    >("/halaqah/auth/refresh", { refresh_token });
     return response.data;
   },
 

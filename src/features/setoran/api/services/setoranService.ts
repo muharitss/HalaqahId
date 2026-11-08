@@ -1,12 +1,14 @@
 import axiosClient from "@/lib/axiosClient";
 import { getErrorMessage } from "@/utils/error";
 import { type ApiResponse } from "@/features/halaqah/api/halaqahService";
+import { type GlobalResponseWithPagination } from "@/types/api/global-response";
 import {
   type SetoranPayload,
   type SetoranRecord,
   type LaporanHafalanData,
 } from "../../types";
 import { type Santri } from "@/features/santri/types";
+import { santriService } from "@/features/santri/api/services/santriService";
 
 export interface SetoranCheckParams {
   id_santri: number;
@@ -45,15 +47,11 @@ export const setoranService = {
     params: SetoranCheckParams,
     signal?: AbortSignal,
   ): Promise<ApiResponse<SetoranCheckResult>> => {
-    try {
-      const response = await axiosClient.get<ApiResponse<SetoranCheckResult>>(
-        "/setoran/check",
-        { params, signal },
-      );
-      return response.data;
-    } catch (error: unknown) {
-      throw error;
-    }
+    const response = await axiosClient.get<ApiResponse<SetoranCheckResult>>(
+      "/setoran/check",
+      { params, signal },
+    );
+    return response.data;
   },
 
   // GET /setoran/leaderboard
@@ -86,11 +84,11 @@ export const setoranService = {
     }
   },
 
-  // GET /santri
+  // GET /santri (retrieves all santri without 10-item truncation)
   getSantriList: async (): Promise<ApiResponse<Santri[]>> => {
     try {
-      const response = await axiosClient.get<ApiResponse<Santri[]>>("/santri");
-      return response.data;
+      const data = await santriService.getAll();
+      return { success: true, message: "OK", data };
     } catch (error: unknown) {
       throw new Error(getErrorMessage(error, "Gagal mengambil data santri"));
     }
@@ -98,31 +96,68 @@ export const setoranService = {
 
   // GET /setoran/all
   getAllSetoran: async (
-    page = 1,
-    limit = 1000,
+    page?: number,
+    limit?: number,
+    filters?: { startDate?: string; endDate?: string },
   ): Promise<ApiResponse<SetoranRecord[]>> => {
     try {
-      const response = await axiosClient.get<ApiResponse<SetoranRecord[]>>(
-        "/setoran/all",
-        {
-          params: { page, limit },
-        },
-      );
-      return response.data;
+      if (page !== undefined) {
+        const response = await axiosClient.get<GlobalResponseWithPagination<SetoranRecord[]>>(
+          "/setoran/all",
+          {
+            params: { page, limit: limit ?? 100, ...filters },
+          },
+        );
+        return response.data;
+      }
+
+      // Loop through pages when fetching all records to avoid 100-item cutoff
+      let currentPage = 1;
+      let allData: SetoranRecord[] = [];
+      let totalPages = 1;
+      do {
+        const response = await axiosClient.get<GlobalResponseWithPagination<SetoranRecord[]>>(
+          "/setoran/all",
+          {
+            params: { page: currentPage, limit: limit ?? 100, ...filters },
+          },
+        );
+        const items = response.data?.data || [];
+        allData = allData.concat(items);
+        totalPages = response.data?.pagination?.totalPages || 1;
+        currentPage++;
+      } while (currentPage <= totalPages && currentPage <= 100);
+
+      return {
+        success: true,
+        message: "OK",
+        data: allData,
+      };
     } catch (error: unknown) {
       throw new Error(getErrorMessage(error, "Gagal mengambil data setoran"));
     }
   },
 
-  // GET /setoran/santri/:id
+  // GET /setoran/santri/:id (loops through pages to avoid 10-item cutoff)
   getSetoranBySantri: async (
     santriId: number,
   ): Promise<ApiResponse<SetoranRecord[]>> => {
     try {
-      const response = await axiosClient.get<ApiResponse<SetoranRecord[]>>(
-        `/setoran/santri/${santriId}`,
-      );
-      return response.data;
+      let page = 1;
+      let allData: SetoranRecord[] = [];
+      let totalPages = 1;
+      do {
+        const response = await axiosClient.get<GlobalResponseWithPagination<SetoranRecord[]>>(
+          `/setoran/santri/${santriId}`,
+          { params: { page, limit: 100 } },
+        );
+        const items = response.data?.data || [];
+        allData = allData.concat(items);
+        totalPages = response.data?.pagination?.totalPages || 1;
+        page++;
+      } while (page <= totalPages && page <= 100);
+
+      return { success: true, message: "OK", data: allData };
     } catch (error: unknown) {
       throw new Error(
         getErrorMessage(error, "Gagal mengambil data setoran santri"),
@@ -187,6 +222,24 @@ export const setoranService = {
       return response.data;
     } catch (error: unknown) {
       throw new Error(getErrorMessage(error, "Gagal mengembalikan setoran"));
+    }
+  },
+
+  // POST /setoran/verify-ai
+  verifyAi: async (audioBlob: Blob): Promise<ApiResponse<{ text: string }>> => {
+    try {
+      const response = await axiosClient.post<ApiResponse<{ text: string }>>(
+        "/setoran/verify-ai",
+        audioBlob,
+        {
+          headers: {
+            "Content-Type": audioBlob.type || "audio/wav",
+          },
+        },
+      );
+      return response.data;
+    } catch (error: unknown) {
+      throw new Error(getErrorMessage(error, "Gagal memverifikasi audio AI"));
     }
   },
 };

@@ -10,7 +10,10 @@ import { type Sekolah } from "@/types/domain/sekolah";
 import { format } from "date-fns";
 import { type SetoranRecord } from "@/features/setoran/types";
 import { type ProgresSantri } from "@/features/santri/types";
-import { SATUAN_TARGET_LABELS, TIPE_TARGET_LABELS } from "@/types/domain/target";
+import {
+  SATUAN_TARGET_LABELS,
+  TIPE_TARGET_LABELS,
+} from "@/types/domain/target";
 
 interface SantriHistoryPdfTemplateProps {
   santri: ProgresSantri;
@@ -22,7 +25,8 @@ interface SantriHistoryPdfTemplateProps {
 
 const getKategoriColor = (kategori: string): string => {
   const normalized = (kategori || "").toUpperCase();
-  if (normalized.includes("ZIYADAH") || normalized.includes("SETORAN")) return "#7c3aed";
+  if (normalized.includes("ZIYADAH") || normalized.includes("SETORAN"))
+    return "#fafafa";
   if (normalized.includes("MURAJAAH")) return "#2563eb";
   if (normalized.includes("HAFALAN")) return "#059669";
   if (normalized.includes("INTENS")) return "#d97706";
@@ -178,7 +182,7 @@ const styles = StyleSheet.create({
   colKategori: { width: "15%" },
   colTaqwim: { width: "10%", textAlign: "center" },
   colKet: { width: "15%" },
-  
+
   // ─── BADGES ───────────────────────────────────────────────────────────────
   kategoriBadge: {
     borderRadius: 4,
@@ -266,7 +270,7 @@ export function SantriHistoryPdfTemplate({
   const resolvedNamaSingkat = sekolah?.nama_singkat || resolvedNamaSekolah;
 
   const pages = Array.from({ length: totalPages }, (_, i) =>
-    history.slice(i * ROWS_PER_PAGE, (i + 1) * ROWS_PER_PAGE)
+    history.slice(i * ROWS_PER_PAGE, (i + 1) * ROWS_PER_PAGE),
   );
 
   const targetLabel = santri.target
@@ -274,11 +278,24 @@ export function SantriHistoryPdfTemplate({
     : "Tanpa Target";
 
   const totalTaqwim = history.reduce((sum, s) => sum + (s.taqwim ?? 0), 0);
-  const rataRataTaqwim = history.length > 0 ? (totalTaqwim / history.length) : 0;
-  const taqwimTextLabel = rataRataTaqwim === 0 ? "Sempurna" : rataRataTaqwim <= 2 ? "Baik" : "Perlu Perbaikan";
-  const taqwimColor = rataRataTaqwim === 0 ? "#059669" : rataRataTaqwim <= 2 ? "#d97706" : "#dc2626";
+  const rataRataTaqwim = history.length > 0 ? totalTaqwim / history.length : 0;
+  const taqwimTextLabel =
+    rataRataTaqwim === 0
+      ? "Sempurna"
+      : rataRataTaqwim <= 2
+        ? "Baik"
+        : "Perlu Perbaikan";
+  const taqwimColor =
+    rataRataTaqwim === 0
+      ? "#059669"
+      : rataRataTaqwim <= 2
+        ? "#d97706"
+        : "#dc2626";
 
-  const totalBaris = history.reduce((sum, s) => sum + (s.total_baris ?? s.totalBaris ?? 0), 0);
+  const totalBaris = history.reduce(
+    (sum, s) => sum + (s.total_baris ?? s.totalBaris ?? 0),
+    0,
+  );
   const totalHalamanData = history.reduce((sum, s) => {
     const startPage = s.start_page ?? s.startPage;
     const endPage = s.end_page ?? s.endPage;
@@ -288,7 +305,8 @@ export function SantriHistoryPdfTemplate({
     return sum;
   }, 0);
   const estimasiHalaman = totalBaris > 0 ? Math.ceil(totalBaris / 15) : 0;
-  const displayTotalHalaman = totalHalamanData > 0 ? totalHalamanData : estimasiHalaman;
+  const displayTotalHalaman =
+    totalHalamanData > 0 ? totalHalamanData : estimasiHalaman;
 
   return (
     <Document
@@ -310,18 +328,22 @@ export function SantriHistoryPdfTemplate({
                   {sekolah.alamat ? sekolah.alamat : ""}
                   {sekolah.kota ? ` · ${sekolah.kota}` : ""}
                   {sekolah.provinsi ? ` · ${sekolah.provinsi}` : ""}
-                  {sekolah.no_telepon || sekolah.whatsapp || sekolah.email ? "\n" : ""}
+                  {sekolah.no_telepon || sekolah.whatsapp || sekolah.email
+                    ? "\n"
+                    : ""}
                   {sekolah.no_telepon ? `Telp: ${sekolah.no_telepon}` : ""}
                   {sekolah.whatsapp ? ` · WA: ${sekolah.whatsapp}` : ""}
                   {sekolah.email ? ` · Email: ${sekolah.email}` : ""}
                 </Text>
               ) : null}
-              <Text style={styles.docTitle}>Laporan Riwayat Setoran Hafalan Santri</Text>
-              <Text style={styles.periodText}>Periode Target: {periodLabel}</Text>
+              <Text style={styles.docTitle}>
+                Laporan Riwayat Setoran Hafalan Santri
+              </Text>
+              <Text style={styles.periodText}>
+                Periode Target: {periodLabel}
+              </Text>
             </View>
-            {sekolah?.logo_url ? (
-              <View style={{ width: 55 }} />
-            ) : null}
+            {sekolah?.logo_url ? <View style={{ width: 55 }} /> : null}
           </View>
 
           {/* ── INFO BOX (Only Page 1) ── */}
@@ -330,7 +352,9 @@ export function SantriHistoryPdfTemplate({
               <View style={styles.infoCol}>
                 <View style={styles.infoField}>
                   <Text style={styles.infoLabel}>Nama Santri</Text>
-                  <Text style={styles.infoValueBold}>{santri.nama_santri.toUpperCase()}</Text>
+                  <Text style={styles.infoValueBold}>
+                    {santri.nama_santri.toUpperCase()}
+                  </Text>
                 </View>
                 <View style={styles.infoField}>
                   <Text style={styles.infoLabel}>Halaqah</Text>
@@ -343,7 +367,9 @@ export function SantriHistoryPdfTemplate({
                 <View style={styles.infoField}>
                   <Text style={styles.infoLabel}>Capaian Progres</Text>
                   <Text style={styles.infoValueBold}>
-                    {santri.target ? `${santri.progres.capaian} dari ${santri.target.nilai_target} (${santri.progres.persentase}%)` : "—"}
+                    {santri.target
+                      ? `${santri.progres.capaian} dari ${santri.target.nilai_target} (${santri.progres.persentase}%)`
+                      : "—"}
                   </Text>
                 </View>
               </View>
@@ -351,11 +377,15 @@ export function SantriHistoryPdfTemplate({
               <View style={styles.infoCol}>
                 <View style={styles.infoField}>
                   <Text style={styles.infoLabel}>Total Setoran</Text>
-                  <Text style={styles.infoValueBold}>{history.length} Kali</Text>
+                  <Text style={styles.infoValueBold}>
+                    {history.length} Kali
+                  </Text>
                 </View>
                 <View style={styles.infoField}>
                   <Text style={styles.infoLabel}>Total Halaman</Text>
-                  <Text style={styles.infoValueBold}>{displayTotalHalaman} Halaman</Text>
+                  <Text style={styles.infoValueBold}>
+                    {displayTotalHalaman} Halaman
+                  </Text>
                 </View>
                 <View style={styles.infoField}>
                   <Text style={styles.infoLabel}>Total Baris</Text>
@@ -373,35 +403,64 @@ export function SantriHistoryPdfTemplate({
 
           {/* ── TABLE TITLE ── */}
           <Text style={styles.sectionTitle}>
-            Rincian Riwayat Setoran {pageIdx > 0 ? `(Lanjutan — Hal. ${pageIdx + 1})` : ""}
+            Rincian Riwayat Setoran{" "}
+            {pageIdx > 0 ? `(Lanjutan — Hal. ${pageIdx + 1})` : ""}
           </Text>
 
           {/* ── HISTORY TABLE ── */}
           <View style={styles.table}>
             <View style={styles.tableHeader}>
               <Text style={[styles.tableHeaderCell, styles.colNo]}>#</Text>
-              <Text style={[styles.tableHeaderCell, styles.colTanggal]}>Tanggal</Text>
-              <Text style={[styles.tableHeaderCell, styles.colMateri]}>Materi Setoran</Text>
-              <Text style={[styles.tableHeaderCell, styles.colKategori]}>Kategori</Text>
-              <Text style={[styles.tableHeaderCell, styles.colTaqwim, { textAlign: "center" }]}>Taqwim</Text>
-              <Text style={[styles.tableHeaderCell, styles.colKet]}>Keterangan</Text>
+              <Text style={[styles.tableHeaderCell, styles.colTanggal]}>
+                Tanggal
+              </Text>
+              <Text style={[styles.tableHeaderCell, styles.colMateri]}>
+                Materi Setoran
+              </Text>
+              <Text style={[styles.tableHeaderCell, styles.colKategori]}>
+                Kategori
+              </Text>
+              <Text
+                style={[
+                  styles.tableHeaderCell,
+                  styles.colTaqwim,
+                  { textAlign: "center" },
+                ]}
+              >
+                Taqwim
+              </Text>
+              <Text style={[styles.tableHeaderCell, styles.colKet]}>
+                Keterangan
+              </Text>
             </View>
 
             {pageRows.map((row, idx) => {
               const startPage = row.start_page ?? row.startPage;
               const endPage = row.end_page ?? row.endPage;
               const totalBaris = row.total_baris ?? row.totalBaris;
-              const catName = typeof row.kategori === "object" && row.kategori ? row.kategori.nama_kategori : (row.kategori || "HAFALAN");
+              const catName =
+                typeof row.kategori === "object" && row.kategori
+                  ? row.kategori.nama_kategori
+                  : row.kategori || "HAFALAN";
 
               return (
                 <View
                   key={row.id_setoran}
-                  style={[styles.tableRow, idx % 2 === 1 ? styles.tableRowAlt : {}]}
+                  style={[
+                    styles.tableRow,
+                    idx % 2 === 1 ? styles.tableRowAlt : {},
+                  ]}
                 >
-                  <Text style={[styles.tableCell, styles.colNo, { color: "#94a3b8" }]}>
+                  <Text
+                    style={[
+                      styles.tableCell,
+                      styles.colNo,
+                      { color: "#94a3b8" },
+                    ]}
+                  >
                     {pageIdx * ROWS_PER_PAGE + idx + 1}
                   </Text>
-                  
+
                   <View style={styles.colTanggal}>
                     <Text style={styles.tableCellBold}>
                       {format(new Date(row.tanggal_setoran), "dd/MM/yyyy")}
@@ -417,9 +476,8 @@ export function SantriHistoryPdfTemplate({
                     </Text>
                     <Text style={styles.tableCellMuted}>
                       Ayat {row.ayat}
-                      {startPage && (
-                        ` · Hal ${startPage === endPage ? startPage : `${startPage}-${endPage}`} (${totalBaris} baris)`
-                      )}
+                      {startPage &&
+                        ` · Hal ${startPage === endPage ? startPage : `${startPage}-${endPage}`} (${totalBaris} baris)`}
                     </Text>
                   </View>
 
@@ -428,12 +486,30 @@ export function SantriHistoryPdfTemplate({
                   </View>
 
                   <View style={[styles.colTaqwim, { alignItems: "center" }]}>
-                    <Text style={[styles.taqwimText, { color: row.taqwim === 0 ? "#059669" : row.taqwim <= 2 ? "#d97706" : "#dc2626" }]}>
+                    <Text
+                      style={[
+                        styles.taqwimText,
+                        {
+                          color:
+                            row.taqwim === 0
+                              ? "#059669"
+                              : row.taqwim <= 2
+                                ? "#d97706"
+                                : "#dc2626",
+                        },
+                      ]}
+                    >
                       {row.taqwim}
                     </Text>
                   </View>
 
-                  <Text style={[styles.tableCell, styles.colKet, { color: "#94a3b8" }]}>
+                  <Text
+                    style={[
+                      styles.tableCell,
+                      styles.colKet,
+                      { color: "#94a3b8" },
+                    ]}
+                  >
                     {row.keterangan || "—"}
                   </Text>
                 </View>

@@ -107,7 +107,6 @@ export const useMuhafiz = () => {
       id_sesi: activeSesiId ?? undefined,
       status: attendanceMap[userId],
       tanggal: selectedDate,
-      keterangan: "",
     }));
     await saveAbsensiMutation.mutateAsync(payloads);
   };

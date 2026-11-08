@@ -1,10 +1,37 @@
-import { useTerminology } from "@/lib/hooks/useTerminology";
+import { useTerminology } from "@/hooks/useTerminology";
 
-interface TermProps {
+export interface TermProps {
   code: string;
+  fallback?: string;
+  prefix?: string;
+  suffix?: string;
+  className?: string;
 }
 
-export function Term({ code }: TermProps) {
-  const label = useTerminology(code);
-  return <>{label}</>;
+export function Term({
+  code,
+  fallback,
+  prefix = "",
+  suffix = "",
+  className,
+}: TermProps) {
+  const label = useTerminology(code, fallback);
+
+  if (className) {
+    return (
+      <span className={className}>
+        {prefix}
+        {label}
+        {suffix}
+      </span>
+    );
+  }
+
+  return (
+    <>
+      {prefix}
+      {label}
+      {suffix}
+    </>
+  );
 }

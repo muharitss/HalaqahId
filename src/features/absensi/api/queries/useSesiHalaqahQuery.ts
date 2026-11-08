@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { sesiService } from "@/features/halaqah";
-import { useAuth } from "@/features/auth";
+import { sesiService } from "@/features/halaqah/api/sesiService";
+import { useAuth } from "@/features/auth/hooks/useAuth";
 import { sesiKeys } from "./queryKeys";
 
 export const useSesiHalaqahQuery = () => {

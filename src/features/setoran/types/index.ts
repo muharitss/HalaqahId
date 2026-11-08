@@ -57,8 +57,24 @@ export interface MushafSelection {
 }
 
 // ─────────────────────────────────────────────
-// Setoran Payload
+// Setoran Payload & Nilai Kriteria
 // ─────────────────────────────────────────────
+
+export interface SetoranNilaiKriteriaItem {
+  id_setoran_nilai?: number;
+  id_setoran?: number;
+  id_kriteria: number;
+  nilai: number;
+  catatan?: string | null;
+  kriteria?: {
+    id_kriteria: number;
+    nama: string;
+    bobot: number;
+    urutan: number;
+    skala_min: number;
+    skala_max: number;
+  };
+}
 
 export interface SetoranPayload {
   id_santri: number;
@@ -81,6 +97,11 @@ export interface SetoranPayload {
   end_line?: number;
   total_baris?: number;
   custom_values?: Record<string, any> | null;
+  nilai_kriteria?: {
+    id_kriteria: number;
+    nilai: number;
+    catatan?: string;
+  }[];
 }
 
 
@@ -101,6 +122,7 @@ export interface SetoranRecord {
   taqwim: number;
   keterangan: string;
   nilai: number;
+  nilai_kriteria?: SetoranNilaiKriteriaItem[];
   santri?: {
     nama_santri: string;
     id_sekolah?: number;
@@ -137,6 +159,7 @@ export interface SetoranFormFields {
   taqwim?: number;
   keterangan?: string;
   custom_values?: Record<string, any>;
+  nilai_kriteria?: Record<number, number>;
 }
 
 export interface DateFilter { month: number | null; year: number | null; }
@@ -156,6 +179,8 @@ export interface SetoranItem {
   };
   taqwim?: number | null;
   keterangan?: string | null;
+  nilai?: number | null;
+  nilai_kriteria?: SetoranNilaiKriteriaItem[];
   custom_values?: Record<string, any> | null;
   created_at?: string;
   updated_at?: string;

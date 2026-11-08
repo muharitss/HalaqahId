@@ -1,16 +1,24 @@
+import { useMemo } from "react";
+import { format } from "date-fns";
 import { ActivityChart } from "../components/ActivityChart";
 import { AttendanceDonutChart } from "../components/AttendanceDonutChart";
 import { JuzDistributionChart } from "../components/JuzDistributionChart";
+import { KepalaMuhafidzKpiCards } from "../components/KepalaMuhafidzKpiCards";
 import { LaporanChartSection } from "@/features/setoran/modules/laporan";
 import { useDashboardData } from "../hooks/useDashboardData";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { UserX, Trophy } from "lucide-react";
+import { UserX, Trophy, BookOpen, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { Term } from "@/components/ui/Term";
+import { useTerminology } from "@/hooks/useTerminology";
+import { Button } from "@/components/ui/button";
 
 export function KepalaMuhafidzDashboard() {
   const navigate = useNavigate();
+  const labelSantri = useTerminology("SANTRI");
+  const labelHalaqah = useTerminology("HALAQAH");
+
   const {
     loading,
     chartView,
@@ -25,16 +33,47 @@ export function KepalaMuhafidzDashboard() {
     totalAbsensi,
     alfaStudents,
     stats,
+    setoranData,
     juzDistribution,
   } = useDashboardData();
+
+  const todayStr = useMemo(() => format(new Date(), "yyyy-MM-dd"), []);
+
+  const todaySetoranCount = useMemo(() => {
+    return (setoranData || []).filter((s) => {
+      const d = s.tanggal_setoran ? new Date(s.tanggal_setoran).toISOString().split("T")[0] : "";
+      return d === todayStr;
+    }).length;
+  }, [setoranData, todayStr]);
+
+  const { avgJuz, activeSetorCount } = useMemo(() => {
+    const totalSantri = juzDistribution.total_santri || 0;
+    const belum = juzDistribution.belum_setoran || 0;
+    const totalJuzSum = (juzDistribution.distribution || []).reduce(
+      (sum, item) => sum + item.juz * item.total_santri,
+      0
+    );
+    const avg = totalSantri > 0 ? (totalJuzSum / totalSantri).toFixed(1) : "0.0";
+    return {
+      avgJuz: avg,
+      activeSetorCount: Math.max(0, totalSantri - belum),
+    };
+  }, [juzDistribution]);
+
+  const todayAttendance = useMemo(() => {
+    const hadir = absensiStats.find((s) => s.status === "HADIR")?.count || 0;
+    const total = totalAbsensi || 0;
+    const pct = total > 0 ? Math.round((hadir / total) * 100) : 0;
+    return { hadir, total, percentage: pct };
+  }, [absensiStats, totalAbsensi]);
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Dashboard Kepala Muhafiz</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Dashboard Kepala <Term code="MUHAFIZ" /></h1>
           <p className="text-muted-foreground">
-            Kelola halaqah, santri, dan laporan secara terpusat
+            Kelola {labelHalaqah.toLowerCase()}, {labelSantri.toLowerCase()}, dan laporan secara terpusat
           </p>
         </div>
         <Button
@@ -47,6 +86,16 @@ export function KepalaMuhafidzDashboard() {
           Lihat Leaderboard
         </Button>
       </div>
+
+      {/* KPI Cards: Progress Hafalan Rata-Rata, Absensi Hari Ini, Setoran Hari Ini, Total Santri */}
+      <KepalaMuhafidzKpiCards
+        avgJuz={avgJuz}
+        activeSetorCount={activeSetorCount}
+        totalSantri={juzDistribution.total_santri || 0}
+        todaySetoranCount={todaySetoranCount}
+        todayAttendance={todayAttendance}
+        isLoading={loading.setoran || loading.absensi || loading.juz}
+      />
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
         <ActivityChart
@@ -78,6 +127,31 @@ export function KepalaMuhafidzDashboard() {
           distribusiHalaqah={stats.distribusiHalaqah}
         />
       )}
+
+      {/* Widget Ringkasan Progress Hafalan */}
+      <Card className="border-primary/20 bg-primary/5 shadow-sm">
+        <CardContent className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+              <BookOpen className="h-5 w-5" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold tracking-tight">Peta Progress Hafalan 114 Surat</h3>
+              <p className="text-xs text-muted-foreground">
+                Pantau visualisasi capaian 30 Juz dan tingkat ketuntasan hafalan per santri secara komprehensif.
+              </p>
+            </div>
+          </div>
+          <Button
+            size="sm"
+            onClick={() => navigate("/kepala-muhafidz/progress")}
+            className="gap-1.5 shrink-0 text-xs"
+          >
+            Buka Peta Hafalan
+            <ArrowRight className="h-3.5 w-3.5" />
+          </Button>
+        </CardContent>
+      </Card>
 
       {/* 3. ALFA STUDENTS LIST */}
       <Card className="shadow-sm">

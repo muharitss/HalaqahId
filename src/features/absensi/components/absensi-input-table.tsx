@@ -7,8 +7,13 @@ import { AlertCircle, CheckCheck, RotateCcw } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { absensiStatusSchema } from "../validation/absensi.schema";
 import { useAbsensi } from "./absensi-provider";
+import { Term } from "@/components/ui/Term";
+import { useTerminology } from "@/hooks/useTerminology";
 
 export function AbsensiInputTable() {
+  const labelSantri = useTerminology("SANTRI");
+  const labelHalaqah = useTerminology("HALAQAH");
+
   const {
     santriList,
     loadingSantri,
@@ -42,7 +47,7 @@ export function AbsensiInputTable() {
       <div className="bg-card rounded-xl border shadow-sm p-12 text-center">
         <AlertCircle className="mx-auto h-10 w-10 text-muted-foreground opacity-20 mb-4" />
         <p className="text-muted-foreground font-medium">
-          Tidak ada santri di halaqah ini.
+          Tidak ada {labelSantri.toLowerCase()} di {labelHalaqah.toLowerCase()} ini.
         </p>
       </div>
     );
@@ -76,7 +81,7 @@ export function AbsensiInputTable() {
         <Table>
           <TableHeader className="bg-muted/50">
             <TableRow>
-              <TableHead className="font-bold">Nama Santri</TableHead>
+              <TableHead className="font-bold">Nama <Term code="SANTRI" /></TableHead>
               <TableHead className="text-right pr-2 font-bold">
                 <div className="flex items-center justify-end gap-2" data-tour="absensi-bulk-action">
                   {isBulkAllHadir ? (
@@ -97,7 +102,7 @@ export function AbsensiInputTable() {
                       onClick={handleBulkHadir}
                       disabled={santriList.length === 0 || !isDateValidForSesi || !selectedSesi}
                       className="h-7 px-3 text-xs font-bold shadow-sm shadow-primary/20 gap-1.5"
-                      title="Tandai semua santri sebagai HADIR"
+                      title={`Tandai semua ${labelSantri.toLowerCase()} sebagai HADIR`}
                     >
                       <CheckCheck className="h-3.5 w-3.5" />
                       Hadir Semua

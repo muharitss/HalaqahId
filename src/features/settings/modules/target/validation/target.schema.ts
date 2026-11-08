@@ -16,7 +16,7 @@ export const targetSchema = z
     }),
     deskripsi: z.string().max(300, "Deskripsi maksimal 300 karakter").optional().nullable(),
     hari_aktif: z
-      .array(z.number().int().min(0).max(6))
+      .array(z.number().int().min(1).max(7))
       .nullable()
       .optional(),
     start_juz: z.coerce.number().min(1, "Juz minimal 1").max(30, "Juz maksimal 30").nullable().optional(),

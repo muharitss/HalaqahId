@@ -1,16 +1,23 @@
 import axios from "axios";
+import { getTenantSlugFromUrl } from "@/utils/tenant";
 
 const axiosClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "/api",
+  baseURL: import.meta.env?.VITE_API_URL || "/api",
   withCredentials: true,
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-// Request interceptor untuk menambahkan token dari berbagai sumber
+// Request interceptor untuk menambahkan token dan tenant context dari berbagai sumber
 axiosClient.interceptors.request.use(
   (config) => {
+    // Tambahkan X-Tenant-Slug dari context/url
+    const tenantSlug = getTenantSlugFromUrl();
+    if (tenantSlug) {
+      config.headers["X-Tenant-Slug"] = tenantSlug;
+    }
+
     // Coba ambil token dari localStorage dengan berbagai cara
     let token = null;
     
@@ -20,6 +27,12 @@ axiosClient.interceptors.request.use(
       try {
         const user = JSON.parse(userStr);
         token = user.token;
+        if (user.id_sekolah) {
+          config.headers["X-Sekolah-Id"] = String(user.id_sekolah);
+        }
+        if (user.id_tenant) {
+          config.headers["X-Tenant-Id"] = String(user.id_tenant);
+        }
       } catch (e) {
         console.error("Gagal parse user:", e);
       }
@@ -43,12 +56,15 @@ axiosClient.interceptors.request.use(
       }
     }
     
-    // Jika token ditemukan, tambahkan ke header
-    if (token) {
+    const isAuthBypassRequest =
+      config.url?.includes("/login") ||
+      config.url?.includes("/forgot-password") ||
+      config.url?.includes("/reset-password") ||
+      config.url?.includes("/refresh");
+
+    // Jika token ditemukan dan bukan auth bypass, tambahkan ke header
+    if (token && !isAuthBypassRequest) {
       config.headers.Authorization = `Bearer ${token}`;
-      console.log("Token added to request:", config.url);
-    } else {
-      console.warn("No token found for request:", config.url);
     }
     
     return config;
@@ -58,67 +74,175 @@ axiosClient.interceptors.request.use(
   }
 );
 
-// Response interceptor untuk handle error
+interface QueueItem {
+  resolve: (token: string) => void;
+  reject: (error: unknown) => void;
+}
+
+let isRefreshing = false;
+let failedQueue: QueueItem[] = [];
+
+const processQueue = (error: unknown, token: string | null = null) => {
+  failedQueue.forEach((item) => {
+    if (error) {
+      item.reject(error);
+    } else if (token) {
+      item.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
+
+const performLogout = () => {
+  const superadminStr = localStorage.getItem("superadmin_session");
+  if (superadminStr) {
+    try {
+      const superadmin = JSON.parse(superadminStr);
+      localStorage.setItem(
+        "user",
+        JSON.stringify({
+          ...superadmin,
+          isImpersonating: false,
+        })
+      );
+      localStorage.removeItem("superadmin_session");
+      window.location.href = "/login?reason=session_expired";
+      return;
+    } catch (e) {
+      console.error("Gagal restore session:", e);
+    }
+  }
+
+  localStorage.removeItem("user");
+  localStorage.removeItem("superadmin_session");
+  localStorage.removeItem("token");
+  localStorage.removeItem("refresh_token");
+  sessionStorage.clear();
+  window.location.href = "/login?reason=session_expired";
+};
+
+// Response interceptor untuk handle error & refresh token
 axiosClient.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
+    const originalRequest = error.config as (typeof error.config & { _retry?: boolean }) | undefined;
+
     if (error.response?.status === 401) {
-      // Jangan redirect jika request-nya adalah login, atau jika user sedang di halaman publik (login/register/verify-email)
       const pathname = window.location.pathname;
-      const isPublicPage = 
-        pathname === "/login" || 
+      const isPublicPage =
+        pathname === "/login" ||
         pathname.startsWith("/login/") ||
         pathname === "/register" ||
         pathname.startsWith("/register/") ||
         pathname === "/verify-email" ||
-        pathname.startsWith("/verify-email/");
-        
-      const isLoginRequest = 
-        error.config?.url?.includes("/login") || 
-        error.config?.url?.includes("login");
+        pathname.startsWith("/verify-email/") ||
+        pathname === "/forgot-password" ||
+        pathname.startsWith("/forgot-password/") ||
+        pathname === "/reset-password" ||
+        pathname.startsWith("/reset-password/");
 
-      if (isLoginRequest || isPublicPage) {
+      const isAuthBypassRequest =
+        originalRequest?.url?.includes("/login") ||
+        originalRequest?.url?.includes("/forgot-password") ||
+        originalRequest?.url?.includes("/reset-password") ||
+        originalRequest?.url?.includes("/refresh");
+
+      if (isAuthBypassRequest || isPublicPage) {
         return Promise.reject(error);
       }
 
-      console.error("Unauthorized access - token mungkin expired");
-      
-      // Cek apakah ini karena impersonate session
-      const superadminStr = localStorage.getItem("superadmin_session");
-      if (superadminStr) {
-        // Jika ada superadmin session, coba restore
+      const userStr = localStorage.getItem("user");
+      let refreshToken: string | null = null;
+      if (userStr) {
         try {
-          const superadmin = JSON.parse(superadminStr);
-          // Set user back to superadmin
-          localStorage.setItem("user", JSON.stringify({
-            ...superadmin,
-            isImpersonating: false
-          }));
-          // Hapus session impersonate
-          localStorage.removeItem("superadmin_session");
-          
-          // Redirect ke halaman login dengan pesan
-          window.location.href = "/login?reason=session_expired";
-        } catch (error) {
-          // Jika gagal, logout semua secara aman
-          localStorage.removeItem("user");
-          localStorage.removeItem("superadmin_session");
-          localStorage.removeItem("token");
-          sessionStorage.clear();
-          window.location.href = "/login";
-          console.error("Gagal restore session:", error);
+          const user = JSON.parse(userStr);
+          refreshToken = user?.refresh_token || null;
+        } catch (e) {
+          console.error("Gagal membaca refresh token dari storage:", e);
         }
-      } else {
-        // Tidak ada superadmin session, logout biasa secara aman
-        localStorage.removeItem("user");
-        localStorage.removeItem("superadmin_session");
-        localStorage.removeItem("token");
-        sessionStorage.clear();
-        window.location.href = "/login";
+      }
+      if (!refreshToken) {
+        refreshToken = localStorage.getItem("refresh_token");
+      }
+
+      if (!refreshToken || originalRequest?._retry) {
+        performLogout();
+        return Promise.reject(error);
+      }
+
+      if (isRefreshing) {
+        return new Promise<string>((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then((token) => {
+            if (originalRequest) {
+              originalRequest.headers = originalRequest.headers || {};
+              originalRequest.headers.Authorization = `Bearer ${token}`;
+              return axiosClient(originalRequest);
+            }
+            return Promise.reject(error);
+          })
+          .catch((err) => Promise.reject(err));
+      }
+
+      if (originalRequest) {
+        originalRequest._retry = true;
+      }
+      isRefreshing = true;
+
+      try {
+        const refreshResponse = await axiosClient.post<{
+          success: boolean;
+          message: string;
+          data: { token: string; refresh_token: string };
+        }>("/halaqah/auth/refresh", { refresh_token: refreshToken });
+
+        const newToken = refreshResponse.data.data.token;
+        const newRefreshToken = refreshResponse.data.data.refresh_token;
+
+        if (userStr) {
+          try {
+            const user = JSON.parse(userStr);
+            localStorage.setItem(
+              "user",
+              JSON.stringify({
+                ...user,
+                token: newToken,
+                refresh_token: newRefreshToken,
+              })
+            );
+          } catch {
+            // ignore
+          }
+        }
+
+        if (localStorage.getItem("token")) {
+          localStorage.setItem("token", newToken);
+        }
+        if (localStorage.getItem("refresh_token")) {
+          localStorage.setItem("refresh_token", newRefreshToken);
+        }
+
+        axiosClient.defaults.headers.common.Authorization = `Bearer ${newToken}`;
+        processQueue(null, newToken);
+
+        if (originalRequest) {
+          originalRequest.headers = originalRequest.headers || {};
+          originalRequest.headers.Authorization = `Bearer ${newToken}`;
+          return axiosClient(originalRequest);
+        }
+      } catch (refreshErr: unknown) {
+        processQueue(refreshErr, null);
+        performLogout();
+        return Promise.reject(refreshErr);
+      } finally {
+        isRefreshing = false;
       }
     }
+
     return Promise.reject(error);
   }
 );
 
 export default axiosClient;
+

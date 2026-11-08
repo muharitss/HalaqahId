@@ -12,7 +12,7 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useTahfidzAi } from "../hooks/useTahfidzAi";
-import { useAuth } from "@/features/auth";
+import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useTour } from "@/hooks/useTour";
 import { type DriveStep } from "driver.js";
 

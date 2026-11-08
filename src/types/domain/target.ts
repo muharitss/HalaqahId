@@ -97,9 +97,25 @@ export const SATUAN_TARGET_LABELS: Record<SatuanTarget, string> = {
   JUZ: "Juz",
 };
 
-/** Nama hari singkat (index = 0=Minggu…6=Sabtu) */
-export const HARI_LABELS_SHORT = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"] as const;
-export const HARI_LABELS_FULL = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"] as const;
+/** Nama hari singkat (1=Senin…7=Minggu/Ahad) */
+export const HARI_LABELS_SHORT: Record<number, string> = {
+  1: "Sen",
+  2: "Sel",
+  3: "Rab",
+  4: "Kam",
+  5: "Jum",
+  6: "Sab",
+  7: "Ahad",
+};
+export const HARI_LABELS_FULL: Record<number, string> = {
+  1: "Senin",
+  2: "Selasa",
+  3: "Rabu",
+  4: "Kamis",
+  5: "Jumat",
+  6: "Sabtu",
+  7: "Minggu",
+};
 
 /**
  * Parse string JSON hari_aktif dari backend menjadi number[].
@@ -109,7 +125,7 @@ export const parseHariAktif = (raw?: string | null): number[] | null => {
   if (!raw) return null;
   try {
     const arr = JSON.parse(raw);
-    if (Array.isArray(arr)) return arr.filter((n) => Number.isInteger(n) && n >= 0 && n <= 6);
+    if (Array.isArray(arr)) return arr.filter((n) => Number.isInteger(n) && n >= 1 && n <= 7);
   } catch {
     // invalid JSON, abaikan
   }
@@ -118,10 +134,10 @@ export const parseHariAktif = (raw?: string | null): number[] | null => {
 
 /**
  * Format hari aktif menjadi label ringkas untuk ditampilkan di UI.
- * Contoh: [1,2,3,4,5] → "Sen–Jum (5 hari)"
+ * Contoh: [1,2,3,4,5] → "Sen, Sel, Rab, Kam, Jum (5 hari/pekan)"
  */
 export const formatHariAktif = (hariArr: number[]): string => {
   if (hariArr.length === 7) return "Semua hari (7 hari)";
-  const labels = hariArr.map((d) => HARI_LABELS_SHORT[d]).join(", ");
+  const labels = hariArr.map((d) => HARI_LABELS_SHORT[d] ?? String(d)).join(", ");
   return `${labels} (${hariArr.length} hari/pekan)`;
 };

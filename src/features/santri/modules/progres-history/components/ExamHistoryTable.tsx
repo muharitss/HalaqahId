@@ -242,125 +242,170 @@ export function ExamHistoryTable({ santri }: ExamHistoryTableProps) {
                               </div>
                             )}
 
-                             {/* Judul Butir Soal */}
-                             <div className="space-y-2">
-                               <h5 className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
-                                 <Calculator className="h-3.5 w-3.5 text-primary" />
-                                 {session.template?.exam_mode === "SINGLE_PASS" ? "Detail Evaluasi Ujian" : "Detail Jawaban & Kesalahan Per Soal"}
-                               </h5>
+                             {/* Detail Penilaian (Rubrik atau Formula Soal) */}
+                             {session.nilai_rubrik && session.nilai_rubrik.length > 0 ? (
+                               <div className="space-y-2">
+                                 <h5 className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                                   <Calculator className="h-3.5 w-3.5 text-primary" />
+                                   Detail Nilai Rubrik Penilaian
+                                 </h5>
+                                 <div className="bg-background rounded-lg border overflow-hidden shadow-xs max-w-xl">
+                                   <table className="w-full text-xs text-left">
+                                     <thead className="bg-muted/40 text-muted-foreground uppercase text-[10px] font-semibold border-b">
+                                       <tr>
+                                         <th className="px-3 py-2">Kriteria</th>
+                                         <th className="px-3 py-2 text-center">Bobot</th>
+                                         <th className="px-3 py-2 text-center">Skala</th>
+                                         <th className="px-3 py-2 text-right">Nilai</th>
+                                       </tr>
+                                     </thead>
+                                     <tbody className="divide-y divide-border/60">
+                                       {session.nilai_rubrik.map((nr) => (
+                                         <tr key={nr.id_kriteria} className="hover:bg-muted/20">
+                                           <td className="px-3 py-2 font-medium text-foreground">
+                                             {nr.kriteria?.nama || `Kriteria #${nr.id_kriteria}`}
+                                             {nr.catatan && (
+                                               <p className="text-[10px] text-muted-foreground italic mt-0.5">{nr.catatan}</p>
+                                             )}
+                                           </td>
+                                           <td className="px-3 py-2 text-center text-muted-foreground">
+                                             {nr.kriteria?.bobot ? `${nr.kriteria.bobot}%` : "-"}
+                                           </td>
+                                           <td className="px-3 py-2 text-center text-muted-foreground text-[10px]">
+                                             {nr.kriteria ? `${nr.kriteria.skala_min} - ${nr.kriteria.skala_max}` : "-"}
+                                           </td>
+                                           <td className="px-3 py-2 text-right font-extrabold text-primary">
+                                             {nr.nilai}
+                                           </td>
+                                         </tr>
+                                       ))}
+                                     </tbody>
+                                   </table>
+                                 </div>
+                               </div>
+                             ) : (
+                               <div className="space-y-2">
+                                 <h5 className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                                   <Calculator className="h-3.5 w-3.5 text-primary" />
+                                   {session.template?.exam_mode === "SINGLE_PASS" ? "Detail Evaluasi Ujian" : "Detail Jawaban & Kesalahan Per Soal"}
+                                 </h5>
 
-                               {session.template?.exam_mode === "SINGLE_PASS" ? (
-                                 <div className="bg-background rounded-lg border p-4 space-y-3 shadow-sm max-w-md">
-                                   <div>
-                                     <span className="font-black text-emerald-600 text-[10px] uppercase tracking-wider">
-                                       Materi Ujian (Bulanan)
-                                     </span>
-                                     {session.range_metadata ? (
-                                       <p className="text-sm font-bold text-foreground mt-0.5">
-                                         {session.range_metadata.start_surat} {session.range_metadata.start_ayat} &rarr; {session.range_metadata.end_surat} {session.range_metadata.end_ayat}
-                                       </p>
-                                     ) : (
-                                       <p className="text-xs text-muted-foreground italic mt-0.5">
-                                         Tidak ada metadata jangkauan materi setoran.
-                                       </p>
-                                     )}
+                                 {session.template?.exam_mode === "SINGLE_PASS" ? (
+                                   <div className="bg-background rounded-lg border p-4 space-y-3 shadow-sm max-w-md">
+                                     <div>
+                                       <span className="font-black text-emerald-600 text-[10px] uppercase tracking-wider">
+                                         Materi Ujian (Bulanan)
+                                       </span>
+                                       {session.range_metadata ? (
+                                         <p className="text-sm font-bold text-foreground mt-0.5">
+                                           {session.range_metadata.start_surat} {session.range_metadata.start_ayat} &rarr; {session.range_metadata.end_surat} {session.range_metadata.end_ayat}
+                                         </p>
+                                       ) : (
+                                         <p className="text-xs text-muted-foreground italic mt-0.5">
+                                           Tidak ada metadata jangkauan materi setoran.
+                                         </p>
+                                       )}
+                                     </div>
+
+                                     {/* Tampilkan data input secara dinamis */}
+                                     <div className="space-y-1.5 pt-2.5 border-t border-dashed">
+                                       {session.jawaban_soal[0] && Object.keys(session.jawaban_soal[0].input_data).map((key) => {
+                                         const labelObj = session.template?.input_schema?.find(
+                                           (field: any) => field.key === key
+                                         );
+                                         const label = labelObj?.label || key;
+                                         const val = session.jawaban_soal[0].input_data[key];
+
+                                         return (
+                                           <div
+                                             key={key}
+                                             className="flex justify-between items-center text-xs"
+                                           >
+                                             <span className="text-muted-foreground">
+                                               {label}
+                                             </span>
+                                             <span className="font-bold text-foreground">
+                                               {val === "" ? "—" : val.toString()}
+                                             </span>
+                                           </div>
+                                         );
+                                       })}
+                                     </div>
                                    </div>
-
-                                   {/* Tampilkan data input secara dinamis */}
-                                   <div className="space-y-1.5 pt-2.5 border-t border-dashed">
-                                     {session.jawaban_soal[0] && Object.keys(session.jawaban_soal[0].input_data).map((key) => {
-                                       const labelObj = session.template?.input_schema?.find(
-                                         (field: any) => field.key === key
-                                       );
-                                       const label = labelObj?.label || key;
-                                       const val = session.jawaban_soal[0].input_data[key];
+                                 ) : (
+                                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                     {session.jawaban_soal.map((jawaban: any) => {
+                                       const detail = jawaban.soal_detail;
+                                       let materi = "Soal " + jawaban.nomor_soal;
+                                       if (detail?.deskripsi_soal) {
+                                         materi = detail.deskripsi_soal;
+                                       } else if (detail?.start_surat_id) {
+                                         const sName = surahNumberToName(detail.start_surat_id);
+                                         materi = `Surah ${sName} Ayat ${detail.start_ayat ?? ""} - ${detail.end_ayat ?? ""}`;
+                                       }
 
                                        return (
                                          <div
-                                           key={key}
-                                           className="flex justify-between items-center text-xs"
+                                           key={jawaban.id_jawaban}
+                                           className="bg-background rounded-lg border p-3.5 space-y-2.5 flex flex-col justify-between shadow-sm"
                                          >
-                                           <span className="text-muted-foreground">
-                                             {label}
-                                           </span>
-                                           <span className="font-bold text-foreground">
-                                             {val === "" ? "—" : val.toString()}
-                                           </span>
+                                           <div>
+                                             <span className="font-black text-primary text-[10px] uppercase tracking-wider">
+                                               Soal #{jawaban.nomor_soal}
+                                             </span>
+                                             <p className="text-xs font-bold text-foreground mt-0.5">
+                                               {materi}
+                                             </p>
+                                           </div>
+
+                                           {/* Tampilkan data input secara dinamis */}
+                                           <div className="space-y-1 pt-1.5 border-t border-dashed">
+                                             {Object.keys(jawaban.input_data).map((key) => {
+                                               const labelObj = session.template?.input_schema?.find(
+                                                 (field: any) => field.key === key
+                                               );
+                                               const label = labelObj?.label || key;
+                                               const val = jawaban.input_data[key];
+
+                                               if (typeof val === "string" && val.length > 50) {
+                                                 return (
+                                                   <div key={key} className="text-[10px] text-muted-foreground mt-1">
+                                                     <span className="font-semibold block text-foreground">{label}:</span>
+                                                     <p className="italic leading-normal">{val}</p>
+                                                   </div>
+                                                 );
+                                               }
+
+                                               return (
+                                                 <div
+                                                   key={key}
+                                                   className="flex justify-between items-center text-[10px]"
+                                                 >
+                                                   <span className="text-muted-foreground truncate mr-2">
+                                                     {label}
+                                                   </span>
+                                                   <span className="font-bold text-foreground shrink-0">
+                                                     {val === "" ? "—" : val.toString()}
+                                                   </span>
+                                                 </div>
+                                               );
+                                             })}
+                                           </div>
                                          </div>
                                        );
                                      })}
                                    </div>
-                                 </div>
-                               ) : (
-                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                                   {session.jawaban_soal.map((jawaban: any) => {
-                                     const detail = jawaban.soal_detail;
-                                     let materi = "Soal " + jawaban.nomor_soal;
-                                     if (detail?.deskripsi_soal) {
-                                       materi = detail.deskripsi_soal;
-                                     } else if (detail?.start_surat_id) {
-                                       const sName = surahNumberToName(detail.start_surat_id);
-                                       materi = `Surah ${sName} Ayat ${detail.start_ayat ?? ""} - ${detail.end_ayat ?? ""}`;
-                                     }
+                                 )}
+                               </div>
+                             )}
 
-                                     return (
-                                       <div
-                                         key={jawaban.id_jawaban}
-                                         className="bg-background rounded-lg border p-3.5 space-y-2.5 flex flex-col justify-between shadow-sm"
-                                       >
-                                         <div>
-                                           <span className="font-black text-primary text-[10px] uppercase tracking-wider">
-                                             Soal #{jawaban.nomor_soal}
-                                           </span>
-                                           <p className="text-xs font-bold text-foreground mt-0.5">
-                                             {materi}
-                                           </p>
-                                         </div>
-
-                                         {/* Tampilkan data input secara dinamis */}
-                                         <div className="space-y-1 pt-1.5 border-t border-dashed">
-                                           {Object.keys(jawaban.input_data).map((key) => {
-                                             const labelObj = session.template?.input_schema?.find(
-                                               (field: any) => field.key === key
-                                             );
-                                             const label = labelObj?.label || key;
-                                             const val = jawaban.input_data[key];
-
-                                             // Skip detail text jika panjang, tapi render jika pendek
-                                             if (typeof val === "string" && val.length > 50) {
-                                               return (
-                                                 <div key={key} className="text-[10px] text-muted-foreground mt-1">
-                                                   <span className="font-semibold block text-foreground">{label}:</span>
-                                                   <p className="italic leading-normal">{val}</p>
-                                                 </div>
-                                               );
-                                             }
-
-                                             return (
-                                               <div
-                                                 key={key}
-                                                 className="flex justify-between items-center text-[10px]"
-                                               >
-                                                 <span className="text-muted-foreground truncate mr-2">
-                                                   {label}
-                                                 </span>
-                                                 <span className="font-bold text-foreground shrink-0">
-                                                   {val === "" ? "—" : val.toString()}
-                                                 </span>
-                                               </div>
-                                             );
-                                           })}
-                                         </div>
-                                       </div>
-                                     );
-                                   })}
-                                 </div>
-                               )}
-                             </div>
-
-                             {/* Info Formula */}
+                             {/* Info Formula / Metode Penilaian */}
                              <div className="text-[9px] text-muted-foreground/60 text-right">
-                               Rumus Evaluasi: <code>{session.template?.formula_expression}</code>
+                               {session.nilai_rubrik && session.nilai_rubrik.length > 0 ? (
+                                 <span>Metode Penilaian: <strong>Rubrik Terbobot</strong></span>
+                               ) : (
+                                 <span>Rumus Evaluasi: <code>{session.template?.formula_expression}</code></span>
+                               )}
                              </div>
                            </div>
                         </TableCell>

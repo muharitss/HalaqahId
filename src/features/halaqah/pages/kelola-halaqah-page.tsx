@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { HalaqahManagement } from "@/components/custom/typed-text";
 import { useHalaqahManagement, BuatHalaqah, DaftarHalaqah, EditHalaqah, DeleteHalaqah } from "../modules";
+import { HalaqahMuhafizManager } from "../components";
 import { SantriModal } from "@/features/santri";
 import {
   Dialog,
@@ -12,7 +13,10 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AlertTriangle, ArrowRightLeft } from "lucide-react";
+import { AlertTriangle, ArrowRightLeft, Shield } from "lucide-react";
+import { Term } from "@/components/ui/Term";
+import { useTerminology } from "@/hooks/useTerminology";
+import { PermissionGate } from "@/components/ui/PermissionGate";
 
 export function KelolaHalaqahPage() {
   const {
@@ -26,6 +30,7 @@ export function KelolaHalaqahPage() {
     isSantriModalOpen,
     isDeleteSantriOpen,
     isMoveSantriOpen,
+    isMuhafizModalOpen,
     isSubmitting,
     setSelectedHalaqah,
     setSelectedSantri,
@@ -34,13 +39,18 @@ export function KelolaHalaqahPage() {
     setIsSantriModalOpen,
     setIsDeleteSantriOpen,
     setIsMoveSantriOpen,
+    setIsMuhafizModalOpen,
     fetchData,
     handleOpenEditSantri,
+    handleOpenManageMuhafiz,
     handleSaveSantri,
     handleDeleteSantriConfirm,
     handleMoveSantriConfirm,
     handleHalaqahSuccess,
   } = useHalaqahManagement();
+
+  const labelSantri = useTerminology("SANTRI");
+  const labelHalaqah = useTerminology("HALAQAH");
 
   const [targetHalaqahId, setTargetHalaqahId] = useState<string>("");
 
@@ -50,7 +60,9 @@ export function KelolaHalaqahPage() {
         <div className="space-y-1">
           <HalaqahManagement />
         </div>
-        <BuatHalaqah onSuccess={fetchData} />
+        <PermissionGate permission="halaqah.create">
+          <BuatHalaqah onSuccess={fetchData} />
+        </PermissionGate>
       </div>
 
       <DaftarHalaqah 
@@ -67,6 +79,7 @@ export function KelolaHalaqahPage() {
         onMoveSantri={(s) => { setSelectedSantri(s); setTargetHalaqahId(""); setIsMoveSantriOpen(true); }}
         onEditSantri={handleOpenEditSantri}
         onDeleteSantri={(s) => { setSelectedSantri(s); setIsDeleteSantriOpen(true); }}
+        onManageMuhafiz={handleOpenManageMuhafiz}
       />
 
       <EditHalaqah 
@@ -98,16 +111,16 @@ export function KelolaHalaqahPage() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-red-600">
               <AlertTriangle className="h-5 w-5" />
-              Hapus Santri
+              Hapus <Term code="SANTRI" />
             </DialogTitle>
             <DialogDescription className="pt-2">
-              Apakah Anda yakin ingin menghapus santri <strong>{selectedSantri?.nama_santri}</strong>?
+              Apakah Anda yakin ingin menghapus {labelSantri.toLowerCase()} <strong>{selectedSantri?.nama_santri}</strong>?
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="mt-4">
             <Button variant="outline" onClick={() => setIsDeleteSantriOpen(false)} disabled={isSubmitting}>Batal</Button>
             <Button variant="destructive" onClick={handleDeleteSantriConfirm} disabled={isSubmitting}>
-              {isSubmitting ? "Menghapus..." : "Hapus Santri"}
+              {isSubmitting ? "Menghapus..." : `Hapus ${labelSantri}`}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -118,16 +131,16 @@ export function KelolaHalaqahPage() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <ArrowRightLeft className="h-5 w-5 text-primary" />
-              Pindah Halaqah Santri
+              Pindah <Term code="HALAQAH" /> <Term code="SANTRI" />
             </DialogTitle>
             <DialogDescription className="pt-2">
-              Pilih halaqah baru untuk <strong>{selectedSantri?.nama_santri}</strong>.
+              Pilih {labelHalaqah.toLowerCase()} baru untuk <strong>{selectedSantri?.nama_santri}</strong>.
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
             <Select value={targetHalaqahId} onValueChange={setTargetHalaqahId}>
               <SelectTrigger>
-                <SelectValue placeholder="Pilih halaqah tujuan..." />
+                <SelectValue placeholder={`Pilih ${labelHalaqah.toLowerCase()} tujuan...`} />
               </SelectTrigger>
               <SelectContent>
                 {halaqahs.map((h) => (
@@ -142,6 +155,40 @@ export function KelolaHalaqahPage() {
             <Button variant="outline" onClick={() => setIsMoveSantriOpen(false)} disabled={isSubmitting}>Batal</Button>
             <Button onClick={() => handleMoveSantriConfirm(selectedSantri!.id_santri, parseInt(targetHalaqahId, 10))} disabled={!targetHalaqahId || isSubmitting}>
               {isSubmitting ? "Menyimpan..." : "Pindah"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isMuhafizModalOpen} onOpenChange={setIsMuhafizModalOpen}>
+        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Shield className="h-5 w-5 text-primary" />
+              Kelola <Term code="MUHAFIZ" />: {selectedHalaqah?.name_halaqah}
+            </DialogTitle>
+            <DialogDescription>
+              Atur tim muhafiz penanggung jawab (Utama, Pendamping, atau Pengganti).
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-2">
+            {selectedHalaqah && (
+              <HalaqahMuhafizManager
+                idHalaqah={selectedHalaqah.id_halaqah}
+                initialMuhafiz={selectedHalaqah.muhafiz_list}
+                fallbackMuhafiz={selectedHalaqah.muhafiz}
+              />
+            )}
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsMuhafizModalOpen(false);
+                fetchData();
+              }}
+            >
+              Tutup
             </Button>
           </DialogFooter>
         </DialogContent>

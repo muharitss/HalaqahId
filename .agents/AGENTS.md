@@ -97,3 +97,19 @@ src/features/<feature-name>/
 * **Zod Schema Validation**: Validate all client-side inputs with Zod schemas prior to making network requests.
 * **Graceful API Error Handling**: Handle API mutations and queries gracefully inside the hooks (`onError` callback) or in components, presenting actionable error states and toasts to the user rather than letting errors fail silently or crash the client.
 
+---
+
+## 9. Backend API Integration & Single Source of Truth
+* **Zero Guesswork**: Dilarang keras menebak path endpoint, HTTP method, parameter names, enum values, atau struktur payload/response API backend.
+* **Backend Docs as Single Source of Truth**: Semua dokumentasi OpenAPI dan skema resmi backend berada di `../halaqahid-be/src/modules/<nama-modul>/docs/` (`<nama-modul>.docs.ts` dan `<nama-modul>.schemas.ts`).
+* **Wajib Mengikuti Rule**: Agent wajib membaca dan mematuhi ketentuan di [.agents/rules/api-backend-docs.md](file:///home/muharits/Programmer/halaqah/HalaqahId/.agents/rules/api-backend-docs.md) sebelum mulai mengimplementasikan service API, types, atau skema validasi Zod di frontend.
+
+---
+
+## 10. UI Components & Styling Standards (shadcn/ui)
+* **Wajib shadcn/ui Murni**: Semua komponen UI frontend wajib dibangun menggunakan shadcn/ui primitives di `src/components/ui/` (`@/components/ui/*`). Dilarang memakai tag HTML mentah jika padanan shadcn/ui ada.
+* **Icon Library Resmi**: Wajib menggunakan `lucide-react`. Dilarang menambah import icon FontAwesome (`@fortawesome/*`).
+* **Larangan CSS Framework Lain**: Dilarang memakai class DaisyUI (`btn`, `modal`, `badge`, dsb). Gunakan Tailwind utility classes dan tokens shadcn/ui.
+* **Toast & Alert**: Gunakan `sonner` (`toast`) dan `@/components/ui/alert`.
+* **Wajib Mengikuti Rule**: Agent wajib membaca dan mematuhi panduan detail di [.agents/rules/shadcn-ui.md](file:///home/muharits/Programmer/halaqah/HalaqahId/.agents/rules/shadcn-ui.md).
+

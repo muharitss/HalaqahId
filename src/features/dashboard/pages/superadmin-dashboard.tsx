@@ -3,11 +3,15 @@ import { useSekolahList } from "@/features/sekolah/hooks/useSekolahList";
 import { SuperadminKpiCards } from "../components/SuperadminKpiCards";
 import { SekolahTable } from "../components/SekolahTable";
 import { JenisLembagaChart } from "../components/JenisLembagaChart";
+import { TenantGrowthChart } from "../components/TenantGrowthChart";
+import { RecentActivityCard } from "../components/RecentActivityCard";
 import { SekolahDetailSheet } from "../components/SekolahDetailSheet";
 import type { SekolahWithCount, JenisLembaga } from "@/types/domain/sekolah";
 import { useQuery } from "@tanstack/react-query";
-import { sekolahService } from "@/features/sekolah";
+import { sekolahService } from "@/features/sekolah/api/services/sekolahService";
 import { SystemHealthPanel } from "../components/SystemHealthPanel";
+import { tenantAdminApi } from "@/features/tenant/api/tenant-admin.api";
+import { useAuditLogs } from "@/features/auth/api/queries/useAuditLogs";
 
 export function SuperadminDashboard() {
   const {
@@ -38,7 +42,22 @@ export function SuperadminDashboard() {
     refetchInterval: 30000, // Auto refresh every 30s
   });
 
+  // Fetch tenants for tenant count & monthly growth chart
+  const { data: tenantResult, isLoading: isTenantsLoading } = useQuery({
+    queryKey: ["superadmin-tenants-summary"],
+    queryFn: async () => {
+      return await tenantAdminApi.listTenants({ limit: 100 });
+    },
+  });
+
+  // Fetch recent audit logs for activity feed
+  const { data: auditLogData, isLoading: isLogsLoading } = useAuditLogs({ limit: 6 });
+
+  const tenants = tenantResult?.tenants || [];
+  const totalTenantCount = tenantResult?.meta?.total ?? tenants.length;
+
   const platformKpis = {
+    totalTenant: totalTenantCount,
     totalSekolah: healthData?.stats?.totalSchools ?? kpi.totalSekolah,
     totalSantri: healthData?.stats?.totalSantri ?? kpi.totalSantri,
     totalHalaqah: healthData?.stats?.totalHalaqah ?? kpi.totalHalaqah,
@@ -53,7 +72,7 @@ export function SuperadminDashboard() {
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       {/* HEADER */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b pb-8">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b pb-6">
         <div className="space-y-1">
           <h1 className="text-2xl font-bold tracking-tight">Superadmin Dashboard</h1>
           <p className="text-muted-foreground text-sm">
@@ -63,9 +82,19 @@ export function SuperadminDashboard() {
       </div>
 
       {/* KPI Cards */}
-      <SuperadminKpiCards kpi={platformKpis} isLoading={isLoading || isHealthLoading} />
+      <SuperadminKpiCards kpi={platformKpis} isLoading={isLoading || isHealthLoading || isTenantsLoading} />
 
-      {/* Chart + Table */}
+      {/* Section: Pertumbuhan Tenant & Recent Activity */}
+      <div className="grid gap-5 grid-cols-1 lg:grid-cols-5">
+        <div className="lg:col-span-3">
+          <TenantGrowthChart tenants={tenants} isLoading={isTenantsLoading} />
+        </div>
+        <div className="lg:col-span-2">
+          <RecentActivityCard logs={auditLogData?.data || []} isLoading={isLogsLoading} />
+        </div>
+      </div>
+
+      {/* Section: Tenant Table + Health & Jenis */}
       <div className="grid gap-5 grid-cols-1 lg:grid-cols-5">
         {/* Tenant Table — 3/5 */}
         <div className="lg:col-span-3">

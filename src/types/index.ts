@@ -11,3 +11,8 @@ export * from './domain/sesi-halaqah';
 export * from './domain/absensi';
 export * from './domain/setoran';
 export * from './domain/tenant';
+export type {
+  SantriWali,
+  CreateSantriWaliRequest,
+  UpdateSantriWaliRequest,
+} from './domain/santri-wali';

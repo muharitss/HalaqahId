@@ -5,6 +5,7 @@ import { HalaqahForm } from "./HalaqahForm";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBook, faPlus } from "@fortawesome/free-solid-svg-icons";
 import type { BuatHalaqahProps } from "@/features/halaqah/types";
+import { Term } from "@/components/ui/Term";
 
 export function BuatHalaqah({ onSuccess }: BuatHalaqahProps) {
   const [open, setOpen] = useState(false);
@@ -19,14 +20,14 @@ export function BuatHalaqah({ onSuccess }: BuatHalaqahProps) {
       <DialogTrigger asChild>
         <Button className="bg-primary hover:bg-primary-dark text-white">
           <FontAwesomeIcon icon={faPlus} className="mr-2" />
-          Tambah Halaqah
+          Tambah <Term code="HALAQAH" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FontAwesomeIcon icon={faBook} />
-            Buat Halaqah Baru
+            Buat <Term code="HALAQAH" /> Baru
           </DialogTitle>
         </DialogHeader>
         <HalaqahForm onSuccess={handleSuccess} />

@@ -3,8 +3,12 @@ import { ThemeToggle } from "@/components/custom/theme/ThemeToggle";
 import { LoginCarousel } from "../components/login-carousel";
 import { LoginHeader } from "../components/login-header";
 import { LoginFooter } from "../components/login-footer";
+import { useTenant } from "@/store/tenant-context";
 
 export function LoginPage() {
+  const { brand } = useTenant();
+  const appName = brand?.nama_aplikasi;
+
   return (
     <div className="flex h-screen w-full overflow-hidden bg-background-light dark:bg-background-dark">
       <div className="absolute top-4 right-4 z-50">
@@ -18,12 +22,16 @@ export function LoginPage() {
 
       <div className="relative flex w-full flex-col items-center justify-center p-6 dark:bg-background-dark lg:w-1/2 overflow-y-auto">
         <div className="mx-auto w-full max-w-md space-y-8 py-10">
+          <div className="lg:hidden pb-2">
+            <LoginHeader variant="mobile" />
+          </div>
+
           <div className="space-y-2 text-center lg:text-left">
             <h2 className="text-3xl font-bold tracking-tight text-text-primary-light dark:text-text-primary-dark">
               Assalamu'alaikum
             </h2>
             <p className="text-text-secondary-light dark:text-text-secondary-dark">
-              Silakan masuk ke akun Anda.
+              {appName ? `Silakan masuk ke portal ${appName}.` : "Silakan masuk ke akun Anda."}
             </p>
           </div>
 

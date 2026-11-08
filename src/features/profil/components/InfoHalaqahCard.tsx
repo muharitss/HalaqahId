@@ -1,8 +1,9 @@
 import { BookOpen, Users, CheckCircle2, AlertCircle } from "lucide-react";
 import type { AuthUser } from "@/types/domain/auth";
+import type { UserProfileData } from "../types";
 
 interface InfoHalaqahCardProps {
-  user: AuthUser;
+  user: AuthUser | UserProfileData;
 }
 
 export function InfoHalaqahCard({ user }: InfoHalaqahCardProps) {
