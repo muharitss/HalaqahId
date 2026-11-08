@@ -3,15 +3,12 @@ import { getErrorMessage } from "@/utils/error";
 import { type GlobalResponse } from "@/types/api/global-response";
 import { 
   type CreateAbsensiSantriRequest as AbsensiPayload, 
-  type AbsensiSantri as AbsensiRecord,
-  type UpdateAbsensiSantriRequest,
-  type CreateAbsensiMuhafizRequest,
-  type UpdateAbsensiMuhafizRequest
+  type AbsensiSantri as AbsensiRecord
 } from "@/types/domain/absensi";
 import { type MonthlyAbsensiData } from "../../types";
 
 export const absensiService = {
-  catatAbsensi: async (payload: AbsensiPayload) => {
+  catatAbsensi: async (payload: AbsensiPayload | AbsensiPayload[]) => {
     try {
       const res = await axiosClient.post<GlobalResponse<AbsensiRecord>>("/absensi", payload);
       return res.data;
@@ -88,69 +85,6 @@ export const absensiService = {
       return res.data;
     } catch (error: unknown) {
       throw new Error(getErrorMessage(error, "Gagal mengambil rekap semua santri"));
-    }
-  },
-
-  getRiwayatAbsensiSantri: async (idSantri: number, params?: { page?: number; limit?: number }) => {
-    try {
-      const res = await axiosClient.get(`/absensi/santri/${idSantri}`, {params});
-      return res.data;
-    } catch (error: unknown) {
-      throw new Error(getErrorMessage(error, "Gagal mengambil riwayat absensi santri"));
-    }
-  },
-
-  updateAbsensiSantri: async (id: number, data: UpdateAbsensiSantriRequest) => {
-    try {
-      const res = await axiosClient.patch(`/absensi/${id}`, data);
-      return res.data;
-    } catch (error: unknown) {
-      throw new Error(getErrorMessage(error, "Gagal memperbarui absensi santri"));
-    }
-  },
-
-  deleteAbsensiSantri: async (id: number) => {
-    try {
-      const res = await axiosClient.delete(`/absensi/${id}`);
-      return res.data;
-    } catch (error: unknown) {
-      throw new Error(getErrorMessage(error, "Gagal menghapus absensi santri"));
-    }
-  },
-
-  catatAbsensiMuhafiz: async (data: CreateAbsensiMuhafizRequest) => {
-    try {
-      const res = await axiosClient.post("/absensi/muhafiz", data);
-      return res.data;
-    } catch (error: unknown) {
-      throw new Error(getErrorMessage(error, "Gagal mencatat absensi muhafiz"));
-    }
-  },
-
-  getRekapMuhafiz: async (month: number | string, year: number | string) => {
-    try {
-      const res = await axiosClient.get(`/absensi/rekap-muhafiz?month=${month}&year=${year}`);
-      return res.data;
-    } catch (error: unknown) {
-      throw new Error(getErrorMessage(error, "Gagal mengambil rekap absensi muhafiz"));
-    }
-  },
-
-  updateAbsensiMuhafiz: async (id: number, data: UpdateAbsensiMuhafizRequest) => {
-    try {
-      const res = await axiosClient.patch(`/absensi/muhafiz/${id}`, data);
-      return res.data;
-    } catch (error: unknown) {
-      throw new Error(getErrorMessage(error, "Gagal memperbarui absensi muhafiz"));
-    }
-  },
-
-  deleteAbsensiMuhafiz: async (id: number) => {
-    try {
-      const res = await axiosClient.delete(`/absensi/muhafiz/${id}`);
-      return res.data;
-    } catch (error: unknown) {
-      throw new Error(getErrorMessage(error, "Gagal menghapus absensi muhafiz"));
     }
   },
 };

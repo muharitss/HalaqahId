@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axiosClient from "@/lib/axiosClient";
+import { seoService } from "@/features/landing/api";
 
 interface SeoSettings {
   seo_google_verification?: string;
@@ -18,9 +18,9 @@ export const AnalyticsWrapper: React.FC<{ children: React.ReactNode }> = ({ chil
     // Fetch public SEO settings
     const fetchSeoSettings = async () => {
       try {
-        const response = await axiosClient.get("/seo/settings");
-        if (response.data && response.data.success) {
-          setSettings(response.data.data);
+        const response = await seoService.getSettings();
+        if (response && response.success) {
+          setSettings(response.data);
         }
       } catch (error) {
         console.error("Gagal memuat pengaturan SEO publik:", error);

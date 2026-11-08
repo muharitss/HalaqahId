@@ -135,7 +135,7 @@ export function RubrikFormDialog({
         const currentIds = new Set<number>(kriteria.filter((k: KriteriaItemFormValues) => !!k.id_kriteria).map((k: KriteriaItemFormValues) => k.id_kriteria!));
         const initialIds = new Set<number>(initialData.kriteria.map((k: RubrikKriteria) => k.id_kriteria));
 
-        // Delete removed criteria
+        // Delete removed criteria first (frees up weight)
         for (const initialId of Array.from(initialIds)) {
           if (!currentIds.has(initialId)) {
             await deleteKriteriaMutation.mutateAsync({
@@ -145,35 +145,52 @@ export function RubrikFormDialog({
           }
         }
 
-        // Add new & update existing criteria
-        for (let idx = 0; idx < kriteria.length; idx++) {
-          const item = kriteria[idx];
+        // Separate existing and new criteria
+        const oldBobotMap = new Map<number, number>(
+          initialData.kriteria.map((k: RubrikKriteria) => [k.id_kriteria, Number(k.bobot)])
+        );
+
+        const existingItems: { item: KriteriaItemFormValues; idx: number; delta: number }[] = [];
+        const newItems: { item: KriteriaItemFormValues; idx: number }[] = [];
+
+        kriteria.forEach((item: KriteriaItemFormValues, idx: number) => {
           if (item.id_kriteria) {
-            // Update
-            await updateKriteriaMutation.mutateAsync({
-              rubrikId: initialData.id_rubrik,
-              kriteriaId: item.id_kriteria,
-              payload: {
-                nama: item.nama.trim(),
-                bobot: Number(item.bobot),
-                skala_min: Number(item.skala_min),
-                skala_max: Number(item.skala_max),
-                urutan: idx + 1,
-              },
-            });
+            const oldBobot = oldBobotMap.get(item.id_kriteria) ?? Number(item.bobot);
+            existingItems.push({ item, idx, delta: Number(item.bobot) - oldBobot });
           } else {
-            // Add new
-            await addKriteriaMutation.mutateAsync({
-              rubrikId: initialData.id_rubrik,
-              payload: {
-                nama: item.nama.trim(),
-                bobot: Number(item.bobot),
-                skala_min: Number(item.skala_min),
-                skala_max: Number(item.skala_max),
-                urutan: idx + 1,
-              },
-            });
+            newItems.push({ item, idx });
           }
+        });
+
+        // Update criteria whose weight decreased before criteria whose weight increased
+        // to prevent exceeding 100% total weight mid-update
+        existingItems.sort((a, b) => a.delta - b.delta);
+
+        for (const { item, idx } of existingItems) {
+          await updateKriteriaMutation.mutateAsync({
+            rubrikId: initialData.id_rubrik,
+            kriteriaId: item.id_kriteria!,
+            payload: {
+              nama: item.nama.trim(),
+              bobot: Number(item.bobot),
+              skala_min: Number(item.skala_min),
+              skala_max: Number(item.skala_max),
+              urutan: idx + 1,
+            },
+          });
+        }
+
+        for (const { item, idx } of newItems) {
+          await addKriteriaMutation.mutateAsync({
+            rubrikId: initialData.id_rubrik,
+            payload: {
+              nama: item.nama.trim(),
+              bobot: Number(item.bobot),
+              skala_min: Number(item.skala_min),
+              skala_max: Number(item.skala_max),
+              urutan: idx + 1,
+            },
+          });
         }
 
         toast.success("Rubrik penilaian berhasil diperbarui");

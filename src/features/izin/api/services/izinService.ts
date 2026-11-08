@@ -23,6 +23,28 @@ export const izinService = {
     }
   },
 
+  getAllIzin: async (
+    params?: Omit<IzinFilterParams, "page" | "limit">
+  ): Promise<IzinSantri[]> => {
+    try {
+      let page = 1;
+      let allData: IzinSantri[] = [];
+      let totalPages = 1;
+      do {
+        const res = await axiosClient.get<GlobalResponseWithPagination<IzinSantri[]>>("/izin", {
+          params: { ...params, page, limit: 100 },
+        });
+        const items = res.data?.data || [];
+        allData = allData.concat(items);
+        totalPages = res.data?.pagination?.totalPages || 1;
+        page++;
+      } while (page <= totalPages && page <= 100);
+      return allData;
+    } catch (error: unknown) {
+      throw new Error(getErrorMessage(error, "Gagal memuat daftar izin santri"));
+    }
+  },
+
   getIzinDetail: async (id: number): Promise<ApiResponse<IzinSantri>> => {
     try {
       const res = await axiosClient.get<ApiResponse<IzinSantri>>(`/izin/${id}`);

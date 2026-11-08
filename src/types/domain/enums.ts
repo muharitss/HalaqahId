@@ -47,6 +47,11 @@ export const Permission = {
   IZIN_APPLY: 'izin:apply',
   IZIN_VIEW: 'izin:view',
   IZIN_APPROVE: 'izin:approve',
+  // Fitur Ujian & Evaluasi
+  UJIAN_MANAGE: 'ujian:manage',
+  UJIAN_CREATE: 'ujian:create',
+  UJIAN_VIEW_ALL: 'ujian:view-all',
+  UJIAN_VIEW_OWN: 'ujian:view-own',
 } as const;
 export type Permission = (typeof Permission)[keyof typeof Permission];
 
@@ -65,6 +70,7 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     Permission.SESI_HALAQAH_CREATE, Permission.SESI_HALAQAH_VIEW, Permission.SESI_HALAQAH_EDIT, Permission.SESI_HALAQAH_DELETE,
     Permission.MUHAFIZ_MANAGE,
     Permission.IZIN_APPLY, Permission.IZIN_VIEW, Permission.IZIN_APPROVE,
+    Permission.UJIAN_MANAGE, Permission.UJIAN_CREATE, Permission.UJIAN_VIEW_ALL, Permission.UJIAN_VIEW_OWN,
   ],
   [Role.KOORDINATOR_TAHFIZ]: [
     Permission.HALAQAH_CREATE, Permission.HALAQAH_VIEW_ALL, Permission.HALAQAH_EDIT_ALL, Permission.HALAQAH_DELETE_ALL,
@@ -73,8 +79,8 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     Permission.ABSENSI_MUHAFIZ_MANAGE,
     Permission.SETORAN_CREATE_ALL, Permission.SETORAN_VIEW_ALL,
     Permission.SESI_HALAQAH_CREATE, Permission.SESI_HALAQAH_VIEW, Permission.SESI_HALAQAH_EDIT, Permission.SESI_HALAQAH_DELETE,
-    Permission.MUHAFIZ_MANAGE,
     Permission.IZIN_APPLY, Permission.IZIN_VIEW, Permission.IZIN_APPROVE,
+    Permission.UJIAN_MANAGE, Permission.UJIAN_CREATE, Permission.UJIAN_VIEW_ALL, Permission.UJIAN_VIEW_OWN,
   ],
   [Role.MUHAFIZ]: [
     Permission.HALAQAH_VIEW_OWN,
@@ -83,12 +89,13 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     Permission.SETORAN_CREATE_OWN, Permission.SETORAN_VIEW_OWN,
     Permission.SESI_HALAQAH_VIEW,
     Permission.IZIN_APPLY, Permission.IZIN_VIEW,
+    Permission.UJIAN_VIEW_OWN, Permission.UJIAN_CREATE,
   ],
 };
 
 /** Cek apakah sebuah Role memiliki Permission tertentu */
 export function hasPermission(role: Role, permission: Permission): boolean {
-  return ROLE_PERMISSIONS[role].includes(permission);
+  return ROLE_PERMISSIONS[role]?.includes(permission) ?? false;
 }
 
 /** Cek apakah Role termasuk "kepala" (bukan MUHAFIZ) â€” untuk navigasi dashboard */

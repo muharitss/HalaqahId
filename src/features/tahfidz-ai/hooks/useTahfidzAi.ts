@@ -8,12 +8,10 @@ import {
   type AlQuranCloudSurah, 
   type AlQuranCloudAyah, 
   type ISpeechRecognition, 
-  type ISpeechRecognitionEvent, 
-  type GroqResponse 
+  type ISpeechRecognitionEvent
 } from "../types";
 import { normalizeArabic } from "../utils/normalize";
-
-const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY;
+import { setoranService } from "@/features/setoran/api/services/setoranService";
 
 export function useTahfidzAi() {
   const [liveTranscript, setLiveTranscript] = useState<string>("");
@@ -89,25 +87,14 @@ export function useTahfidzAi() {
     };
   }, []);
 
-  // Logika Pemrosesan AI (Whisper + Fuse + Llama)
+  // Logika Pemrosesan AI (Whisper via Backend + Fuse)
   const handleFinalProcess = async (audioBlob: Blob) => {
     if (audioBlob.size < 2000) return; 
     setIsProcessing(true);
     
     try {
-      const formData = new FormData();
-      formData.append("file", audioBlob, "audio.wav");
-      formData.append("model", "whisper-large-v3");
-      formData.append("language", "ar");
-
-      const resWhisper = await fetch("https://api.groq.com/openai/v1/audio/transcriptions", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${GROQ_API_KEY}` },
-        body: formData,
-      });
-
-      const whisperData = await resWhisper.json();
-      const whisperText = whisperData.text;
+      const res = await setoranService.verifyAi(audioBlob);
+      const whisperText = res.data?.text;
       
       if (!whisperText) throw new Error("Transcription empty");
       setLiveTranscript(whisperText);
@@ -116,44 +103,8 @@ export function useTahfidzAi() {
         const searchResults = fuseRef.current.search(normalizeArabic(whisperText), { limit: 7 });
 
         if (searchResults.length > 0) {
-          const candidates = searchResults.map((r, idx) => ({
-            index: idx,
-            text: r.item.text,
-            surah: r.item.surahName,
-            ayah: r.item.numberInSurah
-          }));
-
-          const resAi = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-            method: "POST",
-            headers: { 
-              "Authorization": `Bearer ${GROQ_API_KEY}`,
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-              model: "llama-3.3-70b-versatile",
-              messages: [
-                {
-                  role: "system",
-                  content: "You are a Quran expert. Return JSON ONLY: {\"bestIndex\": number}"
-                },
-                {
-                  role: "user",
-                  content: `Input: "${whisperText}"\nCandidates: ${JSON.stringify(candidates)}`
-                }
-              ],
-              response_format: { type: "json_object" },
-              temperature: 0
-            })
-          });
-
-          const aiData: GroqResponse = await resAi.json();
-          const { bestIndex } = JSON.parse(aiData.choices[0].message.content);
-          
-          const primaryMatch = searchResults[bestIndex]?.item || searchResults[0].item;
-          const otherMatches = searchResults
-              .filter((_, idx) => idx !== (bestIndex ?? 0))
-              .map(r => r.item)
-              .slice(0, 3);
+          const primaryMatch = searchResults[0].item;
+          const otherMatches = searchResults.slice(1, 4).map((r) => r.item);
 
           setDetectedAyah({ primary: primaryMatch, others: otherMatches });
         } else {

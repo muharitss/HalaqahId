@@ -30,6 +30,9 @@ axiosClient.interceptors.request.use(
         if (user.id_sekolah) {
           config.headers["X-Sekolah-Id"] = String(user.id_sekolah);
         }
+        if (user.id_tenant) {
+          config.headers["X-Tenant-Id"] = String(user.id_tenant);
+        }
       } catch (e) {
         console.error("Gagal parse user:", e);
       }
@@ -113,6 +116,7 @@ const performLogout = () => {
   localStorage.removeItem("user");
   localStorage.removeItem("superadmin_session");
   localStorage.removeItem("token");
+  localStorage.removeItem("refresh_token");
   sessionStorage.clear();
   window.location.href = "/login?reason=session_expired";
 };

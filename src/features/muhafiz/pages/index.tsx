@@ -68,7 +68,8 @@ export default function KelolaMuhafizPage() {
   const filteredMuhafizList = useMemo(() => {
     return muhafizList.filter((m: Muhafiz) => {
       if (!selectedSesi) return true;
-      return m.halaqah?.sesi_halaqahs?.some((s: { id_sesi: number }) => s.id_sesi === selectedSesi) ?? false;
+      const sesiList = m.halaqah?.sesi_halaqahs || m.halaqah?.halaqah_sesi;
+      return sesiList?.some((s: { id_sesi: number }) => s.id_sesi === selectedSesi) ?? false;
     });
   }, [muhafizList, selectedSesi]);
 

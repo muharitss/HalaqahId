@@ -6,6 +6,7 @@ import { type AuthUser } from "@/types/domain/auth";
 import { type UserSekolahItem } from "@/types/domain/sekolah";
 import { sekolahService } from "@/features/sekolah/api/services/sekolahService";
 import { queryClient } from "@/lib/react-query";
+import axiosClient from "@/lib/axiosClient";
 import { toast } from "sonner";
 
 interface AuthState {
@@ -207,6 +208,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   logout: () => {
+    const user = get().user;
+    const refreshToken = user?.refresh_token || localStorage.getItem("refresh_token");
+    if (refreshToken) {
+      axiosClient.post("/halaqah/auth/logout", { refresh_token: refreshToken }).catch(() => {});
+    }
+
     set({
       user: null,
       isLoading: false,
@@ -218,6 +225,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     localStorage.removeItem("user_sekolah_list");
     localStorage.removeItem("superadmin_session");
     localStorage.removeItem("token");
+    localStorage.removeItem("refresh_token");
     sessionStorage.clear();
     queryClient.clear();
   },

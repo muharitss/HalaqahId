@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { surahNumberToName } from "@/utils/mushafUtils";
 import type { PortalSetoranResponse, PortalSetoranRecord } from "../types";
 
 interface PortalSetoranHistoryProps {
@@ -69,10 +70,31 @@ export function PortalSetoranHistory({
           const isExpanded = expandedId === item.id_setoran;
           const hasRubrik = item.nilai_kriteria && item.nilai_kriteria.length > 0;
 
-          const suratRangeText =
-            item.surat_mulai === item.surat_selesai
-              ? `${item.nama_surat_mulai || `Surat ${item.surat_mulai}`} : ${item.ayat_mulai} - ${item.ayat_selesai}`
-              : `${item.nama_surat_mulai || `Surat ${item.surat_mulai}`} (${item.ayat_mulai}) - ${item.nama_surat_selesai || `Surat ${item.surat_selesai}`} (${item.ayat_selesai})`;
+          const getSuratRangeText = () => {
+            if (item.surat) {
+              return item.ayat ? `${item.surat} : ${item.ayat}` : item.surat;
+            }
+            const startSuratId = item.start_surat_id ?? item.surat_mulai;
+            const endSuratId = item.end_surat_id ?? item.surat_selesai;
+            const startAyat = item.start_ayat ?? item.ayat_mulai;
+            const endAyat = item.end_ayat ?? item.ayat_selesai;
+
+            if (startSuratId) {
+              const startName = item.nama_surat_mulai || surahNumberToName(startSuratId);
+              const endName = item.nama_surat_selesai || (endSuratId ? surahNumberToName(endSuratId) : startName);
+              if (!endSuratId || startSuratId === endSuratId) {
+                return startAyat !== undefined && endAyat !== undefined
+                  ? `${startName} : ${startAyat} - ${endAyat}`
+                  : startName;
+              }
+              return `${startName} (${startAyat ?? ""}) - ${endName} (${endAyat ?? ""})`;
+            }
+
+            return item.nama_surat_mulai || "Setoran Hafalan";
+          };
+
+          const suratRangeText = getSuratRangeText();
+          const tanggalValue = item.tanggal_setoran || item.tanggal;
 
           return (
             <Card
@@ -95,12 +117,14 @@ export function PortalSetoranHistory({
                   <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                     <Calendar className="h-3.5 w-3.5" />
                     <span>
-                      {new Date(item.tanggal).toLocaleDateString("id-ID", {
-                        weekday: "short",
-                        day: "numeric",
-                        month: "short",
-                        year: "numeric",
-                      })}
+                      {tanggalValue
+                        ? new Date(tanggalValue).toLocaleDateString("id-ID", {
+                            weekday: "short",
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric",
+                          })
+                        : "-"}
                     </span>
                   </div>
                 </div>
@@ -153,7 +177,7 @@ export function PortalSetoranHistory({
                           className="p-2 rounded-md bg-muted/40 border text-xs flex justify-between items-center"
                         >
                           <span className="text-muted-foreground truncate">
-                            {kriteriaItem.kriteria?.nama_kriteria || "Kriteria"}
+                            {kriteriaItem.kriteria?.nama || kriteriaItem.kriteria?.nama_kriteria || "Kriteria"}
                           </span>
                           <span className="font-bold text-foreground ml-2">
                             {kriteriaItem.nilai}

@@ -5,6 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { surahNumberToName } from "@/utils/mushafUtils";
 import type { PortalProgressResponse } from "../types";
 
 interface PortalProgressViewProps {
@@ -17,12 +18,22 @@ export function PortalProgressView({ progress, isLoading }: PortalProgressViewPr
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
 
   const summary = progress?.summary;
-  const records = useMemo(() => progress?.daftar_progress || [], [progress]);
+  const records = useMemo(() => {
+    return (progress?.daftar_progress || []).map((item) => {
+      const surat_ke = item.id_surat ?? item.surat_ke ?? 0;
+      const nama_surat = item.nama_surat || (surat_ke ? surahNumberToName(surat_ke) : "");
+      return {
+        ...item,
+        surat_ke,
+        nama_surat,
+      };
+    });
+  }, [progress]);
 
   const filteredRecords = useMemo(() => {
     return records.filter((item) => {
       const matchSearch =
-        item.nama_surat.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (item.nama_surat || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.surat_ke.toString().includes(searchTerm);
       const matchStatus =
         statusFilter === "ALL" ? true : item.status === statusFilter;

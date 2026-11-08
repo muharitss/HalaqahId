@@ -12,7 +12,7 @@ export const useAbsensiMutation = () => {
 
   const mutation = useMutation({
     mutationFn: async (payloads: AbsensiPayload[]) => {
-      await Promise.all(payloads.map((p) => absensiService.catatAbsensi(p)));
+      await absensiService.catatAbsensi(payloads);
     },
     onSuccess: (_, variables) => {
       toast.success("Berhasil menyimpan absensi");

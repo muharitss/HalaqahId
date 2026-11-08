@@ -409,16 +409,18 @@ export function KelolaRolePage() {
                                   className="gap-2 text-xs cursor-pointer"
                                 >
                                   <Key className="h-3.5 w-3.5" />
-                                  Atur Hak Akses
+                                  {role.is_system ? "Lihat Hak Akses" : "Atur Hak Akses"}
                                 </DropdownMenuItem>
 
-                                <DropdownMenuItem
-                                  onClick={() => setEditingRole(role)}
-                                  className="gap-2 text-xs cursor-pointer"
-                                >
-                                  <Edit2 className="h-3.5 w-3.5" />
-                                  Edit Nama / Kode
-                                </DropdownMenuItem>
+                                {!role.is_system && (
+                                  <DropdownMenuItem
+                                    onClick={() => setEditingRole(role)}
+                                    className="gap-2 text-xs cursor-pointer"
+                                  >
+                                    <Edit2 className="h-3.5 w-3.5" />
+                                    Edit Nama / Kode
+                                  </DropdownMenuItem>
+                                )}
 
                                 <DropdownMenuSeparator />
 
@@ -542,7 +544,7 @@ export function KelolaRolePage() {
               <PermissionMatrix
                 selectedCodes={selectedPermissionCodes}
                 onChange={setSelectedPermissionCodes}
-                readOnly={managingPermissionsRole?.kode_role === "SUPERADMIN"}
+                readOnly={managingPermissionsRole?.is_system || managingPermissionsRole?.kode_role === "SUPERADMIN"}
               />
             )}
           </div>
@@ -562,21 +564,23 @@ export function KelolaRolePage() {
                 onClick={() => setManagingPermissionsRole(null)}
                 disabled={updateRolePermissionsMutation.isPending}
               >
-                Batal
+                {managingPermissionsRole?.is_system ? "Tutup" : "Batal"}
               </Button>
-              <Button
-                type="button"
-                onClick={handleSavePermissions}
-                disabled={
-                  updateRolePermissionsMutation.isPending ||
-                  managingPermissionsRole?.kode_role === "SUPERADMIN"
-                }
-              >
-                {updateRolePermissionsMutation.isPending && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                )}
-                Simpan Hak Akses
-              </Button>
+              {!managingPermissionsRole?.is_system && (
+                <Button
+                  type="button"
+                  onClick={handleSavePermissions}
+                  disabled={
+                    updateRolePermissionsMutation.isPending ||
+                    managingPermissionsRole?.kode_role === "SUPERADMIN"
+                  }
+                >
+                  {updateRolePermissionsMutation.isPending && (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  )}
+                  Simpan Hak Akses
+                </Button>
+              )}
             </div>
           </div>
         </DialogContent>

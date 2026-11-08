@@ -468,8 +468,8 @@ export default function KelolaUserPage() {
                   id="new_password"
                   type={showPassword ? "text" : "password"}
                   required
-                  minLength={6}
-                  placeholder="Minimal 6 karakter"
+                  minLength={8}
+                  placeholder="Minimal 8 karakter"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   className="pr-10"

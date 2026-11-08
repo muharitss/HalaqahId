@@ -17,7 +17,13 @@ export const LoadingScreen = () => (
  * Route guard: hanya bisa diakses oleh user yang SUDAH login.
  * Jika `allowedRoles` diberikan, juga cek apakah role user diizinkan.
  */
-export const ProtectedRoute = ({ allowedRoles }: { allowedRoles?: Role[] }) => {
+export const ProtectedRoute = ({
+  allowedRoles,
+  children,
+}: {
+  allowedRoles?: Role[];
+  children?: React.ReactNode;
+}) => {
   const { user, isLoading } = useAuth();
 
   if (isLoading) return <LoadingScreen />;
@@ -34,7 +40,7 @@ export const ProtectedRoute = ({ allowedRoles }: { allowedRoles?: Role[] }) => {
     return <Navigate to="/login?reason=unauthorized" replace />;
   }
 
-  return <Outlet />;
+  return children ? <>{children}</> : <Outlet />;
 };
 
 /**

@@ -7,7 +7,7 @@ const HARI_OPTIONS = [
   { value: 4, label: "Kamis" },
   { value: 5, label: "Jumat" },
   { value: 6, label: "Sabtu" },
-  { value: 0, label: "Ahad" },
+  { value: 7, label: "Ahad" },
 ] as const;
 
 const PRESET_HARI = [
@@ -25,14 +25,14 @@ export function HariAktifPicker({ value, onChange }: HariAktifPickerProps) {
 
   const handleCheckedChange = (day: number, checked: boolean) => {
     if (checked) {
-      onChange([...selected, day].sort());
+      onChange([...selected, day].sort((a, b) => a - b));
     } else {
       onChange(selected.filter((d) => d !== day));
     }
   };
 
   const applyPreset = (days: readonly number[]) => {
-    onChange([...days].sort());
+    onChange([...days].sort((a, b) => a - b));
   };
 
   return (

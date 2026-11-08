@@ -28,14 +28,14 @@ export function useSettingsPage() {
   const handleCopyDisplayLink = async () => {
     try {
       const profile = await sekolahService.getProfile();
-      const slug = profile.data?.slug;
+      const token = profile.data?.display_token;
       
-      if (!slug) {
-        toast.error("Slug belum diatur. Perbarui profil sekolah terlebih dahulu untuk mendapatkan link publik.");
+      if (!token) {
+        toast.error("Display token belum diatur. Perbarui profil sekolah terlebih dahulu untuk mendapatkan link publik.");
         return;
       }
 
-      const publicLink = `${window.location.origin}/display/${slug}`;
+      const publicLink = `${window.location.origin}/display/${token}`;
       await navigator.clipboard.writeText(publicLink);
       toast.success("Link portal publik berhasil disalin ke clipboard!");
     } catch (error) {

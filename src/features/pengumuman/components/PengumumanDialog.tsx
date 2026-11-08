@@ -189,7 +189,6 @@ export function PengumumanDialog({
                   <SelectItem value="ALL">Semua Pengguna</SelectItem>
                   <SelectItem value="HALAQAH">Halaqah Tertentu</SelectItem>
                   <SelectItem value="SANTRI">Santri Tertentu</SelectItem>
-                  <SelectItem value="ROLE">Role Tertentu</SelectItem>
                 </SelectContent>
               </Select>
             </div>

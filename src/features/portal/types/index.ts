@@ -79,10 +79,11 @@ export interface PortalProgressSummary {
 export interface PortalProgressRecord {
   id_progress: number;
   id_santri: number;
-  surat_ke: number;
-  nama_surat: string;
+  id_surat?: number;
+  surat_ke?: number;
+  nama_surat?: string;
   status: "BELUM" | "PROSES" | "SELESAI" | "LANCAR" | string;
-  ayat_terakhir: number;
+  ayat_terakhir?: number | null;
   total_pengulangan: number;
   last_setoran: string | null;
   last_murajaah: string | null;
@@ -97,20 +98,29 @@ export interface PortalSetoranKriteriaNilai {
   id_nilai: number;
   nilai: number;
   kriteria?: {
-    nama_kriteria: string;
+    id_kriteria?: number;
+    nama?: string;
+    nama_kriteria?: string;
     bobot?: number;
   };
 }
 
 export interface PortalSetoranRecord {
   id_setoran: number;
-  tanggal: string;
-  surat_mulai: number;
+  tanggal?: string;
+  tanggal_setoran?: string;
+  surat?: string | null;
+  ayat?: string | null;
+  start_surat_id?: number | null;
+  start_ayat?: number | null;
+  end_surat_id?: number | null;
+  end_ayat?: number | null;
+  surat_mulai?: number;
   nama_surat_mulai?: string;
-  ayat_mulai: number;
-  surat_selesai: number;
+  ayat_mulai?: number;
+  surat_selesai?: number;
   nama_surat_selesai?: string;
-  ayat_selesai: number;
+  ayat_selesai?: number;
   nilai?: string | null;
   keterangan?: string | null;
   kategori?: {
@@ -164,6 +174,8 @@ export interface PortalAbsensiResponse {
 export interface PortalUjianRecord {
   id_hasil: number;
   nilai_akhir?: number | null;
+  is_lulus?: boolean;
+  predikat?: string;
   status_kelulusan?: string | null;
   catatan?: string | null;
   created_at: string;
@@ -185,7 +197,9 @@ export interface PortalUjianRecord {
     id_nilai: number;
     nilai: number;
     kriteria?: {
-      nama_kriteria: string;
+      id_kriteria?: number;
+      nama?: string;
+      nama_kriteria?: string;
     } | null;
   }>;
 }

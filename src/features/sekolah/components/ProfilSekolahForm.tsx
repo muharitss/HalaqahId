@@ -42,9 +42,6 @@ const formSchema = z.object({
     "PRIVAT",
     "YAYASAN",
     "LAINNYA",
-    "MADRASAH",
-    "SEKOLAH_UMUM",
-    "TPA",
     "",
   ]).optional(),
   jenjang: z.string().optional(),
@@ -82,7 +79,7 @@ export const ProfilSekolahForm = ({ sekolah, onSubmit, saving, onSuccess }: Prof
       kepala_sekolah: sekolah.kepala_sekolah ?? "",
       jabatan_kepala: sekolah.jabatan_kepala ?? "",
       foto_kepala_url: sekolah.foto_kepala_url ?? "",
-      jenis_lembaga: sekolah.jenis_lembaga ?? "",
+      jenis_lembaga: (sekolah.jenis_lembaga as any) ?? "",
       jenjang: sekolah.jenjang ?? "",
       deskripsi: sekolah.deskripsi ?? "",
       visi: sekolah.visi ?? "",
@@ -91,7 +88,11 @@ export const ProfilSekolahForm = ({ sekolah, onSubmit, saving, onSuccess }: Prof
   });
 
   const handleSubmit = async (values: FormValues) => {
-    const success = await onSubmit(values as UpdateSekolahRequest);
+    const payload: UpdateSekolahRequest = {
+      ...values,
+      jenis_lembaga: values.jenis_lembaga ? (values.jenis_lembaga as any) : undefined,
+    };
+    const success = await onSubmit(payload);
     if (success && onSuccess) {
       onSuccess();
     }

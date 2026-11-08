@@ -9,7 +9,7 @@ export interface PengumumanItem {
   id_pengumuman: number;
   judul: string;
   isi: string;
-  prioritas?: "NORMAL" | "PENTING" | "MENDESAK";
+  prioritas?: "NORMAL" | "PENTING" | "URGENT" | "MENDESAK";
   is_pinned?: boolean;
   created_at: string;
 }
@@ -26,6 +26,7 @@ export function PengumumanRecentCard({ items, isLoading }: PengumumanRecentCardP
 
   const getPriorityBadge = (prioritas?: string) => {
     switch (prioritas) {
+      case "URGENT":
       case "MENDESAK":
         return <Badge variant="destructive" className="text-[9px] px-1.5 py-0 uppercase">Mendesak</Badge>;
       case "PENTING":

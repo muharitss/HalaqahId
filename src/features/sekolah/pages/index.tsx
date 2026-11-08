@@ -89,7 +89,11 @@ export default function KelolaSekolahPage() {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const res = await sekolahService.createSekolah(formData);
+      const payload = {
+        ...formData,
+        jenis_lembaga: formData.jenis_lembaga ? formData.jenis_lembaga : undefined,
+      };
+      const res = await sekolahService.createSekolah(payload as any);
       if (res.success) {
         toast.success("Sekolah & Admin berhasil dibuat!");
         setIsAddOpen(false);
@@ -129,7 +133,7 @@ export default function KelolaSekolahPage() {
     try {
       const res = await sekolahService.updateSekolah(selectedSekolah.id_sekolah, {
         nama_sekolah: editFormData.nama_sekolah,
-        jenis_lembaga: editFormData.jenis_lembaga as any,
+        jenis_lembaga: editFormData.jenis_lembaga ? (editFormData.jenis_lembaga as any) : undefined,
         alamat: editFormData.alamat,
       });
       if (res.success) {
@@ -364,8 +368,8 @@ export default function KelolaSekolahPage() {
                     id="admin_password"
                     type={showPassword ? "text" : "password"}
                     required
-                    minLength={6}
-                    placeholder="Minimal 6 karakter"
+                    minLength={8}
+                    placeholder="Minimal 8 karakter"
                     value={formData.admin_password}
                     onChange={(e) => setFormData({ ...formData, admin_password: e.target.value })}
                     className="pr-10"

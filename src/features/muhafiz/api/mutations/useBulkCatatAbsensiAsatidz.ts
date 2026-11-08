@@ -6,7 +6,7 @@ export interface BulkCatatPayload {
   id_sesi?: number;
   status: string;
   tanggal: string;
-  keterangan: string;
+  keterangan?: string;
 }
 
 export function useBulkCatatAbsensiAsatidz(
@@ -15,10 +15,7 @@ export function useBulkCatatAbsensiAsatidz(
 ) {
   return useMutation({
     mutationFn: async (payloads: BulkCatatPayload[]) => {
-      const promises = payloads.map((payload) =>
-        muhafizService.catatAbsensiAsatidz(payload)
-      );
-      return await Promise.all(promises);
+      return await muhafizService.catatAbsensiAsatidz(payloads);
     },
     onSuccess,
     onError,

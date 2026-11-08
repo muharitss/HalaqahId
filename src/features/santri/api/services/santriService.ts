@@ -23,11 +23,20 @@ export const santriService = {
     }
   },
 
-  // 2. Get Santri List (Auto-Filter berdasarkan role)
+  // 2. Get Santri List (Auto-Filter berdasarkan role, loops through pages if total > 100)
   async getAll(): Promise<Santri[]> {
     try {
-      const response = await axiosClient.get("/santri", { params: { limit: 1000 } });
-      return response.data.data;
+      let page = 1;
+      let allData: Santri[] = [];
+      let totalPages = 1;
+      do {
+        const response = await axiosClient.get("/santri", { params: { page, limit: 100 } });
+        const items = response.data?.data || [];
+        allData = allData.concat(items);
+        totalPages = response.data?.pagination?.totalPages || 1;
+        page++;
+      } while (page <= totalPages && page <= 100);
+      return allData;
     } catch (error: unknown) {
       throw new Error(getErrorMessage(error, "Gagal mengambil data santri"));
     }
@@ -87,10 +96,13 @@ export const santriService = {
   async getByHalaqahId(idHalaqah: number): Promise<Santri[]> {
     try {
       const response = await axiosClient.get(`/halaqah/${idHalaqah}`);
-      const data = response.data.data;
+      const data = response.data?.data || response.data;
 
       if (data && Array.isArray(data.santri)) {
-        return data.santri;
+        return data.santri.map((s: any) => ({
+          ...s,
+          id_halaqah: s.id_halaqah ?? idHalaqah,
+        }));
       }
       
       return []; 

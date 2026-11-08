@@ -45,6 +45,9 @@ export function useTerminologySettings() {
         await queryClient.invalidateQueries({
           queryKey: ["tenant-terminology", tenant.id_tenant],
         });
+        await queryClient.invalidateQueries({
+          queryKey: ["tenant", tenant.id_tenant, "terminology"],
+        });
 
         toast.success(`Terminologi ${code} berhasil diperbarui!`);
       } catch (err: any) {
@@ -77,6 +80,9 @@ export function useTerminologySettings() {
         await queryClient.invalidateQueries({
           queryKey: ["tenant-terminology", tenant.id_tenant],
         });
+        await queryClient.invalidateQueries({
+          queryKey: ["tenant", tenant.id_tenant, "terminology"],
+        });
 
         toast.success(`Terminologi ${code} dikembalikan ke default.`);
       } catch (err: any) {
@@ -107,6 +113,9 @@ export function useTerminologySettings() {
 
         await queryClient.invalidateQueries({
           queryKey: ["tenant-terminology", tenant.id_tenant],
+        });
+        await queryClient.invalidateQueries({
+          queryKey: ["tenant", tenant.id_tenant, "terminology"],
         });
 
         toast.success("Semua perubahan terminologi berhasil disimpan!");

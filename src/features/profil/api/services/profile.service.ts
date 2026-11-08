@@ -60,14 +60,16 @@ export const profileService = {
     payload: UpdateProfilePayload
   ): Promise<UserProfileData> => {
     try {
-      const body = {
-        nama_lengkap: payload.nama_lengkap || payload.name,
-        no_telepon: payload.no_telepon ?? payload.nomor_telepon ?? null,
-        bio: payload.bio ?? null,
-        spesialisasi: payload.spesialisasi ?? null,
-        no_ijazah: payload.no_ijazah ?? null,
-        foto_url: payload.foto_url ?? payload.foto ?? null,
-      };
+      const body: Record<string, unknown> = {};
+      const nama = payload.nama_lengkap ?? payload.name;
+      if (nama !== undefined) body.nama_lengkap = nama;
+      const telp = payload.no_telepon ?? payload.nomor_telepon;
+      if (telp !== undefined) body.no_telepon = telp;
+      if (payload.bio !== undefined) body.bio = payload.bio;
+      if (payload.spesialisasi !== undefined) body.spesialisasi = payload.spesialisasi;
+      if (payload.no_ijazah !== undefined) body.no_ijazah = payload.no_ijazah;
+      const foto = payload.foto_url ?? payload.foto;
+      if (foto !== undefined) body.foto_url = foto;
 
       let res;
       try {
@@ -76,8 +78,8 @@ export const profileService = {
         // Fallback jika backend versi lama
         res = await axiosClient.patch("/halaqah/auth/me", {
           ...body,
-          name: body.nama_lengkap,
-          nomor_telepon: body.no_telepon,
+          ...(body.nama_lengkap !== undefined ? { name: body.nama_lengkap } : {}),
+          ...(body.no_telepon !== undefined ? { nomor_telepon: body.no_telepon } : {}),
         });
       }
 
@@ -114,41 +116,22 @@ export const profileService = {
    */
   uploadFoto: async (file: File): Promise<AvatarUploadResponse> => {
     try {
-      let finalUrl = "";
-
-      // 1. Upload via Cloudinary jika konfigurasi tersedia
       const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
       const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
 
-      if (cloudName && uploadPreset) {
-        const result = await uploadToCloudinary(file, "halaqah/avatars");
-        finalUrl = result.secure_url;
-      } else {
-        // Fallback: upload multipart ke backend
-        const formData = new FormData();
-        formData.append("avatar", file);
-        formData.append("foto", file);
-
-        const response = await axiosClient.post("/halaqah/auth/me/avatar", formData, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
-
-        finalUrl =
-          response.data?.data?.url ||
-          response.data?.data?.foto_url ||
-          response.data?.url;
+      if (!cloudName || !uploadPreset) {
+        throw new Error("Konfigurasi Cloudinary belum tersedia untuk mengunggah foto.");
       }
+
+      const result = await uploadToCloudinary(file, "halaqah/avatars");
+      const finalUrl = result.secure_url;
 
       if (!finalUrl) {
         throw new Error("Gagal mendapatkan URL foto setelah upload.");
       }
 
-      // 2. Simpan URL foto ke profil via endpoint PUT /api/profil/foto
-      try {
-        await axiosClient.put("/profil/foto", { foto_url: finalUrl });
-      } catch {
-        // Fallback jika endpoint belum tersedia
-      }
+      // Simpan URL foto ke profil via endpoint PUT /api/profil/foto
+      await axiosClient.put("/profil/foto", { foto_url: finalUrl });
 
       return {
         url: finalUrl,

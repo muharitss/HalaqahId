@@ -163,7 +163,7 @@ export function DaftarAkun({
                     {muhafiz.halaqah ? (
                       <div className="text-primary text-xs md:text-sm font-bold flex items-center gap-1.5">
                         <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-                        {muhafiz.halaqah.name_halaqah}
+                        {muhafiz.halaqah.name_halaqah || (muhafiz.halaqah as any).nama_halaqah}
                       </div>
                     ) : (
                       <div className="text-destructive text-xs md:text-sm font-semibold flex items-center gap-1.5">

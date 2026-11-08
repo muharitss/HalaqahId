@@ -1,5 +1,5 @@
 // Helper to determine the tenant slug from host, query param, or environment
-export const getTenantSlugFromUrl = (): string => {
+export const getTenantSlugFromUrl = (): string | null => {
   // 1. Query parameter override (e.g. ?tenant=pesantren-a) for dev/previewing
   if (typeof window !== "undefined" && window.location?.search) {
     const urlParam = new URLSearchParams(window.location.search).get("tenant");
@@ -11,7 +11,7 @@ export const getTenantSlugFromUrl = (): string => {
   // 2. Backward compatibility: single tenant mode
   const isSingleMode = import.meta.env.VITE_TENANT_MODE === "single";
   if (isSingleMode) {
-    return import.meta.env.VITE_DEFAULT_TENANT_SLUG || "default";
+    return import.meta.env.VITE_DEFAULT_TENANT_SLUG || null;
   }
 
   // 3. Subdomain resolving
@@ -34,6 +34,6 @@ export const getTenantSlugFromUrl = (): string => {
     }
   }
 
-  // 4. Fallback to configured default tenant
-  return import.meta.env.VITE_DEFAULT_TENANT_SLUG || "default";
+  // 4. No explicit tenant on root or reserved domains
+  return null;
 };

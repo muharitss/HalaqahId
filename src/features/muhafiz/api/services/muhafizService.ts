@@ -12,26 +12,77 @@ export interface DailyAbsensiMuhafizItem {
   keterangan: string | null;
 }
 
+function normalizeMuhafiz(m: any): Muhafiz {
+  if (!m) return m;
+  let halaqah = m.halaqah;
+  if (Array.isArray(halaqah)) {
+    if (halaqah.length === 0) {
+      halaqah = null;
+    } else {
+      const first = halaqah[0];
+      const sesiList = halaqah.flatMap((h: any) => h.halaqah_sesi || h.sesi_halaqahs || []);
+      const uniqueSesi = Array.from(new Map(sesiList.map((s: any) => [s.id_sesi, s])).values());
+      const name = halaqah.map((h: any) => h.name_halaqah || h.nama_halaqah).filter(Boolean).join(", ");
+      halaqah = {
+        id_halaqah: first.id_halaqah,
+        name_halaqah: name || first.name_halaqah || first.nama_halaqah || "",
+        nama_halaqah: name || first.nama_halaqah || first.name_halaqah || "",
+        sesi_halaqahs: uniqueSesi,
+        halaqah_sesi: uniqueSesi,
+      };
+    }
+  } else if (halaqah && typeof halaqah === "object") {
+    const sesi = halaqah.halaqah_sesi || halaqah.sesi_halaqahs || [];
+    halaqah = {
+      ...halaqah,
+      name_halaqah: halaqah.name_halaqah || halaqah.nama_halaqah || "",
+      nama_halaqah: halaqah.nama_halaqah || halaqah.name_halaqah || "",
+      sesi_halaqahs: sesi,
+      halaqah_sesi: sesi,
+    };
+  }
+
+  return {
+    ...m,
+    halaqah,
+  };
+}
+
 export const muhafizService = {
-  // Get all muhafiz
+  // Get all muhafiz (loops through pages if full list requested)
   getAllMuhafiz: async (params?: { page?: number; limit?: number }): Promise<Muhafiz[]> => {
     try {
-      const finalParams = { limit: 1000, ...params };
-      const response = await axiosClient.get<GlobalResponse<Muhafiz[]>>("/halaqah/auth/muhafiz", { params: finalParams });
-      
-      const resData = response.data;
+      const extractItems = (resData: any): Muhafiz[] => {
+        if (resData?.data && Array.isArray(resData.data)) {
+          return resData.data.map(normalizeMuhafiz);
+        }
+        if (Array.isArray(resData)) {
+          return resData.map(normalizeMuhafiz);
+        }
+        return [];
+      };
 
-      // Handle berbagai format response dengan lebih efisien
-      if (resData?.data && Array.isArray(resData.data)) {
-        return resData.data;
-      } 
-      
-      if (Array.isArray(resData)) {
-        return resData;
+      if (params?.page) {
+        const response = await axiosClient.get<GlobalResponse<Muhafiz[]>>("/halaqah/auth/muhafiz", {
+          params: { limit: 100, ...params },
+        });
+        return extractItems(response.data);
       }
-      
-      console.warn("Unexpected response format:", resData);
-      return [];
+
+      let page = 1;
+      let allData: Muhafiz[] = [];
+      let totalPages = 1;
+      do {
+        const response = await axiosClient.get<any>("/halaqah/auth/muhafiz", {
+          params: { page, limit: 100 },
+        });
+        const items = extractItems(response.data);
+        allData = allData.concat(items);
+        totalPages = response.data?.pagination?.totalPages || 1;
+        page++;
+      } while (page <= totalPages && page <= 100);
+
+      return allData;
     } catch (error: unknown) {
       const errorMessage = getErrorMessage(error, "Gagal mengambil data muhafiz");
       console.error("Error getAllMuhafiz:", errorMessage);
@@ -44,7 +95,7 @@ export const muhafizService = {
     try {
       const response = await axiosClient.get<GlobalResponse<Muhafiz>>(`/halaqah/auth/muhafiz/${userId}`);
       if (!response.data.data) throw new Error("Data muhafiz tidak ditemukan");
-      return response.data.data;
+      return normalizeMuhafiz(response.data.data);
     } catch (error: unknown) {
       throw new Error(getErrorMessage(error, "Gagal mengambil detail muhafiz"));
     }
@@ -53,23 +104,16 @@ export const muhafizService = {
   // Search muhafiz
   searchMuhafiz: async (keyword: string): Promise<Muhafiz[]> => {
     try {
-      const response = await axiosClient.get<GlobalResponse<Muhafiz[]>>(
-        `/halaqah/auth/muhafiz/search?q=${encodeURIComponent(keyword)}`
+      const allData = await muhafizService.getAllMuhafiz();
+      if (!keyword) return allData;
+      const term = keyword.toLowerCase();
+      return allData.filter(
+        (muhafiz) =>
+          muhafiz.name.toLowerCase().includes(term) ||
+          muhafiz.email.toLowerCase().includes(term)
       );
-      return response.data.data || [];
     } catch (error: unknown) {
-      console.error("Error searchMuhafiz, falling back to client-side filter:", error);
-      
-      try {
-        const allData = await muhafizService.getAllMuhafiz();
-        return allData.filter(muhafiz =>
-          muhafiz.name.toLowerCase().includes(keyword.toLowerCase()) ||
-          muhafiz.email.toLowerCase().includes(keyword.toLowerCase())
-        );
-      } catch {
-        // Menghapus 'fallbackError' yang tidak terpakai untuk menghilangkan warning ESLint
-        throw new Error(getErrorMessage(error, "Gagal mencari muhafiz"));
-      }
+      throw new Error(getErrorMessage(error, "Gagal mencari muhafiz"));
     }
   },
 
@@ -128,7 +172,7 @@ export const muhafizService = {
   getDeletedMuhafiz: async (): Promise<Muhafiz[]> => {
     try {
       const response = await axiosClient.get<GlobalResponse<Muhafiz[]>>("/halaqah/auth/muhafiz/deleted");
-      return response.data.data || [];
+      return (response.data.data || []).map(normalizeMuhafiz);
     } catch (error: unknown) {
       console.error("Gagal mengambil data tempat sampah:", error);
       return [];
@@ -139,7 +183,10 @@ export const muhafizService = {
   restoreMuhafiz: async (userId: number) => {
     try {
       const response = await axiosClient.patch<GlobalResponse<Muhafiz>>(`/halaqah/auth/muhafiz/restore/${userId}`, {});
-      return response.data;
+      return {
+        ...response.data,
+        data: response.data.data ? normalizeMuhafiz(response.data.data) : response.data.data,
+      };
     } catch (error: unknown) {
       throw new Error(getErrorMessage(error, "Gagal memulihkan muhafiz"));
     }
@@ -156,7 +203,11 @@ export const muhafizService = {
     }
   },
 
-  catatAbsensiAsatidz: async (payload: { id_user: number; id_sesi?: number; status: string; tanggal: string; keterangan: string }) => {
+  catatAbsensiAsatidz: async (
+    payload:
+      | { id_user: number; id_sesi?: number; status: string; tanggal: string; keterangan?: string }
+      | Array<{ id_user: number; id_sesi?: number; status: string; tanggal: string; keterangan?: string }>
+  ) => {
     try {
       const res = await axiosClient.post("/absensi/muhafiz", payload);
       return res.data;

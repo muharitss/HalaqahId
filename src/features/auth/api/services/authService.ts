@@ -35,9 +35,21 @@ export const authService = {
   },
 
   logout: (): void => {
+    const userStr = localStorage.getItem("user");
+    let refreshToken = localStorage.getItem("refresh_token");
+    if (userStr) {
+      try {
+        const u = JSON.parse(userStr);
+        if (u.refresh_token) refreshToken = u.refresh_token;
+      } catch {}
+    }
+    if (refreshToken) {
+      axiosClient.post("/halaqah/auth/logout", { refresh_token: refreshToken }).catch(() => {});
+    }
     localStorage.removeItem("user");
     localStorage.removeItem("superadmin_session");
     localStorage.removeItem("token");
+    localStorage.removeItem("refresh_token");
     sessionStorage.clear();
   },
 

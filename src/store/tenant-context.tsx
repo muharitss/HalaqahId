@@ -31,7 +31,8 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({
     error: tenantError,
   } = useQuery({
     queryKey: ["tenant", slug],
-    queryFn: () => tenantApi.resolve(slug),
+    queryFn: () => (slug ? tenantApi.resolve(slug) : Promise.resolve({ success: false, data: null as any })),
+    enabled: !!slug,
     retry: 1,
     staleTime: 1000 * 60 * 10, // 10 minutes cache
   });

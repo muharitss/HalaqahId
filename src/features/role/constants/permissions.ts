@@ -498,6 +498,40 @@ export const SYSTEM_PERMISSION_DEFINITIONS: PermissionDefinition[] = [
     actionLabel: "Lihat Rekam Jejak",
     deskripsi: "Melihat rekam audit keamanan dan aktivitas sistem",
   },
+
+  // UJIAN
+  {
+    code: "ujian:manage",
+    module: "UJIAN",
+    moduleLabel: "Ujian & Evaluasi",
+    action: "MANAGE",
+    actionLabel: "Kelola Ujian",
+    deskripsi: "Mengelola templat dan jadwal ujian",
+  },
+  {
+    code: "ujian:create",
+    module: "UJIAN",
+    moduleLabel: "Ujian & Evaluasi",
+    action: "CREATE",
+    actionLabel: "Input Hasil Ujian",
+    deskripsi: "Menginput hasil penilaian ujian santri",
+  },
+  {
+    code: "ujian:view-all",
+    module: "UJIAN",
+    moduleLabel: "Ujian & Evaluasi",
+    action: "READ",
+    actionLabel: "Lihat Semua Hasil",
+    deskripsi: "Melihat hasil dan jadwal ujian semua santri",
+  },
+  {
+    code: "ujian:view-own",
+    module: "UJIAN",
+    moduleLabel: "Ujian & Evaluasi",
+    action: "READ",
+    actionLabel: "Lihat Hasil di Halaqah",
+    deskripsi: "Melihat hasil dan jadwal ujian di halaqah sendiri",
+  },
 ];
 
 export interface ModuleGroup {

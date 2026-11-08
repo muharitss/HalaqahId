@@ -46,7 +46,17 @@ export function PortalUjianView({ data, isLoading }: PortalUjianViewProps) {
 
       <div className="space-y-3">
         {records.map((item: PortalUjianRecord) => {
-          const isLulus = item.status_kelulusan?.toUpperCase() === "LULUS";
+          const isLulus =
+            item.is_lulus !== undefined
+              ? item.is_lulus
+              : item.status_kelulusan?.toUpperCase() === "LULUS";
+          const statusText =
+            item.status_kelulusan ||
+            (item.is_lulus !== undefined
+              ? item.is_lulus
+                ? "LULUS"
+                : "TIDAK LULUS"
+              : null);
           const examTitle =
             item.jadwal?.judul_jadwal ||
             item.jadwal?.template?.nama_template ||
@@ -73,11 +83,13 @@ export function PortalUjianView({ data, isLoading }: PortalUjianViewProps) {
                     <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-1">
                       <Calendar className="h-3.5 w-3.5" />
                       <span>
-                        {new Date(examDate).toLocaleDateString("id-ID", {
-                          day: "numeric",
-                          month: "long",
-                          year: "numeric",
-                        })}
+                        {examDate
+                          ? new Date(examDate).toLocaleDateString("id-ID", {
+                              day: "numeric",
+                              month: "long",
+                              year: "numeric",
+                            })
+                          : "-"}
                       </span>
                     </div>
                   </div>
@@ -94,7 +106,7 @@ export function PortalUjianView({ data, isLoading }: PortalUjianViewProps) {
                       </div>
                     )}
 
-                    {item.status_kelulusan && (
+                    {statusText && (
                       <Badge
                         variant="outline"
                         className={`text-xs font-bold px-3 py-1 flex items-center gap-1 ${
@@ -108,7 +120,7 @@ export function PortalUjianView({ data, isLoading }: PortalUjianViewProps) {
                         ) : (
                           <XCircle className="h-3.5 w-3.5" />
                         )}
-                        {item.status_kelulusan}
+                        {statusText}
                       </Badge>
                     )}
                   </div>
@@ -137,7 +149,7 @@ export function PortalUjianView({ data, isLoading }: PortalUjianViewProps) {
                           className="p-2 rounded-md bg-muted/40 border text-xs flex justify-between items-center"
                         >
                           <span className="text-muted-foreground truncate">
-                            {nr.kriteria?.nama_kriteria || "Kriteria"}
+                            {nr.kriteria?.nama || nr.kriteria?.nama_kriteria || "Kriteria"}
                           </span>
                           <span className="font-bold text-foreground ml-2">{nr.nilai}</span>
                         </div>

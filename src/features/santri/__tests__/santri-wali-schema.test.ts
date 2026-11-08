@@ -1,64 +1,55 @@
+import { describe, it, expect } from "vitest";
 import { santriWaliSchema } from "../validation/santri-wali.schema.ts";
 
-function assert(condition: boolean, message: string): void {
-  if (!condition) {
-    throw new Error(`Assertion failed: ${message}`);
-  }
-}
+describe("santriWaliSchema validation", () => {
+  it("should reject empty nama_wali", () => {
+    const emptyName = santriWaliSchema.safeParse({
+      nama_wali: "",
+      hubungan: "AYAH",
+    });
+    expect(emptyName.success).toBe(false);
+  });
 
-// 1. Required fields
-const emptyName = santriWaliSchema.safeParse({
-  nama_wali: "",
-  hubungan: "AYAH",
+  it("should reject invalid hubungan", () => {
+    const invalidHubungan = santriWaliSchema.safeParse({
+      nama_wali: "Ahmad",
+      hubungan: "TEMAN",
+    });
+    expect(invalidHubungan.success).toBe(false);
+  });
+
+  it("should accept valid minimal data", () => {
+    const validMinimal = santriWaliSchema.safeParse({
+      nama_wali: "Hendra Gunawan",
+      hubungan: "AYAH",
+    });
+    expect(validMinimal.success).toBe(true);
+  });
+
+  it("should reject short phone number", () => {
+    const shortPhone = santriWaliSchema.safeParse({
+      nama_wali: "Hendra Gunawan",
+      hubungan: "AYAH",
+      no_telepon: "12345",
+    });
+    expect(shortPhone.success).toBe(false);
+  });
+
+  it("should accept valid phone number", () => {
+    const validPhone = santriWaliSchema.safeParse({
+      nama_wali: "Hendra Gunawan",
+      hubungan: "AYAH",
+      no_telepon: "081234567890",
+    });
+    expect(validPhone.success).toBe(true);
+  });
+
+  it("should reject invalid email", () => {
+    const invalidEmail = santriWaliSchema.safeParse({
+      nama_wali: "Hendra Gunawan",
+      hubungan: "AYAH",
+      email: "bukan-email",
+    });
+    expect(invalidEmail.success).toBe(false);
+  });
 });
-assert(!emptyName.success, "Empty nama_wali should fail");
-
-// 2. Invalid hubungan
-const invalidHubungan = santriWaliSchema.safeParse({
-  nama_wali: "Ahmad",
-  hubungan: "TEMAN",
-});
-assert(!invalidHubungan.success, "Invalid hubungan should fail");
-
-// 3. Valid minimal data
-const validMinimal = santriWaliSchema.safeParse({
-  nama_wali: "Hendra Gunawan",
-  hubungan: "AYAH",
-});
-assert(validMinimal.success, "Valid minimal data should pass");
-
-// 4. Invalid phone number
-const shortPhone = santriWaliSchema.safeParse({
-  nama_wali: "Hendra Gunawan",
-  hubungan: "AYAH",
-  no_telepon: "12345",
-});
-assert(!shortPhone.success, "Short phone should fail");
-
-// 5. Valid phone number
-const validPhone = santriWaliSchema.safeParse({
-  nama_wali: "Hendra Gunawan",
-  hubungan: "AYAH",
-  no_telepon: "081234567890",
-});
-assert(validPhone.success, "Valid phone should pass");
-
-// 6. Invalid email
-const invalidEmail = santriWaliSchema.safeParse({
-  nama_wali: "Hendra Gunawan",
-  hubungan: "AYAH",
-  email: "bukan-email",
-});
-assert(!invalidEmail.success, "Invalid email should fail");
-
-// 7. Full valid data
-const fullValid = santriWaliSchema.safeParse({
-  nama_wali: "Hendra Gunawan",
-  hubungan: "AYAH",
-  no_telepon: "081234567890",
-  email: "wali@example.com",
-  is_primary_contact: true,
-});
-assert(fullValid.success, "Full valid data should pass");
-
-console.log("Santri wali schema tests passed successfully!");

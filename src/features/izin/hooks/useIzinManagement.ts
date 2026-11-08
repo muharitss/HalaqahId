@@ -4,6 +4,7 @@ import { santriService } from "@/features/santri/api/services/santriService";
 import { useAuthStore } from "@/store/useAuthStore";
 import { usePermission } from "@/lib/hooks/usePermission";
 import { isKepalaRole, Role } from "@/types/domain/enums";
+import { izinService } from "../api/services/izinService";
 import { useIzinList } from "../api/queries/useIzinQueries";
 import { useIzinMutations } from "../api/mutations/useIzinMutations";
 import {
@@ -47,33 +48,35 @@ export function useIzinManagement() {
   // Fetch Izin list
   const { data: izinResponse, isLoading: isLoadingIzin, refetch: refetchIzin } = useIzinList(queryParams);
 
-  // Fetch unfiltered count list to display accurate badge counts on tabs
-  const { data: allIzinResponse } = useIzinList({
-    santri: filterState.idSantri,
-    tanggal: filterState.tanggal,
-    limit: 1000,
+  // Fetch unfiltered count list across pages to display accurate badge counts on tabs
+  const { data: allIzinList = [] } = useQuery({
+    queryKey: ["izin", "all-counts", filterState.idSantri, filterState.tanggal],
+    queryFn: () =>
+      izinService.getAllIzin({
+        santri: filterState.idSantri,
+        tanggal: filterState.tanggal,
+      }),
   });
 
   // Compute counts for tabs
   const counts = useMemo(() => {
-    const list = allIzinResponse?.data || [];
     let pending = 0;
     let disetujui = 0;
     let ditolak = 0;
 
-    for (const item of list) {
+    for (const item of allIzinList) {
       if (item.status === StatusIzin.PENDING) pending++;
       else if (item.status === StatusIzin.DISETUJUI) disetujui++;
       else if (item.status === StatusIzin.DITOLAK) ditolak++;
     }
 
     return {
-      all: list.length,
+      all: allIzinList.length,
       pending,
       disetujui,
       ditolak,
     };
-  }, [allIzinResponse?.data]);
+  }, [allIzinList]);
 
   // Fetch Santri options for select & filter
   const { data: santriList = [] } = useQuery({

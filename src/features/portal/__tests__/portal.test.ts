@@ -1,53 +1,54 @@
+import { describe, it, expect } from "vitest";
 import { portalLoginSchema } from "../validation/portal.schema";
 
-function assert(condition: boolean, message: string): void {
-  if (!condition) {
-    throw new Error(`Assertion failed: ${message}`);
-  }
-}
+describe("portalLoginSchema validation", () => {
+  it("should reject empty slug_sekolah", () => {
+    const emptySlug = portalLoginSchema.safeParse({
+      slug_sekolah: "",
+      nis: "NIS123",
+      no_telepon: "081234567890",
+    });
+    expect(emptySlug.success).toBe(false);
+  });
 
-// 1. Validation Tests: Empty Fields
-const emptySlug = portalLoginSchema.safeParse({
-  slug_sekolah: "",
-  nis: "NIS123",
-  no_telepon: "081234567890",
+  it("should reject empty nis", () => {
+    const emptyNis = portalLoginSchema.safeParse({
+      slug_sekolah: "pesantren-nurul-quran",
+      nis: "",
+      no_telepon: "081234567890",
+    });
+    expect(emptyNis.success).toBe(false);
+  });
+
+  it("should reject short phone (<9 digits)", () => {
+    const shortPhone = portalLoginSchema.safeParse({
+      slug_sekolah: "pesantren-nurul-quran",
+      nis: "NIS123",
+      no_telepon: "1234",
+    });
+    expect(shortPhone.success).toBe(false);
+  });
+
+  it("should reject phone containing alphabets", () => {
+    const invalidPhone = portalLoginSchema.safeParse({
+      slug_sekolah: "pesantren-nurul-quran",
+      nis: "NIS123",
+      no_telepon: "0812abcde",
+    });
+    expect(invalidPhone.success).toBe(false);
+  });
+
+  it("should accept valid portal login payload", () => {
+    const validPayload = portalLoginSchema.safeParse({
+      slug_sekolah: "pesantren-nurul-quran",
+      nis: "NIS2024001",
+      no_telepon: "081234567890",
+    });
+    expect(validPayload.success).toBe(true);
+    if (validPayload.success) {
+      expect(validPayload.data.slug_sekolah).toBe("pesantren-nurul-quran");
+      expect(validPayload.data.nis).toBe("NIS2024001");
+      expect(validPayload.data.no_telepon).toBe("081234567890");
+    }
+  });
 });
-assert(!emptySlug.success, "Empty slug_sekolah should fail");
-
-const emptyNis = portalLoginSchema.safeParse({
-  slug_sekolah: "pesantren-nurul-quran",
-  nis: "",
-  no_telepon: "081234567890",
-});
-assert(!emptyNis.success, "Empty nis should fail");
-
-// 2. Phone Validation: Short phone & Invalid characters
-const shortPhone = portalLoginSchema.safeParse({
-  slug_sekolah: "pesantren-nurul-quran",
-  nis: "NIS123",
-  no_telepon: "1234",
-});
-assert(!shortPhone.success, "Short phone (<9 digits) should fail");
-
-const invalidPhone = portalLoginSchema.safeParse({
-  slug_sekolah: "pesantren-nurul-quran",
-  nis: "NIS123",
-  no_telepon: "0812abcde",
-});
-assert(!invalidPhone.success, "Phone with alphabets should fail");
-
-// 3. Valid Portal Login Payload
-const validPayload = portalLoginSchema.safeParse({
-  slug_sekolah: "pesantren-nurul-quran",
-  nis: "NIS2024001",
-  no_telepon: "081234567890",
-});
-assert(validPayload.success, "Valid portal credentials should pass");
-
-if (validPayload.success) {
-  assert(validPayload.data.slug_sekolah === "pesantren-nurul-quran", "Slug should match");
-  assert(validPayload.data.nis === "NIS2024001", "NIS should match");
-  assert(validPayload.data.no_telepon === "081234567890", "Phone should match");
-}
-
-console.log("All portal tests passed successfully!");

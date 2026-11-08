@@ -26,7 +26,7 @@ import { Term } from "@/components/ui/Term";
 import { useTerminology } from "@/hooks/useTerminology";
 
 import { useQuery } from "@tanstack/react-query";
-import axiosClient from "@/lib/axiosClient";
+import { pengumumanService } from "@/features/pengumuman";
 import { PengumumanRecentCard, type PengumumanItem } from "../components/PengumumanRecentCard";
 
 interface RecentSetoranItem {
@@ -71,9 +71,8 @@ export function MuhafizDashboard() {
     queryKey: ["muhafiz-dashboard-pengumuman"],
     queryFn: async () => {
       try {
-        const res = await axiosClient.get("/pengumuman", { params: { active_only: true } });
-        const payload = res.data;
-        return Array.isArray(payload?.data) ? payload.data : Array.isArray(payload) ? payload : [];
+        const res = await pengumumanService.getPengumumanList({ active_only: true });
+        return (res?.data || []) as PengumumanItem[];
       } catch {
         return [];
       }

@@ -447,6 +447,7 @@ export function LaporanTablePro({
                                           taqwim: row.taqwim ?? 0,
                                           keterangan: row.keterangan || "",
                                           nilai: 0,
+                                          custom_values: row.custom_values || null,
                                           santri: {
                                             nama_santri: row.nama_santri,
                                           }

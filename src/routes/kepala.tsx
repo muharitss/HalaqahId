@@ -1,6 +1,7 @@
 import { lazy } from "react";
 import { type RouteObject } from "react-router-dom";
-import { FeatureRouteGuard } from "./guards";
+import { FeatureRouteGuard, ProtectedRoute } from "./guards";
+import { Role } from "@/types/domain/enums";
 
 const KepalaMuhafidzDashboard = lazy(() =>
   import("@/features/dashboard/pages/kepala-muhafidz-dashboard").then((m) => ({ default: m.KepalaMuhafidzDashboard }))
@@ -95,7 +96,11 @@ export const kepalaRoutes: RouteObject[] = [
   },
   {
     path: "/kepala-muhafidz/muhafiz",
-    element: <KelolaMuhafizPage />,
+    element: (
+      <ProtectedRoute allowedRoles={[Role.SUPERADMIN, Role.ADMIN]}>
+        <KelolaMuhafizPage />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/kepala-muhafidz/halaqah",
@@ -183,7 +188,11 @@ export const kepalaRoutes: RouteObject[] = [
   },
   {
     path: "/kepala-muhafidz/settings/terminology",
-    element: <TerminologySettingsPage />,
+    element: (
+      <ProtectedRoute allowedRoles={[Role.SUPERADMIN, Role.ADMIN]}>
+        <TerminologySettingsPage />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/kepala-muhafidz/settings/rubrik",
@@ -191,7 +200,11 @@ export const kepalaRoutes: RouteObject[] = [
   },
   {
     path: "/kepala-muhafidz/settings/roles",
-    element: <KelolaRolePage />,
+    element: (
+      <ProtectedRoute allowedRoles={[Role.SUPERADMIN, Role.ADMIN]}>
+        <KelolaRolePage />
+      </ProtectedRoute>
+    ),
   },
 
   // Kontrol per-halaqah

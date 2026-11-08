@@ -121,6 +121,7 @@ export function useUpdateTenantBrand(id: number) {
       tenantAdminApi.updateBrand(id, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: TENANT_QUERY_KEYS.brand(id) });
+      queryClient.invalidateQueries({ queryKey: ["tenant-brand", id] });
       queryClient.invalidateQueries({ queryKey: TENANT_QUERY_KEYS.detail(id) });
       toast.success("Branding tenant berhasil diperbarui");
     },
@@ -148,6 +149,7 @@ export function useUpdateTenantTerminology(id: number) {
       tenantAdminApi.updateTerminology(id, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: TENANT_QUERY_KEYS.terminology(id) });
+      queryClient.invalidateQueries({ queryKey: ["tenant-terminology", id] });
       toast.success("Terminologi berhasil diperbarui");
     },
     onError: (err: unknown) => {
@@ -174,6 +176,7 @@ export function useUpdateTenantFeature(id: number) {
       tenantAdminApi.updateFeature(id, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: TENANT_QUERY_KEYS.features(id) });
+      queryClient.invalidateQueries({ queryKey: ["tenant-features", id] });
       toast.success("Fitur tenant berhasil diperbarui");
     },
     onError: (err: unknown) => {

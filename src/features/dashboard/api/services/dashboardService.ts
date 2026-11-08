@@ -2,7 +2,7 @@ import { absensiService } from "@/features/absensi";
 import { setoranService } from "@/features/setoran/api/services/setoranService";
 import { sanitizeDashboardData } from "@/features/setoran/utils/dataTransformer";
 import { santriService } from "@/features/santri";
-import { startOfWeek, startOfMonth, format } from "date-fns";
+import { startOfWeek, startOfMonth, endOfMonth, format } from "date-fns";
 import { akunService, halaqahService } from "@/features/shared";
 
 import type {
@@ -30,10 +30,16 @@ export const dashboardService = {
     }
   },
 
-  // Get all setoran data
-  getAllSetoran: async (): Promise<SetoranData[]> => {
+  // Get all setoran data with optional date range filter
+  getAllSetoran: async (startDate?: string, endDate?: string): Promise<SetoranData[]> => {
     try {
-      const res = await setoranService.getAllSetoran();
+      const now = new Date();
+      const defaultStart = format(startOfMonth(now), "yyyy-MM-dd");
+      const defaultEnd = format(endOfMonth(now), "yyyy-MM-dd");
+      const res = await setoranService.getAllSetoran(undefined, 100, {
+        startDate: startDate || defaultStart,
+        endDate: endDate || defaultEnd,
+      });
       // Tambahkan 'as unknown' sebelum 'as SetoranData[]'
       return (res.data || []) as unknown as SetoranData[];
     } catch (error) {
