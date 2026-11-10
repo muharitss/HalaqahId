@@ -7,7 +7,8 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Term } from "@/components/ui/Term";
@@ -44,25 +45,24 @@ export function KelolaIzinPage() {
   } = useIzinManagement();
 
   return (
-    <div className="space-y-6 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
+    <div className="space-y-6">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
-            <FileCheck2 className="w-6 h-6 text-primary" />
+          <h1 className="text-2xl font-bold tracking-tight">
             Kelola Izin <Term code="SANTRI" />
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Pencatatan dan persetujuan izin santri yang otomatis terintegrasi dengan absensi halaqah.
+          <p className="text-muted-foreground text-sm">
+            Pencatatan dan persetujuan izin santri yang otomatis terintegrasi dengan absensi halaqah
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5 flex-wrap">
           <Button
             variant="outline"
             size="sm"
             onClick={() => refetchIzin()}
             disabled={isLoading}
-            className="h-9 gap-1.5"
+            className="shadow-sm gap-1.5 text-xs"
           >
             <RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />
             <span className="hidden sm:inline">Refresh</span>
@@ -70,7 +70,7 @@ export function KelolaIzinPage() {
           <Button
             size="sm"
             onClick={() => setIsAjukanOpen(true)}
-            className="h-9 gap-1.5"
+            className="shadow-sm gap-1.5 text-xs"
           >
             <Plus className="w-4 h-4" />
             Ajukan Izin
@@ -80,59 +80,60 @@ export function KelolaIzinPage() {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="shadow-xs border-border">
-          <CardContent className="p-4 flex items-center justify-between">
-            <div>
-              <p className="text-xs font-medium text-muted-foreground">Total Pengajuan</p>
-              <p className="text-2xl font-bold mt-1 text-foreground">{counts.all}</p>
-            </div>
-            <div className="p-2.5 rounded-lg bg-primary/10 text-primary">
-              <FileCheck2 className="w-5 h-5" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="shadow-xs border-border">
-          <CardContent className="p-4 flex items-center justify-between">
-            <div>
-              <p className="text-xs font-medium text-muted-foreground">Menunggu Persetujuan</p>
-              <p className="text-2xl font-bold mt-1 text-amber-600 dark:text-amber-400">
-                {counts.pending}
-              </p>
-            </div>
-            <div className="p-2.5 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400">
-              <Clock className="w-5 h-5" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="shadow-xs border-border">
-          <CardContent className="p-4 flex items-center justify-between">
-            <div>
-              <p className="text-xs font-medium text-muted-foreground">Disetujui</p>
-              <p className="text-2xl font-bold mt-1 text-emerald-600 dark:text-emerald-400">
-                {counts.disetujui}
-              </p>
-            </div>
-            <div className="p-2.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
-              <CheckCircle2 className="w-5 h-5" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="shadow-xs border-border">
-          <CardContent className="p-4 flex items-center justify-between">
-            <div>
-              <p className="text-xs font-medium text-muted-foreground">Ditolak</p>
-              <p className="text-2xl font-bold mt-1 text-destructive">
-                {counts.ditolak}
-              </p>
-            </div>
-            <div className="p-2.5 rounded-lg bg-destructive/10 text-destructive">
-              <XCircle className="w-5 h-5" />
-            </div>
-          </CardContent>
-        </Card>
+        {[
+          {
+            label: "Total Pengajuan",
+            value: counts.all,
+            desc: "Semua riwayat izin santri",
+            icon: FileCheck2,
+            color: "text-primary",
+          },
+          {
+            label: "Menunggu Persetujuan",
+            value: counts.pending,
+            desc: "Perlu verifikasi & persetujuan",
+            icon: Clock,
+            color: "text-amber-500",
+          },
+          {
+            label: "Disetujui",
+            value: counts.disetujui,
+            desc: "Telah diverifikasi & disetujui",
+            icon: CheckCircle2,
+            color: "text-emerald-500",
+          },
+          {
+            label: "Ditolak",
+            value: counts.ditolak,
+            desc: "Pengajuan izin tidak disetujui",
+            icon: XCircle,
+            color: "text-destructive",
+          },
+        ].map((card, idx) => {
+          const Icon = card.icon;
+          return (
+            <Card key={idx} className="shadow-sm">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-xs font-medium text-muted-foreground">
+                  {card.label}
+                </CardTitle>
+                <Icon className={`h-4 w-4 ${card.color}`} />
+              </CardHeader>
+              <CardContent>
+                {isLoading ? (
+                  <Skeleton className="h-8 w-16 mt-1" />
+                ) : (
+                  <div className="text-2xl font-bold tracking-tight text-foreground">
+                    {card.value}
+                  </div>
+                )}
+                <p className="text-[11px] text-muted-foreground mt-1 truncate">
+                  {card.desc}
+                </p>
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
       {/* Tabs and Filters */}

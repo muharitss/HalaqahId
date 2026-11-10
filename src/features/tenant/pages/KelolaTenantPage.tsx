@@ -143,9 +143,6 @@ export function KelolaTenantPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-5">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <div className="p-2 bg-primary/10 rounded-lg text-primary">
-              <Building2 className="w-5 h-5" />
-            </div>
             <h1 className="text-2xl font-bold tracking-tight text-foreground">
               Manajemen Tenant
             </h1>

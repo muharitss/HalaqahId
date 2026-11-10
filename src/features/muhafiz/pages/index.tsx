@@ -93,7 +93,7 @@ export default function KelolaMuhafizPage() {
     <div className="space-y-6 animate-in fade-in duration-500">
       
       {/* HEADER */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b pb-8">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="space-y-1">
           <MuhafizManagement />
         </div>

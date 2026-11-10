@@ -1,7 +1,6 @@
 import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import {
-  CalendarCheck,
   Plus,
   Download,
   Trash2,
@@ -100,7 +99,7 @@ export function HariLiburPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b pb-5">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="space-y-1">
           <Link
             to="/kepala-muhafidz/akademik"
@@ -110,7 +109,6 @@ export function HariLiburPage() {
             Kembali ke Kalender Akademik
           </Link>
           <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-            <CalendarCheck className="h-7 w-7 text-primary" />
             Kelola Hari Libur
           </h1>
           <p className="text-muted-foreground text-sm">
@@ -136,10 +134,17 @@ export function HariLiburPage() {
         </div>
       </div>
 
-      {/* Filter Bar */}
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-muted-foreground">Filter Tahun:</span>
+      {/* Table */}
+      <Card>
+        <CardHeader className="pb-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <CardTitle className="text-base font-semibold">
+              Daftar Hari Libur {selectedYear !== "all" ? `Tahun ${selectedYear}` : ""}
+            </CardTitle>
+            <CardDescription className="text-xs">
+              Hari libur yang dicatat di sini otomatis ditampilkan di kalender visual akademik.
+            </CardDescription>
+          </div>
           <Select value={selectedYear} onValueChange={setSelectedYear}>
             <SelectTrigger className="w-32 h-9">
               <SelectValue />
@@ -151,22 +156,6 @@ export function HariLiburPage() {
               <SelectItem value="2027">2027</SelectItem>
             </SelectContent>
           </Select>
-        </div>
-
-        <p className="text-xs text-muted-foreground">
-          Total: <span className="font-semibold text-foreground">{sortedList.length}</span> hari libur
-        </p>
-      </div>
-
-      {/* Table */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base font-semibold">
-            Daftar Hari Libur {selectedYear !== "all" ? `Tahun ${selectedYear}` : ""}
-          </CardTitle>
-          <CardDescription className="text-xs">
-            Hari libur yang dicatat di sini otomatis ditampilkan di kalender visual akademik.
-          </CardDescription>
         </CardHeader>
 
         <CardContent>

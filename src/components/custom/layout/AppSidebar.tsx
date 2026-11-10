@@ -30,11 +30,13 @@ import {
   SidebarGroup,
   SidebarGroupLabel,
   SidebarGroupContent,
+  SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
 import React, { useEffect } from "react";
 import { Megaphone, FileCheck2 } from "lucide-react";
 import { isKepalaRole, Role } from "@/types/domain/enums";
+import { cn } from "@/lib/utils";
 
 import { useTenant } from "@/store/tenant-context";
 import { useTerminology } from "@/lib/hooks/useTerminology";
@@ -47,7 +49,7 @@ export function AppSidebar() {
   const { brand } = useTenant();
   const location = useLocation();
   const navigate = useNavigate();
-  const { isMobile, setOpenMobile } = useSidebar();
+  const { isMobile, setOpenMobile, state, toggleSidebar } = useSidebar();
 
   useEffect(() => {
     if (isMobile) {
@@ -271,16 +273,38 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon" className="bg-sidebar text-sidebar-foreground">
-      <SidebarHeader className="h-16 border-b flex flex-row items-center gap-3">
-        {brand?.logo_url ? (
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg overflow-hidden bg-background">
-            <img src={brand.logo_url} alt="Logo" className="max-h-full max-w-full object-contain" />
-          </div>
-        ) : (
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-md">
-            <FontAwesomeIcon icon={faBookOpen} className="text-sm" />
-          </div>
+      <SidebarHeader
+        onClick={state === "collapsed" ? toggleSidebar : undefined}
+        onKeyDown={(e) => {
+          if (state === "collapsed" && (e.key === "Enter" || e.key === " ")) {
+            e.preventDefault();
+            toggleSidebar();
+          }
+        }}
+        role={state === "collapsed" ? "button" : undefined}
+        tabIndex={state === "collapsed" ? 0 : undefined}
+        title={state === "collapsed" ? "Buka Sidebar" : undefined}
+        className={cn(
+          "h-16 border-b flex flex-row items-center gap-3 px-3 transition-colors",
+          state === "collapsed" && "cursor-pointer justify-center px-2 hover:bg-sidebar-accent/50"
         )}
+      >
+        <div
+          className={cn(
+            "flex h-8 w-8 items-center justify-center rounded-lg overflow-hidden shrink-0 transition-opacity",
+            state === "collapsed" && "hover:opacity-80"
+          )}
+        >
+          {brand?.logo_url ? (
+            <div className="flex h-full w-full items-center justify-center bg-background">
+              <img src={brand.logo_url} alt="Logo" className="max-h-full max-w-full object-contain" />
+            </div>
+          ) : (
+            <div className="flex h-full w-full items-center justify-center bg-primary text-primary-foreground shadow-md">
+              <FontAwesomeIcon icon={faBookOpen} className="text-sm" />
+            </div>
+          )}
+        </div>
         <div className="flex flex-col overflow-hidden whitespace-nowrap group-data-[collapsible=icon]:hidden">
           <span className="font-bold tracking-tight">{brand?.nama_aplikasi || "HalaqahId"}</span>
           {isImpersonating && (
@@ -289,6 +313,7 @@ export function AppSidebar() {
             </span>
           )}
         </div>
+        <SidebarTrigger className="ml-auto group-data-[collapsible=icon]:hidden" />
       </SidebarHeader>
 
       <SidebarContent>

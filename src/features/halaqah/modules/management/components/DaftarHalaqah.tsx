@@ -123,7 +123,7 @@ function HalaqahItem({
       
       <AccordionContent className="px-0 pt-0 pb-4">
         {/* Section: Tim Muhafiz */}
-        <div className="mb-4 bg-muted/20 border rounded-lg p-3">
+        {/* <div className="mb-4 bg-muted/20 border rounded-lg p-3">
           <div className="flex justify-between items-center mb-2.5">
             <div className="flex items-center gap-2">
               <FontAwesomeIcon icon={faUserTie} className="text-primary text-xs" />
@@ -161,7 +161,7 @@ function HalaqahItem({
               ))}
             </div>
           )}
-        </div>
+        </div> */}
 
         <div className="flex justify-between items-center py-3 border-t border-dashed mb-2 px-1">
           <h4 className="text-[10px] md:text-xs font-bold uppercase tracking-wider text-muted-foreground">
