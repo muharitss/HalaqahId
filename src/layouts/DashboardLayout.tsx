@@ -57,7 +57,7 @@ export default function DashboardLayout() {
           isMobile ? "pb-20" : "",
         )}
       >
-        <header className="flex h-16 shrink-0 items-center justify-between border-b px-4 md:px-6 lg:px-8 sticky top-0 bg-background/95 backdrop-blur z-40 shadow-sm/5">
+        <header className="flex h-16 shrink-0 items-center justify-between border-b px-4 md:px-6 sticky top-0 bg-background/95 backdrop-blur z-40 shadow-sm/5">
           <div className="flex items-center gap-3 md:gap-4">
             {isMobile && (
               <>
@@ -130,13 +130,13 @@ export default function DashboardLayout() {
         </header>
 
         <main className="flex-1 overflow-y-auto overflow-x-hidden w-full bg-slate-50/50 dark:bg-transparent flex flex-col justify-between">
-          <div className="container mx-auto p-4 md:p-6 lg:p-10 max-w-7xl w-full box-border flex-1">
+          <div className="w-full p-4 md:p-6 box-border flex-1">
             <Suspense fallback={<PageSkeleton />}>
               <Outlet />
             </Suspense>
           </div>
           
-          <footer className="py-4 px-6 text-center text-xs text-muted-foreground border-t bg-background/50">
+          <footer className="py-4 px-4 md:px-6 text-center text-xs text-muted-foreground border-t bg-background/50">
             {brand?.copyright_text || `© ${new Date().getFullYear()} ${brand?.nama_aplikasi || "Halaqah.id"}. All rights reserved.`}
           </footer>
         </main>

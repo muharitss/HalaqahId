@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { HalaqahManagement } from "@/components/custom/typed-text";
 import { useHalaqahManagement, BuatHalaqah, DaftarHalaqah, EditHalaqah, DeleteHalaqah } from "../modules";
 import { HalaqahMuhafizManager } from "../components";
 import { SantriModal } from "@/features/santri";
@@ -55,14 +54,21 @@ export function KelolaHalaqahPage() {
   const [targetHalaqahId, setTargetHalaqahId] = useState<string>("");
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b pb-8">
-        <div className="space-y-1">
-          <HalaqahManagement />
+    <div className="w-full space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground mb-0">
+            Kelola <Term code="HALAQAH" />
+          </h3>
+          <p className="text-sm text-muted-foreground mt-1 mb-0">
+            Atur pembagian kelompok {labelHalaqah.toLowerCase()}, penugasan pengampu, dan anggota {labelSantri.toLowerCase()}.
+          </p>
         </div>
-        <PermissionGate permission="halaqah.create">
-          <BuatHalaqah onSuccess={fetchData} />
-        </PermissionGate>
+        <div className="flex items-center gap-2">
+          <PermissionGate permission="halaqah.create">
+            <BuatHalaqah onSuccess={fetchData} />
+          </PermissionGate>
+        </div>
       </div>
 
       <DaftarHalaqah 

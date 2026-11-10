@@ -37,7 +37,7 @@ export function LeaderboardPage({ role }: LeaderboardPageProps) {
   } = useLeaderboardPage({ role });
 
   return (
-    <div className="space-y-6 pb-12 print:p-0 print:space-y-4">
+    <div className="w-full space-y-6 pb-12 print:p-0 print:space-y-4">
       {/* CSS Khusus Cetak Laporan */}
       <style>{`
         @media print {
@@ -84,12 +84,12 @@ export function LeaderboardPage({ role }: LeaderboardPageProps) {
       </div>
 
       {/* Header Halaman */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 no-print">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 no-print">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold tracking-tight">Leaderboard Hafalan Santri</h1>
-          </div>
-          <p className="text-muted-foreground text-sm">
+          <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground mb-0">
+            Leaderboard Hafalan Santri
+          </h3>
+          <p className="text-sm text-muted-foreground mt-1 mb-0">
             {role === "admin"
               ? "Peringkat hafalan santri secara keseluruhan atau per halaqah."
               : "Peringkat hafalan santri khusus di halaqah Anda."}

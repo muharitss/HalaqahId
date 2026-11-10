@@ -118,16 +118,14 @@ export function ProgressDashboard() {
   const currentSantri = filteredSantriList.find((s) => s.id_santri === selectedSantriId);
 
   return (
-    <div className="w-full max-w-7xl mx-auto space-y-6">
+    <div className="w-full space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl md:text-2xl font-bold tracking-tight">
-              Progress Hafalan <Term code="SANTRI" />
-            </h1>
-          </div>
-          <p className="text-xs md:text-sm text-muted-foreground">
+          <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground mb-0">
+            Progress Hafalan <Term code="SANTRI" />
+          </h3>
+          <p className="text-sm text-muted-foreground mt-1 mb-0">
             Visualisasi peta capaian hafalan 30 Juz dan 114 surat Al-Quran per <Term code="SANTRI" />.
           </p>
         </div>

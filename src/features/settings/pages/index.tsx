@@ -111,7 +111,7 @@ export default function SettingsPage() {
     (user?.name?.toLowerCase().includes(q) ?? false);
 
   return (
-    <div className="w-full max-w-5xl mx-auto space-y-6">
+    <div className="w-full space-y-6">
       {/* Header dengan Breadcrumb, Judul, Search, & Audit Log */}
       <SettingsHeader
         searchQuery={searchQuery}

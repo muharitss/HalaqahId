@@ -70,13 +70,15 @@ export function SuperadminDashboard() {
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
+    <div className="w-full space-y-6">
       {/* HEADER */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b pb-6">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-bold tracking-tight">Superadmin Dashboard</h1>
-          <p className="text-muted-foreground text-sm">
-            Monitor semua tenant sekolah dan aktivitas platform Halaqah.id
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground mb-0">
+            Superadmin Dashboard
+          </h3>
+          <p className="text-sm text-muted-foreground mt-1 mb-0">
+            Monitor semua tenant sekolah dan aktivitas platform secara terpusat.
           </p>
         </div>
       </div>

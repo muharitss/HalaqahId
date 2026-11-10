@@ -379,33 +379,37 @@ export default function KelolaBlogPage() {
   const seoAudit = runSeoAudit();
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto animate-in fade-in duration-500 text-left">
+    <div className="w-full space-y-6 text-left">
       
       {/* HEADER */}
-      <div className="flex items-center justify-between border-b pb-6">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
           <Button
             type="button"
             variant="outline"
             size="icon"
             onClick={() => navigate("/superadmin")}
-            className="rounded-full h-10 w-10 shrink-0"
+            className="rounded-full h-9 w-9 shrink-0"
           >
-            <ChevronLeft className="h-5 w-5" />
+            <ChevronLeft className="h-4 w-4" />
           </Button>
-          <div className="space-y-1">
-            <h1 className="text-2xl font-bold tracking-tight">Content Management & Blog</h1>
-            <p className="text-muted-foreground text-sm">
-              Buat artikel promosi, tips tahfidz, kelola kategori, tag, dan optimasi metadata SEO web utama.
+          <div>
+            <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground mb-0">
+              Content Management & Blog
+            </h3>
+            <p className="text-sm text-muted-foreground mt-1 mb-0">
+              Buat artikel promosi, tips tahfidz, kelola kategori, tag, dan optimasi metadata SEO.
             </p>
           </div>
         </div>
 
         {activeTab !== "editor" && (
-          <Button onClick={handleOpenNewPost} className="flex items-center gap-2">
-            <Plus size={16} />
-            <span>Tulis Artikel Baru</span>
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button onClick={handleOpenNewPost} size="sm" className="flex items-center gap-2 shadow-sm">
+              <Plus size={16} />
+              <span>Tulis Artikel Baru</span>
+            </Button>
+          </div>
         )}
       </div>
 

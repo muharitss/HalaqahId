@@ -86,14 +86,14 @@ export function LaporanSetoranPage() {
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
+    <div className="w-full space-y-6">
       {/* ── STANDARD PAGE HEADER ── */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-4">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground mb-0">
             Laporan Setoran Hafalan
-          </h1>
-          <p className="text-sm text-muted-foreground">
+          </h3>
+          <p className="text-sm text-muted-foreground mt-1 mb-0">
             Rekapitulasi setoran tahfiz terpusat periode {periodLabel}.
           </p>
         </div>

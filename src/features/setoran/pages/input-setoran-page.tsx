@@ -14,7 +14,6 @@ import { AlertCircle, FileText, ClipboardList, Save, RefreshCw, HelpCircle } fro
 import { useSetoran } from "../hooks/useSetoran";
 import { SetoranForm } from "../modules/form/components/SetoranForm";
 import { DynamicExamForm } from "../components/DynamicExamForm";
-import { Setoran } from "@/components/custom/typed-text";
 import { type FormMode } from "../hooks/useSmartSetoranMode";
 import { ModeBadge } from "../components/SetoranModeBanner";
 import { useAuth } from "@/features/auth/hooks/useAuth";
@@ -100,12 +99,14 @@ export function InputSetoranPage({
   const SubmitIcon = isEditMode ? RefreshCw : Save;
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
+    <div className="w-full space-y-6">
       {!hideHeader && (
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b pb-8">
-          <div className="space-y-1">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
             <div className="flex items-center gap-2">
-              <Setoran />
+              <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground mb-0">
+                Setoran Hafalan
+              </h3>
               <Button
                 onClick={restartTour}
                 variant="ghost"
@@ -116,6 +117,9 @@ export function InputSetoranPage({
                 <HelpCircle className="h-4 w-4" />
               </Button>
             </div>
+            <p className="text-sm text-muted-foreground mt-1 mb-0">
+              Catat setoran hafalan harian dan evaluasi ujian tahfiz santri.
+            </p>
           </div>
         </div>
       )}

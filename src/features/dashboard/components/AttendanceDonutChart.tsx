@@ -1,13 +1,14 @@
-"use client"
+"use client";
 
 import { PieChart, Pie, Cell, Label } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent, type ChartConfig } from "@/components/ui/chart";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCheckDouble, faCalendarAlt } from "@fortawesome/free-solid-svg-icons";
+import { Separator } from "@/components/ui/separator";
+import { CheckCheck, Clock, Calendar } from "lucide-react";
 import type { AbsensiStat, ViewType } from "../types";
+import { cn } from "@/lib/utils";
 
 const chartConfig = {
   HADIR: { label: "Hadir", color: "#22c55e" },      
@@ -23,6 +24,7 @@ interface AttendanceDonutChartProps {
   totalCount: number;
   view: ViewType;
   onViewChange: (value: ViewType) => void;
+  className?: string;
 }
 
 export const AttendanceDonutChart = ({ 
@@ -30,103 +32,108 @@ export const AttendanceDonutChart = ({
   loading, 
   totalCount, 
   view, 
-  onViewChange 
+  onViewChange,
+  className
 }: AttendanceDonutChartProps) => {
   return (
-    <Card className="lg:col-span-2 border-none shadow-sm bg-muted/20 flex flex-col w-full min-w-0 overflow-hidden">
-      <CardHeader className="pb-2">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="space-y-1">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <FontAwesomeIcon icon={faCheckDouble} className="text-primary" />
-              Rekap Absensi
+    <Card className={cn("shadow-sm border border-border/70 bg-card rounded-xl overflow-hidden flex flex-col justify-between h-full min-w-0 w-full", className)}>
+      <div>
+        <CardHeader className="flex flex-row items-center justify-between gap-3 p-4 pb-2">
+          <div className="space-y-0.5 min-w-0 flex-1">
+            <CardTitle className="flex items-center gap-2 text-base font-bold tracking-tight text-foreground">
+              <CheckCheck className="h-4 w-4 text-emerald-500 shrink-0" />
+              <span className="truncate">Rekap Absensi</span>
             </CardTitle>
-            <CardDescription className="text-[10px] flex items-center gap-1">
-              <FontAwesomeIcon icon={faCalendarAlt} className="h-2.5 w-2.5" />
-              {view === "pekan" ? "Pekan Ini" : "Bulan Ini"}
+            <CardDescription className="text-xs flex items-center gap-1 text-muted-foreground truncate">
+              <Calendar className="h-3 w-3 shrink-0" />
+              <span className="truncate">{view === "pekan" ? "Pekan Ini" : "Bulan Ini"}</span>
             </CardDescription>
           </div>
           
           <Tabs value={view} onValueChange={(v) => onViewChange(v as ViewType)}>
-            <TabsList className="bg-background/50 h-7 px-1">
+            <TabsList className="bg-muted/70 h-7 px-1">
               <TabsTrigger value="pekan" className="text-[10px] h-5 px-2">Pekan</TabsTrigger>
               <TabsTrigger value="bulan" className="text-[10px] h-5 px-2">Bulan</TabsTrigger>
             </TabsList>
           </Tabs>
-        </div>
-      </CardHeader>
+        </CardHeader>
 
-      <CardContent className="flex-1 p-3 sm:p-6 pb-0 sm:pb-0 min-w-0 w-full flex flex-col">
-        {loading ? (
-          <div className="flex items-center justify-center h-70">
-            <Skeleton className="h-48 w-48 rounded-full" />
-          </div>
-        ) : (
-          <ChartContainer config={chartConfig} className="mx-auto aspect-square max-h-75 min-w-0 w-full">
-            <PieChart>
-              <ChartTooltip 
-                cursor={false} 
-                content={<ChartTooltipContent hideLabel />} 
-              />
-              <Pie
-                data={data}
-                dataKey="count"
-                nameKey="status"
-                innerRadius={65}
-                outerRadius={85}
-                strokeWidth={8}
-                paddingAngle={2}
-              >
-                {data.map((entry, index: number) => (
-                  <Cell 
-                    key={`cell-${index}`} 
-                    fill={entry.fill} 
-                    stroke="transparent"
-                    className="hover:opacity-80 transition-opacity"
-                  />
-                ))}
-                <Label
-                  content={({ viewBox }) => {
-                    if (viewBox && "cx" in viewBox && "cy" in viewBox) {
-                      const hadir = data.find((d) => d.status === "HADIR")?.count || 0;
-                      const terlambat = data.find((d) => d.status === "TERLAMBAT")?.count || 0;
-                      
-                      return (
-                        <text x={viewBox.cx} y={viewBox.cy} textAnchor="middle" dominantBaseline="middle">
-                          <tspan 
-                            x={viewBox.cx} 
-                            y={viewBox.cy} 
-                            className="fill-foreground text-3xl font-bold"
-                          >
-                            {hadir + terlambat}
-                          </tspan>
-                          <tspan 
-                            x={viewBox.cx} 
-                            y={(viewBox.cy || 0) + 20} 
-                            className="fill-muted-foreground text-[10px]"
-                          >
-                            Total Kehadiran
-                          </tspan>
-                        </text>
-                      );
-                    }
-                  }}
+        <CardContent className="p-4 pt-1 pb-2 min-w-0 w-full">
+          {loading ? (
+            <div className="flex items-center justify-center h-[180px]">
+              <Skeleton className="h-32 w-32 rounded-full" />
+            </div>
+          ) : (
+            <ChartContainer config={chartConfig} className="mx-auto h-[180px] min-w-0 w-full">
+              <PieChart>
+                <ChartTooltip 
+                  cursor={false} 
+                  content={<ChartTooltipContent hideLabel />} 
                 />
-              </Pie>
-              <ChartLegend 
-                content={<ChartLegendContent />} 
-                className="text-[10px] flex-wrap gap-x-2 gap-y-1 mt-4" 
-              />
-            </PieChart>
-          </ChartContainer>
-        )}
-        
-        <div className="text-center py-4 border-t border-primary/5 mt-2">
-          <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">
-           <span className="font-bold text-foreground">{totalCount} catatan santri</span>
+                <Pie
+                  data={data}
+                  dataKey="count"
+                  nameKey="status"
+                  innerRadius={48}
+                  outerRadius={68}
+                  strokeWidth={4}
+                  paddingAngle={2}
+                >
+                  {data.map((entry, index: number) => (
+                    <Cell 
+                      key={`cell-${index}`} 
+                      fill={entry.fill} 
+                      stroke="transparent"
+                      className="hover:opacity-80 transition-opacity"
+                    />
+                  ))}
+                  <Label
+                    content={({ viewBox }) => {
+                      if (viewBox && "cx" in viewBox && "cy" in viewBox) {
+                        const hadir = data.find((d) => d.status === "HADIR")?.count || 0;
+                        const terlambat = data.find((d) => d.status === "TERLAMBAT")?.count || 0;
+                        
+                        return (
+                          <text x={viewBox.cx} y={viewBox.cy} textAnchor="middle" dominantBaseline="middle">
+                            <tspan 
+                              x={viewBox.cx} 
+                              y={viewBox.cy} 
+                              className="fill-foreground text-2xl font-bold"
+                            >
+                              {hadir + terlambat}
+                            </tspan>
+                            <tspan 
+                              x={viewBox.cx} 
+                              y={(viewBox.cy || 0) + 16} 
+                              className="fill-muted-foreground text-[9px]"
+                            >
+                              Total Hadir
+                            </tspan>
+                          </text>
+                        );
+                      }
+                    }}
+                  />
+                </Pie>
+                <ChartLegend 
+                  content={<ChartLegendContent />} 
+                  className="text-[10px] flex-wrap gap-x-2 gap-y-1 mt-1 justify-center" 
+                />
+              </PieChart>
+            </ChartContainer>
+          )}
+        </CardContent>
+      </div>
+
+      <div>
+        <Separator className="my-0 opacity-60" />
+        <div className="flex items-center text-xs text-muted-foreground px-4 py-2.5 gap-1.5">
+          <Clock className="h-3.5 w-3.5 shrink-0 text-muted-foreground/80" />
+          <p className="mb-0 text-xs text-muted-foreground truncate">
+            Tercatat total <span className="font-semibold text-foreground">{totalCount}</span> log absensi santri
           </p>
         </div>
-      </CardContent>
+      </div>
     </Card>
   );
 };

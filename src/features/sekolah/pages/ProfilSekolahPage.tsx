@@ -43,25 +43,31 @@ export default function ProfilSekolahPage() {
   }
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 max-w-4xl mx-auto">
-      <div className="flex items-center gap-4 border-b pb-6">
-        <button
-          onClick={() => navigate("/kepala-muhafidz/settings")}
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border bg-background hover:bg-muted transition-colors"
-        >
-          <ChevronLeft className="h-5 w-5" />
-        </button>
-        <div className="flex flex-1 flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div className="w-full space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => navigate("/kepala-muhafidz/settings")}
+            className="rounded-full h-9 w-9 shrink-0 shadow-sm"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Profil <Term code="SEKOLAH" /></h1>
-            <p className="text-muted-foreground">
+            <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground mb-0">
+              Profil <Term code="SEKOLAH" />
+            </h3>
+            <p className="text-sm text-muted-foreground mt-1 mb-0">
               Kelola informasi dan profil {labelSekolah.toLowerCase()} Anda.
             </p>
           </div>
+        </div>
 
+        <div className="flex items-center gap-2">
           <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
             <DialogTrigger asChild>
-              <Button>
+              <Button size="sm" className="shadow-sm">
                 <Edit className="w-4 h-4 mr-2" />
                 Edit Profil
               </Button>

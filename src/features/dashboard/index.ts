@@ -1,3 +1,9 @@
 export { SuperadminDashboard } from './pages/superadmin-dashboard';
 export { KepalaMuhafidzDashboard } from './pages/kepala-muhafidz-dashboard';
 export { MuhafizDashboard } from './pages/muhafiz-dashboard';
+export { KepalaMuhafidzKpiCards } from './components/KepalaMuhafidzKpiCards';
+export { ActivityChart } from './components/ActivityChart';
+export { AttendanceDonutChart } from './components/AttendanceDonutChart';
+export { JuzDistributionChart } from './components/JuzDistributionChart';
+export { AlfaStudentsTableCard } from './components/AlfaStudentsTableCard';
+export { RecentSetoranTimelineCard } from './components/RecentSetoranTimelineCard';

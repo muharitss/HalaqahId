@@ -182,18 +182,22 @@ export default function KelolaSekolahPage() {
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div className="w-full space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Kelola Sekolah</h1>
-          <p className="text-muted-foreground">
-            Daftar tenant sekolah yang menggunakan Halaqah.id
+          <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground mb-0">
+            Kelola Sekolah
+          </h3>
+          <p className="text-sm text-muted-foreground mt-1 mb-0">
+            Daftar tenant sekolah yang menggunakan platform Halaqah.id.
           </p>
         </div>
-        <Button onClick={() => setIsAddOpen(true)}>
-          <FontAwesomeIcon icon={faPlus} className="mr-2 h-4 w-4" />
-          Tambah Sekolah & Admin
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button onClick={() => setIsAddOpen(true)} size="sm" className="shadow-sm">
+            <FontAwesomeIcon icon={faPlus} className="mr-2 h-4 w-4" />
+            Tambah Sekolah & Admin
+          </Button>
+        </div>
       </div>
 
       <Card>

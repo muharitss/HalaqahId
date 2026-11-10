@@ -97,10 +97,10 @@ export function HariLiburPage() {
   }, [hariLiburList]);
 
   return (
-    <div className="space-y-6">
+    <div className="w-full space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div className="space-y-1">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
           <Link
             to="/kepala-muhafidz/akademik"
             className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground mb-1"
@@ -108,11 +108,11 @@ export function HariLiburPage() {
             <ArrowLeft className="h-3.5 w-3.5" />
             Kembali ke Kalender Akademik
           </Link>
-          <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+          <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground mb-0">
             Kelola Hari Libur
-          </h1>
-          <p className="text-muted-foreground text-sm">
-            Daftar hari libur sekolah, cuti bersama, dan hari libur nasional Indonesia.
+          </h3>
+          <p className="text-sm text-muted-foreground mt-1 mb-0">
+            Daftar hari libur sekolah, cuti bersama, dan hari libur nasional.
           </p>
         </div>
 

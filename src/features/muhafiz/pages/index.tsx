@@ -1,16 +1,14 @@
 import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "@/features/auth/components/auth-provider";
-import { MuhafizManagement } from "@/components/custom/typed-text";
+import { Term } from "@/components/ui/Term";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faUsers, faCalendarCheck, faClipboardList, faSearch } from "@fortawesome/free-solid-svg-icons";
+import { Users, CalendarCheck, ClipboardList, Search, Calendar as CalendarIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
-import { CalendarIcon } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 
@@ -90,14 +88,19 @@ export default function KelolaMuhafizPage() {
   if (!user || !isKepalaRole(user.role)) return <AccessDenied />;
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
+    <div className="w-full space-y-6">
       
-      {/* HEADER */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div className="space-y-1">
-          <MuhafizManagement />
+      {/* ── HEADER ──────────────────────────────────────────────────────── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground mb-0">
+            Kelola <Term code="MUHAFIZ" />
+          </h3>
+          <p className="text-sm text-muted-foreground mt-1 mb-0">
+            Kelola data akun {labelMuhafiz.toLowerCase()}, monitoring absensi, serta rekap keaktifan mengajar.
+          </p>
         </div>
-        <div className="shrink-0">
+        <div className="flex items-center gap-2">
           <BuatAkun onSuccess={handleCreateSuccess} />
         </div>
       </div>
@@ -105,15 +108,15 @@ export default function KelolaMuhafizPage() {
       <Tabs defaultValue="daftar" className="w-full space-y-6">
         <TabsList className="flex w-full items-center justify-start overflow-x-auto overflow-y-hidden bg-muted/50 p-1 md:grid md:grid-cols-3 md:max-w-[550px] scrollbar-hide h-auto">
           <TabsTrigger value="daftar" className="flex items-center gap-2 shrink-0 whitespace-nowrap py-2 px-4 md:px-2">
-            <FontAwesomeIcon icon={faUsers} className="h-3.5 w-3.5" />
+            <Users className="h-4 w-4" />
             <span>Daftar Akun</span>
           </TabsTrigger>
           <TabsTrigger value="input" className="flex items-center gap-2 shrink-0 whitespace-nowrap py-2 px-4 md:px-2">
-            <FontAwesomeIcon icon={faClipboardList} className="h-3.5 w-3.5" />
+            <ClipboardList className="h-4 w-4" />
             <span>Input Absensi</span>
           </TabsTrigger>
           <TabsTrigger value="monitoring" className="flex items-center gap-2 shrink-0 whitespace-nowrap py-2 px-4 md:px-2">
-            <FontAwesomeIcon icon={faCalendarCheck} className="h-3.5 w-3.5" />
+            <CalendarCheck className="h-4 w-4" />
             <span>Monitoring</span>
           </TabsTrigger>
         </TabsList>
@@ -121,9 +124,9 @@ export default function KelolaMuhafizPage() {
         {/* TAB 1: DAFTAR AKUN */}
         <TabsContent value="daftar" className="mt-0 outline-none">
           <div className="border rounded-xl overflow-hidden bg-card shadow-sm">
-            <div className="p-6 border-b flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div className="p-4 sm:p-6 border-b flex flex-col sm:flex-row justify-between items-center gap-4">
               <div className="relative w-full sm:w-72">
-                <FontAwesomeIcon icon={faSearch} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input 
                   placeholder="Cari nama atau email..." 
                   value={searchTerm}
@@ -265,14 +268,14 @@ export default function KelolaMuhafizPage() {
             )}
           </div>
 
-          <div className="flex items-center justify-between border-t pt-6">
-            <p className="text-sm text-muted-foreground italic">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-t pt-6">
+            <p className="text-sm text-muted-foreground italic text-center sm:text-left">
               * Pastikan semua data benar. Klik status kembali untuk mengubah absensi yang sudah tercatat.
             </p>
             <Button 
               onClick={handleSaveAllAbsensi} 
               disabled={isSubmitting || isLoading || muhafizList.length === 0}
-              className="px-10 h-11"
+              className="w-full sm:w-auto px-10 h-11"
             >
               {isSubmitting ? "Menyimpan..." : "Simpan / Update Absensi"}
             </Button>

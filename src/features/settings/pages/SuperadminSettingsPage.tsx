@@ -72,33 +72,36 @@ export default function SuperadminSettingsPage() {
   }
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto animate-in fade-in duration-500 text-left">
+    <div className="w-full space-y-6 text-left">
       {/* HEADER */}
-      <div className="flex items-center justify-between border-b pb-6">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
           <Button
             type="button"
             variant="outline"
             size="icon"
             onClick={() => navigate("/superadmin")}
-            className="rounded-full h-10 w-10 shrink-0"
+            className="rounded-full h-9 w-9 shrink-0"
           >
-            <ChevronLeft className="h-5 w-5" />
+            <ChevronLeft className="h-4 w-4" />
           </Button>
-          <div className="space-y-1">
-            <h1 className="text-2xl font-bold tracking-tight">Pengaturan Platform</h1>
-            <p className="text-muted-foreground text-sm">
-              Kelola konfigurasi sistem global, SEO defaults, redirect paths, dan section landing page.
+          <div>
+            <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground mb-0">
+              Pengaturan Platform
+            </h3>
+            <p className="text-sm text-muted-foreground mt-1 mb-0">
+              Kelola konfigurasi sistem global, SEO defaults, redirect paths, dan landing page.
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <Button
             type="button"
             variant="outline"
+            size="sm"
             onClick={() => navigate("/superadmin/settings/trash")}
-            className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+            className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200 shadow-sm"
           >
             <Trash2 className="h-4 w-4" />
             <span>Tempat Sampah</span>

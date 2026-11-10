@@ -138,24 +138,24 @@ export function KelolaTenantPage() {
   };
 
   return (
-    <div className="w-full max-w-7xl mx-auto space-y-6 pb-12 animate-in fade-in duration-300">
+    <div className="w-full space-y-6 pb-12">
       {/* Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-5">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">
-              Manajemen Tenant
-            </h1>
-          </div>
-          <p className="text-sm text-muted-foreground">
-            Kelola lembaga, institusi, dan konfigurasi multi-tenant platform
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground mb-0">
+            Manajemen Tenant
+          </h3>
+          <p className="text-sm text-muted-foreground mt-1 mb-0">
+            Kelola lembaga, institusi, dan konfigurasi multi-tenant platform.
           </p>
         </div>
 
-        <Button onClick={handleOpenCreate} className="gap-2 shadow-xs">
-          <Plus className="w-4 h-4" />
-          Tambah Tenant Baru
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button onClick={handleOpenCreate} size="sm" className="gap-2 shadow-xs">
+            <Plus className="w-4 h-4" />
+            Tambah Tenant Baru
+          </Button>
+        </div>
       </div>
 
       {/* Filter and Search Bar */}

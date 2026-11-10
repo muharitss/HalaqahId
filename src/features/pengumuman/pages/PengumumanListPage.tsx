@@ -43,15 +43,15 @@ export function PengumumanListPage() {
   };
 
   return (
-    <div className="container max-w-4xl mx-auto py-6 px-4 md:px-6 space-y-6">
+    <div className="w-full space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground flex items-center gap-2">
-            <Megaphone className="w-7 h-7 text-primary" />
+          <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground mb-0 flex items-center gap-2">
+            <Megaphone className="w-6 h-6 text-primary" />
             Pusat Pengumuman
-          </h1>
-          <p className="text-muted-foreground text-sm mt-1">
+          </h3>
+          <p className="text-sm text-muted-foreground mt-1 mb-0">
             Informasi, edaran, dan pengumuman terbaru seputar kegiatan halaqah.
           </p>
         </div>

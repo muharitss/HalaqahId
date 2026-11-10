@@ -163,12 +163,12 @@ export function MuhafizDashboard() {
     return (
       <div className="space-y-6 animate-pulse">
         {/* Header Skeleton */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b pb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="space-y-2">
             <Skeleton className="h-8 w-64" />
             <Skeleton className="h-4 w-96" />
           </div>
-          <div className="flex gap-3">
+          <div className="flex gap-2">
             <Skeleton className="h-9 w-32" />
             <Skeleton className="h-9 w-32" />
           </div>
@@ -206,13 +206,15 @@ export function MuhafizDashboard() {
   }
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
+    <div className="w-full space-y-6">
       
       {/* 1. HEADER */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b pb-8">
-        <div className="space-y-1" data-tour="dashboard-header">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div data-tour="dashboard-header">
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold tracking-tight">Dashboard <Term code="MUHAFIZ" /></h1>
+            <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground mb-0">
+              Dashboard <Term code="MUHAFIZ" />
+            </h3>
             <Button
               onClick={restartTour}
               variant="ghost"
@@ -223,12 +225,12 @@ export function MuhafizDashboard() {
               <HelpCircle className="h-4 w-4" />
             </Button>
           </div>
-          <p className="text-muted-foreground text-sm">
+          <p className="text-sm text-muted-foreground mt-1 mb-0">
             Kelola perkembangan setoran hafalan dan kehadiran {labelSantri.toLowerCase()} di {labelHalaqah.toLowerCase()}{" "}
             <span className="font-semibold text-foreground">{halaqahName}</span>
           </p>
         </div>
-        <div className="flex gap-3" data-tour="dashboard-actions">
+        <div className="flex items-center gap-2" data-tour="dashboard-actions">
           <Button
             onClick={() => navigate("/muhafidz/absensi")}
             variant="outline"

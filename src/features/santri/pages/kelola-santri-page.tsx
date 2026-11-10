@@ -21,7 +21,6 @@ import { type DriveStep } from "driver.js";
 import { HelpCircle, Users, Plus, Search, Filter, GraduationCap } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
-import { KelolaSantri } from "@/components/custom/typed-text";
 import { Term } from "@/components/ui/Term";
 import { useTerminology } from "@/hooks/useTerminology";
 import { PermissionGate } from "@/components/ui/PermissionGate";
@@ -247,11 +246,13 @@ export function KelolaSantriPage() {
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b pb-8" data-tour="kelola-santri-header">
-        <div className="space-y-1">
+    <div className="w-full space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4" data-tour="kelola-santri-header">
+        <div>
           <div className="flex items-center gap-2">
-            <KelolaSantri />
+            <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground mb-0">
+              Kelola <Term code="SANTRI" />
+            </h3>
             <Button
               onClick={restartTour}
               variant="ghost"
@@ -262,6 +263,9 @@ export function KelolaSantriPage() {
               <HelpCircle className="h-4 w-4" />
             </Button>
           </div>
+          <p className="text-sm text-muted-foreground mt-1 mb-0">
+            Kelola data {labelSantri.toLowerCase()}, penempatan {labelHalaqah.toLowerCase()}, dan status akademik.
+          </p>
         </div>
         <div className="flex items-center gap-2">
           <PermissionGate permission={["santri.update", "santri:edit-all"]}>

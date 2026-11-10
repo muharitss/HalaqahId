@@ -34,37 +34,39 @@ export default function KategoriSettingsPage() {
   } = useKategoriSettings();
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto animate-in fade-in duration-500">
+    <div className="w-full space-y-6">
       {/* ── HEADER ──────────────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between border-b pb-5">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
           <Button 
             variant="outline" 
             size="icon" 
             onClick={() => navigate("/kepala-muhafidz/settings")} 
             className="rounded-full h-9 w-9 shrink-0"
           >
-            <ChevronLeft className="h-5 w-5" />
+            <ChevronLeft className="h-4 w-4" />
           </Button>
-          <div className="space-y-1">
-            <h1 className="text-xl font-extrabold tracking-tight flex items-center gap-2">
+          <div>
+            <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground mb-0 flex items-center gap-2">
               <Layers className="h-5 w-5 text-primary" />
               Kelola Kategori Setoran
-            </h1>
-            <p className="text-xs text-muted-foreground">
-              Tentukan kategori kustom setoran Al-Quran untuk sekolah Anda
+            </h3>
+            <p className="text-sm text-muted-foreground mt-1 mb-0">
+              Tentukan kategori kustom setoran Al-Quran untuk sekolah Anda.
             </p>
           </div>
         </div>
         
-        <Button 
-          size="sm" 
-          onClick={() => { resetForm(); setIsCreateOpen(true); }}
-          className="font-semibold text-xs h-8.5 gap-1.5 shadow-sm"
-        >
-          <Plus className="h-4 w-4" />
-          Tambah Kategori
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button 
+            size="sm" 
+            onClick={() => { resetForm(); setIsCreateOpen(true); }}
+            className="font-semibold text-xs h-9 gap-1.5 shadow-sm"
+          >
+            <Plus className="h-4 w-4" />
+            Tambah Kategori
+          </Button>
+        </div>
       </div>
 
       {/* ── ALERTS / INFO ── */}

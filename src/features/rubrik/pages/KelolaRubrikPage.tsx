@@ -91,7 +91,7 @@ export function KelolaRubrikPage() {
   };
 
   return (
-    <div className="w-full max-w-6xl mx-auto space-y-6">
+    <div className="w-full space-y-6">
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
@@ -99,36 +99,39 @@ export function KelolaRubrikPage() {
             variant="ghost"
             size="icon"
             onClick={() => navigate("/kepala-muhafidz/settings")}
-            className="h-9 w-9"
+            className="h-9 w-9 shrink-0"
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-xl md:text-2xl font-bold tracking-tight">
+              <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground mb-0">
                 Rubrik Penilaian
-              </h1>
+              </h3>
               <Badge variant="secondary" className="gap-1 text-xs">
                 <Sparkles className="h-3 w-3 text-primary" />
                 Terstandar
               </Badge>
             </div>
-            <p className="text-xs md:text-sm text-muted-foreground">
+            <p className="text-sm text-muted-foreground mt-1 mb-0">
               Kelola template kriteria & bobot penilaian terstandar untuk setoran harian dan ujian tahfidz.
             </p>
           </div>
         </div>
 
-        <Button
-          onClick={() => {
-            setEditingRubrik(null);
-            setFormOpen(true);
-          }}
-          className="gap-2 shadow-sm"
-        >
-          <Plus className="h-4 w-4" />
-          Tambah Rubrik
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={() => {
+              setEditingRubrik(null);
+              setFormOpen(true);
+            }}
+            size="sm"
+            className="gap-2 shadow-sm"
+          >
+            <Plus className="h-4 w-4" />
+            Tambah Rubrik
+          </Button>
+        </div>
       </div>
 
       {/* Main Card */}

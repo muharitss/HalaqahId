@@ -8,11 +8,7 @@ import {
   Trash2,
   Edit,
   Clock,
-  Sparkles,
-  GraduationCap,
   BookOpen,
-  ArrowRight,
-  Layers,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -72,17 +68,7 @@ export function KalenderAkademikPage() {
     [tahunAjaranList]
   );
 
-  const currentActiveSemester = useMemo(() => {
-    if (!activeTahunAjaran?.semesters?.length) return null;
-    const todayStr = new Date().toISOString().slice(0, 10);
-    return (
-      activeTahunAjaran.semesters.find((s) => {
-        const start = s.tanggal_mulai ? s.tanggal_mulai.slice(0, 10) : "";
-        const end = s.tanggal_selesai ? s.tanggal_selesai.slice(0, 10) : "";
-        return start && end && todayStr >= start && todayStr <= end;
-      }) || null
-    );
-  }, [activeTahunAjaran]);
+
 
   const formatDate = (dateString?: string | null) => {
     if (!dateString) return "-";
@@ -171,13 +157,15 @@ export function KalenderAkademikPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="w-full space-y-6">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Kalender Akademik</h1>
-          <p className="text-muted-foreground text-sm">
-            Kelola tahun ajaran, pembagian semester, dan pantau jadwal visual kalender sekolah
+          <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground mb-0">
+            Kalender Akademik
+          </h3>
+          <p className="text-sm text-muted-foreground mt-1 mb-0">
+            Kelola tahun ajaran, pembagian semester, dan pantau jadwal visual kalender sekolah.
           </p>
         </div>
 

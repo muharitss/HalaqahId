@@ -45,18 +45,18 @@ export function KelolaIzinPage() {
   } = useIzinManagement();
 
   return (
-    <div className="space-y-6">
+    <div className="w-full space-y-6">
       {/* Page Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">
+          <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground mb-0">
             Kelola Izin <Term code="SANTRI" />
-          </h1>
-          <p className="text-muted-foreground text-sm">
-            Pencatatan dan persetujuan izin santri yang otomatis terintegrasi dengan absensi halaqah
+          </h3>
+          <p className="text-sm text-muted-foreground mt-1 mb-0">
+            Pencatatan dan persetujuan permohonan izin santri terintegrasi dengan absensi halaqah.
           </p>
         </div>
-        <div className="flex items-center gap-2.5 flex-wrap">
+        <div className="flex items-center gap-2 flex-wrap">
           <Button
             variant="outline"
             size="sm"

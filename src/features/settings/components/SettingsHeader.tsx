@@ -37,12 +37,10 @@ export function SettingsHeader({
       {/* Title, Search, Actions */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-              Pengaturan
-            </h1>
-          </div>
-          <p className="text-sm text-muted-foreground mt-1">
+          <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground mb-0">
+            Pengaturan
+          </h3>
+          <p className="text-sm text-muted-foreground mt-1 mb-0">
             Kelola konfigurasi sistem, akun pengguna, preferensi aplikasi, dan integrasi ma'had Anda.
           </p>
         </div>

@@ -106,12 +106,14 @@ export default function KelolaUserPage() {
   } = useKelolaUser();
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b pb-6">
+    <div className="w-full space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Kelola Pengguna</h1>
-          <p className="text-muted-foreground">
-            Direktori global seluruh pengguna dan hak akses di platform Halaqah.id
+          <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground mb-0">
+            Kelola Pengguna
+          </h3>
+          <p className="text-sm text-muted-foreground mt-1 mb-0">
+            Direktori seluruh pengguna dan hak akses akun dalam sistem.
           </p>
         </div>
       </div>
