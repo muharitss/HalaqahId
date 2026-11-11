@@ -35,30 +35,33 @@ export default function TargetSettingsPage() {
   } = useTargetSettings();
 
   return (
-    <div className="space-y-6 max-w-3xl mx-auto animate-in fade-in duration-500">
+    <div className="w-full space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-4 border-b pb-6">
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={() => navigate("/kepala-muhafidz/settings")}
-          className="rounded-full h-10 w-10 shrink-0"
-        >
-          <ChevronLeft className="h-5 w-5" />
-        </Button>
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl font-bold tracking-tight">Target Setoran</h1>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => navigate("/kepala-muhafidz/settings")}
+            className="rounded-full h-9 w-9 shrink-0"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <div>
+            <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground mb-0">
+              Target Setoran
+            </h3>
+            <p className="text-sm text-muted-foreground mt-1 mb-0">
+              Atur target capaian hafalan kurikulum tahfiz untuk santri.
+            </p>
           </div>
-          <p className="text-sm text-muted-foreground">
-            Atur target hafalan sesuai kurikulum sekolah Anda. Setiap santri dapat ditetapkan ke
-            salah satu target, atau dibiarkan tanpa target.
-          </p>
         </div>
-        <Button onClick={openCreate} className="ml-auto shrink-0">
-          <Plus className="h-4 w-4 mr-2" />
-          Tambah Target
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button onClick={openCreate} size="sm" className="shadow-sm">
+            <Plus className="h-4 w-4 mr-2" />
+            Tambah Target
+          </Button>
+        </div>
       </div>
 
       {/* Target List Component */}

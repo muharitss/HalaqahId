@@ -167,20 +167,20 @@ export const KelolaProgramPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="w-full space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-            <GraduationCap className="h-7 w-7 text-primary" />
+          <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground mb-0 flex items-center gap-2">
+            <GraduationCap className="h-6 w-6 text-primary" />
             Program & Level Tahfidz
-          </h1>
-          <p className="text-muted-foreground text-sm">
+          </h3>
+          <p className="text-sm text-muted-foreground mt-1 mb-0">
             Kelola kurikulum program hafalan dan jenjang capaian <Term code="SANTRI" />.
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <Link to="/kepala-muhafidz/akademik">
             <Button variant="outline" size="sm" className="gap-2">
               <CalendarDays className="h-4 w-4" />

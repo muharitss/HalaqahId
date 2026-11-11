@@ -1,7 +1,8 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardHeader, CardFooter } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BookOpen, ClipboardCheck, Sparkles, Users } from "lucide-react";
 import { useTerminology } from "@/hooks/useTerminology";
+import { cn } from "@/lib/utils";
 
 interface KepalaMuhafidzKpiProps {
   avgJuz: string;
@@ -28,59 +29,83 @@ export function KepalaMuhafidzKpiCards({
 
   const cards = [
     {
-      label: "Progress Hafalan Rata-Rata",
+      label: "Rata-Rata Hafalan",
       value: `Juz ${avgJuz}`,
-      desc: `${activeSetorCount} dari ${totalSantri} ${labelSantri.toLowerCase()} aktif setor`,
+      trend: `+${activeSetorCount} Aktif`,
+      desc: `dari ${totalSantri} ${labelSantri.toLowerCase()}`,
+      trendColor: "text-emerald-500",
       icon: BookOpen,
-      color: "text-primary",
+      gradientClass: "bg-gradient-to-tr from-slate-900 to-slate-700 shadow-slate-900/20",
     },
     {
-      label: "Absensi Hari Ini",
+      label: "Kehadiran Hari Ini",
       value: `${todayAttendance.percentage}%`,
-      desc: `${todayAttendance.hadir} dari ${todayAttendance.total || totalSantri} ${labelSantri.toLowerCase()} hadir`,
+      trend: `${todayAttendance.hadir} Hadir`,
+      desc: `dari ${todayAttendance.total || totalSantri} ${labelSantri.toLowerCase()}`,
+      trendColor: "text-emerald-500",
       icon: ClipboardCheck,
-      color: "text-emerald-500",
+      gradientClass: "bg-gradient-to-tr from-emerald-600 to-emerald-400 shadow-emerald-500/25",
     },
     {
       label: "Setoran Hari Ini",
       value: `${todaySetoranCount}`,
-      desc: `Total riwayat hafalan masuk hari ini`,
+      trend: "Hari Ini",
+      desc: "riwayat hafalan masuk",
+      trendColor: "text-amber-500",
       icon: Sparkles,
-      color: "text-amber-500",
+      gradientClass: "bg-gradient-to-tr from-amber-600 to-amber-400 shadow-amber-500/25",
     },
     {
       label: `Total ${labelSantri}`,
       value: `${totalSantri}`,
-      desc: `Terdaftar aktif di sistem sekolah`,
+      trend: "100%",
+      desc: "terdaftar di sistem",
+      trendColor: "text-blue-500",
       icon: Users,
-      color: "text-blue-500",
+      gradientClass: "bg-gradient-to-tr from-blue-600 to-blue-400 shadow-blue-500/25",
     },
   ];
 
   return (
-    <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
       {cards.map((card, idx) => {
         const Icon = card.icon;
         return (
-          <Card key={idx} className="shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs font-medium text-muted-foreground">
-                {card.label}
-              </CardTitle>
-              <Icon className={`h-4 w-4 ${card.color}`} />
-            </CardHeader>
-            <CardContent>
-              {isLoading ? (
-                <Skeleton className="h-8 w-20 mt-1" />
-              ) : (
-                <div className="text-2xl font-bold tracking-tight text-foreground">
-                  {card.value}
+          <Card
+            key={idx}
+            className="shadow-sm border border-border/70 bg-card rounded-xl overflow-hidden hover:shadow-md transition-shadow flex flex-col justify-between"
+          >
+            <CardHeader>
+              <div className="flex items-center justify-between ">
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium text-muted-foreground capitalize truncate leading-tight">
+                    {card.label}
+                  </p>
+                  {isLoading ? (
+                    <Skeleton className="h-8 w-20 mt-1" />
+                  ) : (
+                    <h4 className="text-2xl font-bold tracking-tight text-foreground truncate">
+                      {card.value}
+                    </h4>
+                  )}
                 </div>
-              )}
-              <p className="text-[11px] text-muted-foreground mt-1 truncate">
-                {card.desc}
+                <div
+                >
+                  <Icon className="text-primary" />
+                </div>
+              </div>
+            </CardHeader>
+
+            {/* <Separator/> */}
+
+            <CardFooter className="pt-0">
+              <p className="text-xs text-muted-foreground flex items-center truncate m-0">
+                <span className={cn("font-bold shrink-0", card.trendColor)}>
+                  {card.trend}
+                </span>
+                <span className="truncate ml-1">{card.desc}</span>
               </p>
-            </CardContent>
+            </CardFooter>
           </Card>
         );
       })}

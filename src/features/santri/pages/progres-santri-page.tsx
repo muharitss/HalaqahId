@@ -569,14 +569,14 @@ export function ProgresSantriPage() {
   // };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
+    <div className="w-full space-y-6">
       {/* ── STANDARD PAGE HEADER ── */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b pb-8" data-tour="progres-header">
-        <div className="space-y-1">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4" data-tour="progres-header">
+        <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">
+            <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground mb-0">
               Progres Hafalan Santri
-            </h1>
+            </h3>
             <Button
               onClick={restartTour}
               variant="ghost"
@@ -587,7 +587,7 @@ export function ProgresSantriPage() {
               <HelpCircle className="h-4 w-4" />
             </Button>
           </div>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-muted-foreground mt-1 mb-0">
             Realisasi target capaian setoran hafalan santri yang aktif saat ini.
           </p>
         </div>

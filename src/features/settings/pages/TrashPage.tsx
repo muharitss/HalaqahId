@@ -20,14 +20,19 @@ export default function TrashPage() {
   } = useTrashSection();
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
+    <div className="w-full space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-6 border-b pb-8">
-        <Button variant="outline" size="icon" onClick={() => navigate(basePath)} className="rounded-full h-10 w-10 shrink-0">
-          <ChevronLeft className="h-5 w-5" />
-        </Button>
-        <div className="space-y-1">
-          <h1 className="text-xl md:text-2xl font-bold tracking-tight">Tempat Sampah</h1>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <Button variant="outline" size="icon" onClick={() => navigate(basePath)} className="rounded-full h-9 w-9 shrink-0">
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <div>
+            <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground mb-0">Tempat Sampah</h3>
+            <p className="text-sm text-muted-foreground mt-1 mb-0">
+              Pulihkan atau hapus data entitas yang sebelumnya dihapus sementara.
+            </p>
+          </div>
         </div>
       </div>
 

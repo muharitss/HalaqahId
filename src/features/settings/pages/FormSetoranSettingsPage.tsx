@@ -27,33 +27,38 @@ export default function FormSetoranSettingsPage() {
   } = useFormSetoranSettings();
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto animate-in fade-in duration-500 pb-12">
+    <div className="w-full space-y-6 pb-12">
       {/* HEADER */}
-      <div className="flex items-center justify-between border-b pb-6">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
           <Button
             variant="outline"
             size="icon"
             onClick={() => navigate("/kepala-muhafidz/settings")}
-            className="rounded-full h-10 w-10 shrink-0"
+            className="rounded-full h-9 w-9 shrink-0"
           >
-            <ChevronLeft className="h-5 w-5" />
+            <ChevronLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Pengaturan Form Setoran</h1>
-            <p className="text-sm text-muted-foreground">
-              Konfigurasi kolom input kustom tambahan untuk formulir setoran santri
+            <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground mb-0">
+              Pengaturan Form Setoran
+            </h3>
+            <p className="text-sm text-muted-foreground mt-1 mb-0">
+              Konfigurasi kolom input kustom tambahan untuk formulir setoran santri.
             </p>
           </div>
         </div>
-        <Button
-          onClick={handleSaveConfig}
-          disabled={isSaving || isLoading}
-          className="gap-2"
-        >
-          <Save size={16} />
-          {isSaving ? "Menyimpan..." : "Simpan Perubahan"}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={handleSaveConfig}
+            disabled={isSaving || isLoading}
+            size="sm"
+            className="gap-2 shadow-sm"
+          >
+            <Save size={16} />
+            {isSaving ? "Menyimpan..." : "Simpan Perubahan"}
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

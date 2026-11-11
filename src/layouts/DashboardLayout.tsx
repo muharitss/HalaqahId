@@ -9,7 +9,6 @@ import { Outlet, useNavigate } from "react-router-dom";
 import { PageSkeleton } from "@/components/custom/loading/PageSkeleton";
 import {
   SidebarProvider,
-  SidebarTrigger,
   SidebarInset,
 } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
@@ -58,27 +57,26 @@ export default function DashboardLayout() {
           isMobile ? "pb-20" : "",
         )}
       >
-        <header className="flex h-16 shrink-0 items-center justify-between border-b px-4 md:px-6 lg:px-8 sticky top-0 bg-background/95 backdrop-blur z-40 shadow-sm/5">
+        <header className="flex h-16 shrink-0 items-center justify-between border-b px-4 md:px-6 sticky top-0 bg-background/95 backdrop-blur z-40 shadow-sm/5">
           <div className="flex items-center gap-3 md:gap-4">
-            {!isMobile && <SidebarTrigger />}
-
             {isMobile && (
-              brand?.logo_url ? (
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg overflow-hidden bg-background border shadow-sm">
-                  <img
-                    src={brand.logo_url}
-                    alt={brand.nama_aplikasi || "Logo"}
-                    className="max-h-full max-w-full object-contain"
-                  />
-                </div>
-              ) : (
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-md">
-                  <FontAwesomeIcon icon={faBookOpen} className="text-base" />
-                </div>
-              )
+              <>
+                {brand?.logo_url ? (
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg overflow-hidden bg-background border shadow-sm">
+                    <img
+                      src={brand.logo_url}
+                      alt={brand.nama_aplikasi || "Logo"}
+                      className="max-h-full max-w-full object-contain"
+                    />
+                  </div>
+                ) : (
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-md">
+                    <FontAwesomeIcon icon={faBookOpen} className="text-base" />
+                  </div>
+                )}
+                <Separator orientation="vertical" className="h-6 hidden sm:block" />
+              </>
             )}
-
-            <Separator orientation="vertical" className="h-6 hidden sm:block" />
 
             <h1 className="text-sm md:text-base lg:text-lg font-bold tracking-tight">
               {isMobile ? (brand?.nama_aplikasi || user?.name) : `Halo, ${user?.name}`}
@@ -132,13 +130,13 @@ export default function DashboardLayout() {
         </header>
 
         <main className="flex-1 overflow-y-auto overflow-x-hidden w-full bg-slate-50/50 dark:bg-transparent flex flex-col justify-between">
-          <div className="container mx-auto p-4 md:p-6 lg:p-10 max-w-7xl w-full box-border flex-1">
+          <div className="w-full p-4 md:p-6 box-border flex-1">
             <Suspense fallback={<PageSkeleton />}>
               <Outlet />
             </Suspense>
           </div>
           
-          <footer className="py-4 px-6 text-center text-xs text-muted-foreground border-t bg-background/50">
+          <footer className="py-4 px-4 md:px-6 text-center text-xs text-muted-foreground border-t bg-background/50">
             {brand?.copyright_text || `© ${new Date().getFullYear()} ${brand?.nama_aplikasi || "Halaqah.id"}. All rights reserved.`}
           </footer>
         </main>

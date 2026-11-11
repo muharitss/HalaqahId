@@ -141,23 +141,25 @@ export function KelolaPengumumanPage() {
   };
 
   return (
-    <div className="container max-w-6xl mx-auto py-6 px-4 md:px-6 space-y-6">
+    <div className="w-full space-y-6">
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground flex items-center gap-2">
-            <Megaphone className="w-7 h-7 text-primary" />
+          <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground mb-0 flex items-center gap-2">
+            <Megaphone className="w-6 h-6 text-primary" />
             Kelola Pengumuman
-          </h1>
-          <p className="text-muted-foreground text-sm mt-1">
+          </h3>
+          <p className="text-sm text-muted-foreground mt-1 mb-0">
             Publikasikan pengumuman ke seluruh civitas, per halaqah, atau per santri.
           </p>
         </div>
 
-        <Button onClick={handleCreateOpen} className="gap-2 shrink-0">
-          <Plus className="w-4 h-4" />
-          Buat Pengumuman
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button onClick={handleCreateOpen} size="sm" className="gap-2 shrink-0 shadow-sm">
+            <Plus className="w-4 h-4" />
+            Buat Pengumuman
+          </Button>
+        </div>
       </div>
 
       {/* Stats Summary Cards */}

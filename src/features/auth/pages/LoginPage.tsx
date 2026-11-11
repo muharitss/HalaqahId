@@ -4,6 +4,7 @@ import { LoginCarousel } from "../components/login-carousel";
 import { LoginHeader } from "../components/login-header";
 import { LoginFooter } from "../components/login-footer";
 import { useTenant } from "@/store/tenant-context";
+import { SEO } from "@/components/custom/seo/SEO";
 
 export function LoginPage() {
   const { brand } = useTenant();
@@ -11,6 +12,11 @@ export function LoginPage() {
 
   return (
     <div className="flex h-screen w-full overflow-hidden bg-background-light dark:bg-background-dark">
+      <SEO
+        title={appName ? `Masuk - ${appName}` : "Masuk ke Akun"}
+        description="Masuk ke portal aplikasi Halaqah ID untuk mengelola halaqah dan setoran santri."
+        robots="noindex, follow"
+      />
       <div className="absolute top-4 right-4 z-50">
         <ThemeToggle />
       </div>

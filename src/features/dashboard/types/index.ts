@@ -9,10 +9,18 @@ export interface SetoranData {
   id_setoran: number;
   id_santri: number;
   tanggal_setoran: string;
-  kategori: string;
+  kategori?: string | { id_kategori: number; nama_kategori: string; perlu_validasi_urutan?: boolean; };
+  juz?: number;
+  surat?: string | number;
+  ayat?: string | number;
+  taqwim?: number;
+  keterangan?: string;
   santri?: {
     nama_santri: string;
     deleted_at?: string | null;
+    halaqah?: {
+      name_halaqah: string;
+    } | null;
   };
 }
 

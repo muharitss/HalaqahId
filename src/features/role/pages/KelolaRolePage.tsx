@@ -165,26 +165,28 @@ export function KelolaRolePage() {
   };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto p-4 sm:p-6 text-left">
+    <div className="w-full space-y-6 text-left">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2.5">
-            <Shield className="h-6 w-6 text-primary" />
+          <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground mb-0">
             Kelola Role & Perizinan
-          </h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            Atur peran pengguna (roles) dan matriks hak akses perizinan (permissions) dalam sistem.
+          </h3>
+          <p className="text-sm text-muted-foreground mt-1 mb-0">
+            Atur peran pengguna (roles) dan matriks hak akses perizinan dalam sistem.
           </p>
         </div>
 
-        <Button
-          onClick={() => setIsCreateOpen(true)}
-          className="gap-2 shadow-xs cursor-pointer self-start sm:self-auto"
-        >
-          <Plus className="h-4 w-4" />
-          Tambah Role Kustom
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={() => setIsCreateOpen(true)}
+            size="sm"
+            className="gap-2 shadow-xs cursor-pointer"
+          >
+            <Plus className="h-4 w-4" />
+            Tambah Role Kustom
+          </Button>
+        </div>
       </div>
 
       {/* Stats Cards */}

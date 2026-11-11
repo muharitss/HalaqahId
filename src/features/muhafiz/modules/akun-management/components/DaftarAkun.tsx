@@ -111,7 +111,7 @@ export function DaftarAkun({
   }
 
   return (
-    <div>
+    <div className="px-4">
       <Table>
         <TableHeader>
           <TableRow className="bg-muted/30 hover:bg-muted/30">
@@ -124,7 +124,7 @@ export function DaftarAkun({
         <TableBody>
           {muhafizList.map((muhafiz) => {            
             return (
-              <TableRow key={muhafiz.id_user} className="hover:bg-muted/10 transition-colors group">
+              <TableRow key={muhafiz.id_user} className="hover:bg-muted/10 transition-colors">
                 <TableCell className="py-5">
                   <div className="flex flex-col gap-1.5">
                     <div className="flex items-center gap-2 flex-wrap">

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus, AlertTriangle } from "lucide-react";
+import { Term } from "@/components/ui/Term";
 import { useSesi, SesiTable, SesiModal } from "../modules";
 import { useHalaqahManagement } from "@/features/halaqah";
 import type { SesiHalaqah, CreateSesiHalaqahRequest, UpdateSesiHalaqahRequest } from "@/types/domain/sesi-halaqah";
@@ -63,15 +64,21 @@ export function KelolaSesiPage() {
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 max-w-6xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div className="w-full space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">Kelola Sesi Halaqah</h1>
-          <p className="text-muted-foreground mt-1">Atur jadwal sesi halaqah untuk santri dan asatidz.</p>
+          <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground mb-0">
+            Kelola Sesi <Term code="HALAQAH" />
+          </h3>
+          <p className="text-sm text-muted-foreground mt-1 mb-0">
+            Atur jadwal sesi waktu pertemuan untuk santri dan asatidz.
+          </p>
         </div>
-        <Button onClick={handleOpenAdd} className="shrink-0 shadow-sm">
-          <Plus className="mr-2 h-4 w-4" /> Tambah Sesi
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button onClick={handleOpenAdd} size="sm" className="shadow-sm">
+            <Plus className="mr-2 h-4 w-4" /> Tambah Sesi
+          </Button>
+        </div>
       </div>
 
       <SesiTable 

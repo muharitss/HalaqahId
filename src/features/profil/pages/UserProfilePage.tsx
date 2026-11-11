@@ -49,25 +49,27 @@ export function UserProfilePage() {
       : "/muhafidz/settings";
 
   return (
-    <div className="space-y-6 max-w-3xl mx-auto animate-in fade-in duration-500 pb-12">
+    <div className="w-full space-y-6 pb-12">
       {/* Header */}
-      <div className="flex items-center gap-4 border-b pb-6">
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={() => navigate(basePath)}
-          className="rounded-full h-10 w-10 shrink-0 shadow-sm"
-          title="Kembali ke Pengaturan"
-        >
-          <ChevronLeft className="h-5 w-5" />
-        </Button>
-        <div className="space-y-0.5">
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
-            Profil Pengguna
-          </h1>
-          <p className="text-xs sm:text-sm text-muted-foreground">
-            Kelola foto profil, data pribadi, dan keamanan akun Anda.
-          </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => navigate(basePath)}
+            className="rounded-full h-9 w-9 shrink-0 shadow-sm"
+            title="Kembali ke Pengaturan"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <div>
+            <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground mb-0">
+              Profil Pengguna
+            </h3>
+            <p className="text-sm text-muted-foreground mt-1 mb-0">
+              Kelola foto profil, data pribadi, dan keamanan akun Anda.
+            </p>
+          </div>
         </div>
       </div>
 

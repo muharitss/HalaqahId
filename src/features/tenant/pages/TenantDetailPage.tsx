@@ -88,9 +88,9 @@ export function TenantDetailPage() {
   };
 
   return (
-    <div className="w-full max-w-7xl mx-auto space-y-6 pb-12 animate-in fade-in duration-300">
+    <div className="w-full space-y-6 pb-12">
       {/* Back button & Title header */}
-      <div className="space-y-4 border-b pb-5">
+      <div className="space-y-3">
         <Button
           variant="ghost"
           size="sm"
@@ -116,9 +116,9 @@ export function TenantDetailPage() {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-2xl font-bold tracking-tight text-foreground">
+                <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground mb-0">
                   {tenant.nama_tenant}
-                </h1>
+                </h3>
                 {getStatusBadge(tenant.status)}
               </div>
               <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">

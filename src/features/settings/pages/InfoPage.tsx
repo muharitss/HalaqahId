@@ -53,32 +53,35 @@ export default function InfoPage() {
   }
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
+    <div className="w-full space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-4 border-b pb-6">
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={() => navigate(basePath)}
-          className="rounded-full h-10 w-10 shrink-0"
-        >
-          <ChevronLeft className="h-5 w-5" />
-        </Button>
-        <div className="flex-1 space-y-1">
-          <h1 className="text-xl md:text-2xl font-bold tracking-tight">
-            Informasi &amp; SOP
-          </h1>
-          <p className="text-xs text-muted-foreground">
-            Standar Operasional Prosedur khusus untuk manajemen halaqah ini.
-          </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => navigate(basePath)}
+            className="rounded-full h-9 w-9 shrink-0"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <div>
+            <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground mb-0">
+              Informasi &amp; SOP
+            </h3>
+            <p className="text-sm text-muted-foreground mt-1 mb-0">
+              Standar Operasional Prosedur khusus untuk manajemen halaqah ini.
+            </p>
+          </div>
         </div>
         {canEdit && hasContent && !isLoading && (
-          <Button
-            variant={isEditing ? "secondary" : "outline"}
-            size="sm"
-            className="gap-2 text-xs shrink-0"
-            onClick={() => setIsEditing((v) => !v)}
-          >
+          <div className="flex items-center gap-2">
+            <Button
+              variant={isEditing ? "secondary" : "outline"}
+              size="sm"
+              className="gap-2 text-xs shrink-0 shadow-sm"
+              onClick={() => setIsEditing((v) => !v)}
+            >
             {isEditing ? (
               <>
                 <Eye className="w-3.5 h-3.5" />
@@ -90,7 +93,8 @@ export default function InfoPage() {
                 Edit SOP
               </>
             )}
-          </Button>
+            </Button>
+          </div>
         )}
       </div>
 

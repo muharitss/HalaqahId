@@ -67,12 +67,14 @@ export default function KelolaAuditLogPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b pb-6">
+    <div className="w-full space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Audit Logs & Aktivitas Sistem</h1>
-          <p className="text-muted-foreground">
-            Lacak riwayat tindakan penghapusan sekolah dan pengguna secara real-time
+          <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground mb-0">
+            Audit Logs & Aktivitas Sistem
+          </h3>
+          <p className="text-sm text-muted-foreground mt-1 mb-0">
+            Lacak riwayat tindakan dan audit perubahan aktivitas sistem secara real-time.
           </p>
         </div>
       </div>
