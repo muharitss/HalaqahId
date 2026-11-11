@@ -4,6 +4,7 @@ import { LoginCarousel } from "../components/login-carousel";
 import { LoginHeader } from "../components/login-header";
 import { LoginFooter } from "../components/login-footer";
 import { useTenant } from "@/store/tenant-context";
+import { SEO } from "@/components/custom/seo/SEO";
 
 export function RegisterPage() {
   const { brand } = useTenant();
@@ -11,6 +12,11 @@ export function RegisterPage() {
 
   return (
     <div className="flex h-screen w-full overflow-hidden bg-background-light dark:bg-background-dark">
+      <SEO
+        title={appName ? `Daftar - ${appName}` : "Daftar Akun Baru"}
+        description="Pendaftaran akun baru aplikasi Halaqah ID."
+        robots="noindex, follow"
+      />
       <div className="absolute top-4 right-4 z-50">
         <ThemeToggle />
       </div>

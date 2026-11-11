@@ -108,24 +108,15 @@ export default function LandingPage() {
     "@type": "WebSite",
     "name": "Halaqah ID",
     "url": "https://halaqah-id.vercel.app",
-    "potentialAction": {
-      "@type": "SearchAction",
-      "target": "https://halaqah-id.vercel.app/blog?search={search_term_string}",
-      "query-input": "required name=search_term_string",
-    },
+    "inLanguage": "id",
   };
 
   const softwareSchema = {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
     "name": "Halaqah ID",
-    "operatingSystem": "All",
+    "operatingSystem": "Web",
     "applicationCategory": "EducationalApplication",
-    "aggregateRating": {
-      "@type": "AggregateRating",
-      "ratingValue": "4.9",
-      "ratingCount": "120",
-    },
     "offers": {
       "@type": "Offer",
       "price": "0",
@@ -138,11 +129,8 @@ export default function LandingPage() {
     "@type": "Organization",
     "name": "Halaqah ID",
     "url": "https://halaqah-id.vercel.app",
-    "logo": "https://halaqah-id.vercel.app/logo.png",
-    "sameAs": [
-      "https://facebook.com/halaqahid",
-      "https://instagram.com/halaqahid",
-    ],
+    "logo": "https://halaqah-id.vercel.app/logo.svg",
+    "description": "Platform manajemen tahfidz dan monitoring hafalan santri modern.",
   };
 
   // Determine actual rendered strings (DB-overridden or keyword default)

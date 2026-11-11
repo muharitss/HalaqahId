@@ -1,6 +1,78 @@
 <!doctype html>
-<html lang="en">
+<html lang="id">
   <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Halaqah ID - Aplikasi Manajemen Halaqah &amp; Tahfidz Quran Modern</title>
+    <meta name="description" content="Aplikasi manajemen halaqah, monitoring perkembangan hafalan santri real-time, dan administrasi tahfidz modern untuk pondok pesantren, rumah tahfidz, dan TPQ." />
+    <meta name="keywords" content="aplikasi halaqah, aplikasi tahfidz, monitoring hafalan, administrasi tahfidz, tahfidz quran, rumah tahfidz, pondok pesantren, setoran hafalan" />
+    <meta name="author" content="Halaqah ID" />
+    <meta name="robots" content="index, follow" />
+    <meta name="google-site-verification" content="googleadaf73e6317f4aea" />
+    <link rel="canonical" href="https://halaqah-id.vercel.app/" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:site_name" content="Halaqah ID" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://halaqah-id.vercel.app/" />
+    <meta property="og:title" content="Halaqah ID - Aplikasi Manajemen Halaqah &amp; Tahfidz Quran Modern" />
+    <meta property="og:description" content="Aplikasi manajemen halaqah, monitoring perkembangan hafalan santri real-time, dan administrasi tahfidz modern untuk pondok pesantren, rumah tahfidz, dan TPQ." />
+    <meta property="og:image" content="https://halaqah-id.vercel.app/og-image-default.png" />
+
+    <!-- Twitter Cards -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="https://halaqah-id.vercel.app/" />
+    <meta name="twitter:title" content="Halaqah ID - Aplikasi Manajemen Halaqah &amp; Tahfidz Quran Modern" />
+    <meta name="twitter:description" content="Aplikasi manajemen halaqah, monitoring perkembangan hafalan santri real-time, dan administrasi tahfidz modern untuk pondok pesantren, rumah tahfidz, dan TPQ." />
+    <meta name="twitter:image" content="https://halaqah-id.vercel.app/og-image-default.png" />
+
+    <!-- Favicon & PWA -->
+    <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+    <link rel="apple-touch-icon" href="/icon-192.png" />
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#0284c7" />
+
+    <!-- Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://halaqah-id.vercel.app/#organization",
+          "name": "Halaqah ID",
+          "url": "https://halaqah-id.vercel.app",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://halaqah-id.vercel.app/logo.svg"
+          },
+          "description": "Platform digital manajemen halaqah dan monitoring perkembangan hafalan santri."
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://halaqah-id.vercel.app/#website",
+          "url": "https://halaqah-id.vercel.app",
+          "name": "Halaqah ID",
+          "publisher": {
+            "@id": "https://halaqah-id.vercel.app/#organization"
+          },
+          "inLanguage": "id"
+        },
+        {
+          "@type": "SoftwareApplication",
+          "name": "Halaqah ID",
+          "applicationCategory": "EducationalApplication",
+          "operatingSystem": "Web",
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "IDR"
+          }
+        }
+      ]
+    }
+    </script>
+
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-9J40TV1X20"></script>
     <script>
@@ -10,11 +82,7 @@
 
       gtag('config', 'G-9J40TV1X20');
     </script>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/logo.svg" />
-    <link rel="manifest" href="/manifest.json" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Halaqah ID</title>
+
     <!-- Font Arab untuk komponen Mushaf (Scheherazade New) -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

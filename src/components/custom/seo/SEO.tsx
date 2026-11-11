@@ -43,7 +43,8 @@ export const SEO: React.FC<SEOProps> = ({
   themeColor = "#0284c7", // Sky 600 default
 }) => {
   const finalTitle = title.includes("Halaqah ID") ? title : `${title} | Halaqah ID`;
-  const currentUrl = canonical || window.location.href;
+  const cleanPath = typeof window !== "undefined" ? window.location.pathname.replace(/\/+$/, "") || "/" : "/";
+  const currentUrl = canonical || `https://halaqah-id.vercel.app${cleanPath}`;
 
   const defaultOgImage = ogImage || "https://halaqah-id.vercel.app/og-image-default.png";
   const defaultTwitterImage = twitterImage || defaultOgImage;
@@ -61,7 +62,7 @@ export const SEO: React.FC<SEOProps> = ({
       <meta name="robots" content={robots} />
       <link rel="canonical" href={currentUrl} />
       <meta name="theme-color" content={themeColor} />
-      <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
       {/* Open Graph Tags */}
       <meta property="og:site_name" content="Halaqah ID" />
