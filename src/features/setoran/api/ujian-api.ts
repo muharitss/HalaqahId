@@ -15,6 +15,70 @@ export interface ExamRubrikDetail {
   kriteria: RubrikKriteria[];
 }
 
+export interface ExamInputSchemaField {
+  key: string;
+  label: string;
+  type: "COUNTER" | "SLIDER" | "TEXTAREA" | "NUMBER";
+  min?: number;
+  max?: number;
+  default?: any;
+}
+
+export function normalizeInputSchema(rawSchema: unknown): ExamInputSchemaField[] {
+  if (!rawSchema) return [];
+
+  let parsed: unknown = rawSchema;
+  if (typeof rawSchema === "string") {
+    try {
+      parsed = JSON.parse(rawSchema);
+    } catch {
+      return [];
+    }
+  }
+
+  let fields: unknown[] = [];
+  if (Array.isArray(parsed)) {
+    fields = parsed;
+  } else if (parsed && typeof parsed === "object") {
+    const obj = parsed as Record<string, unknown>;
+    if (Array.isArray(obj.fields)) {
+      fields = obj.fields;
+    } else if (Array.isArray(obj.kriteria)) {
+      fields = obj.kriteria;
+    } else if (Array.isArray(obj.items)) {
+      fields = obj.items;
+    } else {
+      fields = Object.entries(obj).map(([k, v]) => {
+        if (v && typeof v === "object") {
+          return { key: k, ...(v as Record<string, unknown>) };
+        }
+        return { key: k, label: k, type: "NUMBER" };
+      });
+    }
+  }
+
+  return fields
+    .filter((f): f is Record<string, unknown> => typeof f === "object" && f !== null)
+    .map((f) => {
+      const rawType = String(f.type || "NUMBER").toUpperCase();
+      const validTypes = ["COUNTER", "SLIDER", "TEXTAREA", "NUMBER"];
+      const type = (validTypes.includes(rawType) ? rawType : "NUMBER") as ExamInputSchemaField["type"];
+
+      const key = String(f.key || f.name || "");
+      const label = String(f.label || f.name || f.key || key);
+
+      return {
+        key,
+        label,
+        type,
+        ...(f.min !== undefined ? { min: Number(f.min) } : {}),
+        ...(f.max !== undefined ? { max: Number(f.max) } : {}),
+        ...(f.default !== undefined ? { default: f.default } : {}),
+      };
+    })
+    .filter((f) => Boolean(f.key));
+}
+
 export interface ExamTemplate {
   id_template: number;
   id_sekolah: number;
@@ -29,14 +93,7 @@ export interface ExamTemplate {
   filter_jenis_kategori?: string[];
   jumlah_soal?: number;
   soal_acak_tanpa_detail?: boolean;
-  input_schema: Array<{
-    key: string;
-    label: string;
-    type: "COUNTER" | "SLIDER" | "TEXTAREA" | "NUMBER";
-    min?: number;
-    max?: number;
-    default?: any;
-  }>;
+  input_schema: ExamInputSchemaField[];
   formula_expression: string;
   aturan_kelulusan?: {
     kkm?: number;
@@ -203,6 +260,7 @@ export const ujianService = {
           ...t,
           nama_ujian: t.nama_template,
           exam_mode: t.jenis_ujian,
+          input_schema: normalizeInputSchema(t.input_schema),
         }));
       }
       return response.data;
@@ -242,6 +300,15 @@ export const ujianService = {
   getExamSchedules: async (params?: { start_date?: string; end_date?: string }): Promise<ApiResponse<ExamSchedule[]>> => {
     try {
       const response = await axiosClient.get<ApiResponse<ExamSchedule[]>>("/ujian/jadwal", { params });
+      if (response.data && response.data.data) {
+        response.data.data = response.data.data.map(s => ({
+          ...s,
+          template: s.template ? {
+            ...s.template,
+            input_schema: normalizeInputSchema(s.template.input_schema),
+          } : undefined,
+        }));
+      }
       return response.data;
     } catch (error: unknown) {
       throw new Error(getErrorMessage(error, "Gagal mengambil jadwal ujian"));
@@ -349,7 +416,7 @@ export const ujianService = {
             template: {
               nama_ujian: session.jadwal?.template?.nama_template || "Ujian",
               exam_mode: session.jadwal?.template?.jenis_ujian || "SINGLE_PASS",
-              input_schema: session.jadwal?.template?.input_schema || [],
+              input_schema: normalizeInputSchema(session.jadwal?.template?.input_schema),
               formula_expression: session.jadwal?.template?.formula_expression || "",
               metode_penilaian: session.jadwal?.template?.metode_penilaian || "FORMULA",
               rubrik: session.jadwal?.template?.rubrik,

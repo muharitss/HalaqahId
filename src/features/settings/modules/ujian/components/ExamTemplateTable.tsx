@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import type { ExamTemplate } from "@/features/setoran/api/ujian-api";
+import { type ExamTemplate, normalizeInputSchema } from "@/features/setoran/api/ujian-api";
 
 interface ExamTemplateTableProps {
   templates: ExamTemplate[];
@@ -67,57 +67,64 @@ export function ExamTemplateTable({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {templates.map((temp) => (
-                <TableRow
-                  key={temp.id_template}
-                  className="transition-all hover:bg-muted/10"
-                >
-                  <TableCell className="font-bold text-sm text-foreground py-3.5">
-                    {temp.nama_template || temp.nama_ujian}
-                  </TableCell>
-                  <TableCell className="text-center py-3.5">
-                    {temp.jenis_ujian === "SINGLE_PASS" ? (
-                      <Badge className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-200 text-[9px] font-bold hover:bg-emerald-500/10">
-                        <BookOpen className="h-2.5 w-2.5 mr-1 inline" />
-                        Single Pass
-                      </Badge>
-                    ) : (
-                      <Badge
-                        variant="secondary"
-                        className="text-[9px] font-bold"
+              {templates.map((temp) => {
+                const schemaFields = normalizeInputSchema(temp.input_schema);
+                return (
+                  <TableRow
+                    key={temp.id_template}
+                    className="transition-all hover:bg-muted/10"
+                  >
+                    <TableCell className="font-bold text-sm text-foreground py-3.5">
+                      {temp.nama_template || temp.nama_ujian}
+                    </TableCell>
+                    <TableCell className="text-center py-3.5">
+                      {temp.jenis_ujian === "SINGLE_PASS" ? (
+                        <Badge className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-200 text-[9px] font-bold hover:bg-emerald-500/10">
+                          <BookOpen className="h-2.5 w-2.5 mr-1 inline" />
+                          Single Pass
+                        </Badge>
+                      ) : (
+                        <Badge
+                          variant="secondary"
+                          className="text-[9px] font-bold"
+                        >
+                          <ListOrdered className="h-2.5 w-2.5 mr-1 inline" />
+                          Multi Soal
+                        </Badge>
+                      )}
+                    </TableCell>
+                    <TableCell className="py-3.5 flex flex-wrap gap-1 max-w-[250px]">
+                      {schemaFields.length > 0 ? (
+                        schemaFields.map((f) => (
+                          <Badge
+                            key={f.key}
+                            variant="secondary"
+                            className="text-[9px] px-1.5 py-0"
+                          >
+                            {f.label} ({f.type})
+                          </Badge>
+                        ))
+                      ) : (
+                        <span className="text-xs text-muted-foreground">-</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-xs font-mono text-muted-foreground py-3.5">
+                      {temp.formula_expression || "-"}
+                    </TableCell>
+                    <TableCell className="text-right py-3.5 pr-6">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleOpenDelete(temp)}
+                        className="h-8 w-8 text-destructive hover:bg-destructive/10"
+                        title="Hapus"
                       >
-                        <ListOrdered className="h-2.5 w-2.5 mr-1 inline" />
-                        Multi Soal
-                      </Badge>
-                    )}
-                  </TableCell>
-                  <TableCell className="py-3.5 flex flex-wrap gap-1 max-w-[250px]">
-                    {temp.input_schema?.map((f) => (
-                      <Badge
-                        key={f.key}
-                        variant="secondary"
-                        className="text-[9px] px-1.5 py-0"
-                      >
-                        {f.label} ({f.type})
-                      </Badge>
-                    ))}
-                  </TableCell>
-                  <TableCell className="text-xs font-mono text-muted-foreground py-3.5">
-                    {temp.formula_expression}
-                  </TableCell>
-                  <TableCell className="text-right py-3.5 pr-6">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleOpenDelete(temp)}
-                      className="h-8 w-8 text-destructive hover:bg-destructive/10"
-                      title="Hapus"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         )}

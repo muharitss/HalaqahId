@@ -8,6 +8,7 @@ import {
   type ExamTemplate,
   type SubmitExamResponse,
   type SubmitExamPayload,
+  normalizeInputSchema,
   ujianService,
 } from "../api/ujian-api";
 import { surahNumberToName } from "@/utils/mushafUtils";
@@ -77,7 +78,8 @@ const getDefaultInputValue = (field: ExamTemplate["input_schema"][number]): Exam
 };
 
 const createInitialInputs = (template: ExamTemplate): Record<string, ExamInputValue> => {
-  return template.input_schema.reduce<Record<string, ExamInputValue>>((acc, field) => {
+  const schema = normalizeInputSchema(template.input_schema);
+  return schema.reduce<Record<string, ExamInputValue>>((acc, field) => {
     acc[field.key] = getDefaultInputValue(field);
     return acc;
   }, {});
@@ -100,7 +102,7 @@ const toTemplateFromSchedule = (schedule?: ExamSchedule): ExamTemplate | null =>
     filter_jenis_kategori: schedule.template.filter_jenis_kategori,
     jumlah_soal: schedule.template.jumlah_soal,
     soal_acak_tanpa_detail: schedule.template.soal_acak_tanpa_detail,
-    input_schema: schedule.template.input_schema || [],
+    input_schema: normalizeInputSchema(schedule.template.input_schema),
     formula_expression: schedule.template.formula_expression || "",
     aturan_kelulusan: schedule.template.aturan_kelulusan,
     is_aktif: true,

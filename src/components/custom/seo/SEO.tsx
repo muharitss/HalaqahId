@@ -42,7 +42,11 @@ export const SEO: React.FC<SEOProps> = ({
   language = "id",
   themeColor = "#0284c7", // Sky 600 default
 }) => {
-  const finalTitle = title.includes("Halaqah ID") ? title : `${title} | Halaqah ID`;
+  const finalTitle = title.startsWith("Halaqah ID")
+    ? title
+    : title.includes("Halaqah ID")
+    ? title
+    : `Halaqah ID - ${title}`;
   const cleanPath = typeof window !== "undefined" ? window.location.pathname.replace(/\/+$/, "") || "/" : "/";
   const currentUrl = canonical || `https://halaqah-id.vercel.app${cleanPath}`;
 
