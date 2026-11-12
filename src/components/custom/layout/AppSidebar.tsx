@@ -112,13 +112,13 @@ export function AppSidebar() {
           icon: faUsers,
           permission: "user.manage",
         },
-        {
-          name: "Kelola Role",
-          tooltip: "Kelola Role & Perizinan",
-          path: "/superadmin/roles",
-          icon: faUserShield,
-          permission: "user.manage",
-        },
+        // {
+        //   name: "Kelola Role",
+        //   tooltip: "Kelola Role & Perizinan",
+        //   path: "/superadmin/roles",
+        //   icon: faUserShield,
+        //   permission: "user.manage",
+        // },
         {
           name: "Audit Logs",
           tooltip: "Audit Logs",
@@ -143,20 +143,20 @@ export function AppSidebar() {
             icon: faUserTie,
             permission: "user.manage",
           },
-          {
-            name: "Kelola Role",
-            tooltip: "Kelola Role & Perizinan",
-            path: "/kepala-muhafidz/settings/roles",
-            icon: faUserShield,
-            permission: "user.manage",
-          },
+          // {
+          //   name: "Kelola Role",
+          //   tooltip: "Kelola Role & Perizinan",
+          //   path: "/kepala-muhafidz/settings/roles",
+          //   icon: faUserShield,
+          //   permission: "user.manage",
+          // },
           {
             name: <>Kelola <Term code="HALAQAH" /></>,
             tooltip: `Kelola ${labelHalaqah}`,
             path: "/kepala-muhafidz/halaqah",
             icon: faBook,
           },
-          { name: "Kelola Sesi", tooltip: "Kelola Sesi", path: "/kepala-muhafidz/sesi", icon: faClock },
+          // { name: "Kelola Sesi", tooltip: "Kelola Sesi", path: "/kepala-muhafidz/sesi", icon: faClock },
           {
             name: "Kalender Akademik",
             tooltip: "Kalender Akademik & Hari Libur",
@@ -169,12 +169,12 @@ export function AppSidebar() {
             path: "/kepala-muhafidz/akademik/program",
             icon: faGraduationCap,
           },
-          {
-            name: <>Izin <Term code="SANTRI" /></>,
-            tooltip: `Kelola Izin ${labelSantri}`,
-            path: "/kepala-muhafidz/izin",
-            icon: FileCheck2,
-          },
+          // {
+          //   name: <>Izin <Term code="SANTRI" /></>,
+          //   tooltip: `Kelola Izin ${labelSantri}`,
+          //   path: "/kepala-muhafidz/izin",
+          //   icon: FileCheck2,
+          // },
           {
             name: "Lihat Laporan",
             tooltip: "Lihat Laporan",

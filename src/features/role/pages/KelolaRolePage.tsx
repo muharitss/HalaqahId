@@ -65,7 +65,6 @@ import {
   Users,
   Lock,
   Loader2,
-  Sliders,
   CheckCircle2,
 } from "lucide-react";
 
@@ -190,7 +189,7 @@ export function KelolaRolePage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      {/* <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card className="bg-card shadow-xs">
           <CardHeader className="p-4 pb-2 flex flex-row items-center justify-between space-y-0">
             <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -239,10 +238,10 @@ export function KelolaRolePage() {
             </p>
           </CardContent>
         </Card>
-      </div>
+      </div> */}
 
       {/* Main Table Card */}
-      <Card className="shadow-xs overflow-hidden">
+      <Card className="shadow-xs overflow-hidden pt-0">
         <CardHeader className="p-4 sm:p-6 pb-4 border-b flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-1">
             <CardTitle className="text-lg font-semibold">Daftar Role</CardTitle>

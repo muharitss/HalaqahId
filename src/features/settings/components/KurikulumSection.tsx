@@ -6,6 +6,8 @@ import {
   Target,
   GraduationCap,
   ClipboardCheck,
+  CalendarClock,
+  FileCheck2,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { SettingItem } from "./SettingItem";
@@ -40,7 +42,7 @@ export function KurikulumSection({
       description: `Asisten virtual hafalan ${labelSantri.toLowerCase()}`,
       onClick: () =>
         onNavigate(
-          isKepala ? "/kepala-muhafidz/tahfidzai" : "/muhafidz/tahfidzai"
+          isKepala ? "/kepala-muhafidz/tahfidzai" : "/muhafidz/tahfidzai",
         ),
       keywords: `tahfidz ai bot asisten virtual kecerdasan buatan koreksi makhraj tajwid ${labelSantri.toLowerCase()}`,
       visible: true,
@@ -62,6 +64,24 @@ export function KurikulumSection({
       onClick: () => onNavigate("/kepala-muhafidz/settings/kategori"),
       keywords:
         "kategori setoran al-quran ziyadah murajaah bin-nazhar bil-ghaib tahsin jenis hafalan",
+      visible: isKepala,
+    },
+    {
+      id: "izin-santri",
+      icon: <FileCheck2 className="h-4 w-4" />,
+      title: `Izin ${labelSantri}`,
+      description: `Kelola izin ${labelSantri.toLowerCase()}`,
+      onClick: () => onNavigate("/kepala-muhafidz/izin"),
+      keywords: `izin ${labelSantri.toLowerCase()} perizinan pulang sakit dispensasi`,
+      visible: isKepala,
+    },
+    {
+      id: "kelola-sesi",
+      icon: <CalendarClock className="h-4 w-4" />,
+      title: "Kelola Sesi",
+      description: "Kelola sesi halaqah quran ",
+      onClick: () => onNavigate("/kepala-muhafidz/sesi"),
+      keywords: "waktu dilaksanakannya halaqah rutin",
       visible: isKepala,
     },
     {

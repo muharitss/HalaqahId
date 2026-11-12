@@ -107,6 +107,7 @@ export default function LandingPage() {
     "@context": "https://schema.org",
     "@type": "WebSite",
     "name": "Halaqah ID",
+    "alternateName": ["HalaqahId", "Halaqah-ID"],
     "url": "https://halaqah-id.vercel.app",
     "inLanguage": "id",
   };
@@ -129,7 +130,7 @@ export default function LandingPage() {
     "@type": "Organization",
     "name": "Halaqah ID",
     "url": "https://halaqah-id.vercel.app",
-    "logo": "https://halaqah-id.vercel.app/logo.svg",
+    "logo": "https://halaqah-id.vercel.app/icon-192.png",
     "description": "Platform manajemen tahfidz dan monitoring hafalan santri modern.",
   };
 
@@ -137,10 +138,14 @@ export default function LandingPage() {
   const heroTitle = dbSections["hero"]?.title || config.title;
   const heroSubtitle = dbSections["hero"]?.subtitle || config.subtitle;
 
+  const pageTitle = path === "/"
+    ? "Halaqah ID - Aplikasi Manajemen Halaqah & Tahfidz Quran Modern"
+    : (heroTitle.startsWith("Halaqah ID") ? heroTitle : `Halaqah ID - ${heroTitle}`);
+
   return (
     <div className="flex flex-col min-h-screen text-foreground bg-background font-sans">
       <SEO
-        title={heroTitle}
+        title={pageTitle}
         description={config.metaDesc}
         keywords={`${config.keyword.toLowerCase()}, aplikasi halaqah, aplikasi tahfidz, monitoring hafalan, setoran hafalan quran`}
         jsonLd={[websiteSchema, softwareSchema, orgSchema]}

@@ -23,7 +23,7 @@ import {
   User,
   Calculator,
 } from "lucide-react";
-import { type ExamSession, ujianService } from "@/features/setoran/api/ujian-api";
+import { type ExamSession, normalizeInputSchema, ujianService } from "@/features/setoran/api/ujian-api";
 import { type ProgresSantri } from "@/features/santri/types";
 import { surahNumberToName } from "@/utils/mushafUtils";
 
@@ -310,8 +310,9 @@ export function ExamHistoryTable({ santri }: ExamHistoryTableProps) {
                                      {/* Tampilkan data input secara dinamis */}
                                      <div className="space-y-1.5 pt-2.5 border-t border-dashed">
                                        {session.jawaban_soal[0] && Object.keys(session.jawaban_soal[0].input_data).map((key) => {
-                                         const labelObj = session.template?.input_schema?.find(
-                                           (field: any) => field.key === key
+                                         const schema = normalizeInputSchema(session.template?.input_schema);
+                                         const labelObj = schema.find(
+                                           (field) => field.key === key
                                          );
                                          const label = labelObj?.label || key;
                                          const val = session.jawaban_soal[0].input_data[key];
@@ -361,8 +362,9 @@ export function ExamHistoryTable({ santri }: ExamHistoryTableProps) {
                                            {/* Tampilkan data input secara dinamis */}
                                            <div className="space-y-1 pt-1.5 border-t border-dashed">
                                              {Object.keys(jawaban.input_data).map((key) => {
-                                               const labelObj = session.template?.input_schema?.find(
-                                                 (field: any) => field.key === key
+                                               const schema = normalizeInputSchema(session.template?.input_schema);
+                                               const labelObj = schema.find(
+                                                 (field) => field.key === key
                                                );
                                                const label = labelObj?.label || key;
                                                const val = jawaban.input_data[key];
