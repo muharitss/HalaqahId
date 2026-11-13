@@ -43,7 +43,11 @@ export function AkunSection({
       actionLabel: "Kelola Akun",
       onClick: () =>
         onNavigate(
-          isKepala ? "/kepala-muhafidz/profil" : "/muhafidz/profil"
+          user?.role === "SUPERADMIN"
+            ? "/superadmin/profil"
+            : isKepala
+            ? "/kepala-muhafidz/profil"
+            : "/muhafidz/profil"
         ),
       keywords: `profil saya akun user nama email ${user?.name?.toLowerCase() ?? ""}`,
       visible: true,

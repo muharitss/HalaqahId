@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Plus, Search, Megaphone, Pin, AlertTriangle, Filter } from "lucide-react";
+import { Plus, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -20,12 +20,15 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Term } from "@/components/ui/Term";
 import {
   usePengumumanList,
   usePengumumanMutations,
 } from "../api";
 import { PengumumanCard } from "../components/PengumumanCard";
 import { PengumumanDialog } from "../components/PengumumanDialog";
+import { PengumumanDetailDialog } from "../components/PengumumanDetailDialog";
 import type {
   PengumumanItem,
   PrioritasPengumuman,
@@ -38,12 +41,12 @@ export function KelolaPengumumanPage() {
   const [prioritasFilter, setPrioritasFilter] = useState<string>("ALL");
   const [targetFilter, setTargetFilter] = useState<string>("ALL");
 
-  // Modal dialog states
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<PengumumanItem | null>(null);
-
-  // Delete alert dialog
   const [deleteItem, setDeleteItem] = useState<PengumumanItem | null>(null);
+
+  const [selectedDetailItem, setSelectedDetailItem] = useState<PengumumanItem | null>(null);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
 
   const queryFilters = useMemo(() => {
     return {
@@ -69,12 +72,20 @@ export function KelolaPengumumanPage() {
 
   const items = pengumumanResult?.data || [];
 
-  // Summary counts
   const totalCount = items.length;
   const pinnedCount = items.filter((i) => i.is_pinned).length;
   const urgentCount = items.filter(
     (i) => i.prioritas === "URGENT" || i.prioritas === "PENTING"
   ).length;
+
+  const hasActiveFilters =
+    search.trim() !== "" || prioritasFilter !== "ALL" || targetFilter !== "ALL";
+
+  const handleResetFilters = () => {
+    setSearch("");
+    setPrioritasFilter("ALL");
+    setTargetFilter("ALL");
+  };
 
   const handleCreateOpen = () => {
     setEditingItem(null);
@@ -84,6 +95,11 @@ export function KelolaPengumumanPage() {
   const handleEditOpen = (item: PengumumanItem) => {
     setEditingItem(item);
     setIsDialogOpen(true);
+  };
+
+  const handleViewDetail = (item: PengumumanItem) => {
+    setSelectedDetailItem(item);
+    setIsDetailOpen(true);
   };
 
   const handleDeleteConfirm = () => {
@@ -145,81 +161,94 @@ export function KelolaPengumumanPage() {
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground mb-0 flex items-center gap-2">
-            <Megaphone className="w-6 h-6 text-primary" />
+          <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-foreground">
             Kelola Pengumuman
-          </h3>
-          <p className="text-sm text-muted-foreground mt-1 mb-0">
-            Publikasikan pengumuman ke seluruh civitas, per halaqah, atau per santri.
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Publikasikan pengumuman ke seluruh civitas, per{" "}
+            <Term code="HALAQAH" className="lowercase" />, atau per{" "}
+            <Term code="SANTRI" className="lowercase" />.
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Button onClick={handleCreateOpen} size="sm" className="gap-2 shrink-0 shadow-sm">
-            <Plus className="w-4 h-4" />
-            Buat Pengumuman
-          </Button>
-        </div>
+        <Button onClick={handleCreateOpen} size="sm" className="gap-1.5 shrink-0 self-start sm:self-auto shadow-xs">
+          <Plus className="w-4 h-4" />
+          Buat Pengumuman
+        </Button>
       </div>
 
       {/* Stats Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card>
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2.5 rounded-lg bg-primary/10 text-primary">
-              <Megaphone className="w-5 h-5" />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground font-medium">Total Pengumuman</p>
-              <h3 className="text-xl font-bold">{totalCount}</h3>
-            </div>
+        <Card className="shadow-xs border-border/80">
+          <CardContent className="p-4">
+            <p className="text-xs font-medium text-muted-foreground">
+              Total Pengumuman
+            </p>
+            <p className="text-2xl font-bold tabular-nums tracking-tight text-foreground mt-1">
+              {totalCount}
+            </p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">
+              Tercatat dalam sistem
+            </p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2.5 rounded-lg bg-blue-500/10 text-blue-600">
-              <Pin className="w-5 h-5" />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground font-medium">Disematkan (Pinned)</p>
-              <h3 className="text-xl font-bold">{pinnedCount}</h3>
-            </div>
+        <Card className="shadow-xs border-border/80">
+          <CardContent className="p-4">
+            <p className="text-xs font-medium text-muted-foreground">
+              Disematkan (Pinned)
+            </p>
+            <p className="text-2xl font-bold tabular-nums tracking-tight text-foreground mt-1">
+              {pinnedCount}
+            </p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">
+              Tampil di urutan teratas
+            </p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2.5 rounded-lg bg-amber-500/10 text-amber-600">
-              <AlertTriangle className="w-5 h-5" />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground font-medium">Prioritas Tinggi</p>
-              <h3 className="text-xl font-bold">{urgentCount}</h3>
-            </div>
+        <Card className="shadow-xs border-border/80">
+          <CardContent className="p-4">
+            <p className="text-xs font-medium text-muted-foreground">
+              Prioritas Tinggi
+            </p>
+            <p className="text-2xl font-bold tabular-nums tracking-tight text-foreground mt-1">
+              {urgentCount}
+            </p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">
+              Urgent & Penting
+            </p>
           </CardContent>
         </Card>
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="flex flex-col sm:flex-row items-center gap-3 bg-card p-3 rounded-lg border">
-        <div className="relative flex-1 w-full">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 bg-card p-3 rounded-lg border shadow-xs">
+        <div className="relative flex-1">
           <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Cari judul atau isi pengumuman..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9"
+            className="pl-9 pr-8 h-9"
           />
+          {search && (
+            <button
+              type="button"
+              onClick={() => setSearch("")}
+              className="absolute right-2.5 top-2.5 text-muted-foreground hover:text-foreground"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
         </div>
 
-        <div className="flex items-center gap-2 w-full sm:w-auto">
-          <Filter className="w-4 h-4 text-muted-foreground hidden sm:block shrink-0" />
+        <div className="flex flex-wrap sm:flex-nowrap items-center gap-2">
           <Select
             value={prioritasFilter}
             onValueChange={setPrioritasFilter}
           >
-            <SelectTrigger className="w-full sm:w-36">
+            <SelectTrigger className="w-full sm:w-40 h-9">
               <SelectValue placeholder="Prioritas" />
             </SelectTrigger>
             <SelectContent>
@@ -234,37 +263,74 @@ export function KelolaPengumumanPage() {
             value={targetFilter}
             onValueChange={setTargetFilter}
           >
-            <SelectTrigger className="w-full sm:w-36">
+            <SelectTrigger className="w-full sm:w-40 h-9">
               <SelectValue placeholder="Target" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="ALL">Semua Target</SelectItem>
-              <SelectItem value="HALAQAH">Halaqah</SelectItem>
-              <SelectItem value="SANTRI">Santri</SelectItem>
+              <SelectItem value="HALAQAH">
+                <Term code="HALAQAH" />
+              </SelectItem>
+              <SelectItem value="SANTRI">
+                <Term code="SANTRI" />
+              </SelectItem>
               <SelectItem value="ROLE">Role</SelectItem>
             </SelectContent>
           </Select>
+
+          {hasActiveFilters && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleResetFilters}
+              className="h-9 px-3 text-xs text-muted-foreground hover:text-foreground shrink-0"
+            >
+              Reset
+            </Button>
+          )}
         </div>
       </div>
 
       {/* Pengumuman List */}
       {isLoading ? (
-        <div className="py-12 text-center text-sm text-muted-foreground">
-          Memuat daftar pengumuman...
+        <div className="space-y-4">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="rounded-lg border bg-card p-5 space-y-3">
+              <div className="flex items-center gap-3">
+                <Skeleton className="h-8 w-8 rounded-full" />
+                <div className="space-y-1">
+                  <Skeleton className="h-3.5 w-32" />
+                  <Skeleton className="h-2.5 w-24" />
+                </div>
+              </div>
+              <Skeleton className="h-5 w-2/5" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-4/5" />
+            </div>
+          ))}
         </div>
       ) : items.length === 0 ? (
-        <div className="py-16 text-center border rounded-lg bg-card/50">
-          <Megaphone className="w-10 h-10 mx-auto text-muted-foreground/60 mb-2" />
-          <h3 className="font-semibold text-base">Belum Ada Pengumuman</h3>
+        <div className="py-14 px-4 text-center border rounded-lg bg-card">
+          <h3 className="font-semibold text-base text-foreground">
+            {hasActiveFilters ? "Pengumuman Tidak Ditemukan" : "Belum Ada Pengumuman"}
+          </h3>
           <p className="text-sm text-muted-foreground max-w-sm mx-auto mt-1 mb-4">
-            Pengumuman yang Anda buat akan muncul di sini dan dapat dibaca oleh target penerima.
+            {hasActiveFilters
+              ? "Coba ubah kata kunci pencarian atau sesuaikan filter yang dipilih."
+              : "Pengumuman yang Anda publikasikan akan muncul di sini dan dapat diakses oleh target penerima."}
           </p>
-          <Button onClick={handleCreateOpen} size="sm">
-            Buat Pengumuman Sekarang
-          </Button>
+          {hasActiveFilters ? (
+            <Button onClick={handleResetFilters} variant="outline" size="sm">
+              Reset Filter
+            </Button>
+          ) : (
+            <Button onClick={handleCreateOpen} size="sm">
+              Buat Pengumuman Sekarang
+            </Button>
+          )}
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3.5">
           {items.map((item) => (
             <PengumumanCard
               key={item.id_pengumuman}
@@ -273,6 +339,7 @@ export function KelolaPengumumanPage() {
               onEdit={handleEditOpen}
               onDelete={setDeleteItem}
               onTogglePin={handleTogglePin}
+              onViewDetail={handleViewDetail}
             />
           ))}
         </div>
@@ -287,6 +354,14 @@ export function KelolaPengumumanPage() {
         isLoading={
           createPengumumanMutation.isPending || updatePengumumanMutation.isPending
         }
+      />
+
+      {/* Detail Preview Dialog */}
+      <PengumumanDetailDialog
+        open={isDetailOpen}
+        onOpenChange={setIsDetailOpen}
+        item={selectedDetailItem}
+        canManage={true}
       />
 
       {/* Delete Confirmation Alert Dialog */}

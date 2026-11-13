@@ -68,6 +68,14 @@ export const router = createBrowserRouter([
 
   // ── 404 Fallback ──────────────────────────────────────────────────────────
   {
+    path: "/404",
+    element: (
+      <Suspense fallback={<LoadingScreen />}>
+        <NotFoundPage />
+      </Suspense>
+    ),
+  },
+  {
     path: "*",
     element: (
       <Suspense fallback={<LoadingScreen />}>

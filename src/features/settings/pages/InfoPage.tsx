@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Accordion } from "@/components/ui/accordion";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/features/auth/components/auth-provider";
-import { isKepalaRole } from "@/types/domain/enums";
+import { isKepalaRole, Role } from "@/types/domain/enums";
 
 import { useSOPConfig, SOPEmptyState, SOPSectionCard, SOPBuilderPanel } from "../modules";
 
@@ -13,8 +13,11 @@ export default function InfoPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  const canEdit = user ? isKepalaRole(user.role) : false;
-  const basePath = user && isKepalaRole(user.role)
+  const isSuperadmin = user?.role === Role.SUPERADMIN;
+  const canEdit = isSuperadmin || (user ? isKepalaRole(user.role) : false);
+  const basePath = isSuperadmin
+    ? "/superadmin/settings"
+    : user && isKepalaRole(user.role)
     ? "/kepala-muhafidz/settings"
     : "/muhafidz/settings";
 

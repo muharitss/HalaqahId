@@ -1,4 +1,4 @@
-import { ChevronRight, ArrowLeft, Settings } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import {
@@ -41,24 +41,6 @@ export default function TerminologySettingsPage() {
     <div className="w-full space-y-6 text-left pb-12">
       {/* ── TOP CONTEXT NAVIGATION & HEADER BAR ── */}
       <div className="flex flex-col gap-3">
-        {/* Breadcrumb & Status Info */}
-        <div className="flex items-center justify-between">
-          <nav className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
-            <button
-              type="button"
-              onClick={() => navigate(backPath)}
-              className="hover:text-primary transition-colors flex items-center gap-1"
-            >
-              <Settings className="h-3.5 w-3.5" />
-              <span>Pengaturan</span>
-            </button>
-            <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/60" />
-            <span className="text-primary font-semibold">
-              Terminologi Lembaga
-            </span>
-          </nav>
-        </div>
-
         {/* Main Title & Action Button */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-1">
           <div className="flex items-center gap-3">

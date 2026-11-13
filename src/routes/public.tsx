@@ -1,6 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
 import { lazy, Suspense } from "react";
-import { Outlet, type RouteObject } from "react-router-dom";
+import { Outlet, Navigate, type RouteObject } from "react-router-dom";
 import { PortalProvider } from "@/features/portal/store/portal-context";
 import { DisplayProvider } from "@/features/display";
 
@@ -63,6 +63,10 @@ export const publicRoutes: RouteObject[] = [
   },
 
   // ── Public: Display Portal (tidak butuh login) ───────────────────────────
+  {
+    path: "/display",
+    element: <Navigate to="/login" replace />,
+  },
   {
     path: "/display/:slug",
     element: (

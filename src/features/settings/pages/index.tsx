@@ -72,7 +72,6 @@ export default function SettingsPage() {
     isImpersonating,
     isKepala,
     basePath,
-    dashboardPath,
     handleBackToSuperadmin,
     handleCopyDisplayLink,
   } = useSettingsPage();
@@ -99,6 +98,8 @@ export default function SettingsPage() {
       user?.originalUser?.role === Role.SUPERADMIN
     ) {
       navigate("/superadmin/audit-logs");
+    } else if (isKepala) {
+      navigate("/kepala-muhafidz/audit-logs");
     } else {
       toast.info("Fitur Audit Log hanya dapat diakses oleh Administrator.");
     }
@@ -112,12 +113,11 @@ export default function SettingsPage() {
 
   return (
     <div className="w-full space-y-6">
-      {/* Header dengan Breadcrumb, Judul, Search, & Audit Log */}
+      {/* Header dengan Judul, Search, & Audit Log */}
       <SettingsHeader
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         onClearSearch={() => setSearchQuery("")}
-        onNavigateHome={() => navigate(dashboardPath)}
         onAuditLogClick={handleAuditLogClick}
       />
 

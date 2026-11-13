@@ -68,6 +68,9 @@ const KelolaProgramPage = lazy(() =>
 const KelolaPengumumanPage = lazy(() =>
   import("@/features/pengumuman").then((m) => ({ default: m.KelolaPengumumanPage }))
 );
+const KelolaAuditLogPage = lazy(() =>
+  import("@/features/auth/pages/KelolaAuditLogPage")
+);
 
 export const kepalaRoutes: RouteObject[] = [
   {
@@ -203,6 +206,14 @@ export const kepalaRoutes: RouteObject[] = [
     element: (
       <ProtectedRoute allowedRoles={[Role.SUPERADMIN, Role.ADMIN]}>
         <KelolaRolePage />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/kepala-muhafidz/audit-logs",
+    element: (
+      <ProtectedRoute allowedRoles={[Role.SUPERADMIN, Role.ADMIN, Role.KOORDINATOR_TAHFIZ]}>
+        <KelolaAuditLogPage />
       </ProtectedRoute>
     ),
   },

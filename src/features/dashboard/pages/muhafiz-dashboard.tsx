@@ -175,25 +175,26 @@ export function MuhafizDashboard() {
         </div>
         
         {/* KPI Cards Skeleton */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
           {[...Array(4)].map((_, i) => (
-            <Card key={i}>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <Skeleton className="h-4 w-24" />
-                <Skeleton className="h-4 w-4" />
+            <Card key={i} className="py-3.5 gap-2 md:py-6 md:gap-6">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 px-3.5 pb-0 md:px-6 md:pb-2">
+                <Skeleton className="h-3.5 md:h-4 w-16 md:w-24" />
+                <Skeleton className="h-3.5 md:h-4 w-3.5 md:w-4" />
               </CardHeader>
-              <CardContent>
-                <Skeleton className="h-8 w-16 mt-1" />
-                <Skeleton className="h-3 w-32 mt-2" />
+              <CardContent className="px-3.5 md:px-6">
+                <Skeleton className="h-6 md:h-8 w-12 md:w-16 mt-1" />
+                <Skeleton className="h-2.5 md:h-3 w-20 md:w-32 mt-1 md:mt-2" />
               </CardContent>
             </Card>
           ))}
         </div>
 
         {/* Charts Skeleton */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
-          <div className="lg:col-span-3 h-80 rounded-xl bg-muted" />
-          <div className="lg:col-span-2 h-80 rounded-xl bg-muted" />
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-12">
+          <div className="lg:col-span-5 h-80 rounded-xl bg-muted" />
+          <div className="lg:col-span-4 h-80 rounded-xl bg-muted" />
+          <div className="md:col-span-2 lg:col-span-3 h-80 rounded-xl bg-muted" />
         </div>
 
         {/* Lists Skeleton */}
@@ -259,71 +260,73 @@ export function MuhafizDashboard() {
       </div>
 
       {/* 2. KPI CARDS */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4" data-tour="dashboard-kpis">
+      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4" data-tour="dashboard-kpis">
         {/* CARD 1: TOTAL SANTRI */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total <Term code="SANTRI" /></CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+        <Card className="py-3.5 gap-2 md:py-6 md:gap-6">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 px-3.5 pb-0 md:px-6 md:pb-2">
+            <CardTitle className="text-xs md:text-sm font-medium">Total <Term code="SANTRI" /></CardTitle>
+            <Users className="h-3.5 w-3.5 md:h-4 md:w-4 text-muted-foreground shrink-0" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{progresData.length}</div>
-            <p className="text-xs text-muted-foreground mt-1">Aktif di {labelHalaqah.toLowerCase()} ini</p>
+          <CardContent className="px-3.5 md:px-6">
+            <div className="text-xl md:text-2xl font-bold">{progresData.length}</div>
+            <p className="text-[11px] md:text-xs text-muted-foreground mt-0.5 md:mt-1 truncate md:whitespace-normal">
+              Aktif di {labelHalaqah.toLowerCase()} ini
+            </p>
           </CardContent>
         </Card>
 
         {/* CARD 2: KEHADIRAN HARI INI */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Kehadiran Hari Ini</CardTitle>
-            <ClipboardCheck className="h-4 w-4 text-muted-foreground" />
+        <Card className="py-3.5 gap-2 md:py-6 md:gap-6">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 px-3.5 pb-0 md:px-6 md:pb-2">
+            <CardTitle className="text-xs md:text-sm font-medium">Kehadiran Hari Ini</CardTitle>
+            <ClipboardCheck className="h-3.5 w-3.5 md:h-4 md:w-4 text-muted-foreground shrink-0" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{todayAttendanceStats.percentage}%</div>
-            <p className="text-xs text-muted-foreground mt-1">
+          <CardContent className="px-3.5 md:px-6">
+            <div className="text-xl md:text-2xl font-bold">{todayAttendanceStats.percentage}%</div>
+            <p className="text-[11px] md:text-xs text-muted-foreground mt-0.5 md:mt-1 truncate md:whitespace-normal">
               {todayAttendanceStats.present} dari {todayAttendanceStats.total} {labelSantri.toLowerCase()} hadir
             </p>
           </CardContent>
         </Card>
 
         {/* CARD 3: SETORAN PEKAN INI */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Setoran Pekan Ini</CardTitle>
-            <BookOpen className="h-4 w-4 text-muted-foreground" />
+        <Card className="py-3.5 gap-2 md:py-6 md:gap-6">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 px-3.5 pb-0 md:px-6 md:pb-2">
+            <CardTitle className="text-xs md:text-sm font-medium">Setoran Pekan Ini</CardTitle>
+            <BookOpen className="h-3.5 w-3.5 md:h-4 md:w-4 text-muted-foreground shrink-0" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{weeklySetoranCount}</div>
-            <p className="text-xs text-muted-foreground mt-1">Total riwayat hafalan tercatat</p>
+          <CardContent className="px-3.5 md:px-6">
+            <div className="text-xl md:text-2xl font-bold">{weeklySetoranCount}</div>
+            <p className="text-[11px] md:text-xs text-muted-foreground mt-0.5 md:mt-1 truncate md:whitespace-normal">
+              Total riwayat hafalan tercatat
+            </p>
           </CardContent>
         </Card>
 
         {/* CARD 4: TARGET TERCAPAI */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Target Tercapai</CardTitle>
-            <Award className="h-4 w-4 text-muted-foreground" />
+        <Card className="py-3.5 gap-2 md:py-6 md:gap-6">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 px-3.5 pb-0 md:px-6 md:pb-2">
+            <CardTitle className="text-xs md:text-sm font-medium">Target Tercapai</CardTitle>
+            <Award className="h-3.5 w-3.5 md:h-4 md:w-4 text-muted-foreground shrink-0" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{targetAchievedCount}</div>
-            <p className="text-xs text-muted-foreground mt-1">
+          <CardContent className="px-3.5 md:px-6">
+            <div className="text-xl md:text-2xl font-bold">{targetAchievedCount}</div>
+            <p className="text-[11px] md:text-xs text-muted-foreground mt-0.5 md:mt-1 truncate md:whitespace-normal">
               {targetAchievedCount} dari {progresData.length} {labelSantri.toLowerCase()} tuntas
             </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* ANNOUNCEMENT CARD (IF ACTIVE) */}
-      <PengumumanRecentCard items={pengumumanList} isLoading={isPengumumanLoading} />
-
-      {/* 3. CHARTS SECTION */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5" data-tour="dashboard-charts">
+      {/* 3. CHARTS & ANNOUNCEMENT SECTION */}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-12 items-stretch" data-tour="dashboard-charts">
         <ActivityChart
           dataPekan={weeklyChartData}
           dataBulan={monthlyChartData}
           view={chartView}
           onViewChange={setChartView}
           loading={false}
+          className={isPengumumanLoading || pengumumanList.length > 0 ? "lg:col-span-5" : "lg:col-span-7"}
         />
         <AttendanceDonutChart
           data={absensiStats}
@@ -331,6 +334,12 @@ export function MuhafizDashboard() {
           totalCount={totalAbsensi}
           view={absensiView}
           onViewChange={setAbsensiView}
+          className={isPengumumanLoading || pengumumanList.length > 0 ? "lg:col-span-4" : "lg:col-span-5"}
+        />
+        <PengumumanRecentCard
+          items={pengumumanList}
+          isLoading={isPengumumanLoading}
+          className="md:col-span-2 lg:col-span-3"
         />
       </div>
 
