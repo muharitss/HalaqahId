@@ -16,7 +16,6 @@ import {
   faGear,
   faTrophy,
   faGraduationCap,
-  faBullseye,
   faCalendarDays,
 } from "@fortawesome/free-solid-svg-icons";
 import {
@@ -34,7 +33,8 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import React, { useEffect } from "react";
-import { Megaphone, FileCheck2 } from "lucide-react";
+import { Megaphone, FileCheck2, type LucideIcon } from "lucide-react";
+import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import { isKepalaRole, Role } from "@/types/domain/enums";
 import { cn } from "@/lib/utils";
 
@@ -81,11 +81,17 @@ export function AppSidebar() {
   const labelMuhafiz = useTerminology("MUHAFIZ");
   const labelSekolah = useTerminology("SEKOLAH");
 
+  type SidebarIcon =
+    | IconDefinition
+    | LucideIcon
+    | React.ComponentType<{ className?: string }>
+    | React.ReactNode;
+
   interface MenuItem {
     name: React.ReactNode;
     tooltip?: string;
     path: string;
-    icon: any;
+    icon: SidebarIcon;
     featureCode?: string;
     permission?: string | string[];
   }
@@ -193,20 +199,20 @@ export function AppSidebar() {
             path: "/kepala-muhafidz/leaderboard",
             icon: faTrophy,
           },
-          {
-            name: "Ujian",
-            tooltip: "Ujian",
-            path: "/kepala-muhafidz/settings/ujian",
-            icon: faGraduationCap,
-            featureCode: "UJIAN",
-          },
-          {
-            name: "Target",
-            tooltip: "Target",
-            path: "/kepala-muhafidz/settings/target",
-            icon: faBullseye,
-            featureCode: "TARGET",
-          },
+          // {
+          //   name: "Ujian",
+          //   tooltip: "Ujian",
+          //   path: "/kepala-muhafidz/settings/ujian",
+          //   icon: faGraduationCap,
+          //   featureCode: "UJIAN",
+          // },
+          // {
+          //   name: "Target",
+          //   tooltip: "Target",
+          //   path: "/kepala-muhafidz/settings/target",
+          //   icon: faBullseye,
+          //   featureCode: "TARGET",
+          // },
           {
             name: "Pengumuman",
             tooltip: "Kelola Pengumuman",
@@ -358,14 +364,14 @@ export function AppSidebar() {
                       tooltip={item.tooltip || (typeof item.name === "string" ? item.name : undefined)}
                     >
                       <Link to={item.path}>
-                        {typeof item.icon === "object" && item.icon !== null && "prefix" in item.icon ? (
-                          <FontAwesomeIcon icon={item.icon} />
-                        ) : typeof item.icon === "function" ? (
-                          <item.icon className="h-4 w-4 shrink-0" />
-                        ) : React.isValidElement(item.icon) ? (
+                        {React.isValidElement(item.icon) ? (
                           item.icon
+                        ) : typeof item.icon === "object" && item.icon !== null && "prefix" in item.icon ? (
+                          <FontAwesomeIcon icon={item.icon as IconDefinition} />
                         ) : (
-                          <FontAwesomeIcon icon={item.icon} />
+                          React.createElement(item.icon as React.ComponentType<{ className?: string }>, {
+                            className: "h-4 w-4 shrink-0",
+                          })
                         )}
                         <span>{item.name}</span>
                       </Link>

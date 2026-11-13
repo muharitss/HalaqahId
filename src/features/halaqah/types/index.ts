@@ -50,6 +50,8 @@ export interface DaftarHalaqahProps {
   halaqahs: Halaqah[];
   santriMap: Record<number, Santri[]>;
   isLoading: boolean;
+  selectedHalaqah?: Halaqah | null;
+  onSelectHalaqah?: (halaqah: Halaqah) => void;
   onAddSantri: (halaqah: Halaqah) => void;
   onEdit: (halaqah: Halaqah) => void;
   onDelete: (halaqah: Halaqah) => void;

@@ -16,6 +16,9 @@ import {
 import { isKepalaRole, Role } from "@/types/domain/enums";
 import { cn } from "@/lib/utils";
 import { PermissionGate } from "@/components/ui/PermissionGate";
+import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
+import type { LucideIcon } from "lucide-react";
+import React from "react";
 
 export function MobileDock() {
   const { user } = useAuth();
@@ -23,10 +26,16 @@ export function MobileDock() {
 
   const isSuperAdmin = user?.role === Role.SUPERADMIN;
 
+  type DockIcon =
+    | IconDefinition
+    | LucideIcon
+    | React.ComponentType<{ className?: string }>
+    | React.ReactNode;
+
   interface DockItem {
     name: React.ReactNode;
     path: string;
-    icon: any;
+    icon: DockIcon;
     permission?: string | string[];
   }
 
@@ -74,7 +83,15 @@ export function MobileDock() {
               isActive ? "dock-active text-primary scale-105" : "text-muted-foreground/80 hover:text-foreground"
             )}
           >
-            <FontAwesomeIcon icon={item.icon} className={cn("size-5 transition-transform duration-200", isActive && "scale-110")} />
+            {React.isValidElement(item.icon) ? (
+              item.icon
+            ) : typeof item.icon === "object" && item.icon !== null && "prefix" in item.icon ? (
+              <FontAwesomeIcon icon={item.icon as IconDefinition} className={cn("size-5 transition-transform duration-200", isActive && "scale-110")} />
+            ) : (
+              React.createElement(item.icon as React.ComponentType<{ className?: string }>, {
+                className: cn("size-5 transition-transform duration-200", isActive && "scale-110"),
+              })
+            )}
             <span className="dock-label text-[10px] tracking-tight">{item.name}</span>
           </Link>
         );

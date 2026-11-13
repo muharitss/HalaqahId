@@ -1,10 +1,12 @@
 import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery } from "@tanstack/react-query";
+import { Pin } from "lucide-react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogFooter,
@@ -21,6 +23,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Spinner } from "@/components/ui/spinner";
+import { Term } from "@/components/ui/Term";
 import { halaqahManagementService, type Halaqah } from "@/features/halaqah";
 import { santriService, type Santri } from "@/features/santri";
 import {
@@ -46,10 +50,10 @@ export function PengumumanDialog({
   isLoading = false,
 }: PengumumanDialogProps) {
   const {
+    control,
     register,
     handleSubmit,
     reset,
-    watch,
     setValue,
     formState: { errors },
   } = useForm<PengumumanFormValues>({
@@ -57,19 +61,19 @@ export function PengumumanDialog({
     defaultValues: defaultPengumumanFormValues,
   });
 
-  const targetType = watch("target_type");
-  const isPinned = watch("is_pinned");
-  const prioritas = watch("prioritas");
+  const targetType = useWatch({ control, name: "target_type" });
+  const isPinned = useWatch({ control, name: "is_pinned" });
+  const prioritas = useWatch({ control, name: "prioritas" });
+  const targetId = useWatch({ control, name: "target_id" });
+  const judul = useWatch({ control, name: "judul" }) || "";
 
-  // Fetch halaqah list if target_type is HALAQAH
-  const { data: halaqahList = [] } = useQuery({
+  const { data: halaqahList = [], isLoading: isLoadingHalaqah } = useQuery({
     queryKey: ["halaqah", "list-select"],
     queryFn: async () => halaqahManagementService.getAllHalaqah(),
     enabled: open && targetType === "HALAQAH",
   });
 
-  // Fetch santri list if target_type is SANTRI
-  const { data: santriList = [] } = useQuery({
+  const { data: santriList = [], isLoading: isLoadingSantri } = useQuery({
     queryKey: ["santri", "list-select"],
     queryFn: async () => {
       const res = await santriService.getAll();
@@ -112,66 +116,67 @@ export function PengumumanDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>
+          <DialogTitle className="text-lg font-semibold tracking-tight">
             {itemToEdit ? "Edit Pengumuman" : "Buat Pengumuman Baru"}
           </DialogTitle>
+          <DialogDescription className="text-xs text-muted-foreground">
+            {itemToEdit
+              ? "Perbarui rincian pengumuman yang telah dibuat sebelumnya."
+              : "Sampaikan informasi, edaran resmi, atau pengumuman ke seluruh atau sebagian civitas."}
+          </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4 py-2">
+        <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4 pt-1">
           {/* Judul */}
           <div className="space-y-1.5">
-            <Label htmlFor="judul">Judul Pengumuman *</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="judul" className="text-xs font-semibold">
+                Judul Pengumuman <span className="text-destructive">*</span>
+              </Label>
+              <span className="text-[10px] text-muted-foreground tabular-nums">
+                {judul.length}/255
+              </span>
+            </div>
             <Input
               id="judul"
-              placeholder="Contoh: Libur Hari Raya Idul Fitri"
+              placeholder="Contoh: Libur Hari Raya Idul Fitri 1448 H"
               {...register("judul")}
+              className="h-9"
             />
             {errors.judul && (
               <p className="text-xs text-destructive">{errors.judul.message}</p>
             )}
           </div>
 
-          {/* Prioritas & Pin */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Prioritas & Target Penerima */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label htmlFor="prioritas">Prioritas</Label>
+              <Label htmlFor="prioritas" className="text-xs font-semibold">
+                Prioritas
+              </Label>
               <Select
                 value={prioritas}
                 onValueChange={(val) =>
                   setValue("prioritas", val as "NORMAL" | "PENTING" | "URGENT")
                 }
               >
-                <SelectTrigger id="prioritas">
+                <SelectTrigger id="prioritas" className="h-9">
                   <SelectValue placeholder="Pilih prioritas" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="NORMAL">Normal</SelectItem>
                   <SelectItem value="PENTING">Penting</SelectItem>
-                  <SelectItem value="URGENT">Urgent</SelectItem>
+                  <SelectItem value="URGENT">Urgent (Mendesak)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            <div className="flex items-center space-x-2 pt-6">
-              <Checkbox
-                id="is_pinned"
-                checked={isPinned}
-                onCheckedChange={(checked) =>
-                  setValue("is_pinned", Boolean(checked))
-                }
-              />
-              <Label htmlFor="is_pinned" className="text-sm cursor-pointer">
-                Sematkan di atas (Pin)
-              </Label>
-            </div>
-          </div>
-
-          {/* Target Audience */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <Label htmlFor="target_type">Target Penerima</Label>
+              <Label htmlFor="target_type" className="text-xs font-semibold">
+                Target Penerima
+              </Label>
               <Select
                 value={targetType}
                 onValueChange={(val) => {
@@ -182,112 +187,185 @@ export function PengumumanDialog({
                   setValue("target_id", null);
                 }}
               >
-                <SelectTrigger id="target_type">
+                <SelectTrigger id="target_type" className="h-9">
                   <SelectValue placeholder="Pilih target" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="ALL">Semua Pengguna</SelectItem>
-                  <SelectItem value="HALAQAH">Halaqah Tertentu</SelectItem>
-                  <SelectItem value="SANTRI">Santri Tertentu</SelectItem>
+                  <SelectItem value="HALAQAH">
+                    <Term code="HALAQAH" /> Tertentu
+                  </SelectItem>
+                  <SelectItem value="SANTRI">
+                    <Term code="SANTRI" /> Tertentu
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
+          </div>
 
-            {targetType === "HALAQAH" && (
-              <div className="space-y-1.5">
-                <Label htmlFor="target_id">Pilih Halaqah</Label>
-                <Select
-                  value={watch("target_id") ? String(watch("target_id")) : ""}
-                  onValueChange={(val) => setValue("target_id", Number(val))}
-                >
-                  <SelectTrigger id="target_id">
-                    <SelectValue placeholder="Pilih halaqah" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {halaqahList.map((h: Halaqah) => (
+          {/* Conditional Target Selector */}
+          {targetType === "HALAQAH" && (
+            <div className="space-y-1.5 p-3 rounded-lg bg-muted/40 border">
+              <Label htmlFor="target_id" className="text-xs font-semibold">
+                Pilih <Term code="HALAQAH" /> Tujuan
+              </Label>
+              <Select
+                value={targetId ? String(targetId) : ""}
+                onValueChange={(val) => setValue("target_id", Number(val))}
+              >
+                <SelectTrigger id="target_id" className="h-9 bg-background">
+                  <SelectValue placeholder="Pilih salah satu halaqah..." />
+                </SelectTrigger>
+                <SelectContent className="max-h-56">
+                  {isLoadingHalaqah ? (
+                    <SelectItem value="__loading" disabled>
+                      Memuat daftar halaqah...
+                    </SelectItem>
+                  ) : halaqahList.length === 0 ? (
+                    <SelectItem value="__empty" disabled>
+                      Tidak ada data halaqah
+                    </SelectItem>
+                  ) : (
+                    halaqahList.map((h: Halaqah) => (
                       <SelectItem
                         key={h.id_halaqah}
                         value={String(h.id_halaqah)}
                       >
                         {h.name_halaqah}
                       </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
-            {targetType === "SANTRI" && (
-              <div className="space-y-1.5">
-                <Label htmlFor="target_id">Pilih Santri</Label>
-                <Select
-                  value={watch("target_id") ? String(watch("target_id")) : ""}
-                  onValueChange={(val) => setValue("target_id", Number(val))}
-                >
-                  <SelectTrigger id="target_id">
-                    <SelectValue placeholder="Pilih santri" />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-56">
-                    {santriList.map((s: Santri) => (
+          {targetType === "SANTRI" && (
+            <div className="space-y-1.5 p-3 rounded-lg bg-muted/40 border">
+              <Label htmlFor="target_id" className="text-xs font-semibold">
+                Pilih <Term code="SANTRI" /> Tujuan
+              </Label>
+              <Select
+                value={targetId ? String(targetId) : ""}
+                onValueChange={(val) => setValue("target_id", Number(val))}
+              >
+                <SelectTrigger id="target_id" className="h-9 bg-background">
+                  <SelectValue placeholder="Pilih salah satu santri..." />
+                </SelectTrigger>
+                <SelectContent className="max-h-56">
+                  {isLoadingSantri ? (
+                    <SelectItem value="__loading" disabled>
+                      Memuat daftar santri...
+                    </SelectItem>
+                  ) : santriList.length === 0 ? (
+                    <SelectItem value="__empty" disabled>
+                      Tidak ada data santri
+                    </SelectItem>
+                  ) : (
+                    santriList.map((s: Santri) => (
                       <SelectItem
                         key={s.id_santri}
                         value={String(s.id_santri)}
                       >
                         {s.nama_santri}
                       </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-          </div>
-
-          {/* Tanggal Mulai & Tanggal Selesai */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <Label htmlFor="tanggal_mulai">Tanggal Mulai (Opsional)</Label>
-              <Input
-                id="tanggal_mulai"
-                type="datetime-local"
-                {...register("tanggal_mulai")}
-              />
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
             </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="tanggal_selesai">Tanggal Selesai (Opsional)</Label>
-              <Input
-                id="tanggal_selesai"
-                type="datetime-local"
-                {...register("tanggal_selesai")}
-              />
-            </div>
-          </div>
+          )}
 
           {/* Isi Pengumuman */}
           <div className="space-y-1.5">
-            <Label htmlFor="isi">Isi Pengumuman *</Label>
+            <Label htmlFor="isi" className="text-xs font-semibold">
+              Isi Pengumuman <span className="text-destructive">*</span>
+            </Label>
             <Textarea
               id="isi"
               rows={5}
-              placeholder="Tuliskan isi pengumuman secara rinci di sini..."
+              placeholder="Tuliskan isi pengumuman atau edaran secara jelas dan rinci di sini..."
               {...register("isi")}
+              className="resize-y text-sm leading-relaxed"
             />
             {errors.isi && (
               <p className="text-xs text-destructive">{errors.isi.message}</p>
             )}
           </div>
 
-          <DialogFooter className="pt-2">
+          {/* Jadwal Tayang */}
+          <div className="p-3 rounded-lg bg-muted/30 border space-y-2">
+            <p className="text-xs font-medium text-foreground">
+              Jadwal Publikasi <span className="text-muted-foreground font-normal">(Opsional)</span>
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label htmlFor="tanggal_mulai" className="text-[11px] text-muted-foreground">
+                  Mulai Ditampilkan
+                </Label>
+                <Input
+                  id="tanggal_mulai"
+                  type="datetime-local"
+                  {...register("tanggal_mulai")}
+                  className="h-8 text-xs bg-background"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <Label htmlFor="tanggal_selesai" className="text-[11px] text-muted-foreground">
+                  Berakhir Ditampilkan
+                </Label>
+                <Input
+                  id="tanggal_selesai"
+                  type="datetime-local"
+                  {...register("tanggal_selesai")}
+                  className="h-8 text-xs bg-background"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Pin Option */}
+          <label
+            htmlFor="is_pinned"
+            className="flex items-start gap-3 rounded-lg border p-3 cursor-pointer hover:bg-muted/30 transition-colors"
+          >
+            <Checkbox
+              id="is_pinned"
+              checked={isPinned}
+              onCheckedChange={(checked) =>
+                setValue("is_pinned", Boolean(checked))
+              }
+              className="mt-0.5"
+            />
+            <div className="space-y-0.5 select-none">
+              <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                <Pin className="h-3 w-3 text-muted-foreground -rotate-45 fill-current" />
+                Sematkan Pengumuman (Pin)
+              </span>
+              <span className="text-[11px] text-muted-foreground block leading-tight">
+                Pengumuman yang disematkan akan selalu berada di posisi paling atas daftar.
+              </span>
+            </div>
+          </label>
+
+          <DialogFooter className="pt-2 gap-2 sm:gap-0">
             <Button
               type="button"
               variant="outline"
+              size="sm"
               onClick={() => onOpenChange(false)}
               disabled={isLoading}
             >
               Batal
             </Button>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? "Menyimpan..." : itemToEdit ? "Simpan Perubahan" : "Publikasikan"}
+            <Button type="submit" size="sm" disabled={isLoading} className="gap-2">
+              {isLoading && <Spinner className="h-3.5 w-3.5" />}
+              {isLoading
+                ? "Menyimpan..."
+                : itemToEdit
+                ? "Simpan Perubahan"
+                : "Publikasikan"}
             </Button>
           </DialogFooter>
         </form>

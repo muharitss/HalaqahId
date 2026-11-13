@@ -20,6 +20,9 @@ const KelolaAuditLogPage = lazy(() =>
 const SuperadminSettingsPage = lazy(() =>
   import("@/features/settings/pages/SuperadminSettingsPage")
 );
+const InfoPage = lazy(() =>
+  import("@/features/settings/pages/InfoPage")
+);
 const TrashPage = lazy(() =>
   import("@/features/settings/pages/TrashPage")
 );
@@ -52,6 +55,7 @@ export const superadminRoutes: RouteObject[] = [
   { path: "/superadmin/audit-logs", element: <KelolaAuditLogPage /> },
   { path: "/superadmin/profil", element: <ProfilPage /> },
   { path: "/superadmin/settings", element: <SuperadminSettingsPage /> },
+  { path: "/superadmin/settings/info", element: <InfoPage /> },
   { path: "/superadmin/settings/terminology", element: <TerminologySettingsPage /> },
   { path: "/superadmin/settings/trash", element: <TrashPage /> },
   {

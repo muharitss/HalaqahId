@@ -1,29 +1,19 @@
 import { useState } from "react";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
-import {
-  Pin,
-  Clock,
-  User,
-  CheckCircle2,
-  MoreVertical,
-  Pencil,
-  Trash2,
-  ChevronDown,
-  ChevronUp,
-  AlertTriangle,
-  AlertCircle,
-  Info,
-} from "lucide-react";
+import { MoreVertical, Pin, Pencil, Trash2 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
 import type { PengumumanItem, PrioritasPengumuman } from "../types";
 
 interface PengumumanCardProps {
@@ -33,6 +23,7 @@ interface PengumumanCardProps {
   onDelete?: (item: PengumumanItem) => void;
   onTogglePin?: (item: PengumumanItem) => void;
   onMarkAsRead?: (id: number) => void;
+  onViewDetail?: (item: PengumumanItem) => void;
 }
 
 export function PengumumanCard({
@@ -42,6 +33,7 @@ export function PengumumanCard({
   onDelete,
   onTogglePin,
   onMarkAsRead,
+  onViewDetail,
 }: PengumumanCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -56,15 +48,21 @@ export function PengumumanCard({
     }
   };
 
+  const getInitials = (name?: string) => {
+    if (!name) return "AD";
+    const parts = name.trim().split(/\s+/);
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  };
+
   const renderPriorityBadge = (prioritas: PrioritasPengumuman) => {
     switch (prioritas) {
       case "URGENT":
         return (
           <Badge
             variant="outline"
-            className="bg-red-500/10 text-red-600 dark:text-red-400 border-red-200 dark:border-red-900 flex items-center gap-1 font-medium"
+            className="bg-destructive/10 text-destructive border-destructive/25 text-[11px] font-medium"
           >
-            <AlertCircle className="w-3 h-3" />
             Urgent
           </Badge>
         );
@@ -72,22 +70,13 @@ export function PengumumanCard({
         return (
           <Badge
             variant="outline"
-            className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-900 flex items-center gap-1 font-medium"
+            className="bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/25 text-[11px] font-medium"
           >
-            <AlertTriangle className="w-3 h-3" />
             Penting
           </Badge>
         );
       default:
-        return (
-          <Badge
-            variant="outline"
-            className="bg-muted text-muted-foreground border-border flex items-center gap-1 font-normal"
-          >
-            <Info className="w-3 h-3" />
-            Normal
-          </Badge>
-        );
+        return null;
     }
   };
 
@@ -112,139 +101,191 @@ export function PengumumanCard({
     return Array.from(new Set(types)).join(", ");
   };
 
+  const isUnread = !canManage && item.is_read === false;
   const isLongContent = item.isi && item.isi.length > 220;
+
+  const handleTitleClick = () => {
+    if (onViewDetail) {
+      onViewDetail(item);
+    } else {
+      setIsExpanded((prev) => !prev);
+    }
+  };
 
   return (
     <Card
-      className={`transition-all duration-200 ${
+      className={cn(
+        "transition-all duration-150 shadow-xs border",
         item.is_pinned
-          ? "border-primary/40 bg-primary/[0.02] shadow-sm"
-          : "hover:border-border/80"
-      }`}
+          ? "border-amber-400/40 dark:border-amber-500/30 bg-amber-50/[0.12] dark:bg-amber-950/[0.06]"
+          : "hover:border-border/90",
+        isUnread && "border-l-4 border-l-primary"
+      )}
     >
-      <CardHeader className="pb-3">
+      <CardHeader className="pb-2.5 pt-4 px-4 sm:px-5">
         <div className="flex items-start justify-between gap-3">
-          <div className="space-y-1.5 flex-1 min-w-0">
-            <div className="flex flex-wrap items-center gap-2">
-              {item.is_pinned && (
-                <Badge
-                  variant="default"
-                  className="bg-primary text-primary-foreground text-xs flex items-center gap-1 px-2 py-0.5"
-                >
-                  <Pin className="w-3 h-3 fill-current rotate-45" />
-                  Disematkan
-                </Badge>
-              )}
-              {renderPriorityBadge(item.prioritas)}
-              <Badge variant="secondary" className="text-xs">
-                Target: {getTargetSummary()}
-              </Badge>
-              {item.is_read === false && (
-                <Badge className="bg-blue-500 hover:bg-blue-600 text-white text-[10px] px-1.5 py-0">
-                  Baru
-                </Badge>
-              )}
+          {/* Author Block */}
+          <div className="flex items-center gap-2.5 min-w-0">
+            <Avatar className="h-8 w-8 border shrink-0">
+              <AvatarFallback className="bg-primary/10 text-primary text-[11px] font-semibold">
+                {getInitials(item.creator?.name)}
+              </AvatarFallback>
+            </Avatar>
+            <div className="min-w-0">
+              <p className="text-xs font-semibold text-foreground truncate leading-tight">
+                {item.creator?.name || "Admin"}
+              </p>
+              <p className="text-[11px] text-muted-foreground truncate leading-tight mt-0.5">
+                <span className="tabular-nums">{formatDate(item.created_at)}</span>
+                <span className="mx-1.5" aria-hidden="true">·</span>
+                <span>Untuk: {getTargetSummary()}</span>
+              </p>
             </div>
-
-            <CardTitle className="text-base sm:text-lg font-semibold tracking-tight text-foreground line-clamp-2 mt-1">
-              {item.judul}
-            </CardTitle>
           </div>
 
-          {canManage && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
-                  <MoreVertical className="h-4 w-4" />
-                  <span className="sr-only">Menu</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                {onTogglePin && (
-                  <DropdownMenuItem onClick={() => onTogglePin(item)}>
-                    <Pin className="h-4 w-4 mr-2" />
-                    {item.is_pinned ? "Lepas Sematan" : "Sematkan di Atas"}
-                  </DropdownMenuItem>
-                )}
-                {onEdit && (
-                  <DropdownMenuItem onClick={() => onEdit(item)}>
-                    <Pencil className="h-4 w-4 mr-2" />
-                    Edit
-                  </DropdownMenuItem>
-                )}
-                {onDelete && (
-                  <DropdownMenuItem
-                    onClick={() => onDelete(item)}
-                    className="text-destructive focus:text-destructive"
+          {/* Right Badges & Actions */}
+          <div className="flex items-center gap-1.5 shrink-0">
+            {item.is_pinned && (
+              <Badge
+                variant="secondary"
+                className="bg-primary/10 text-primary border-primary/20 text-[11px] font-medium inline-flex items-center gap-1"
+              >
+                <Pin className="h-3 w-3 -rotate-45 fill-current" />
+                Disematkan
+              </Badge>
+            )}
+
+            {renderPriorityBadge(item.prioritas)}
+
+            {isUnread && (
+              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-primary ml-1">
+                <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                Baru
+              </span>
+            )}
+
+            {canManage && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 text-muted-foreground ml-1"
                   >
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Hapus
-                  </DropdownMenuItem>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
+                    <MoreVertical className="h-4 w-4" />
+                    <span className="sr-only">Aksi</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-44">
+                  {onTogglePin && (
+                    <DropdownMenuItem onClick={() => onTogglePin(item)}>
+                      <Pin className="h-4 w-4 mr-2" />
+                      {item.is_pinned ? "Lepas Sematan" : "Sematkan di Atas"}
+                    </DropdownMenuItem>
+                  )}
+                  {onEdit && (
+                    <DropdownMenuItem onClick={() => onEdit(item)}>
+                      <Pencil className="h-4 w-4 mr-2" />
+                      Edit Pengumuman
+                    </DropdownMenuItem>
+                  )}
+                  {onDelete && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={() => onDelete(item)}
+                        className="text-destructive focus:text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Hapus
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </div>
         </div>
+
+        {/* Title */}
+        <CardTitle
+          onClick={handleTitleClick}
+          className="text-base font-semibold tracking-tight text-foreground hover:text-primary transition-colors cursor-pointer pt-2 leading-snug"
+        >
+          {item.judul}
+        </CardTitle>
       </CardHeader>
 
-      <CardContent className="pb-3 text-sm text-foreground/80 leading-relaxed whitespace-pre-wrap">
+      <CardContent className="pb-3 px-4 sm:px-5 text-sm text-foreground/80 leading-relaxed whitespace-pre-wrap">
         {isLongContent && !isExpanded ? (
           <>
-            {item.isi.slice(0, 220)}...
-            <Button
-              variant="link"
-              className="p-0 h-auto font-medium text-primary text-xs ml-1 inline-flex items-center"
-              onClick={() => setIsExpanded(true)}
-            >
-              Baca selengkapnya
-              <ChevronDown className="w-3 h-3 ml-0.5" />
-            </Button>
+            {item.isi.slice(0, 220)}...{" "}
+            {onViewDetail ? (
+              <button
+                type="button"
+                className="font-medium text-primary text-xs hover:underline inline-block"
+                onClick={() => onViewDetail(item)}
+              >
+                Baca selengkapnya
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="font-medium text-primary text-xs hover:underline inline-block"
+                onClick={() => setIsExpanded(true)}
+              >
+                Selengkapnya
+              </button>
+            )}
           </>
         ) : (
           <>
             {item.isi}
-            {isLongContent && (
-              <Button
-                variant="link"
-                className="p-0 h-auto font-medium text-muted-foreground text-xs block mt-1"
+            {isLongContent && !onViewDetail && (
+              <button
+                type="button"
+                className="font-medium text-muted-foreground hover:text-foreground text-xs block mt-1 hover:underline"
                 onClick={() => setIsExpanded(false)}
               >
                 Tampilkan lebih sedikit
-                <ChevronUp className="w-3 h-3 ml-0.5 inline" />
-              </Button>
+              </button>
             )}
           </>
         )}
       </CardContent>
 
-      <CardFooter className="pt-2 pb-3 border-t text-xs text-muted-foreground flex flex-wrap items-center justify-between gap-2">
-        <div className="flex flex-wrap items-center gap-3">
-          <span className="inline-flex items-center gap-1">
-            <User className="w-3.5 h-3.5" />
-            {item.creator?.name || "Admin"}
-          </span>
-          <span className="inline-flex items-center gap-1">
-            <Clock className="w-3.5 h-3.5" />
-            {formatDate(item.created_at)}
-          </span>
+      <CardFooter className="pt-2 pb-3 px-4 sm:px-5 border-t text-xs text-muted-foreground flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
           {canManage && item.read_count !== undefined && (
-            <span className="text-muted-foreground">
-              {item.read_count} kali dibaca
+            <span className="tabular-nums">
+              Dibaca {item.read_count} kali
             </span>
           )}
         </div>
 
-        {!canManage && item.is_read === false && onMarkAsRead && (
-          <Button
-            size="sm"
-            variant="outline"
-            className="h-7 text-xs gap-1 border-primary/30 text-primary hover:bg-primary/5"
-            onClick={() => onMarkAsRead(item.id_pengumuman)}
-          >
-            <CheckCircle2 className="w-3.5 h-3.5" />
-            Tandai Dibaca
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          {onViewDetail && (
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-7 px-2.5 text-xs text-muted-foreground hover:text-foreground"
+              onClick={() => onViewDetail(item)}
+            >
+              Lihat Detail
+            </Button>
+          )}
+
+          {isUnread && onMarkAsRead && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-7 px-2.5 text-xs border-primary/30 text-primary hover:bg-primary/5"
+              onClick={() => onMarkAsRead(item.id_pengumuman)}
+            >
+              Tandai dibaca
+            </Button>
+          )}
+        </div>
       </CardFooter>
     </Card>
   );

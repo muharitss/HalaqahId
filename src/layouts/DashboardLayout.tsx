@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { AppSidebar } from "@/components/custom/layout/AppSidebar";
+import { AppSidebar, AppBreadcrumb } from "@/components/custom/layout";
 import { MobileDock } from "@/components/custom/layout/MobileDock";
 import { ThemeToggle } from "@/components/custom/theme/ThemeToggle";
 import { SekolahSwitcher } from "@/components/ui/SekolahSwitcher";
@@ -130,7 +130,8 @@ export default function DashboardLayout() {
         </header>
 
         <main className="flex-1 overflow-y-auto overflow-x-hidden w-full bg-slate-50/50 dark:bg-transparent flex flex-col justify-between">
-          <div className="w-full p-4 md:p-6 box-border flex-1">
+          <div className="w-full p-4 md:p-6 box-border flex-1 space-y-4">
+            <AppBreadcrumb />
             <Suspense fallback={<PageSkeleton />}>
               <Outlet />
             </Suspense>

@@ -1,4 +1,4 @@
-import { Home, ChevronRight, Search, X, History } from "lucide-react";
+import { Search, X, History } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
@@ -6,7 +6,7 @@ interface SettingsHeaderProps {
   searchQuery: string;
   onSearchChange: (value: string) => void;
   onClearSearch: () => void;
-  onNavigateHome: () => void;
+  onNavigateHome?: () => void;
   onAuditLogClick: () => void;
   version?: string;
 }
@@ -15,25 +15,10 @@ export function SettingsHeader({
   searchQuery,
   onSearchChange,
   onClearSearch,
-  onNavigateHome,
   onAuditLogClick,
 }: SettingsHeaderProps) {
   return (
     <div className="space-y-4">
-      {/* Breadcrumb sederhana */}
-      <nav className="flex items-center gap-1.5 text-sm text-muted-foreground">
-        <button
-          type="button"
-          onClick={onNavigateHome}
-          className="hover:text-foreground transition-colors flex items-center gap-1 cursor-pointer"
-        >
-          <Home className="h-4 w-4" />
-          <span>Beranda</span>
-        </button>
-        <ChevronRight className="h-4 w-4" />
-        <span className="text-foreground font-medium">Pengaturan</span>
-      </nav>
-
       {/* Title, Search, Actions */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>

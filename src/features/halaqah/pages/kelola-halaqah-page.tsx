@@ -75,6 +75,8 @@ export function KelolaHalaqahPage() {
         halaqahs={halaqahs}
         santriMap={santriMap}
         isLoading={isLoadingHalaqah}
+        selectedHalaqah={selectedHalaqah}
+        onSelectHalaqah={setSelectedHalaqah}
         onAddSantri={(h) => {
           setSelectedHalaqah(h);
           setSelectedSantri(null);
