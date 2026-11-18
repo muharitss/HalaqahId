@@ -486,7 +486,7 @@ export default function KelolaBlogPage() {
                             </span>
                           )}
                         </td>
-                        <td className="p-3 text-slate-550">
+                        <td className="p-3 text-slate-600 dark:text-slate-400">
                           {post.category?.name || <span className="text-slate-300">-</span>}
                         </td>
                         <td className="p-3">
@@ -632,7 +632,7 @@ export default function KelolaBlogPage() {
                     <tbody className="divide-y">
                       {categories.map((cat) => (
                         <tr key={cat.id_category} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/30">
-                          <td className="p-3 font-bold text-slate-850 dark:text-white">{cat.name}</td>
+                          <td className="p-3 font-bold text-slate-900 dark:text-white">{cat.name}</td>
                           <td className="p-3 text-slate-500 font-mono text-xs">{cat.slug}</td>
                           <td className="p-3 text-slate-400 text-xs">{cat.description || "-"}</td>
                           <td className="p-3 text-right">
@@ -712,12 +712,12 @@ export default function KelolaBlogPage() {
                   {tags.map((tag) => (
                     <div
                       key={tag.id_tag}
-                      className="px-3.5 py-1.5 bg-slate-50 dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/50 rounded-xl text-xs font-bold text-slate-650 dark:text-slate-350 flex items-center gap-2"
+                      className="px-3.5 py-1.5 bg-slate-50 dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/50 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 flex items-center gap-2"
                     >
                       <span>#{tag.name}</span>
                       <button
                         onClick={() => handleDeleteTag(tag.id_tag)}
-                        className="text-red-500 hover:text-red-650 shrink-0 font-bold"
+                        className="text-red-500 hover:text-red-600 shrink-0 font-bold"
                       >
                         ×
                       </button>
@@ -966,7 +966,7 @@ export default function KelolaBlogPage() {
                             className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-all ${
                               isSelected
                                 ? "bg-primary text-white border-primary"
-                                : "bg-white dark:bg-slate-950 text-slate-650 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:bg-slate-100"
+                                : "bg-white dark:bg-slate-950 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:bg-slate-100"
                             }`}
                           >
                             #{tag.name}

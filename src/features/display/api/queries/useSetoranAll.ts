@@ -3,16 +3,19 @@ import { displayService } from "../services/displayService";
 import { toast } from "sonner";
 import { getErrorMessage } from "@/utils/error";
 
-export function useSetoranAll(slug: string | undefined) {
+export function useSetoranAll(slug: string | undefined, token?: string | null) {
   return useQuery({
-    queryKey: ["display-setoran-all", slug],
+    queryKey: ["display-setoran-all", slug, token],
     queryFn: async () => {
       if (!slug) return [];
       try {
-        return await displayService.getSetoranAll(slug);
+        return await displayService.getSetoranAll(slug, token || undefined);
       } catch (err: unknown) {
         console.error("Gagal load seluruh setoran:", err);
-        toast.error(getErrorMessage(err, "Gagal memuat seluruh setoran"));
+        const status = (err as any)?.response?.status;
+        if (status !== 401 && status !== 403) {
+          toast.error(getErrorMessage(err, "Gagal memuat seluruh setoran"));
+        }
         throw err;
       }
     },

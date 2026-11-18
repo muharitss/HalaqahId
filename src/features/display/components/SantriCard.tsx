@@ -1,14 +1,13 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { ChevronRight, Phone } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { ChevronRight } from "lucide-react";
+import { useLocation, useNavigate } from "react-router-dom";
 
 interface SantriCardProps {
   id: number;
   nama: string;
   halaqah: string;
-  nomorTelepon?: string;
 }
 
 // Generate a consistent color from a name string
@@ -30,19 +29,15 @@ function getAvatarColor(name: string): string {
   return colors[Math.abs(hash) % colors.length];
 }
 
-function maskPhone(phone: string): string {
-  if (!phone || phone.length < 6) return phone || "";
-  return phone.slice(0, 4) + "****" + phone.slice(-3);
-}
-
-export function SantriCard({ id, nama, halaqah, nomorTelepon }: SantriCardProps) {
+export function SantriCard({ id, nama, halaqah }: SantriCardProps) {
   const navigate = useNavigate();
+  const location = useLocation();
   const gradient = getAvatarColor(nama);
 
   return (
     <Card
       className="group relative cursor-pointer border border-border/60 bg-card hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 hover:-translate-y-0.5 active:scale-[0.98]"
-      onClick={() => navigate(`santri/${id}`)}
+      onClick={() => navigate({ pathname: `santri/${id}`, search: location.search })}
     >
       <CardContent className="p-4 flex items-center gap-3.5">
         <div className="relative shrink-0">
@@ -62,12 +57,6 @@ export function SantriCard({ id, nama, halaqah, nomorTelepon }: SantriCardProps)
             <Badge variant="secondary" className="text-[10px] font-medium px-2 py-0 h-[18px] bg-primary/8 text-primary border-0 rounded-md">
               {halaqah || "Umum"}
             </Badge>
-            {nomorTelepon && (
-              <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                <Phone className="h-2.5 w-2.5" />
-                {maskPhone(nomorTelepon)}
-              </span>
-            )}
           </div>
         </div>
 

@@ -1,79 +1,141 @@
 import { defineConfig, devices } from '@playwright/test';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 /**
- * Read environment variables from file.
- * https://github.com/motdotla/dotenv
- */
-// import dotenv from 'dotenv';
-// import path from 'path';
-// dotenv.config({ path: path.resolve(__dirname, '.env') });
-
-/**
- * See https://playwright.dev/docs/test-configuration.
+ * Playwright E2E Configuration for Halaqah.id
+ * Dual webServer: haalaqahid-be (3000) and HalaqahId (5173)
  */
 export default defineConfig({
-  testDir: './tests',
-  /* Run tests in files in parallel */
+  testDir: './tests/e2e',
+  timeout: 60_000,
+  expect: {
+    timeout: 10_000,
+  },
   fullyParallel: true,
-  /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
-  /* Retry on CI only */
   retries: process.env.CI ? 2 : 0,
-  /* Opt out of parallel tests on CI. */
   workers: process.env.CI ? 1 : undefined,
-  /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: 'html',
-  /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
+  reporter: [
+    ['html', { outputFolder: 'playwright-report', open: 'never' }],
+    ['list'],
+  ],
   use: {
-    /* Base URL to use in actions like `await page.goto('')`. */
-    // baseURL: 'http://localhost:3000',
-
-    /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
+    baseURL: process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173',
     trace: 'on-first-retry',
+    screenshot: 'only-on-failure',
+    video: 'on-first-retry',
+    actionTimeout: 10_000,
+    navigationTimeout: 15_000,
   },
 
-  /* Configure projects for major browsers */
   projects: [
+    // 1. Setup Project: Authenticates roles and saves storage states
+    {
+      name: 'setup',
+      testMatch: /.*\.setup\.ts/,
+    },
+
+    // 2. Desktop Chromium: Primary project for smoke and general specs
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      testMatch: /.*smoke\.spec\.ts/,
+      dependencies: ['setup'],
+      use: {
+        ...devices['Desktop Chrome'],
+      },
     },
 
+    // 3. Mobile Chrome: Pixel 5 viewport for responsive & PWA testing
     {
-      name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
+      name: 'mobile-chrome',
+      testMatch: /.*(smoke|mobile|pwa).*\.spec\.ts/,
+      dependencies: ['setup'],
+      use: {
+        ...devices['Pixel 5'],
+      },
     },
 
+    // 4. Public / Unauthenticated project (clean context)
+    // Matches all unauthenticated specs in tier1-feature and tier2-boundary
     {
-      name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
+      name: 'public',
+      testMatch: /.*(public|unauth|display|01-cookies-auth|02-display|06-quran-reader|01-auth-lockout|02-display-unauthorized|03-otp-expiration|04-rate-limits|tier2-boundary).*\.spec\.ts/,
+      testIgnore: /.*(tier3-pairwise|tier3-combination|tier4-scenarios|tier4-application).*/,
+      use: {
+        ...devices['Desktop Chrome'],
+      },
     },
 
-    /* Test against mobile viewports. */
-    // {
-    //   name: 'Mobile Chrome',
-    //   use: { ...devices['Pixel 5'] },
-    // },
-    // {
-    //   name: 'Mobile Safari',
-    //   use: { ...devices['iPhone 12'] },
-    // },
+    // 5. Admin role authenticated project (single-role tier1 specs only)
+    {
+      name: 'admin',
+      testMatch: /.*(tier1-feature[/\\])?04-admin.*\.spec\.ts/,
+      testIgnore: /.*(tier3-pairwise|tier3-combination|tier4-scenarios|tier4-application).*/,
+      dependencies: ['setup'],
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: path.resolve(__dirname, '.auth/admin.json'),
+      },
+    },
 
-    /* Test against branded browsers. */
-    // {
-    //   name: 'Microsoft Edge',
-    //   use: { ...devices['Desktop Edge'], channel: 'msedge' },
-    // },
-    // {
-    //   name: 'Google Chrome',
-    //   use: { ...devices['Desktop Chrome'], channel: 'chrome' },
-    // },
+    // 6. Muhafiz role authenticated project (single-role tier1 specs only)
+    {
+      name: 'muhafiz',
+      testMatch: /.*(tier1-feature[/\\])?05-muhafiz.*\.spec\.ts/,
+      testIgnore: /.*(tier3-pairwise|tier3-combination|tier4-scenarios|tier4-application).*/,
+      dependencies: ['setup'],
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: path.resolve(__dirname, '.auth/muhafiz.json'),
+      },
+    },
+
+    // 7. Wali role authenticated project (single-role tier1 specs only)
+    {
+      name: 'wali',
+      testMatch: /.*(tier1-feature[/\\])?(03-portal-otp|.*wali.*)\.spec\.ts/,
+      testIgnore: /.*(tier3-pairwise|tier3-combination|tier4-scenarios|tier4-application).*/,
+      dependencies: ['setup'],
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: path.resolve(__dirname, '.auth/wali.json'),
+      },
+    },
+
+    // 8. Scenario & Combinatorial Pairwise project (Tiers 3 & 4)
+    {
+      name: 'scenarios',
+      testMatch: /.*(tier3-pairwise|tier3-combination|tier4-scenarios|tier4-application).*\.spec\.ts/,
+      dependencies: ['setup'],
+      use: {
+        ...devices['Desktop Chrome'],
+      },
+    },
   ],
 
-  /* Run your local dev server before starting the tests */
-  // webServer: {
-  //   command: 'npm run start',
-  //   url: 'http://localhost:3000',
-  //   reuseExistingServer: !process.env.CI,
-  // },
+  /* Dual webServer orchestration: launches backend (3000) and frontend (5173) */
+  webServer: [
+    {
+      command: 'pnpm dev',
+      cwd: path.resolve(__dirname, '../haalaqahid-be'),
+      url: 'http://localhost:3000/health',
+      reuseExistingServer: !process.env.CI,
+      timeout: 120_000,
+      stdout: 'pipe',
+      stderr: 'pipe',
+    },
+    {
+      command: 'pnpm dev',
+      cwd: path.resolve(__dirname, '.'),
+      url: 'http://localhost:5173',
+      reuseExistingServer: !process.env.CI,
+      timeout: 120_000,
+      stdout: 'pipe',
+      stderr: 'pipe',
+    },
+  ],
 });

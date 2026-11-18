@@ -144,7 +144,7 @@ export default function BlogListPage() {
   const totalPages = Math.ceil(total / 9);
 
   return (
-    <div className="flex flex-col min-h-screen text-slate-800 dark:text-slate-200 bg-white dark:bg-slate-950">
+    <div className="flex flex-col min-h-screen text-foreground bg-background">
       <SEO
         title="Blog & Wawasan Tahfidz Quran"
         description="Temukan wawasan terbaru, panduan praktis pengelolaan halaqah, dan artikel inspiratif tentang pembelajaran tahfidz Al-Quran."
@@ -157,18 +157,18 @@ export default function BlogListPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
           
           {/* Breadcrumb */}
-          <div className="flex items-center gap-2 text-xs sm:text-sm text-slate-400 font-bold">
+          <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground font-bold">
             <Link to="/" className="hover:text-primary transition-colors">Home</Link>
             <ChevronRight size={14} />
-            <span className="text-slate-600 dark:text-slate-300">Blog</span>
+            <span className="text-foreground">Blog</span>
           </div>
 
           {/* Heading */}
           <div className="space-y-3">
-            <h1 className="text-3xl sm:text-5xl font-black text-slate-900 dark:text-white">
+            <h1 className="text-3xl sm:text-5xl font-black text-foreground">
               Blog & Artikel Halaqah ID
             </h1>
-            <p className="text-slate-500 dark:text-slate-400 text-sm sm:text-base max-w-2xl leading-relaxed">
+            <p className="text-muted-foreground text-sm sm:text-base max-w-2xl leading-relaxed">
               Kumpulan panduan, ulasan teknologi, dan tips asatidz untuk meningkatkan standar dan efisiensi program tahfidzul Quran lembaga Anda.
             </p>
           </div>
@@ -186,21 +186,21 @@ export default function BlogListPage() {
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
                   placeholder="Cari artikel..."
-                  className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:outline-none focus:border-primary transition-colors"
+                  className="w-full pl-10 pr-4 py-3 bg-muted/40 dark:bg-card text-foreground placeholder:text-muted-foreground border border-border rounded-xl text-sm focus:outline-none focus:border-primary transition-colors"
                 />
-                <Search size={16} className="absolute left-3.5 top-3.5 text-slate-400" />
+                <Search size={16} className="absolute left-3.5 top-3.5 text-muted-foreground" />
               </form>
 
               {/* Categories */}
               <div className="space-y-3">
-                <h4 className="font-bold text-slate-800 dark:text-white text-sm uppercase tracking-wider">Kategori</h4>
+                <h4 className="font-bold text-foreground text-sm uppercase tracking-wider">Kategori</h4>
                 <div className="flex flex-col gap-2">
                   <button
                     onClick={() => handleCategorySelect("")}
                     className={`px-4 py-2 rounded-xl text-xs font-bold text-left transition-all ${
                       !categoryQuery && !tagQuery
-                        ? "bg-primary text-white"
-                        : "bg-slate-50 hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300"
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted/40 hover:bg-muted dark:bg-card dark:hover:bg-muted text-muted-foreground hover:text-foreground"
                     }`}
                   >
                     Semua Kategori
@@ -211,8 +211,8 @@ export default function BlogListPage() {
                       onClick={() => handleCategorySelect(cat.slug)}
                       className={`px-4 py-2 rounded-xl text-xs font-bold text-left transition-all ${
                         categoryQuery === cat.slug
-                          ? "bg-primary text-white"
-                          : "bg-slate-50 hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300"
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted/40 hover:bg-muted dark:bg-card dark:hover:bg-muted text-muted-foreground hover:text-foreground"
                       }`}
                     >
                       {cat.name}
@@ -223,7 +223,7 @@ export default function BlogListPage() {
 
               {/* Tags */}
               <div className="space-y-3">
-                <h4 className="font-bold text-slate-800 dark:text-white text-sm uppercase tracking-wider">Tag Populer</h4>
+                <h4 className="font-bold text-foreground text-sm uppercase tracking-wider">Tag Populer</h4>
                 <div className="flex flex-wrap gap-2">
                   {tags.map((tag) => (
                     <button
@@ -231,8 +231,8 @@ export default function BlogListPage() {
                       onClick={() => handleTagSelect(tag.slug)}
                       className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                         tagQuery === tag.slug
-                          ? "bg-primary text-white"
-                          : "bg-slate-50 hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200/50 dark:border-slate-800/50"
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted/40 hover:bg-muted dark:bg-card dark:hover:bg-muted text-muted-foreground hover:text-foreground border border-border"
                       }`}
                     >
                       #{tag.name}
@@ -248,13 +248,13 @@ export default function BlogListPage() {
               {loading ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {[...Array(6)].map((_, i) => (
-                    <div key={i} className="animate-pulse bg-slate-50 dark:bg-slate-900 border rounded-2xl h-80" />
+                    <div key={i} className="animate-pulse bg-muted/40 dark:bg-card border border-border rounded-2xl h-80" />
                   ))}
                 </div>
               ) : posts.length === 0 ? (
-                <div className="py-20 text-center border border-dashed rounded-3xl space-y-4">
-                  <p className="text-slate-400 font-bold text-lg">Tidak ada artikel ditemukan</p>
-                  <p className="text-xs text-slate-550">Coba ganti filter pencarian atau kategori Anda.</p>
+                <div className="py-20 text-center border border-dashed border-border rounded-3xl space-y-4">
+                  <p className="text-muted-foreground font-bold text-lg">Tidak ada artikel ditemukan</p>
+                  <p className="text-xs text-muted-foreground">Coba ganti filter pencarian atau kategori Anda.</p>
                 </div>
               ) : (
                 <div className="space-y-8">
@@ -263,7 +263,7 @@ export default function BlogListPage() {
                     {posts.map((post) => (
                       <div
                         key={post.id_post}
-                        className="bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/50 rounded-2xl overflow-hidden flex flex-col justify-between shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300"
+                        className="bg-card border border-border rounded-2xl overflow-hidden flex flex-col justify-between shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-300"
                       >
                         <div>
                           {post.thumbnail && (
@@ -275,16 +275,16 @@ export default function BlogListPage() {
                                 {post.category.name}
                               </span>
                             )}
-                            <h3 className="text-base font-black text-slate-900 dark:text-white leading-snug line-clamp-2 hover:text-primary transition-colors">
+                            <h3 className="text-base font-black text-foreground leading-snug line-clamp-2 hover:text-primary transition-colors">
                               <Link to={`/blog/${post.slug}`}>{post.title}</Link>
                             </h3>
-                            <p className="text-slate-500 dark:text-slate-450 text-xs sm:text-sm line-clamp-3 leading-relaxed">
+                            <p className="text-muted-foreground text-xs sm:text-sm line-clamp-3 leading-relaxed">
                               {post.excerpt}
                             </p>
                           </div>
                         </div>
 
-                        <div className="p-5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-400 font-bold">
+                        <div className="p-5 border-t border-border flex items-center justify-between text-[11px] text-muted-foreground font-bold">
                           <div className="flex items-center gap-1.5 truncate max-w-[120px]">
                             <User size={12} />
                             <span className="truncate">{post.author?.name || "Admin"}</span>
@@ -316,8 +316,8 @@ export default function BlogListPage() {
                             onClick={() => handlePageChange(pageNum)}
                             className={`w-10 h-10 rounded-xl text-sm font-bold transition-all ${
                               isCurrent
-                                ? "bg-primary text-white shadow-md shadow-primary/20"
-                                : "bg-slate-50 dark:bg-slate-900 hover:bg-slate-100 text-slate-600 dark:text-slate-400"
+                                ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
+                                : "bg-muted/40 dark:bg-card hover:bg-muted text-muted-foreground hover:text-foreground border border-border"
                             }`}
                           >
                             {pageNum}

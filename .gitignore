@@ -32,3 +32,6 @@ dist-ssr
 /blob-report/
 /playwright/.cache/
 /playwright/.auth/
+.auth/
+tests/e2e/fixtures/storage/*.json
+!tests/e2e/fixtures/storage/.gitkeep

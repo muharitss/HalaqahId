@@ -1,25 +1,22 @@
-const CACHE_NAME = "halaqahid-offline-cache-v1";
+const CACHE_NAME = "halaqahid-offline-cache-v2";
 const OFFLINE_URL = "/offline.html";
+const APP_SHELL_URLS = [OFFLINE_URL, "/", "/manifest.json"];
 
-// Install phase: cache the offline page
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log("Offline page cached during install.");
-      return cache.add(OFFLINE_URL);
+      return cache.addAll(APP_SHELL_URLS).catch(() => cache.add(OFFLINE_URL));
     })
   );
   self.skipWaiting();
 });
 
-// Activate phase: clear old caches
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cache) => {
           if (cache !== CACHE_NAME) {
-            console.log("Clearing old offline cache:", cache);
             return caches.delete(cache);
           }
         })
@@ -29,13 +26,37 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
-// Fetch phase: intercept requests and serve offline fallback
 self.addEventListener("fetch", (event) => {
-  // Only intercept document navigation requests
+  const url = new URL(event.request.url);
+
+  // Cache-first for static Quran pages and fonts
+  if (
+    event.request.method === "GET" &&
+    (url.pathname.startsWith("/api/quran/") ||
+      url.pathname.startsWith("/api/sync/bootstrap") ||
+      url.pathname.startsWith("/fonts/"))
+  ) {
+    event.respondWith(
+      caches.open(CACHE_NAME).then(async (cache) => {
+        try {
+          const networkResponse = await fetch(event.request);
+          if (networkResponse && networkResponse.status === 200) {
+            cache.put(event.request, networkResponse.clone());
+          }
+          return networkResponse;
+        } catch {
+          const cachedResponse = await cache.match(event.request);
+          if (cachedResponse) return cachedResponse;
+          throw new Error("Offline and not in cache");
+        }
+      })
+    );
+    return;
+  }
+
   if (event.request.mode === "navigate") {
     event.respondWith(
-      fetch(event.request).catch((error) => {
-        console.log("Fetch failed; returning offline page fallback.", error);
+      fetch(event.request).catch(() => {
         return caches.open(CACHE_NAME).then((cache) => {
           return cache.match(OFFLINE_URL);
         });

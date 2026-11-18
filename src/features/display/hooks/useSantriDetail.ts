@@ -1,5 +1,5 @@
-import { useState, useMemo } from "react";
-import { useParams } from "react-router-dom";
+import { useState, useMemo, useEffect } from "react";
+import { useParams, useSearchParams } from "react-router-dom";
 import { startOfMonth, endOfMonth, eachDayOfInterval } from "date-fns";
 import { useSantriDetail as useSantriDetailQuery } from "../api";
 
@@ -13,7 +13,52 @@ const STATUS_CONFIG = {
 
 export function useSantriDetail() {
   const { id, slug } = useParams<{ id: string; slug: string }>();
-  const { data, isLoading, isError, refetch } = useSantriDetailQuery(slug, id);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tokenFromUrl = searchParams.get("token");
+
+  const [token, setTokenState] = useState<string>(() => {
+    if (tokenFromUrl) return tokenFromUrl;
+    if (slug) {
+      return sessionStorage.getItem(`display_token_${slug}`) || "";
+    }
+    return "";
+  });
+
+  useEffect(() => {
+    if (tokenFromUrl) {
+      setTokenState(tokenFromUrl);
+      if (slug) {
+        sessionStorage.setItem(`display_token_${slug}`, tokenFromUrl);
+      }
+    } else if (slug) {
+      const stored = sessionStorage.getItem(`display_token_${slug}`);
+      if (stored) {
+        setTokenState(stored);
+      }
+    }
+  }, [slug, tokenFromUrl]);
+
+  const updateToken = (newToken: string) => {
+    setTokenState(newToken);
+    if (slug) {
+      sessionStorage.setItem(`display_token_${slug}`, newToken);
+    }
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      if (newToken) {
+        next.set("token", newToken);
+      } else {
+        next.delete("token");
+      }
+      return next;
+    });
+  };
+
+  const { data, isLoading, isError, error: rawError, refetch } = useSantriDetailQuery(
+    slug,
+    id,
+    token || undefined
+  );
   const [viewDate, setViewDate] = useState<Date>(new Date());
 
   const daysInMonth = useMemo(() => {
@@ -42,13 +87,23 @@ export function useSantriDetail() {
     ].filter((d) => d.value > 0);
   }, [data]);
 
-  const error = isError ? "Gagal memuat data santri. Silakan coba lagi." : null;
+  const status = (rawError as any)?.response?.status;
+  const isAuthError = !token || status === 401 || status === 403;
+  const error = isError
+    ? isAuthError
+      ? "Token Layar Kelas Diperlukan / Tidak Valid"
+      : "Gagal memuat data santri. Silakan coba lagi."
+    : null;
 
   return {
     id,
+    slug,
+    token,
+    setToken: updateToken,
     data,
     loading: isLoading,
     error,
+    isAuthError,
     viewDate,
     setViewDate,
     daysInMonth,

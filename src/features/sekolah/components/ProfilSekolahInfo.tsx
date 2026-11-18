@@ -1,9 +1,26 @@
+import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { type Sekolah } from "@/types/domain/sekolah";
+import { sekolahService } from "../api/services/sekolahService";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Building2, MapPin, Mail, Key, Phone, MessageCircle, Eye, Target, User, ExternalLink } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Building2, MapPin, Mail, Key, Phone, MessageCircle, Eye, Target, User, ExternalLink, RefreshCw, Copy, Check } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
+import { getErrorMessage } from "@/utils/error";
 
 interface ProfilSekolahInfoProps {
   sekolah: Sekolah;
@@ -30,6 +47,14 @@ function InfoRow({ icon, label, value }: { icon: React.ReactNode; label: string;
 }
 
 export const ProfilSekolahInfo = ({ sekolah }: ProfilSekolahInfoProps) => {
+  const queryClient = useQueryClient();
+  const [copied, setCopied] = useState(false);
+  const [isRotating, setIsRotating] = useState(false);
+
+  const displayUrl = sekolah.slug
+    ? `${window.location.origin}/display/${sekolah.slug}${sekolah.display_token ? `?token=${sekolah.display_token}` : ""}`
+    : "";
+
   const alamatLengkap = [
     sekolah.alamat,
     sekolah.kelurahan,
@@ -178,39 +203,122 @@ export const ProfilSekolahInfo = ({ sekolah }: ProfilSekolahInfoProps) => {
         </Card>
       )}
 
-      {/* Card: Slug Portal Publik */}
+      {/* Card: Layar Kelas & Display Publik */}
       <Card className="border-0 shadow-sm ring-1 ring-border/50">
         <CardHeader className="pb-2">
-          <CardTitle className="text-base flex items-center gap-2">
-            <Key className="w-4 h-4" /> Slug Portal Publik
+          <CardTitle className="text-base flex items-center justify-between">
+            <span className="flex items-center gap-2">
+              <Key className="w-4 h-4 text-primary" /> Layar Kelas & Display Publik
+            </span>
+            {sekolah.display_token && (
+              <Badge variant="outline" className="font-mono text-[10px]">
+                Token Aktif
+              </Badge>
+            )}
           </CardTitle>
+          <CardDescription>
+            Gunakan tautan berotentikasi ini untuk menampilkan data progres pada Smart TV atau layar kelas sekolah.
+          </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="space-y-4">
           {sekolah.slug ? (
             <>
-              <div className="bg-muted/50 p-3 rounded-md font-mono text-sm border">
-                {sekolah.slug}
+              {/* Display URL with token */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">URL Display Layar Kelas</label>
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 bg-muted/50 p-2.5 rounded-md font-mono text-xs border truncate">
+                    {displayUrl}
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={async () => {
+                      if (!displayUrl) return;
+                      await navigator.clipboard.writeText(displayUrl);
+                      setCopied(true);
+                      toast.success("Link display berhasil disalin!");
+                      setTimeout(() => setCopied(false), 2000);
+                    }}
+                  >
+                    {copied ? <Check className="w-3.5 h-3.5 mr-1 text-emerald-600" /> : <Copy className="w-3.5 h-3.5 mr-1" />}
+                    {copied ? "Tersalin" : "Salin Link"}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    asChild
+                  >
+                    <a
+                      href={displayUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5 mr-1" /> Buka
+                    </a>
+                  </Button>
+                </div>
               </div>
-              <a
-                href={`${window.location.origin}/display/${sekolah.slug}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 text-sm text-primary hover:underline break-all"
-              >
-                <ExternalLink className="w-3.5 h-3.5 shrink-0" />
-                {window.location.origin}/display/{sekolah.slug}
-              </a>
+
+              {/* Display Token & Rotation */}
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-2 border-t">
+                <div className="space-y-0.5">
+                  <p className="text-xs font-semibold text-foreground">Rotasi Token Keamanan Display</p>
+                  <p className="text-[11px] text-muted-foreground">
+                    Jika link display bocor atau ingin memutus akses TV lama, rotasi token di sini.
+                  </p>
+                </div>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={isRotating}
+                      className="text-destructive hover:text-destructive shrink-0"
+                    >
+                      <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${isRotating ? "animate-spin" : ""}`} /> Rotasi Token
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Rotasi Display Token?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Tindakan ini akan membuat token display baru. Layar kelas atau perangkat TV yang sedang aktif akan terputus dan wajib diperbarui menggunakan tautan baru.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Batal</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={async () => {
+                          try {
+                            setIsRotating(true);
+                            await sekolahService.rotateDisplayToken();
+                            await queryClient.invalidateQueries({ queryKey: ["profil-sekolah"] });
+                            toast.success("Display token berhasil dirotasi!");
+                          } catch (err) {
+                            toast.error(getErrorMessage(err, "Gagal merotasi display token"));
+                          } finally {
+                            setIsRotating(false);
+                          }
+                        }}
+                        className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+                      >
+                        Ya, Rotasi Token
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
             </>
           ) : (
             <div className="bg-muted/30 p-3 rounded-md border border-dashed">
               <p className="text-sm text-muted-foreground italic">
-                Slug belum diatur. Klik <strong>Edit Profil</strong> dan simpan untuk men-generate slug otomatis dari nama sekolah.
+                Slug belum diatur. Klik <strong>Edit Profil</strong> dan simpan untuk membuat slug sekolah terlebih dahulu.
               </p>
             </div>
           )}
-          <p className="text-xs text-muted-foreground">
-            Link ini digunakan wali santri untuk mengakses portal informasi publik sekolah Anda.
-          </p>
         </CardContent>
       </Card>
     </div>

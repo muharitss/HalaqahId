@@ -1,4 +1,4 @@
-﻿import { Edit, Trash2 } from "lucide-react";
+import { Edit, Trash2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -126,7 +126,7 @@ export function RedirectsCard({
                     {redirects.map((red) => (
                       <tr key={red.id_redirect} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/30">
                         <td className="p-3 font-mono font-bold text-slate-800 dark:text-slate-200">{red.from_path}</td>
-                        <td className="p-3 font-mono text-slate-550">{red.to_path}</td>
+                        <td className="p-3 font-mono text-slate-600 dark:text-slate-400">{red.to_path}</td>
                         <td className="p-3">
                           <span className="px-1.5 py-0.5 rounded font-black bg-primary/10 text-primary text-[9px]">
                             {red.status_code}

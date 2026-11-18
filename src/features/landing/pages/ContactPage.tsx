@@ -45,10 +45,10 @@ export default function ContactPage() {
             {/* Contact info */}
             <div className="lg:col-span-5 space-y-8">
               <div className="space-y-4">
-                <h1 className="text-4xl font-black tracking-tight text-slate-900 dark:text-white">
+                <h1 className="text-4xl font-black tracking-tight text-foreground">
                   Hubungi Kami
                 </h1>
-                <p className="text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
+                <p className="text-muted-foreground leading-relaxed font-medium">
                   Apakah Anda ingin menanyakan detail integrasi WhatsApp, ingin request panduan demo bagi guru, atau butuh bantuan teknis migrasi? Tim kami siap menjawab pertanyaan Anda.
                 </p>
               </div>
@@ -59,8 +59,8 @@ export default function ContactPage() {
                     <Phone size={18} />
                   </div>
                   <div>
-                    <h4 className="font-bold text-slate-800 dark:text-white text-sm">Nomor WhatsApp Support</h4>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">+62 812-3456-7890</p>
+                    <h4 className="font-bold text-foreground text-sm">Nomor WhatsApp Support</h4>
+                    <p className="text-sm text-muted-foreground mt-1">+62 812-3456-7890</p>
                   </div>
                 </div>
 
@@ -69,8 +69,8 @@ export default function ContactPage() {
                     <Mail size={18} />
                   </div>
                   <div>
-                    <h4 className="font-bold text-slate-800 dark:text-white text-sm">Surat Elektronik (Email)</h4>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">support@halaqah.id</p>
+                    <h4 className="font-bold text-foreground text-sm">Surat Elektronik (Email)</h4>
+                    <p className="text-sm text-muted-foreground mt-1">support@halaqah.id</p>
                   </div>
                 </div>
 
@@ -79,56 +79,56 @@ export default function ContactPage() {
                     <MapPin size={18} />
                   </div>
                   <div>
-                    <h4 className="font-bold text-slate-800 dark:text-white text-sm">Kantor Pusat</h4>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Jl. Sudirman No. 45, Jakarta Selatan, Indonesia</p>
+                    <h4 className="font-bold text-foreground text-sm">Kantor Pusat</h4>
+                    <p className="text-sm text-muted-foreground mt-1">Jl. Sudirman No. 45, Jakarta Selatan, Indonesia</p>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Form */}
-            <div className="lg:col-span-7 bg-slate-50 dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/50 p-8 sm:p-10 rounded-3xl">
+            <div className="lg:col-span-7 bg-muted/40 dark:bg-card border border-border p-8 sm:p-10 rounded-3xl shadow-xs">
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="space-y-2">
-                  <label className="text-sm font-bold text-slate-700 dark:text-slate-350">Nama Lengkap Anda</label>
+                  <label className="text-sm font-bold text-foreground">Nama Lengkap Anda</label>
                   <input
                     type="text"
                     required
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Masukkan nama lengkap Anda"
-                    className="w-full px-4 py-3 bg-white dark:bg-slate-950 border border-slate-250 dark:border-slate-800 rounded-xl text-sm focus:outline-none focus:border-primary transition-colors"
+                    className="w-full px-4 py-3 bg-background text-foreground placeholder:text-muted-foreground border border-border rounded-xl text-sm focus:outline-none focus:border-primary transition-colors"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-bold text-slate-700 dark:text-slate-350">Alamat Email Aktif</label>
+                  <label className="text-sm font-bold text-foreground">Alamat Email Aktif</label>
                   <input
                     type="email"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="nama@lembagaanda.com"
-                    className="w-full px-4 py-3 bg-white dark:bg-slate-950 border border-slate-250 dark:border-slate-800 rounded-xl text-sm focus:outline-none focus:border-primary transition-colors"
+                    className="w-full px-4 py-3 bg-background text-foreground placeholder:text-muted-foreground border border-border rounded-xl text-sm focus:outline-none focus:border-primary transition-colors"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-bold text-slate-700 dark:text-slate-350">Isi Pesan / Pertanyaan</label>
+                  <label className="text-sm font-bold text-foreground">Isi Pesan / Pertanyaan</label>
                   <textarea
                     required
                     rows={5}
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                     placeholder="Tuliskan pertanyaan detail Anda di sini..."
-                    className="w-full px-4 py-3 bg-white dark:bg-slate-950 border border-slate-250 dark:border-slate-800 rounded-xl text-sm focus:outline-none focus:border-primary transition-colors resize-none"
+                    className="w-full px-4 py-3 bg-background text-foreground placeholder:text-muted-foreground border border-border rounded-xl text-sm focus:outline-none focus:border-primary transition-colors resize-none"
                   />
                 </div>
 
                 <button
                   type="submit"
                   disabled={sending}
-                  className="w-full py-4 bg-primary hover:bg-primary/95 text-white font-bold text-sm rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-primary/20 transition-all disabled:opacity-50"
+                  className="w-full py-4 bg-primary hover:bg-primary/95 text-primary-foreground font-bold text-sm rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-primary/20 transition-all disabled:opacity-50"
                 >
                   {sending ? (
                     <span>Mengirim pesan...</span>

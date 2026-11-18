@@ -11,6 +11,7 @@ import {
   type ISpeechRecognitionEvent, 
   type GroqResponse 
 } from "../types";
+import axiosClient from "@/lib/axiosClient";
 import { normalizeArabic } from "../utils/normalize";
 
 const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY;
@@ -35,9 +36,10 @@ export function useTahfidzAi() {
         allAyahs = JSON.parse(cached);
       } else {
         try {
-          const res = await fetch("https://api.alquran.cloud/v1/quran/quran-uthmani");
-          const data = (await res.json()) as AlQuranCloudResponse;
-          allAyahs = data.data.surahs.flatMap((s: AlQuranCloudSurah) => 
+          const res = await axiosClient.get<AlQuranCloudResponse>("/quran/ayahs");
+          const data = res.data;
+          const surahs = (data as any)?.data?.surahs || [];
+          allAyahs = surahs.flatMap((s: AlQuranCloudSurah) => 
             s.ayahs.map((a: AlQuranCloudAyah) => ({ 
               text: a.text,
               surahName: s.englishName,

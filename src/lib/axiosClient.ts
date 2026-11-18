@@ -8,6 +8,37 @@ const axiosClient = axios.create({
   },
 });
 
+// In-memory access token storage (K6: never persist tokens or superadmin_session in localStorage)
+let inMemoryAccessToken: string | null = null;
+
+export function setInMemoryAccessToken(token: string | null) {
+  inMemoryAccessToken = token;
+  // Purge any legacy tokens from localStorage immediately
+  try {
+    localStorage.removeItem("token");
+    localStorage.removeItem("refresh_token");
+    localStorage.removeItem("halaqah_refresh");
+    localStorage.removeItem("superadmin_session");
+  } catch {}
+}
+
+export function getInMemoryAccessToken(): string | null {
+  if (inMemoryAccessToken) return inMemoryAccessToken;
+  // Migrate any legacy/test-injected token from localStorage into memory and remove from storage
+  try {
+    const legacyToken = localStorage.getItem("token");
+    if (legacyToken) {
+      inMemoryAccessToken = legacyToken;
+      localStorage.removeItem("token");
+      localStorage.removeItem("refresh_token");
+      localStorage.removeItem("halaqah_refresh");
+      localStorage.removeItem("superadmin_session");
+      return inMemoryAccessToken;
+    }
+  } catch {}
+  return null;
+}
+
 // Helper untuk deteksi tenant slug dari URL / host jika belum tersimpan
 function resolveTenantSlug(): string {
   try {
@@ -26,51 +57,32 @@ function resolveTenantSlug(): string {
   return (import.meta.env.VITE_DEFAULT_TENANT_SLUG as string) || "default";
 }
 
-function clearAuthData() {
-  localStorage.removeItem("user");
-  localStorage.removeItem("superadmin_session");
-  localStorage.removeItem("token");
-  localStorage.removeItem("refresh_token");
-  sessionStorage.clear();
+export function clearAuthData() {
+  inMemoryAccessToken = null;
+  try {
+    localStorage.removeItem("user");
+    localStorage.removeItem("superadmin_session");
+    localStorage.removeItem("token");
+    localStorage.removeItem("refresh_token");
+    localStorage.removeItem("halaqah_refresh");
+    sessionStorage.clear();
+  } catch {}
 }
 
 // Request interceptor untuk menambahkan token dan header tenant
 axiosClient.interceptors.request.use(
   (config) => {
-    // 1. Tambahkan header tenant
     const tenantSlug = resolveTenantSlug();
     if (tenantSlug) {
       config.headers["x-tenant-slug"] = tenantSlug;
     }
 
-    // 2. Ambil token dari localStorage
-    let token: string | null = null;
-    const userStr = localStorage.getItem("user");
-    if (userStr) {
-      try {
-        const user = JSON.parse(userStr);
-        token = user.token;
-      } catch (e) {
-        console.error("Gagal parse user:", e);
-      }
+    const displayToken = sessionStorage.getItem("display_token") || localStorage.getItem("display_token");
+    if (displayToken && config.url?.includes("/display/") && !config.headers["x-display-token"]) {
+      config.headers["x-display-token"] = displayToken;
     }
 
-    if (!token) {
-      token = localStorage.getItem("token");
-    }
-
-    if (!token) {
-      const superadminStr = localStorage.getItem("superadmin_session");
-      if (superadminStr) {
-        try {
-          const superadmin = JSON.parse(superadminStr);
-          token = superadmin.token;
-        } catch (e) {
-          console.error("Gagal parse superadmin:", e);
-        }
-      }
-    }
-
+    const token = getInMemoryAccessToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -100,7 +112,7 @@ const processQueue = (error: any, token: string | null = null) => {
   failedQueue = [];
 };
 
-// Response interceptor untuk handle token refresh dan 401 error
+// Response interceptor untuk handle token refresh via HttpOnly cookie dan 401 error
 axiosClient.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -125,19 +137,6 @@ axiosClient.interceptors.response.use(
         return Promise.reject(error);
       }
 
-      // Ambil refresh token
-      let refreshToken: string | null = null;
-      try {
-        const user = JSON.parse(localStorage.getItem("user") || "{}");
-        refreshToken = user.refresh_token || localStorage.getItem("refresh_token");
-      } catch {}
-
-      if (!refreshToken) {
-        clearAuthData();
-        window.location.href = "/login?reason=session_expired";
-        return Promise.reject(error);
-      }
-
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
@@ -157,34 +156,21 @@ axiosClient.interceptors.response.use(
       try {
         const refreshResponse = await axios.post(
           `${axiosClient.defaults.baseURL}/halaqah/auth/refresh`,
-          { refresh_token: refreshToken },
-          { headers: { "Content-Type": "application/json" } }
+          {},
+          {
+            withCredentials: true,
+            headers: { "Content-Type": "application/json" },
+          }
         );
 
         const newAccessToken =
           refreshResponse.data?.data?.token || refreshResponse.data?.token;
-        const newRefreshToken =
-          refreshResponse.data?.data?.refresh_token || refreshResponse.data?.refresh_token;
 
         if (!newAccessToken) {
           throw new Error("Token baru tidak ditemukan di response refresh");
         }
 
-        // Simpan token baru
-        const userStr = localStorage.getItem("user");
-        if (userStr) {
-          try {
-            const userObj = JSON.parse(userStr);
-            userObj.token = newAccessToken;
-            if (newRefreshToken) userObj.refresh_token = newRefreshToken;
-            localStorage.setItem("user", JSON.stringify(userObj));
-          } catch {}
-        }
-        localStorage.setItem("token", newAccessToken);
-        if (newRefreshToken) {
-          localStorage.setItem("refresh_token", newRefreshToken);
-        }
-
+        setInMemoryAccessToken(newAccessToken);
         processQueue(null, newAccessToken);
         if (originalRequest.headers) {
           originalRequest.headers["Authorization"] = `Bearer ${newAccessToken}`;

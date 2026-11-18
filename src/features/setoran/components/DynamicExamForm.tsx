@@ -302,7 +302,7 @@ export function DynamicExamForm({ santriList, sesiList: _sesiList, onSuccess }: 
 
     setLoading(true);
     try {
-      let payload: any = {
+      const payload: any = {
         id_jadwal: selectedJadwalId,
         id_santri: selectedSantriId,
         catatan: catatanUjian || undefined,

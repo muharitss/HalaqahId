@@ -3,30 +3,35 @@ import type { Halaqah } from "@/types/domain/halaqah";
 import type { SetoranRecord, AbsensiRecord, SantriDetailData, DisplaySantri } from "../../types";
 
 export const displayService = {
-  getSantriList: async (slug: string): Promise<DisplaySantri[]> => {
-    const response = await axiosClient.get(`/display/${slug}/santri`);
+  getSantriList: async (slug: string, token?: string): Promise<DisplaySantri[]> => {
+    const config = token ? { headers: { "x-display-token": token } } : undefined;
+    const response = await axiosClient.get(`/display/${slug}/santri`, config);
     return response.data.data; 
   },
 
-  getSetoranAll: async (slug: string): Promise<SetoranRecord[]> => {
-    const response = await axiosClient.get(`/display/${slug}/setoran/all`);
+  getSetoranAll: async (slug: string, token?: string): Promise<SetoranRecord[]> => {
+    const config = token ? { headers: { "x-display-token": token } } : undefined;
+    const response = await axiosClient.get(`/display/${slug}/setoran/all`, config);
     return response.data.data;
   },
 
-  getHalaqahList: async (slug: string): Promise<Halaqah[]> => {
-    const response = await axiosClient.get(`/display/${slug}/halaqah`);
+  getHalaqahList: async (slug: string, token?: string): Promise<Halaqah[]> => {
+    const config = token ? { headers: { "x-display-token": token } } : undefined;
+    const response = await axiosClient.get(`/display/${slug}/halaqah`, config);
     return response.data.data;
   },
 
-  getAbsensiByHalaqah: async (slug: string, halaqahId: string | number, date: string): Promise<AbsensiRecord[]> => {
+  getAbsensiByHalaqah: async (slug: string, halaqahId: string | number, date: string, token?: string): Promise<AbsensiRecord[]> => {
     // date format: YYYY-MM-DD
-    const response = await axiosClient.get(`/display/${slug}/absensi/halaqah/${halaqahId}?date=${date}`);
+    const config = token ? { headers: { "x-display-token": token } } : undefined;
+    const response = await axiosClient.get(`/display/${slug}/absensi/halaqah/${halaqahId}?date=${date}`, config);
     // Pastikan ini mengembalikan array AbsensiRecord
     return response.data.data || [];
   },
 
-  getSantriDetail: async (slug: string, id: number | string): Promise<SantriDetailData> => {
-    const response = await axiosClient.get(`/display/${slug}/santri/${id}`);
+  getSantriDetail: async (slug: string, id: number | string, token?: string): Promise<SantriDetailData> => {
+    const config = token ? { headers: { "x-display-token": token } } : undefined;
+    const response = await axiosClient.get(`/display/${slug}/santri/${id}`, config);
     return response.data.data;
   }
 };

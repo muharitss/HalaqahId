@@ -35,7 +35,10 @@ export function useSettingsPage() {
         return;
       }
 
-      const publicLink = `${window.location.origin}/display/${slug}`;
+      const token = profile.data?.display_token;
+      const publicLink = token
+        ? `${window.location.origin}/display/${slug}?token=${token}`
+        : `${window.location.origin}/display/${slug}`;
       await navigator.clipboard.writeText(publicLink);
       toast.success("Link portal publik berhasil disalin ke clipboard!");
     } catch (error) {

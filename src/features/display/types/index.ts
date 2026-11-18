@@ -30,7 +30,6 @@ export interface DisplaySetoran {
 export interface DisplaySantri {
   id_santri: number;
   nama_santri: string;
-  nomor_telepon: string;
   nama_halaqah: string;
 }
 
@@ -38,7 +37,6 @@ export interface DisplaySantriDetail {
   profil: {
     id_santri: number;
     nama_santri: string;
-    nomor_telepon: string;
     target: TargetSekolah | string | null;
     nama_halaqah: string;
     nama_muhafiz: string;
@@ -105,7 +103,11 @@ export interface PublicSantriFeedProps {
 }
 
 export interface DisplayContextType {
+  slug?: string;
+  token: string;
+  setToken: (token: string) => void;
   santriList: DisplaySantri[];
   isLoading: boolean;
+  error?: unknown;
   refreshSantri: () => Promise<void>;
 }

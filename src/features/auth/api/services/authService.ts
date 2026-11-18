@@ -19,6 +19,11 @@ export const authService = {
     return response.data;
   },
 
+  refreshSession: async (): Promise<AuthResponse> => {
+    const response = await axiosClient.post<AuthResponse>("/halaqah/auth/refresh", {});
+    return response.data;
+  },
+
   getCurrentUser: async (): Promise<AuthResponse> => {
     const response = await axiosClient.get<AuthResponse>("/halaqah/auth/me");
     return response.data;
@@ -36,13 +41,7 @@ export const authService = {
 
   logout: async (): Promise<void> => {
     try {
-      let refreshToken: string | null = null;
-      try {
-        const user = JSON.parse(localStorage.getItem("user") || "{}");
-        refreshToken = user.refresh_token || localStorage.getItem("refresh_token");
-      } catch {}
-
-      await axiosClient.post("/halaqah/auth/logout", { refresh_token: refreshToken });
+      await axiosClient.post("/halaqah/auth/logout", {});
     } catch (e) {
       console.warn("Backend logout call failed or offline:", e);
     } finally {
@@ -50,6 +49,7 @@ export const authService = {
       localStorage.removeItem("superadmin_session");
       localStorage.removeItem("token");
       localStorage.removeItem("refresh_token");
+      localStorage.removeItem("halaqah_refresh");
       sessionStorage.clear();
     }
   },

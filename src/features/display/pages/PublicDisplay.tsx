@@ -1,11 +1,15 @@
 import { useState, useMemo } from "react";
+import { Helmet } from "react-helmet-async";
 import { useDisplay } from "../components/display-provider";
 import { DisplayHeader } from "../components/DisplayHeader";
 import { SantriCard } from "../components/SantriCard";
 import { EmptyState } from "../components/EmptyState";
 import { SearchBar } from "../components/SearchBar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Users, BookOpen, GraduationCap } from "lucide-react";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Users, BookOpen, GraduationCap, Key, ShieldAlert } from "lucide-react";
 
 function SantriGridSkeleton() {
   return (
@@ -39,8 +43,11 @@ function StatCard({ icon: Icon, label, value }: { icon: React.ElementType; label
 }
 
 const PublicDisplay = () => {
-  const { santriList, isLoading } = useDisplay();
+  const { token, setToken, santriList, isLoading, error } = useDisplay();
   const [search, setSearch] = useState("");
+  const [inputToken, setInputToken] = useState("");
+
+  const isAuthError = !token || (error as any)?.response?.status === 401 || (error as any)?.response?.status === 403;
 
   const filteredSantri = useMemo(() => {
     return (santriList || []).filter((s) =>
@@ -50,17 +57,20 @@ const PublicDisplay = () => {
 
   // Calculate unique halaqah count
   const uniqueHalaqah = useMemo(() => {
-    const set = new Set((santriList || []).map(s => s.nama_halaqah).filter(Boolean));
+    const set = new Set((santriList || []).map((s) => s.nama_halaqah).filter(Boolean));
     return set.size;
   }, [santriList]);
 
   return (
     <div className="min-h-screen bg-background text-foreground transition-colors duration-300">
+      <Helmet>
+        <meta name="robots" content="noindex, nofollow" />
+      </Helmet>
+
       <DisplayHeader />
 
       <main className="px-4 md:px-8 py-6 md:py-10">
         <div className="mx-auto max-w-5xl space-y-8">
-
           {/* Hero Section */}
           <div className="text-center space-y-3 pt-2">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold mb-2">
@@ -75,42 +85,83 @@ const PublicDisplay = () => {
             </p>
           </div>
 
-          {/* Stats Banner */}
-          {!isLoading && santriList.length > 0 && (
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 animate-in fade-in slide-in-from-bottom-2 duration-500">
-              <StatCard icon={Users} label="Total Santri" value={santriList.length} />
-              <StatCard icon={BookOpen} label="Halaqah Aktif" value={uniqueHalaqah} />
-              <div className="hidden md:block">
-                <StatCard icon={GraduationCap} label="Status" value="Aktif" />
-              </div>
-            </div>
-          )}
-
-          {/* Search */}
-          <SearchBar
-            value={search}
-            onChange={setSearch}
-            resultCount={search ? filteredSantri.length : undefined}
-            totalCount={santriList?.length || 0}
-          />
-
-          {/* Content */}
-          {isLoading ? (
-            <SantriGridSkeleton />
-          ) : filteredSantri.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 animate-in fade-in slide-in-from-bottom-3 duration-500">
-              {filteredSantri.map((santri) => (
-                <SantriCard
-                  key={santri.id_santri}
-                  id={santri.id_santri}
-                  nama={santri.nama_santri}
-                  halaqah={santri.nama_halaqah}
-                  nomorTelepon={santri.nomor_telepon}
-                />
-              ))}
-            </div>
+          {/* If Token Missing or Invalid (401/403) */}
+          {isAuthError && !isLoading ? (
+            <Card className="max-w-md mx-auto border border-border/60 shadow-md">
+              <CardHeader className="text-center pb-2">
+                <div className="h-12 w-12 rounded-full bg-destructive/10 text-destructive mx-auto flex items-center justify-center mb-2">
+                  <ShieldAlert className="h-6 w-6" />
+                </div>
+                <CardTitle className="text-lg">Token Layar Kelas Diperlukan / Tidak Valid</CardTitle>
+                <CardDescription className="text-xs">
+                  {error
+                    ? "Token layar kelas yang digunakan tidak valid atau telah dirotasi oleh admin sekolah."
+                    : "Halaman display publik ini dilindungi token keamanan. Masukkan token layar kelas untuk melanjutkan."}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    if (inputToken.trim()) {
+                      setToken(inputToken.trim());
+                    }
+                  }}
+                  className="space-y-4"
+                >
+                  <div className="space-y-1.5">
+                    <Input
+                      placeholder="Masukkan display token..."
+                      value={inputToken}
+                      onChange={(e) => setInputToken(e.target.value)}
+                      className="font-mono text-center text-sm"
+                    />
+                  </div>
+                  <Button type="submit" className="w-full" disabled={!inputToken.trim()}>
+                    <Key className="w-4 h-4 mr-2" /> Terapkan Token
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
           ) : (
-            <EmptyState searchQuery={search} />
+            <>
+              {/* Stats Banner */}
+              {!isLoading && santriList.length > 0 && (
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                  <StatCard icon={Users} label="Total Santri" value={santriList.length} />
+                  <StatCard icon={BookOpen} label="Halaqah Aktif" value={uniqueHalaqah} />
+                  <div className="hidden md:block">
+                    <StatCard icon={GraduationCap} label="Status" value="Aktif" />
+                  </div>
+                </div>
+              )}
+
+              {/* Search */}
+              <SearchBar
+                value={search}
+                onChange={setSearch}
+                resultCount={search ? filteredSantri.length : undefined}
+                totalCount={santriList?.length || 0}
+              />
+
+              {/* Content */}
+              {isLoading ? (
+                <SantriGridSkeleton />
+              ) : filteredSantri.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 animate-in fade-in slide-in-from-bottom-3 duration-500">
+                  {filteredSantri.map((santri) => (
+                    <SantriCard
+                      key={santri.id_santri}
+                      id={santri.id_santri}
+                      nama={santri.nama_santri}
+                      halaqah={santri.nama_halaqah}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <EmptyState searchQuery={search} />
+              )}
+            </>
           )}
         </div>
       </main>

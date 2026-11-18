@@ -190,5 +190,16 @@ export const sekolahService = {
     } catch (error: unknown) {
       throw new Error(getErrorMessage(error, "Gagal mengambil data distribusi juz"));
     }
+  },
+
+  rotateDisplayToken: async (): Promise<ApiResponse<{ display_token: string }>> => {
+    try {
+      const res = await axiosClient.post<ApiResponse<{ display_token: string }>>(
+        "/sekolah/display-token/rotate"
+      );
+      return res.data;
+    } catch (error: unknown) {
+      throw new Error(getErrorMessage(error, "Gagal merotasi display token"));
+    }
   }
 };

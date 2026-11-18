@@ -131,9 +131,9 @@ export default function BlogDetailPage() {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen">
+      <div className="flex flex-col items-center justify-center min-h-screen bg-background text-foreground">
         <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-        <p className="text-slate-400 text-sm mt-4">Memuat artikel...</p>
+        <p className="text-muted-foreground text-sm mt-4">Memuat artikel...</p>
       </div>
     );
   }
@@ -160,7 +160,7 @@ export default function BlogDetailPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen text-slate-800 dark:text-slate-200 bg-white dark:bg-slate-950">
+    <div className="flex flex-col min-h-screen text-foreground bg-background">
       <SEO
         title={post.meta_title || post.title}
         description={post.meta_description || post.excerpt}
@@ -178,7 +178,7 @@ export default function BlogDetailPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
           {/* Breadcrumb */}
-          <div className="flex flex-wrap items-center gap-2 text-xs sm:text-sm text-slate-400 font-bold mb-8">
+          <div className="flex flex-wrap items-center gap-2 text-xs sm:text-sm text-muted-foreground font-bold mb-8">
             <Link to="/" className="hover:text-primary transition-colors">Home</Link>
             <ChevronRight size={14} />
             <Link to="/blog" className="hover:text-primary transition-colors">Blog</Link>
@@ -191,7 +191,7 @@ export default function BlogDetailPage() {
               </>
             )}
             <ChevronRight size={14} />
-            <span className="text-slate-500 max-w-[200px] truncate">{post.title}</span>
+            <span className="text-foreground max-w-[200px] truncate">{post.title}</span>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
@@ -206,14 +206,14 @@ export default function BlogDetailPage() {
                     {post.category.name}
                   </span>
                 )}
-                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white leading-tight">
+                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-foreground leading-tight">
                   {post.title}
                 </h1>
               </div>
 
               {/* Author & Meta */}
-              <div className="flex flex-wrap items-center gap-6 text-xs sm:text-sm text-slate-400 border-y border-slate-100 dark:border-slate-800/80 py-4 font-bold">
-                <div className="flex items-center gap-2 text-slate-700 dark:text-slate-200">
+              <div className="flex flex-wrap items-center gap-6 text-xs sm:text-sm text-muted-foreground border-y border-border py-4 font-bold">
+                <div className="flex items-center gap-2 text-foreground">
                   <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs shrink-0">
                     {post.author?.name?.[0]?.toUpperCase() || "A"}
                   </div>
@@ -235,7 +235,7 @@ export default function BlogDetailPage() {
 
               {/* Featured Image */}
               {post.thumbnail && (
-                <div className="rounded-2xl overflow-hidden shadow-lg border border-slate-200/20">
+                <div className="rounded-2xl overflow-hidden shadow-lg border border-border">
                   <img
                     src={post.thumbnail}
                     alt={post.title}
@@ -246,28 +246,28 @@ export default function BlogDetailPage() {
 
               {/* Article HTML Content */}
               <div
-                className="prose prose-slate dark:prose-invert max-w-none prose-sm sm:prose-base leading-relaxed text-slate-650 dark:text-slate-300
-                  prose-headings:font-black prose-headings:text-slate-900 prose-headings:dark:text-white
-                  prose-h2:text-2xl prose-h2:mt-10 prose-h2:pb-2 prose-h2:border-b prose-h2:border-slate-150 prose-h2:dark:border-slate-800
+                className="prose prose-slate dark:prose-invert max-w-none prose-sm sm:prose-base leading-relaxed text-foreground/90
+                  prose-headings:font-black prose-headings:text-foreground
+                  prose-h2:text-2xl prose-h2:mt-10 prose-h2:pb-2 prose-h2:border-b prose-h2:border-border
                   prose-p:mt-4 prose-p:mb-4
                   prose-a:text-primary prose-a:font-bold prose-a:no-underline hover:prose-a:underline
-                  prose-blockquote:border-l-4 prose-blockquote:border-primary prose-blockquote:bg-slate-50 dark:prose-blockquote:bg-slate-950/20 prose-blockquote:p-4 prose-blockquote:rounded-r-xl prose-blockquote:italic
+                  prose-blockquote:border-l-4 prose-blockquote:border-primary prose-blockquote:bg-muted/40 prose-blockquote:p-4 prose-blockquote:rounded-r-xl prose-blockquote:italic
                   prose-code:text-primary prose-code:bg-primary/5 prose-code:p-1 prose-code:rounded prose-code:text-xs
                   prose-table:border-collapse prose-table:w-full prose-table:my-6
-                  prose-th:border prose-th:border-slate-200 dark:prose-th:border-slate-800 prose-th:bg-slate-50 dark:prose-th:bg-slate-950 prose-th:p-3 prose-th:text-xs prose-th:font-bold
-                  prose-td:border prose-td:border-slate-200 dark:prose-td:border-slate-800 prose-td:p-3 prose-td:text-xs
+                  prose-th:border prose-th:border-border prose-th:bg-muted/40 prose-th:p-3 prose-th:text-xs prose-th:font-bold
+                  prose-td:border prose-td:border-border prose-td:p-3 prose-td:text-xs
                 "
                 dangerouslySetInnerHTML={{ __html: getParsedContent(post.content) }}
               />
 
               {/* Tags */}
               {post.tags && post.tags.length > 0 && (
-                <div className="flex flex-wrap gap-2 pt-6 border-t border-slate-100 dark:border-slate-850">
+                <div className="flex flex-wrap gap-2 pt-6 border-t border-border">
                   {post.tags.map((t, i) => (
                     <Link
                       key={i}
                       to={`/blog?tag=${t.tag.slug}`}
-                      className="px-3 py-1.5 bg-slate-50 dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold text-slate-500 dark:text-slate-400 rounded-lg border border-slate-200/50 dark:border-slate-800/50 transition-colors"
+                      className="px-3 py-1.5 bg-muted/40 dark:bg-card hover:bg-muted text-xs font-bold text-muted-foreground hover:text-foreground rounded-lg border border-border transition-colors"
                     >
                       #{t.tag.name}
                     </Link>
@@ -276,8 +276,8 @@ export default function BlogDetailPage() {
               )}
 
               {/* Share section */}
-              <div className="p-6 bg-slate-50 dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/50 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
-                <span className="font-bold text-sm text-slate-700 dark:text-slate-200 flex items-center gap-2">
+              <div className="p-6 bg-muted/40 dark:bg-card border border-border rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
+                <span className="font-bold text-sm text-foreground flex items-center gap-2">
                   <Share2 size={16} />
                   Bagikan Artikel Ini:
                 </span>
@@ -302,7 +302,7 @@ export default function BlogDetailPage() {
                   </button>
                   <button
                     onClick={() => shareLink("copy")}
-                    className="px-4 py-2 bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-705 text-slate-700 dark:text-slate-300 text-xs font-bold rounded-xl transition-colors"
+                    className="px-4 py-2 bg-secondary hover:bg-muted text-secondary-foreground text-xs font-bold rounded-xl border border-border transition-colors"
                   >
                     Salin Link
                   </button>
@@ -310,21 +310,21 @@ export default function BlogDetailPage() {
               </div>
 
               {/* Prev / Next widgets */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-slate-100 dark:border-slate-850 pt-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-border pt-8">
                 {prevNext.prev ? (
                   <Link
                     to={`/blog/${prevNext.prev.slug}`}
-                    className="p-5 border border-slate-200/50 dark:border-slate-800/50 hover:border-primary/50 dark:hover:border-primary/50 rounded-2xl text-left space-y-2 hover:-translate-y-0.5 transition-all group"
+                    className="p-5 border border-border hover:border-primary/50 rounded-2xl text-left space-y-2 hover:-translate-y-0.5 transition-all group bg-card"
                   >
-                    <span className="text-[10px] uppercase font-bold text-slate-400 flex items-center gap-1 group-hover:text-primary transition-colors">
+                    <span className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-1 group-hover:text-primary transition-colors">
                       <ArrowLeft size={10} /> Artikel Sebelumnya
                     </span>
-                    <h4 className="font-bold text-sm text-slate-850 dark:text-slate-200 line-clamp-2">
+                    <h4 className="font-bold text-sm text-foreground line-clamp-2">
                       {prevNext.prev.title}
                     </h4>
                   </Link>
                 ) : (
-                  <div className="p-5 border border-dashed rounded-2xl text-slate-400 text-xs flex items-center justify-center">
+                  <div className="p-5 border border-dashed border-border rounded-2xl text-muted-foreground text-xs flex items-center justify-center">
                     Tidak ada artikel sebelumnya
                   </div>
                 )}
@@ -332,17 +332,17 @@ export default function BlogDetailPage() {
                 {prevNext.next ? (
                   <Link
                     to={`/blog/${prevNext.next.slug}`}
-                    className="p-5 border border-slate-200/50 dark:border-slate-800/50 hover:border-primary/50 dark:hover:border-primary/50 rounded-2xl text-right space-y-2 hover:-translate-y-0.5 transition-all group"
+                    className="p-5 border border-border hover:border-primary/50 rounded-2xl text-right space-y-2 hover:-translate-y-0.5 transition-all group bg-card"
                   >
-                    <span className="text-[10px] uppercase font-bold text-slate-400 flex items-center gap-1 justify-end group-hover:text-primary transition-colors">
+                    <span className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-1 justify-end group-hover:text-primary transition-colors">
                       Artikel Selanjutnya <ArrowRight size={10} />
                     </span>
-                    <h4 className="font-bold text-sm text-slate-850 dark:text-slate-200 line-clamp-2">
+                    <h4 className="font-bold text-sm text-foreground line-clamp-2">
                       {prevNext.next.title}
                     </h4>
                   </Link>
                 ) : (
-                  <div className="p-5 border border-dashed rounded-2xl text-slate-400 text-xs flex items-center justify-center">
+                  <div className="p-5 border border-dashed border-border rounded-2xl text-muted-foreground text-xs flex items-center justify-center">
                     Tidak ada artikel selanjutnya
                   </div>
                 )}
@@ -355,8 +355,8 @@ export default function BlogDetailPage() {
               
               {/* Table of Contents (TOC) */}
               {toc.length > 0 && (
-                <div className="p-6 bg-slate-50 dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/50 rounded-2xl text-left space-y-4 sticky top-24">
-                  <h4 className="font-bold text-slate-900 dark:text-white text-sm uppercase tracking-wider">
+                <div className="p-6 bg-muted/40 dark:bg-card border border-border rounded-2xl text-left space-y-4 sticky top-24">
+                  <h4 className="font-bold text-foreground text-sm uppercase tracking-wider">
                     Daftar Isi (TOC)
                   </h4>
                   <nav className="flex flex-col gap-2.5">
@@ -371,7 +371,7 @@ export default function BlogDetailPage() {
                             el.scrollIntoView({ behavior: "smooth", block: "start" });
                           }
                         }}
-                        className="text-xs sm:text-sm text-slate-500 hover:text-primary dark:text-slate-400 dark:hover:text-white transition-colors line-clamp-1 leading-snug"
+                        className="text-xs sm:text-sm text-muted-foreground hover:text-primary transition-colors line-clamp-1 leading-snug"
                       >
                         {item.text}
                       </a>
@@ -382,17 +382,17 @@ export default function BlogDetailPage() {
 
               {/* Related articles */}
               {related && related.length > 0 && (
-                <div className="p-6 bg-slate-50 dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/50 rounded-2xl text-left space-y-4">
-                  <h4 className="font-bold text-slate-900 dark:text-white text-sm uppercase tracking-wider">
+                <div className="p-6 bg-muted/40 dark:bg-card border border-border rounded-2xl text-left space-y-4">
+                  <h4 className="font-bold text-foreground text-sm uppercase tracking-wider">
                     Artikel Terkait
                   </h4>
                   <div className="flex flex-col gap-4">
                     {related.map((post) => (
                       <div key={post.id_post} className="space-y-1">
-                        <h5 className="font-bold text-xs sm:text-sm text-slate-850 dark:text-white hover:text-primary transition-colors line-clamp-2 leading-snug">
+                        <h5 className="font-bold text-xs sm:text-sm text-foreground hover:text-primary transition-colors line-clamp-2 leading-snug">
                           <Link to={`/blog/${post.slug}`}>{post.title}</Link>
                         </h5>
-                        <p className="text-[10px] text-slate-400">
+                        <p className="text-[10px] text-muted-foreground">
                           {formatDate(post.published_at)}
                         </p>
                       </div>

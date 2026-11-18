@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { BookOpen, Menu, X } from "lucide-react";
 import { useAuth } from "@/features/auth/components/auth-provider";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/custom/theme/ThemeToggle";
 
 export const Header: React.FC = () => {
   const { user } = useAuth();
@@ -51,7 +52,9 @@ export const Header: React.FC = () => {
         </nav>
 
         {/* Actions */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <ThemeToggle />
+
           {user ? (
             <Button asChild size="sm">
               <Link to="/dashboard">Ke Dashboard</Link>

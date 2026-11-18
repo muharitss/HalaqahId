@@ -1,13 +1,12 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { MessageCircle, BookOpen, User, Target, Phone } from "lucide-react";
+import { BookOpen, User, Target } from "lucide-react";
 import { type TargetSekolah } from "@/types/domain/target";
 
 interface ProfileCardProps {
   nama: string;
   halaqah: string;
-  nomorTelepon?: string;
   target?: string | TargetSekolah | null;
   muhafiz?: string;
 }
@@ -38,8 +37,7 @@ function getTargetConfig(target?: string | TargetSekolah | null) {
   }
 }
 
-export function ProfileCard({ nama, halaqah, nomorTelepon, target, muhafiz }: ProfileCardProps) {
-  const waLink = nomorTelepon ? `https://wa.me/${nomorTelepon.replace(/^0/, '62').replace(/\D/g, '')}` : null;
+export function ProfileCard({ nama, halaqah, target, muhafiz }: ProfileCardProps) {
   const targetConfig = getTargetConfig(target);
 
   return (
@@ -100,29 +98,6 @@ export function ProfileCard({ nama, halaqah, nomorTelepon, target, muhafiz }: Pr
               <p className="text-sm font-semibold text-foreground truncate">{halaqah}</p>
             </div>
           </div>
-
-          {nomorTelepon && (
-            <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/40 border border-border/30 sm:col-span-2">
-              <div className="h-8 w-8 rounded-lg bg-emerald-500/10 flex items-center justify-center shrink-0">
-                <Phone className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Telepon</p>
-                <p className="text-sm font-semibold text-foreground">{nomorTelepon}</p>
-              </div>
-              {waLink && (
-                <a
-                  href={waLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 transition-colors text-xs font-semibold shrink-0"
-                >
-                  <MessageCircle className="h-3.5 w-3.5" />
-                  WhatsApp
-                </a>
-              )}
-            </div>
-          )}
         </div>
       </CardContent>
     </Card>

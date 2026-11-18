@@ -7,9 +7,16 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
+    "typecheck": "tsc -b",
     "preview": "vite preview",
     "prepare": "husky",
-    "test": "echo \"No tests specified\" && exit 0"
+    "test": "playwright test",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:report": "playwright show-report",
+    "test:e2e:setup": "playwright test --project=setup",
+    "test:e2e:install": "playwright install --with-deps chromium"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^7.1.0",

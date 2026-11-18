@@ -1,4 +1,4 @@
-﻿import { Edit2 } from "lucide-react";
+import { Edit2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -122,7 +122,7 @@ export function LandingSectionsCard({
               {landingSections.map((sec) => (
                 <tr key={sec.id_section} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/30">
                   <td className="p-3 font-bold font-mono text-slate-800 dark:text-slate-200">{sec.section_key}</td>
-                  <td className="p-3 font-medium text-slate-550 max-w-xs truncate">{sec.title || <span className="text-slate-300">-</span>}</td>
+                  <td className="p-3 font-medium text-slate-600 dark:text-slate-400 max-w-xs truncate">{sec.title || <span className="text-slate-300">-</span>}</td>
                   <td className="p-3 font-semibold">{sec.order}</td>
                   <td className="p-3">
                     <span className={`px-2 py-0.5 rounded font-black text-[9px] uppercase ${

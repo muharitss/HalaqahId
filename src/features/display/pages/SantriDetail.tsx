@@ -1,3 +1,5 @@
+import { useState } from "react";
+import { Helmet } from "react-helmet-async";
 import { useSantriDetail } from "../hooks/useSantriDetail";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SantriDetailHeader } from "../components/santri-detail/SantriDetailHeader";
@@ -5,9 +7,10 @@ import { ProfileCard } from "../components/santri-detail/ProfileCard";
 import { StatistikKehadiran } from "../components/santri-detail/StatistikKehadiran";
 import { RekapHarian } from "../components/santri-detail/RekapHarian";
 import { RiwayatSetoran } from "../components/santri-detail/RiwayatSetoran";
-import { AlertCircle } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { AlertCircle, Key, ShieldAlert } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 function DetailSkeleton() {
   return (
@@ -84,20 +87,70 @@ const SantriDetail = () => {
     data,
     loading,
     error,
+    isAuthError,
+    setToken,
     viewDate,
     setViewDate,
     daysInMonth,
     chartData,
     refetch,
   } = useSantriDetail();
+  const [inputToken, setInputToken] = useState("");
 
   if (loading) {
     return <DetailSkeleton />;
   }
 
+  if (isAuthError) {
+    return (
+      <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-4">
+        <Helmet>
+          <meta name="robots" content="noindex, nofollow" />
+        </Helmet>
+        <Card className="max-w-md w-full border border-border/60 shadow-md">
+          <CardHeader className="text-center pb-2">
+            <div className="h-12 w-12 rounded-full bg-destructive/10 text-destructive mx-auto flex items-center justify-center mb-2">
+              <ShieldAlert className="h-6 w-6" />
+            </div>
+            <CardTitle className="text-lg">Token Layar Kelas Diperlukan / Tidak Valid</CardTitle>
+            <CardDescription className="text-xs">
+              Akses detail santri dilindungi token keamanan. Masukkan token layar kelas untuk melihat data.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (inputToken.trim()) {
+                  setToken(inputToken.trim());
+                }
+              }}
+              className="space-y-4"
+            >
+              <div className="space-y-1.5">
+                <Input
+                  placeholder="Masukkan display token..."
+                  value={inputToken}
+                  onChange={(e) => setInputToken(e.target.value)}
+                  className="font-mono text-center text-sm"
+                />
+              </div>
+              <Button type="submit" className="w-full" disabled={!inputToken.trim()}>
+                <Key className="w-4 h-4 mr-2" /> Terapkan Token
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   if (error) {
     return (
       <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-4">
+        <Helmet>
+          <meta name="robots" content="noindex, nofollow" />
+        </Helmet>
         <Card className="max-w-sm w-full border border-border/60 shadow-sm">
           <CardContent className="pt-6 flex flex-col items-center text-center space-y-4">
             <div className="h-14 w-14 rounded-2xl bg-destructive/10 flex items-center justify-center">
@@ -119,6 +172,9 @@ const SantriDetail = () => {
   if (!data) {
     return (
       <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-4">
+        <Helmet>
+          <meta name="robots" content="noindex, nofollow" />
+        </Helmet>
         <Card className="max-w-sm w-full border border-border/60 shadow-sm">
           <CardContent className="pt-6 flex flex-col items-center text-center space-y-3">
             <div className="h-14 w-14 rounded-2xl bg-muted/60 flex items-center justify-center">
@@ -136,6 +192,9 @@ const SantriDetail = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground transition-colors duration-300">
+      <Helmet>
+        <meta name="robots" content="noindex, nofollow" />
+      </Helmet>
       <SantriDetailHeader santriName={data.profil.nama_santri} />
 
       <main className="px-4 md:px-8 py-6 md:py-10">
@@ -143,7 +202,6 @@ const SantriDetail = () => {
           <ProfileCard
             nama={data.profil.nama_santri}
             halaqah={data.profil.nama_halaqah}
-            nomorTelepon={data.profil.nomor_telepon}
             target={data.profil.target}
             muhafiz={data.profil.nama_muhafiz}
           />

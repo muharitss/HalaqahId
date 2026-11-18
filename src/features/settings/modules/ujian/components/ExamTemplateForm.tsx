@@ -530,7 +530,7 @@ export function ExamTemplateForm({
                 </Badge>
               ) : (
                 <Badge variant="destructive" className="text-[9px] font-bold">
-                  âš ï¸ {simulationResult.error}
+                  ⚠️ {simulationResult.error}
                 </Badge>
               )}
             </CardHeader>
