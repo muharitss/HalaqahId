@@ -10,14 +10,6 @@ export interface DetectedAyahState {
   others: Ayah[];
 }
 
-export interface GroqResponse {
-  choices: {
-    message: {
-      content: string;
-    };
-  }[];
-}
-
 export interface AlQuranCloudAyah {
   text: string;
   numberInSurah: number;

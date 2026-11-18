@@ -21,6 +21,7 @@ export const TahfidzAi = () => {
   const {
     liveTranscript,
     detectedAyah,
+    errorMessage,
     isProcessing,
     isDataLoaded,
     status,
@@ -155,6 +156,10 @@ export const TahfidzAi = () => {
                     </div>
                   )}
                 </div>
+              ) : errorMessage ? (
+                <div className="text-center space-y-2 py-10">
+                  <p className="text-sm text-destructive font-semibold">{errorMessage}</p>
+                </div>
               ) : (
                 <div className="text-center space-y-3 opacity-30 py-10">
                   {detectedAyah === "not_found" ? (
@@ -191,7 +196,7 @@ export const TahfidzAi = () => {
         </CardContent>
       </Card>
 
-      {(detectedAyah || liveTranscript) && !isProcessing && (
+      {(detectedAyah || liveTranscript || errorMessage) && !isProcessing && (
         <Button 
           variant="ghost" 
           size="sm" 
